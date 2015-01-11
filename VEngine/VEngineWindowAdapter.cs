@@ -16,12 +16,29 @@ namespace VDGTech
             GLThread.StartTime = DateTime.Now;
             SceneNode.Root = new SceneNode();
 
+            GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+            GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
             GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
                 Console.WriteLine("{0} {1} {2} {3} {4} {5}", source, type, id, severity, length, message);
             }, (IntPtr)0);
+            MouseMove += Mouse_Move;
+            CursorVisible = false;
+        }
+
+        void Mouse_Move(object sender, OpenTK.Input.MouseMoveEventArgs e)
+        {
+            var p = this.PointToScreen(new System.Drawing.Point(Width / 2, Height / 2));
+            var p2 = this.PointToScreen(new System.Drawing.Point(e.X, e.Y));
+            if (Camera.Current != null && p2.X != p.X && p2.Y != p.Y)
+            {
+                Camera.Current.ProcessMouseMovement(e.XDelta, e.YDelta);
+                if (Math.Abs(p.X - p2.X) > 10 || Math.Abs(p.Y - p2.Y) > 10) System.Windows.Forms.Cursor.Position = p;
+            }
         }
 
         protected override void OnLoad(System.EventArgs e)
@@ -46,7 +63,6 @@ namespace VDGTech
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GL.Disable(EnableCap.DepthTest);
             GLThread.InvokeQueue();
             error = GL.GetError();
             if (error != ErrorCode.NoError)
@@ -54,7 +70,9 @@ namespace VDGTech
                 Console.WriteLine(error.ToString());
                 throw new ApplicationException("OpenGL error");
             }
+            GLThread.InvokeOnBeforeDraw();
             SceneNode.Root.Draw(Matrix4.Identity);
+            GLThread.InvokeOnAfterDraw();
 
             SwapBuffers();
         }
@@ -62,7 +80,9 @@ namespace VDGTech
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f));
+            GLThread.InvokeOnUpdate();
             var keyboard = OpenTK.Input.Keyboard.GetState();
+            if (Camera.Current != null) Camera.Current.ProcessKeyboardState(keyboard);
             if (keyboard[OpenTK.Input.Key.Escape])
                 Exit();
         }

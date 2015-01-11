@@ -24,9 +24,10 @@ namespace VDGTech
             ShaderProgram shader = Material.GetShaderProgram();
             Material.Use();
             if (Sun.Current != null) Sun.Current.BindToShader(shader);
-            shader.SetUniform("ModelMatrix", Matrix);
+            shader.SetUniform("ModelMatrix", translation * Matrix);
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
+            shader.SetUniform("CameraPosition", Camera.Current.Position);
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
 
             ObjectInfo.Draw();
@@ -34,7 +35,7 @@ namespace VDGTech
 
         public void UpdateMatrix()
         {
-            Matrix = Matrix4.Identity;
+            Matrix = Matrix4.CreateFromQuaternion(Orientation) * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
         }
     }
 }
