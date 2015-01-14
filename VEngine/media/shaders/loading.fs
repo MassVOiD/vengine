@@ -4,7 +4,7 @@ in vec2 cubetexcoord;
 in float time;
 
 void main( void ) {
-	vec2 resolution = vec2(1200, 600);
+	vec2 resolution = vec2(1600, 900);
 	vec2 position = (( gl_FragCoord.xy / resolution.xy )*2.0 - 1.0);
 	vec2 uv = gl_FragCoord.xy / resolution;
 	position.x *= resolution.x / resolution.y;

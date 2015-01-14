@@ -25,38 +25,47 @@ namespace Tester
                 1.0f, 1.0f, 0.9f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
             };
             uint[] postProcessingPlaneIndices = {
-                0, 1, 2, 1, 2, 3
+                0, 1, 2, 3, 2, 1
             };
+
+            Mesh3d postPlane = null;
+            GLThread.Invoke(() =>
+            {
+                Camera camera = new Camera(new Vector3(52, 22, 5), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 2.0f, 8000.0f);
+
+                Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
+                postPlane3dInfo.GenerateBuffers();
+                postPlane = new Mesh3d(postPlane3dInfo, new PostProcessLoadingMaterial());
+                postPlane.UpdateMatrix();
+
+                World.Root.UpdateMatrix();
+                World.Root.Add(postPlane);
+            });
+
+
+            Object3dInfo ball3dInfo = Object3dInfo.LoadFromObj(Media.Get("lightsphere.obj"));
+            Object3dInfo cube3dInfo = Object3dInfo.LoadFromObj(Media.Get("airplane.obj"));
+            Object3dInfo teapot3dInfo = Object3dInfo.LoadFromObj(Media.Get("teapot.obj"));
 
             GLThread.Invoke(() =>
             {
-                Camera camera = new Camera(new Vector3(52, 22, 5), new Vector3(0, 2, 0), 1600.0f/900.0f, 3.14f / 2.0f, 2.0f, 8000.0f);
-
-                Object3dInfo teapot3dInfo = Object3dInfo.LoadFromObj(Media.Get("teapot.obj"));
-                Mesh3d teapot = new Mesh3d(teapot3dInfo, new SolidColorMaterial(Color.Blue));
-                teapot.Scale = 2.7f;
-                teapot.UpdateMatrix();
-
-                Object3dInfo city3dInfo = Object3dInfo.LoadFromObj(Media.Get("city2_superbig.obj"));
-                Mesh3d city = new Mesh3d(city3dInfo, new SolidColorMaterial(Color.Green));
-                city.Scale = 0.3f;
-                city.Position = new Vector3(0, -20.0f, 0);
-                city.UpdateMatrix();
-
-                Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
-                Mesh3d postPlane = new Mesh3d(postPlane3dInfo, new PostProcessLoadingMaterial());
-                postPlane.UpdateMatrix();
-
-                SceneNode.Root.UpdateMatrix();
-                //SceneNode.Root.Add(postPlane);
-                SceneNode.Root.Add(teapot);
-                SceneNode.Root.Add(city);
-                GLThread.OnUpdate += (o,p) => {
-                    var rotation = Quaternion.FromAxisAngle(Vector3.UnitY, 0.001f);
-                    teapot.Orientation = Quaternion.Multiply(teapot.Orientation, rotation);
-                    teapot.UpdateMatrix();
-                };
+                ball3dInfo.GenerateBuffers();
+                cube3dInfo.GenerateBuffers();
+                teapot3dInfo.GenerateBuffers();
+                Random rand = new Random();
+                for (int i = 0; i < 1000; i++)
+                {
+                    Mesh3d ball = new Mesh3d(cube3dInfo, new SolidColorMaterial(Color.FromArgb(rand.Next(10, 255), rand.Next(10, 255), rand.Next(10, 255))));
+                    ball.SetScale(0.2f);
+                    ball.SetPosition(new Vector3(rand.Next(10, 90), rand.Next(10, 90), rand.Next(10, 90)));
+                    ball.SetCollisionShape(new BulletSharp.BoxShape(5,1,5));
+                    ball.SetMass(15.5f);
+                    ball.UpdateMatrix();
+                    World.Root.Add(ball);
+                }
+                World.Root.Remove(postPlane);
             });
+
             renderThread.Wait();
         }
     }

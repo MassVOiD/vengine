@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-
+using System.IO.Compression;
 namespace VDGTech
 {
     public class Object3dInfo
@@ -17,6 +17,10 @@ namespace VDGTech
         {
             VBO = vbo;
             Indices = indices;
+        }
+
+        public void GenerateBuffers()
+        {
             VertexBuffer = GL.GenBuffer();
             IndexBuffer = GL.GenBuffer();
 
@@ -29,10 +33,10 @@ namespace VDGTech
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBuffer);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndexBuffer);
-            var varray = vbo.ToArray();
-            var iarray = indices.ToArray();
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * vbo.Count), varray, BufferUsageHint.StaticDraw);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(sizeof(uint) * indices.Count), iarray, BufferUsageHint.StaticDraw);
+            var varray = VBO.ToArray();
+            var iarray = Indices.ToArray();
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * VBO.Count), varray, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(sizeof(uint) * Indices.Count), iarray, BufferUsageHint.StaticDraw);
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
@@ -86,6 +90,54 @@ namespace VDGTech
         public static Object3dInfo LoadFromObj(string infile)
         {
             string[] lines = File.ReadAllLines(infile);
+            var data = ParseOBJString(lines);
+            return new Object3dInfo(data.Item1, data.Item2);
+        }
+
+        public static void CompressAndSave(string infile, string outfile)
+        {
+            string[] lines = File.ReadAllLines(infile);
+            var data = ParseOBJString(lines);
+            if (File.Exists(outfile)) File.Delete(outfile);
+
+            MemoryStream memstream = new MemoryStream();
+            memstream.Write(BitConverter.GetBytes(data.Item1.Count), 0, 4);
+            memstream.Write(BitConverter.GetBytes(data.Item2.Count), 0, 4);
+            foreach (float v in data.Item1) memstream.Write(BitConverter.GetBytes(v), 0, 4);
+            foreach (uint v in data.Item2) memstream.Write(BitConverter.GetBytes(v), 0, 4);
+            memstream.Flush();
+
+            File.WriteAllBytes(outfile, memstream.ToArray());
+        }
+        public static Object3dInfo LoadFromCompressed(string infile)
+        {
+            var inStream = File.OpenRead(infile);
+
+            byte[] buf = new byte[4];
+
+            inStream.Read(buf, 0, 4);
+            int vcount = BitConverter.ToInt32(buf, 0);
+            inStream.Read(buf, 0, 4);
+            int icount = BitConverter.ToInt32(buf, 0);
+
+            List<float> vertices = new List<float>();
+            List<uint> indices = new List<uint>();
+            while (vcount-- > 0)
+            {
+                inStream.Read(buf, 0, 4);
+                vertices.Add(BitConverter.ToSingle(buf, 0));
+            }
+            while (icount-- > 0)
+            {
+                inStream.Read(buf, 0, 4);
+                indices.Add(BitConverter.ToUInt32(buf, 0));
+            }
+
+            return new Object3dInfo(vertices, indices);
+        }
+
+        static Tuple<List<float>, List<uint>> ParseOBJString(string[] lines)
+        {
 
             List<Vector3> temp_vertices = new List<Vector3>(), temp_normals = new List<Vector3>();
             List<Vector2> temp_uvs = new List<Vector2>();
@@ -147,22 +199,33 @@ namespace VDGTech
                     }
                 }
             }
-            return new Object3dInfo(out_vertex_buffer, index_buffer);
+            return new Tuple<List<float>, List<uint>>(out_vertex_buffer, index_buffer);
         }
+
+        static Object3dInfo Current = null;
 
         public void Draw()
         {
-            GL.BindVertexArray(VAOHandle);
-            GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
-                DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
-
-            var error = GL.GetError();
-            if (error != ErrorCode.NoError)
+            if (Current != this)
             {
-                Console.WriteLine(error.ToString());
-                throw new ApplicationException("OpenGL error");
+                Current = this;
+                GL.BindVertexArray(VAOHandle);
+                GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+
+                var error = GL.GetError();
+                if (error != ErrorCode.NoError)
+                {
+                    Console.WriteLine(error.ToString());
+                    throw new ApplicationException("OpenGL error");
+                }
             }
-            GL.BindVertexArray(0);
+            else
+            {
+                GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+
+            }
         }
     }
 }

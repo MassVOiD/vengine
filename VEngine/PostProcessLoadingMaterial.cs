@@ -6,7 +6,7 @@
 
         public PostProcessLoadingMaterial()
         {
-            Program = new ShaderProgram(Media.ReadAllText("post.vs"), Media.ReadAllText("spheres.fs"));
+            Program = new ShaderProgram(Media.ReadAllText("post.vs"), Media.ReadAllText("loading.fs"));
         }
 
         public ShaderProgram GetShaderProgram()

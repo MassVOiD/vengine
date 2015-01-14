@@ -27,19 +27,22 @@ namespace VDGTech
         public void ProcessMouseMovement(int deltax, int deltay)
         {
             Pitch += (float)deltax / 100.0f;
-            if(Pitch > MathHelper.TwoPi) Pitch = 0.0f;
+            if (Pitch > MathHelper.TwoPi) Pitch = 0.0f;
 
             Roll += (float)deltay / 100.0f;
-            if(Roll > MathHelper.TwoPi) Roll = 0.0f;
+            if (Roll > MathHelper.Pi / 2) Roll = MathHelper.Pi / 2;
+            if (Roll < -MathHelper.Pi / 2) Roll = -MathHelper.Pi / 2;
 
             Update();
         }
+
         void Update()
         {
             var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, Pitch);
             var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, Roll);
             ViewMatrix = Matrix4.CreateTranslation(Position) * Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
         }
+
         public void ProcessKeyboardState(OpenTK.Input.KeyboardState keys)
         {
             if (keys.IsKeyDown(OpenTK.Input.Key.W))
@@ -47,6 +50,36 @@ namespace VDGTech
                 var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
                 var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
                 Vector4 direction = -Vector4.UnitZ;
+                direction = Vector4.Transform(direction, rotationY);
+                direction = Vector4.Transform(direction, rotationX);
+                Position -= direction.Xyz;
+                Update();
+            }
+            if (keys.IsKeyDown(OpenTK.Input.Key.S))
+            {
+                var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
+                var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
+                Vector4 direction = Vector4.UnitZ;
+                direction = Vector4.Transform(direction, rotationY);
+                direction = Vector4.Transform(direction, rotationX);
+                Position -= direction.Xyz;
+                Update();
+            }
+            if (keys.IsKeyDown(OpenTK.Input.Key.A))
+            {
+                var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
+                var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
+                Vector4 direction = -Vector4.UnitX;
+                direction = Vector4.Transform(direction, rotationY);
+                direction = Vector4.Transform(direction, rotationX);
+                Position -= direction.Xyz;
+                Update();
+            }
+            if (keys.IsKeyDown(OpenTK.Input.Key.D))
+            {
+                var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
+                var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
+                Vector4 direction = Vector4.UnitX;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 Position -= direction.Xyz;

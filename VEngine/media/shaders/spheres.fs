@@ -1,363 +1,131 @@
 #version 430 core
-const vec2 resolution = vec2(3000, 950);
 
-vec3 wPos;
-vec3 sunPos = vec3(1.,150.,10.);
-
+const vec2 iResolution = vec2(1600, 900);
 uniform float Time;
+// Crazy Springs by eiffie
+// Don't know why there is a seam on the springs.
+// Well looking at my code I know why. I just don't know exactly why. :)
 
-vec3 sunDirection = normalize(sunPos);
+#define time Time
+#define size iResolution
 
-float turbidity = 1.0;
-float rayleighCoefficient = 1.5;
-
-const float mieCoefficient = 0.50;
-const float mieDirectionalG = 0.70;
-
-
-// constants for atmospheric scattering
-const float e  = 2.718281828459045235360287471352662497757247;
-const float pi = 3.141592653589793238462643383279502884197169;
-
-const float n = 1.0003; // refractive index of air
-const float N = 2.545E25; // number of molecules per unit volume for air at
-						// 288.15K and 1013mb (sea level -45 celsius)
-
-// wavelength of used primaries, according to preetham
-const vec3 primaryWavelengths = vec3(680E-9, 550E-9, 450E-9);
-
-// mie stuff
-// K coefficient for the primaries
-const vec3 K = vec3(0.686, 0.78, 0.666);
-const float v = 4.0;
-
-// optical length at zenith for molecules
-const float rayleighZenithLength = 8.4E3;
-const float mieZenithLength = 1.25E3;
-const vec3 up = vec3(0.0, 0.0, 1.0);
-
-const float sunIntensity = 575.0;
-const float sunAngularDiameterCos = 0.9998993194915; // 66 arc seconds -> degrees, and the cosine of that
-
-// earth shadow hack
-const float cutoffAngle = pi/1.95;
-const float steepness = 1.5;
-
-struct Camera											// A camera struct that holds all relevant camera parameters
+//#define SHADOWS
+float f1,f2,f3;
+float DE(vec3 p)
 {
-	vec3 position;
-	vec3 lookAt;
-	vec3 rayDir;
-	vec3 forward, up, left;
-};
-	
-struct Clouds
-{
-	vec3 Skylighting;
-	vec3 Sunlighting;
-	vec3 Groundlighting;
-	vec3 Inscattering;
-	vec3 Density;
-	vec3 Wind;
-};
-	
-//Sky funtions
-
-vec3 TotalRayleigh(vec3 primaryWavelengths)
-{
-	vec3 rayleigh = (8.0 * pow(pi, 3.0) * pow(pow(n, 2.0) - 1.0, 2.0)) / (3.0 * N * pow(primaryWavelengths, vec3(4.0)));   // The rayleigh scattering coefficient
- 
-    return rayleigh; 
-
-    //  8PI^3 * (n^2 - 1)^2 * (6 + 3pn)     8PI^3 * (n^2 - 1)^2
-    // --------------------------------- = --------------------  
-    //    3N * Lambda^4 * (6 - 7pn)          3N * Lambda^4         
-}
-
-float RayleighPhase(float cosViewSunAngle)
-{	 
-	return (3.0 / (1.0*pi)) * (1.0 + pow(cosViewSunAngle, 2.0));
-}
-
-vec3 totalMie(vec3 primaryWavelengths, vec3 K, float T)
-{
-	float c = (0.2 * T ) * 10E-18;
-	return 0.434 * c * pi * pow((2.0 * pi) / primaryWavelengths, vec3(v - 2.0)) * K;
-}
-
-float SchlickPhase(float cosViewSunAngle, float g)
-{
-	float k = (1.55 * g) - (5.55 * (g * g * g));
-	return (1.0 / (4.0 * pi)) * ((1.0 - (k * k)) / ( pow( 1.0 + k * cosViewSunAngle, 2.0)));
-}
-
-float SunIntensity(float zenithAngleCos)
-{
-	return sunIntensity * max(0.0, 1.0 - exp(-((cutoffAngle - acos(zenithAngleCos))/steepness)));
-}
-
-
-//Sun Ray funtion
-
-float rand(int seed, float ray) 
-{
-	return mod(sin(float(seed)*363.5346+ray*674.2454)*6743.4365, 1.0);
-}
-
-vec3 SunRay(in vec2 pos, in vec2 resolution)
-{	
-	float pi = 3.14159265359;
-	vec2 position = pos;
-	position.y *= resolution.y/resolution.x;
-	position.y += 0.33;
-	float ang = atan(position.x, position.y);
-	float dist = length(position);
-	vec3 col = vec3(1.7, 1.5, 1.0) * (pow(dist, -1.0) * 0.002);
-	for (float ray = 0.5; ray < 10.0; ray += 0.097) 
-	{
-		float rayang = rand(5, ray)*6.2+(Time*0.02)*20.0*(rand(2546, ray)-rand(5785, ray))-(rand(3545, ray)-rand(5467, ray));
-		rayang = mod(rayang, pi*2.0);
-		if (rayang < ang - pi) {rayang += pi*2.0;}
-		if (rayang > ang + pi) {rayang -= pi*2.0;}
-		float brite = 0.3 - abs(ang - rayang);
-		brite -= dist * 0.5;
-		
-		if (brite > 0.0) 
-		{
-			col += vec3(0.1+1.7*rand(8644, ray), 0.55+1.3*rand(4567, ray), 0.7+0.5*rand(7354, ray)) * brite * 0.01;
+	vec3 g=floor(p+0.5);
+	vec3 g1=g+sin(g.yzx*f1+g.zxy*f2+g*f3)*0.25;
+	vec4 dlt=vec4(sign(p-g1),0.0);
+	vec3 g2=g+dlt.xww;
+	vec3 g3=g+dlt.wyw;
+	vec3 g4=g+dlt.wwz;
+	g1-=p;
+	g2+=sin(g2.yzx*f1+g2.zxy*f2+g2*f3)*0.25-p;
+	g3+=sin(g3.yzx*f1+g3.zxy*f2+g3*f3)*0.25-p;
+	g4+=sin(g4.yzx*f1+g4.zxy*f2+g4*f3)*0.25-p;
+	vec3 gD=g2-g1,gDs=gD;
+	float t1=clamp(dot(-g1,gD)/dot(gD,gD),0.0,1.0);
+	vec3 p1=mix(g1,g2,t1);
+	float m1=dot(p1,p1);
+	gD=g3-g1;
+	float t2=clamp(dot(-g1,gD)/dot(gD,gD),0.0,1.0);
+	vec3 p2=mix(g1,g3,t2);
+	float m2=dot(p2,p2);
+	if(m2<m1){m1=m2;t1=t2;p1=p2;gDs=gD;}
+	gD=g4-g1;
+	t2=clamp(dot(-g1,gD)/dot(gD,gD),0.0,1.0);
+	vec3 p3=mix(g1,g4,t2);
+	m2=dot(p3,p3);
+	if(m2<m1){m1=m2;t1=t2;p1=p3;gDs=gD;}
+	float d1=sqrt(min(dot(g1,g1),min(dot(g2,g2),min(dot(g3,g3),dot(g4,g4)))))-0.15;
+	float len=length(gDs);
+	float d2=sqrt(m1)-0.07+len*sqrt(d1)*0.02;
+	float d=0.25;
+	if(d2<d && d2<d1){
+		if(d2<0.015){
+			gDs/=len;
+			gD=normalize(cross(gDs,vec3(1.0,0.0,0.0)));
+			float b=dot(p1,gD),c=dot(p1,cross(gDs,gD));
+			vec2 v=vec2(d2,(fract( (t1*16.0+atan(b,c)*0.795775))-0.5)*0.05*len);
+			d2=length(v)-0.01;
 		}
+		d=d2;
 	}
-	
-	return col.rgb;
-}
-
-//Cloud funtions
-
-float hash( float n )
-{
-    return fract(sin(n)*4548.5455);
-}
-
-
-float FractionalBrownianMotion( in vec3 x )
-{
-    vec3 p = floor(x);
-    vec3 f = fract(x);
-
-    f = f*f*(3.0-2.0*f);
-    float n = p.x + p.y*57.0 + 113.0*p.z;
-    return mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
-                   mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y),
-               mix(mix( hash(n+113.0), hash(n+114.0),f.x),
-                   mix( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
-}
-
-vec4 CalculateDensity( in vec3 p, in vec3 diffuse, in vec3 ambient )
-{
-	//altitude
-	float d = 4.0 - p.y;
-	//wind
-	Clouds Cloud;
-	Cloud.Wind =  vec3(-0.2,0.1,0.1) * (Time * 0.2);
-	vec3 q = p - Cloud.Wind;
-	
-	float f;
-    	f  = 0.5000*FractionalBrownianMotion( q ); q = q*2.02;
-    	f += 0.2500*FractionalBrownianMotion( q ); q = q*2.03;
-    	f += 0.1250*FractionalBrownianMotion( q ); q = q*2.01;
-    	f += 0.0625*FractionalBrownianMotion( q );
-	
-	//0-1
-	float cloudPuffiness = 0.7;
-	float cloudWispyness = 0.0;
-	//f -= 0.12 * d * 0.01;
-	f -= 0.09 * FractionalBrownianMotion( q ) * 2.5;
-	
-	
-	f = clamp(f - (1.0 - cloudPuffiness), 0.0, 1.0 - cloudWispyness) / (1.0 - cloudWispyness);
-	
-	//density
-	d += 0.0 * f;
-
-	d = clamp( d, 0.0, 1.0 );
-	
-	vec4 res = vec4( d );
-
-	// diffuse is here actually
-	res.xyz = mix( diffuse * 8.0, vec3(0.5), res.x );
-	res.a -= f * 1.0;
-	return res;
-}
-
-vec4 CalculateClouds( in vec3 ro, in vec3 rd, in vec3 color, in float x )
-{
-	vec4 sum = vec4(0.0, 0.0, 0.0, 0);
-	float cloudCover = 0.15;
-	ro.x *= -1.0;
-	
-	float t = 0.0;
-	for(int i=0; i<64; i++)
-	{
-		if( sum.a > 0.99 ) continue;
-
-		vec3 pos = ro + t * vec3(rd.xz * (0.1 / rd.y), 2.0);
-		
-		
-		//Calculate DirectLighting
-		vec3 diffuse = vec3(2.0,1.55,1.0) * 0.5 + 0.3;
-		float sunPhase = (SchlickPhase(x - 0.055, mieDirectionalG) * 0.35);
-		//Calculate Ambient
-		vec3 ambient = exp2(1.0 - sunPhase) * vec3(1.5,1.97,2.38) * 0.1 + 0.8;
-		//Calculate GroundLighting
-		
-		vec4 col = CalculateDensity( pos, diffuse, ambient );
-		
-		
-		#if 1
-		float constrast = 1.0;
-		col.xyz *= diffuse + mix(ambient, color, clamp((1.0 - sunPhase), 0.0, 1.0 ) * 0.01);
-		#endif
-		col.a = max(col.a - (1.0 - cloudCover), 0.0);
-		col.a *= 0.25;
-		//col.rgb *= (sunPhase * diffuse);
-		col.rgb += (ambient) * 0.2;
-		col.rgb *= col.a;
-		col.xyz *= pow(col.xyz, vec3(constrast));
-		sum = sum + col*(0.8 - sum.a);
-		
-        	#if 0
-		t += 0.1;
-		#else
-		t += max(0.1,0.04*t);
-		#endif
+	if(d1<d){
+		d=d1;
 	}
-
-	sum.xyz /= (0.001+sum.w);
-
-	return clamp( sum, 0.0, 1.0 );
+	return d;
+}
+vec3 getColor(vec3 p){
+	vec3 g=floor(p+0.5);
+	vec3 g1=g+sin(g.yzx*f1+g.zxy*f2+g*f3)*0.25;
+	vec4 dlt=vec4(sign(p-g1),0.0);
+	vec3 g2=g+dlt.xww;
+	vec3 g3=g+dlt.wyw;
+	vec3 g4=g+dlt.wwz;
+	g1-=p;
+	g2+=sin(g2.yzx*f1+g2.zxy*f2+g2*f3)*0.25-p;
+	g3+=sin(g3.yzx*f1+g3.zxy*f2+g3*f3)*0.25-p;
+	g4+=sin(g4.yzx*f1+g4.zxy*f2+g4*f3)*0.25-p;
+	float d1=sqrt(min(dot(g1,g1),min(dot(g2,g2),dot(g3,g3))))-0.15;
+	if(d1<0.005)return vec3(0.6,0.2,0.0)+sin(g*2.0)*0.2;
+	return vec3(0.5,0.4,0.2)+sin(p*100.0)*0.1;
+}
+#ifdef SHADOWS
+float linstep(float a, float b, float t){return clamp((t-a)/(b-a),0.,1.);}//from knighty
+//random seed and generator
+float randSeed,GoldenAngle;
+float randStep(){//crappy random number generator
+	randSeed=fract(randSeed+GoldenAngle);
+	return  (0.8+0.2*randSeed);
+}
+float FuzzyShadow(vec3 ro, vec3 rd, float coneGrad){
+	float t=0.01,d,s=1.0,r;
+	ro+=rd*t;
+	for(int i=0;i<8;i++){
+		r=t*coneGrad;
+		d=DE(ro+rd*t)+r*0.5;
+		s*=linstep(-r,r,d);
+		t+=d*randStep();
+	}
+	return clamp(s,0.3,1.0);
+}
+#endif
+mat3 lookat(vec3 fw,vec3 up){
+	fw=normalize(fw);vec3 rt=normalize(cross(fw,up));return mat3(rt,cross(rt,fw),fw);
 }
 
-float A = 0.15;
-float B = 0.50;
-float C = 0.10;
-float D = 0.20;
-float E = 0.02;
-float F = 0.30;
-float W = 1000.0;
+void main() {
+#ifdef SHADOWS
+	GoldenAngle=2.0-0.5*(1.0+sqrt(5.0));
+	randSeed=fract(sin(dot(gl_FragCoord.xy,vec2(13.434,77.2378))+time*0.1)*41323.34526);
+#endif
+	f1=fract(time*0.01)*6.2832;f2=6.2832*(1.0-fract(time*0.013));f3=6.2832*(fract(time*0.017));
+	vec3 ro = vec3(0.5,0.5,time);
+	mat3 rotCam=lookat(vec3(sin(time*0.9)*0.5,sin(time*1.4)*0.3,1.0),vec3(sin(time*0.3),cos(time*0.3)*vec2(cos(time*0.5),sin(time*0.5))));
+	vec3 rd = rotCam*normalize(vec3((size.xy-2.0*gl_FragCoord.xy)/size.y,1.75));
+	float t=0.0,d=1.0,dm=100.0,tm;
+	for(int i=0;i<32;i++){
+		t+=d=DE(ro+rd*t);
+		if(d<dm){dm=d;tm=t;}
+	}
+	vec3 L=normalize(vec3(0.3,0.7,-0.4));
+	vec3 col=vec3(0.5,0.6,0.7)*pow(0.75+0.25*dot(rd,L),2.0)+rd*0.1;
+	if(dm<0.01){
+		vec3 p=ro+rd*tm;
+		vec2 v=vec2(0.001,0.0);
+		vec3 N=normalize(vec3(DE(p+v.xyy)-DE(p-v.xyy),DE(p+v.yxy)-DE(p-v.yxy),DE(p+v.yyx)-DE(p-v.yyx)));
+		vec3 scol=getColor(p)*(1.0+dot(N,L));
+		scol+=vec3(0.5,0.2,0.75)*pow(max(0.0,dot(reflect(rd,N),L)),8.0);
+#ifdef SHADOWS
+		scol*=FuzzyShadow(p,L,0.5);
+#else 
+		scol*=clamp((DE(p+N*0.75)+DE(p+N*0.25))*4.0,0.25,1.0);//cheat from mu6k
+#endif
 
-vec3 Uncharted2Tonemap(vec3 x)
-{
-   return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
-}
-
-vec3 ToneMap(vec3 color) {
-    vec3 toneMappedColor;
-    
-    toneMappedColor = color * 0.04;
-    toneMappedColor = Uncharted2Tonemap(toneMappedColor);
-    
-    float sunfade = 1.0-clamp(1.0-exp(-(sunPos.z/500.0)),0.0,1.0);
-    toneMappedColor = pow(toneMappedColor,vec3(1.0/(1.2+(1.2*sunfade))));
-    
-    return toneMappedColor;
-}
-
-void main() 
-{ 
-    sunDirection = normalize(vec3(-(-0.5)*2., -1, (-0.5)*2.));
+		scol=mix(col,scol,exp(-t*0.4));
+		col=mix(scol,col,smoothstep(0.0,0.01,dm));
+	}
+	gl_FragColor = vec4(clamp(col*1.5,0.0,1.0),1.0);
 	
-    // General parameter setup
-	vec2 vPos = 2.0*gl_FragCoord.xy/resolution.xy - 1.0; 					// map vPos to -1..1
-	float t = Time*0.0;									// Time value, used to animate stuff
-	float screenAspectRatio = resolution.x/resolution.y;					// the aspect ratio of the screen (e.g. 16:9)
-	vec3 finalColor = vec3(0.1);								// The background color, dark gray in this case
-	
-   //Camera setup
-	Camera cam;										// Make a struct holding all camera parameters
-  	cam.lookAt = vec3(0,0,3);								// The point the camera is looking at
-	cam.position = vec3(0, 5, 0);						// The position of the camera
-	cam.up = vec3(0,0,1);									// The up vector, change to make the camera roll, in world space
-  	cam.forward = normalize(cam.lookAt-cam.position);					// The camera forward vector, pointing directly at the lookat point
-  	cam.left = cross(cam.forward, cam.up);							// The left vector, which is perpendicular to both forward and up
- 	cam.up = cross(cam.left, cam.forward);							// The recalculated up vector, in camera space
- 
-	vec3 screenOrigin = (cam.position+cam.forward); 					// Position in 3d space of the center of the screen
-	vec3 screenHit = screenOrigin + vPos.x*cam.left*screenAspectRatio + vPos.y*cam.up; 	// Position in 3d space where the camera ray intersects the screen
-  
-	cam.rayDir = normalize(screenHit-cam.position);						// The direction of the current camera ray
-
-	
-	vec2 q = gl_FragCoord.xy / resolution.xy;
-	vec2 p = -1.0 + 2.0*q;
-	p.x *= resolution.x/ resolution.y;
-	vec2 mo = -1.0 + 2.0 / resolution.xy;
-	
-	    // camera
-    	vec3 ro = 4.0*normalize(vec3(cos(2.75-3.0*mo.x), 0.7+(mo.y+2.2+0.3*sin(0.2)), sin(2.75-3.0*mo.x)));
-	vec3 ta = vec3(1.5, -10.0, 2.0);
-    	vec3 ww = normalize( ta - ro);
-    	vec3 uu = normalize(cross( vec3(0.0,1.0,0.0), ww ));
-    	vec3 vv = normalize(cross(ww,uu));
-    	vec3 rd = normalize( p.x*uu*1.7 + p.y*vv*1.4 + 1.0*ww );
-	
-	
-	sunPos = vec3(0, -1, abs(sin(Time*0.4))*1.9-0.1);
-	sunDirection = normalize(sunPos);//vec3(-(mouse.x-0.5)*2.*screenAspectRatio, -1, (mouse.y-0.5)*2.));	
-    vec3 viewDir = cam.rayDir;//normalize(wPos);
-	
-	//Sun rays
-	vec2 po = ( (gl_FragCoord.xy / resolution.xy) * 2.0 - 1.0 ) - sunPos.xz;
-	vec3 sunRay = SunRay(po, resolution);
-	
-	
-    // Cos Angles
-    float cosViewSunAngle = dot(viewDir, sunDirection);
-    float cosSunUpAngle = dot(sunDirection, up);
-    float cosUpViewAngle = dot(up, viewDir);
-    
-    float sunE = SunIntensity(cosSunUpAngle);  // Get sun intensity based on how high in the sky it is
-
-	// extinction (absorbtion + out scattering)
-	// rayleigh coefficients
-//	vec3 rayleighAtX = TotalRayleigh(primaryWavelengths) * rayleighCoefficient;
-    vec3 rayleighAtX = vec3(5.176821E-6, 1.2785348E-5, 2.8530756E-5) * rayleighCoefficient;
-    
-	// mie coefficients
-	vec3 mieAtX = totalMie(primaryWavelengths, K, turbidity) * mieCoefficient;  
-    
-	// optical length
-	// cutoff angle at 90 to avoid singularity in next formula.
-	float zenithAngle = max(0.0, cosUpViewAngle);
-    
-	float rayleighOpticalLength = rayleighZenithLength / zenithAngle;
-	float mieOpticalLength = mieZenithLength / zenithAngle;
-
-
-	// combined extinction factor	
-	vec3 Fex = exp(-(rayleighAtX * rayleighOpticalLength + mieAtX * mieOpticalLength));
-
-	// in scattering
-	vec3 rayleighXtoEye = rayleighAtX * RayleighPhase(cosViewSunAngle);
-	vec3 mieXtoEye = mieAtX *  SchlickPhase(cosViewSunAngle, mieDirectionalG);
-     
-    vec3 totalLightAtX = rayleighAtX + mieAtX;
-    vec3 lightFromXtoEye = rayleighXtoEye + mieXtoEye; 
-    
-    vec3 somethingElse = sunE * (lightFromXtoEye / totalLightAtX);
-    
-    vec3 sky = somethingElse * (1.0 - Fex);
-    sky *= mix(vec3(1.0),pow(somethingElse * Fex,vec3(0.5)),clamp(pow(1.0-dot(up, sunDirection),5.0),0.0,1.0));
-
-	//vec4 cloud = CalculateClouds(ro, rd, sky, cosViewSunAngle);
-    
-	// composition + solar disc
-
-    float sundisk = 0.0;//smoothstep(sunAngularDiameterCos,sunAngularDiameterCos+0.00002,cosViewSunAngle);
-    vec3 sun = (sunE * 19000.0 * Fex)*sundisk;
-    vec3 final = ToneMap(sky+sun) * 1.0;
-	//final = mix( final, (cloud.xyz), cloud.w );
-
-	
-    gl_FragColor.rgb = pow(final, vec3(1.5)) + sunRay;
-    gl_FragColor.a = 1.0;
 }
