@@ -2,6 +2,7 @@
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using System;
+using System.Threading.Tasks;
 
 namespace VDGTech
 {
@@ -30,6 +31,12 @@ namespace VDGTech
             CursorVisible = false;
         }
 
+        void PhysicsThread()
+        {
+            while (true)
+                World.Root.UpdatePhysics((DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f);
+        }
+
         void Mouse_Move(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
             if (Camera.Current != null)
@@ -48,6 +55,12 @@ namespace VDGTech
             GL.ClearColor(0.37f, 0.37f, 0.37f, 1.0f);
             var s = GL.GetString(StringName.Version);
             Console.WriteLine(s);
+
+        }
+
+        public void StartPhysicsThread()
+        {
+            Task.Factory.StartNew(PhysicsThread);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -74,7 +87,6 @@ namespace VDGTech
         {
             //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f));
             GLThread.InvokeOnUpdate();
-            World.Root.UpdatePhysics((float)e.Time);
             var keyboard = OpenTK.Input.Keyboard.GetState();
             if (Camera.Current != null) Camera.Current.ProcessKeyboardState(keyboard);
             if (keyboard[OpenTK.Input.Key.Escape])

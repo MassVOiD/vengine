@@ -11,7 +11,7 @@ namespace Tester
     {
         private static void Main(string[] args)
         {
-            VEngineWindowAdapter window;
+            VEngineWindowAdapter window = null;
             var renderThread = Task.Factory.StartNew(() =>
             {
                 window = new VEngineWindowAdapter("Test", 1600, 900);
@@ -44,28 +44,29 @@ namespace Tester
 
 
             Object3dInfo ball3dInfo = Object3dInfo.LoadFromObj(Media.Get("lightsphere.obj"));
-            Object3dInfo cube3dInfo = Object3dInfo.LoadFromObj(Media.Get("airplane.obj"));
+            Object3dInfo cube3dInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"));
             Object3dInfo teapot3dInfo = Object3dInfo.LoadFromObj(Media.Get("teapot.obj"));
+
+            Random rand = new Random();
 
             GLThread.Invoke(() =>
             {
                 ball3dInfo.GenerateBuffers();
                 cube3dInfo.GenerateBuffers();
                 teapot3dInfo.GenerateBuffers();
-                Random rand = new Random();
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 5000; i++)
                 {
-                    Mesh3d ball = new Mesh3d(cube3dInfo, new SolidColorMaterial(Color.FromArgb(rand.Next(10, 255), rand.Next(10, 255), rand.Next(10, 255))));
-                    ball.SetScale(0.2f);
+                    Mesh3d ball = new Mesh3d(ball3dInfo, new SolidColorMaterial(Color.FromArgb(rand.Next(10, 255), rand.Next(10, 255), rand.Next(10, 255))));
+                    ball.SetScale(2);
                     ball.SetPosition(new Vector3(rand.Next(10, 90), rand.Next(10, 90), rand.Next(10, 90)));
-                    ball.SetCollisionShape(new BulletSharp.BoxShape(5,1,5));
+                    ball.SetCollisionShape(new BulletSharp.SphereShape(1));
                     ball.SetMass(15.5f);
                     ball.UpdateMatrix();
                     World.Root.Add(ball);
                 }
                 World.Root.Remove(postPlane);
             });
-
+            GLThread.Invoke(() =>  window.StartPhysicsThread());
             renderThread.Wait();
         }
     }

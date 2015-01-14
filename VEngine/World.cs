@@ -58,8 +58,10 @@ namespace VDGTech
         {
             if (Disposed) return;
             PhysicalWorld.StepSimulation(elapsedTime);
-            foreach (RigidBody body in PhysicalWorld.CollisionObjectArray)
+            int len = PhysicalWorld.CollisionObjectArray.Count;
+            for (int i = 0; i < len; i++)
             {
+                var body = PhysicalWorld.CollisionObjectArray[i];
                 Mesh3d mesh = body.UserObject as Mesh3d;
                 if (mesh != null)
                 {

@@ -210,8 +210,8 @@ namespace VDGTech
             {
                 Current = this;
                 GL.BindVertexArray(VAOHandle);
-                GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+                GL.DrawElements(PrimitiveType.Triangles, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero);
 
                 var error = GL.GetError();
                 if (error != ErrorCode.NoError)
