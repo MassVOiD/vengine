@@ -19,6 +19,7 @@ namespace VDGTech
         {
             ObjectInfo = objectInfo;
             Material = material;
+            UpdateMatrix();
         }
 
         public Mesh3d Translate(Vector3 translation)
@@ -32,6 +33,14 @@ namespace VDGTech
             Position = position;
             HasBeenModified = true;
             return this;
+        }
+        public Vector3 GetPosition()
+        {
+            return Position;
+        }
+        public Quaternion GetOrientation()
+        {
+            return Orientation;
         }
         public Mesh3d Rotate(Quaternion rotation)
         {
@@ -74,6 +83,11 @@ namespace VDGTech
 
         public void Draw()
         {
+            if (HasBeenModified)
+            {
+                UpdateMatrix();
+                HasBeenModified = false;
+            }
             if (Camera.Current == null) return;
             ShaderProgram shader = Material.GetShaderProgram();
             Material.Use();

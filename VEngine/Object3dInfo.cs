@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.IO.Compression;
+using BulletSharp;
+using System.Linq;
+
 namespace VDGTech
 {
     public class Object3dInfo
@@ -12,11 +15,14 @@ namespace VDGTech
         private List<uint> Indices;
         private List<float> VBO;
         private int VertexBuffer, IndexBuffer, VAOHandle;
+        private bool AreBuffersGenerated;
+        public bool WireFrameRendering = false;
 
         public Object3dInfo(List<float> vbo, List<uint> indices)
         {
             VBO = vbo;
             Indices = indices;
+            AreBuffersGenerated = false;
         }
 
         public void GenerateBuffers()
@@ -203,16 +209,40 @@ namespace VDGTech
         }
 
         static Object3dInfo Current = null;
+        private BvhTriangleMeshShape CachedBvhTriangleMeshShape; 
+
+        public BvhTriangleMeshShape GetAccurateCollisionShape()
+        {
+            if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
+            List<Vector3> vectors = new List<Vector3>();
+            for(int i=0;i<VBO.Count;i += 8) vectors.Add(new Vector3(VBO[i], VBO[i+1], VBO[i+2]));
+            var smesh = new TriangleIndexVertexArray(Indices.Select<uint, int>(a => (int)a).ToArray(), vectors.ToArray());
+            CachedBvhTriangleMeshShape = new BvhTriangleMeshShape(smesh, false);
+            return CachedBvhTriangleMeshShape;
+        }
 
         public void Draw()
         {
+            if (!AreBuffersGenerated)
+            {
+                //GenerateBuffers();
+                AreBuffersGenerated = true;
+            }
             if (Current != this)
             {
                 Current = this;
                 GL.BindVertexArray(VAOHandle);
-                GL.DrawElements(PrimitiveType.Triangles, Indices.Count,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero);
-
+                ShaderProgram.Current.Use();
+                if (WireFrameRendering)
+                {
+                    GL.DrawElementsBaseVertex(PrimitiveType.LineStrip, Indices.Count,
+                        DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+                }
+                else
+                {
+                    GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
+                        DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+                }
                 var error = GL.GetError();
                 if (error != ErrorCode.NoError)
                 {
@@ -222,9 +252,16 @@ namespace VDGTech
             }
             else
             {
-                GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
-
+                if (WireFrameRendering)
+                {
+                    GL.DrawElementsBaseVertex(PrimitiveType.LineStrip, Indices.Count,
+                        DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+                }
+                else
+                {
+                    GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
+                        DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+                }
             }
         }
     }

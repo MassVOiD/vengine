@@ -87,7 +87,7 @@ namespace VDGTech
 
         public void Use()
         {
-            if (Current == this) return;
+            //if (Current == this) return;
             GL.UseProgram(handle);
             Current = this;
         }

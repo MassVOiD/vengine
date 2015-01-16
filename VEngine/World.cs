@@ -12,7 +12,7 @@ namespace VDGTech
         public float Scale = 1.0f;
         private List<IRenderable> Children;
         private Matrix4 Matrix;
-        public bool Disposed;
+        public volatile bool Disposed;
 
         public DiscreteDynamicsWorld PhysicalWorld;
         CollisionDispatcher Dispatcher;
@@ -59,10 +59,12 @@ namespace VDGTech
             if (Disposed) return;
             PhysicalWorld.StepSimulation(elapsedTime);
             int len = PhysicalWorld.CollisionObjectArray.Count;
+            Mesh3d mesh;
+            CollisionObject body;
             for (int i = 0; i < len; i++)
             {
-                var body = PhysicalWorld.CollisionObjectArray[i];
-                Mesh3d mesh = body.UserObject as Mesh3d;
+                body = PhysicalWorld.CollisionObjectArray[i];
+                mesh = body.UserObject as Mesh3d;
                 if (mesh != null)
                 {
                     mesh.UpdateMatrixFromPhysics(body.WorldTransform);

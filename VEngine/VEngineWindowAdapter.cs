@@ -19,6 +19,7 @@ namespace VDGTech
 
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
+            GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
@@ -71,6 +72,7 @@ namespace VDGTech
 
             GLThread.InvokeQueue();
             GLThread.InvokeOnBeforeDraw();
+            if (Skybox.Current != null) Skybox.Current.Draw();
             World.Root.Draw();
             GLThread.InvokeOnAfterDraw();
             var error = GL.GetError();
@@ -91,8 +93,10 @@ namespace VDGTech
             if (Camera.Current != null) Camera.Current.ProcessKeyboardState(keyboard);
             if (keyboard[OpenTK.Input.Key.Escape])
             {
-                World.Root.DisposePhysics();
-                Exit();
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+                // this disposing causes more errors than normal killing
+                //World.Root.DisposePhysics();
+                //Exit();
             }
         }
     }

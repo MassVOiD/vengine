@@ -33,7 +33,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -72,11 +72,15 @@
     <Compile Include="Camera.cs" />
     <Compile Include="GLThread.cs" />
     <Compile Include="IMaterial.cs" />
-    <Compile Include="IRenderable.cs" />
+    <Compile Include="RenderableInterfaces.cs" />
     <Compile Include="Media.cs" />
     <Compile Include="Mesh3d.cs" />
     <Compile Include="Object3dInfo.cs" />
     <Compile Include="PostProcessLoadingMaterial.cs" />
+    <Compile Include="Skybox.cs" />
+    <Compile Include="ManualShaderMaterial.cs" />
+    <Compile Include="SkyboxMaterial.cs" />
+    <Compile Include="SingleTextureMaterial.cs" />
     <Compile Include="World.cs" />
     <Compile Include="ShaderProgram.cs" />
     <Compile Include="SolidColorMaterial.cs" />
@@ -87,7 +91,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="media\SingleTextureMaterial.fragment.glsl" />
+    <None Include="media\InfiniteGround.fragment.glsl" />
+    <None Include="media\SingleTextureMaterial.vertex.glsl" />
     <None Include="media\SolidColorMaterial.fragment.glsl" />
+    <None Include="media\InfiniteGround.vertex.glsl" />
     <None Include="media\SolidColorMaterial.vertex.glsl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

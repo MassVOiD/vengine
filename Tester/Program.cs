@@ -42,28 +42,29 @@ namespace Tester
                 World.Root.Add(postPlane);
             });
 
-
-            Object3dInfo ball3dInfo = Object3dInfo.LoadFromObj(Media.Get("lightsphere.obj"));
-            Object3dInfo cube3dInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"));
-            Object3dInfo teapot3dInfo = Object3dInfo.LoadFromObj(Media.Get("teapot.obj"));
-
+            Object3dInfo ball3dInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"));
             Random rand = new Random();
 
             GLThread.Invoke(() =>
             {
                 ball3dInfo.GenerateBuffers();
-                cube3dInfo.GenerateBuffers();
-                teapot3dInfo.GenerateBuffers();
-                for (int i = 0; i < 5000; i++)
+                Texture tex = new Texture(Media.Get("uv.png")); 
+                for (int i = 0; i < 20; i++)
                 {
-                    Mesh3d ball = new Mesh3d(ball3dInfo, new SolidColorMaterial(Color.FromArgb(rand.Next(10, 255), rand.Next(10, 255), rand.Next(10, 255))));
+                    Mesh3d ball = new Mesh3d(ball3dInfo, new SingleTextureMaterial(tex));
                     ball.SetScale(2);
-                    ball.SetPosition(new Vector3(rand.Next(10, 90), rand.Next(10, 90), rand.Next(10, 90)));
+                    ball.SetPosition(new Vector3(rand.Next(-200, 200), rand.Next(-200, 200), rand.Next(-200, 200)));
                     ball.SetCollisionShape(new BulletSharp.SphereShape(1));
                     ball.SetMass(15.5f);
                     ball.UpdateMatrix();
                     World.Root.Add(ball);
                 }
+                Helicopter copter = new Helicopter();
+                World.Root.Add(copter);
+
+                InfiniteGround ground = new InfiniteGround();
+                World.Root.Add(ground);
+                
                 World.Root.Remove(postPlane);
             });
             GLThread.Invoke(() =>  window.StartPhysicsThread());

@@ -5,11 +5,12 @@ namespace VDGTech
 {
     public class SolidColorMaterial : IMaterial
     {
+        protected static ShaderProgram Program;
         private Color4 Colour;
-        private static ShaderProgram Program = new ShaderProgram(Media.ReadAllText("SolidColorMaterial.vertex.glsl"), Media.ReadAllText("SolidColorMaterial.fragment.glsl"));
 
         public SolidColorMaterial(Color color)
         {
+            Program = new ShaderProgram(Media.ReadAllText("SolidColorMaterial.vertex.glsl"), Media.ReadAllText("SolidColorMaterial.fragment.glsl"));
             Colour = color;
         }
 
