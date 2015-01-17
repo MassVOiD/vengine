@@ -7,7 +7,11 @@ namespace VDGTech
     {
         static public DateTime StartTime;
         private static Queue<Action> ActionQueue = new Queue<Action>();
-        static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw;
+        static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw, OnLoad;
+        static public event EventHandler<OpenTK.Input.MouseWheelEventArgs> OnMouseWheel;
+        static public event EventHandler<OpenTK.Input.MouseButtonEventArgs> OnMouseDown, OnMouseUp;
+        static public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyDown, OnKeyUp;
+        static public event EventHandler<OpenTK.KeyPressEventArgs> OnKeyPress;
 
         static public void Invoke(Action action)
         {
@@ -19,11 +23,40 @@ namespace VDGTech
         }
         static public void InvokeOnBeforeDraw()
         {
-            if(OnBeforeDraw != null) OnBeforeDraw.Invoke(null, new EventArgs());
+            if (OnBeforeDraw != null) OnBeforeDraw.Invoke(null, new EventArgs());
         }
         static public void InvokeOnAfterDraw()
         {
             if (OnAfterDraw != null) OnAfterDraw.Invoke(null, new EventArgs());
+        }
+
+        static public void InvokeOnKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)
+        {
+            if (OnKeyDown != null) OnKeyDown.Invoke(null, e);
+        }
+        static public void InvokeOnKeyUp(OpenTK.Input.KeyboardKeyEventArgs e)
+        {
+            if (OnKeyUp != null) OnKeyUp.Invoke(null, e);
+        }
+        static public void InvokeOnKeyPress(OpenTK.KeyPressEventArgs e)
+        {
+            if (OnKeyPress != null) OnKeyPress.Invoke(null, e);
+        }
+        static public void InvokeOnMouseDown(OpenTK.Input.MouseButtonEventArgs e)
+        {
+            if (OnMouseDown != null) OnMouseDown.Invoke(null, e);
+        }
+        static public void InvokeOnMouseUp(OpenTK.Input.MouseButtonEventArgs e)
+        {
+            if (OnMouseUp != null) OnMouseUp.Invoke(null, e);
+        }
+        static public void InvokeOnMouseWheel(OpenTK.Input.MouseWheelEventArgs e)
+        {
+            if (OnMouseWheel != null) OnMouseWheel.Invoke(null, e);
+        }
+        static public void InvokeOnLoad()
+        {
+            if (OnLoad != null) OnLoad.Invoke(null, new EventArgs());
         }
 
         static public void InvokeQueue()

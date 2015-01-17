@@ -33,6 +33,7 @@ namespace VDGTech
             GroundShape = new StaticPlaneShape(Vector3.UnitY, 1.0f);
             Ground = CreateRigidBody(0, Matrix4.CreateTranslation(0, 0, 0), GroundShape, null);
             CollisionObjects = new Dictionary<IRenderable, CollisionObject>();
+            if(Root == null) Root = this;
         }
 
         public RigidBody CreateRigidBody(float mass, Matrix4 startTransform, CollisionShape shape, Mesh3d reference)
@@ -57,17 +58,20 @@ namespace VDGTech
         public virtual void UpdatePhysics(float elapsedTime)
         {
             if (Disposed) return;
-            PhysicalWorld.StepSimulation(elapsedTime);
-            int len = PhysicalWorld.CollisionObjectArray.Count;
-            Mesh3d mesh;
-            CollisionObject body;
-            for (int i = 0; i < len; i++)
+            lock (PhysicalWorld)
             {
-                body = PhysicalWorld.CollisionObjectArray[i];
-                mesh = body.UserObject as Mesh3d;
-                if (mesh != null)
+                PhysicalWorld.StepSimulation(elapsedTime);
+                int len = PhysicalWorld.CollisionObjectArray.Count;
+                Mesh3d mesh;
+                CollisionObject body;
+                for (int i = 0; i < len; i++)
                 {
-                    mesh.UpdateMatrixFromPhysics(body.WorldTransform);
+                    body = PhysicalWorld.CollisionObjectArray[i];
+                    mesh = body.UserObject as Mesh3d;
+                    if (mesh != null)
+                    {
+                        mesh.UpdateMatrixFromPhysics(body.WorldTransform);
+                    }
                 }
             }
         }
@@ -78,10 +82,23 @@ namespace VDGTech
             if (renderable is Mesh3d)
             {
                 Mesh3d mesh = renderable as Mesh3d;
-                if (mesh.GetCollisionShape() != null)
+                if (mesh.GetCollisionShape() != null || renderable is IPhysical)
                 {
-                    CollisionObjects.Add(renderable, CreateRigidBody(mesh.GetMass(), mesh.Matrix, mesh.GetCollisionShape(), mesh));
+                    lock (PhysicalWorld)
+                    {
+                        CollisionObjects.Add(renderable, mesh.CreateRigidBody());
+                        PhysicalWorld.AddRigidBody(mesh.PhysicalBody);
+                    }
                 }
+            }
+            else if (renderable is IPhysical)
+            {
+                IPhysical physicalObject = renderable as IPhysical;
+                lock (PhysicalWorld)
+                {
+                    PhysicalWorld.AddRigidBody(physicalObject.GetRigidBody());
+                }
+
             }
         }
 

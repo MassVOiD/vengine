@@ -13,6 +13,7 @@ namespace VDGTech
         public Matrix4 Matrix;
         private Object3dInfo ObjectInfo;
         private CollisionShape PhysicalShape;
+        public RigidBody PhysicalBody;
         public bool HasBeenModified { get; private set; }
 
         public Mesh3d(Object3dInfo objectInfo, IMaterial material)
@@ -20,6 +21,26 @@ namespace VDGTech
             ObjectInfo = objectInfo;
             Material = material;
             UpdateMatrix();
+        }
+
+        public RigidBody CreateRigidBody()
+        {
+            bool isDynamic = (Mass != 0.0f);
+            var shape = GetCollisionShape();
+
+            Vector3 localInertia = Vector3.Zero;
+            if (isDynamic)
+                shape.CalculateLocalInertia(Mass, out localInertia);
+
+            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Orientation) * Matrix4.CreateTranslation(Position));
+
+            RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(Mass, myMotionState, shape, localInertia);
+            RigidBody body = new RigidBody(rbInfo);
+            body.UserObject = this;
+
+            PhysicalBody = body;
+
+            return body;
         }
 
         public Mesh3d Translate(Vector3 translation)
@@ -90,6 +111,7 @@ namespace VDGTech
             }
             if (Camera.Current == null) return;
             ShaderProgram shader = Material.GetShaderProgram();
+            if (shader.Handle == -1) return;
             Material.Use();
             if (Sun.Current != null) Sun.Current.BindToShader(shader);
             shader.SetUniform("ModelMatrix", Matrix);
@@ -108,6 +130,8 @@ namespace VDGTech
         public void UpdateMatrixFromPhysics(Matrix4 matrix)
         {
             Matrix = Matrix4.CreateScale(Scale) * matrix;
+            Position = Matrix.ExtractTranslation();
+            Orientation = PhysicalBody.Orientation;
         }
     }
 }

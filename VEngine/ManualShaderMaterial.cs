@@ -5,7 +5,7 @@ namespace VDGTech
 {
     public class ManualShaderMaterial : IMaterial
     {
-        protected static ShaderProgram Program;
+        protected ShaderProgram Program;
 
         public ManualShaderMaterial(string vertexShader, string fragmentShader)
         {

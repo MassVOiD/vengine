@@ -9,7 +9,7 @@ namespace VDGTech
     public class ShaderProgram
     {
         public static ShaderProgram Current = null;
-        private int handle;
+        public int Handle = -1;
         Dictionary<string, int> UniformLocationsCache;
 
         public ShaderProgram(string vertex, string fragment)
@@ -19,32 +19,34 @@ namespace VDGTech
             int vertexShaderHandle = CompileSingleShader(ShaderType.VertexShader, vertex);
             int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, fragment);
 
-            handle = GL.CreateProgram();
+            Handle = GL.CreateProgram();
 
-            GL.AttachShader(handle, vertexShaderHandle);
-            GL.AttachShader(handle, fragmentShaderHandle);
+            GL.AttachShader(Handle, vertexShaderHandle);
+            GL.AttachShader(Handle, fragmentShaderHandle);
 
-            GL.LinkProgram(handle);
+            GL.LinkProgram(Handle);
 
             int status_code;
-            GL.GetProgram(handle, GetProgramParameterName.LinkStatus, out status_code);
+            GL.GetProgram(Handle, GetProgramParameterName.LinkStatus, out status_code);
             if (status_code != 1)
                 throw new ApplicationException("Linking error");
 
-            GL.UseProgram(handle);
+            GL.UseProgram(Handle);
 
-            Console.WriteLine(GL.GetProgramInfoLog(handle));
+            Console.WriteLine(GL.GetProgramInfoLog(Handle));
+
         }
 
         public void BindAttributeLocation(int index, string name)
         {
-            GL.BindAttribLocation(handle, index, name);
+            GL.BindAttribLocation(Handle, index, name);
         }
 
         int GetUniformLocation(string name)
         {
+            if (Handle == -1) return 0;
             if (UniformLocationsCache.ContainsKey(name)) return UniformLocationsCache[name];
-            int location = GL.GetUniformLocation(handle, name);
+            int location = GL.GetUniformLocation(Handle, name);
             UniformLocationsCache.Add(name, location);
             return location;
         }
@@ -88,7 +90,7 @@ namespace VDGTech
         public void Use()
         {
             //if (Current == this) return;
-            GL.UseProgram(handle);
+            GL.UseProgram(Handle);
             Current = this;
         }
 

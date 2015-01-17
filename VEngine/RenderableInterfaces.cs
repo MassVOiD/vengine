@@ -1,4 +1,5 @@
 ﻿using OpenTK;
+using BulletSharp;
 
 namespace VDGTech
 {
@@ -8,11 +9,12 @@ namespace VDGTech
     }
     public interface IPhysical
     {
-        void Draw();
+        CollisionShape GetCollisionShape();
+        RigidBody GetRigidBody();
     }
     public interface IHasMass
     {
-        void Draw();
+        void GetMass();
     }
     public interface IControllable
     {
