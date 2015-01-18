@@ -15,17 +15,33 @@ namespace VDGTech
 {
     public class Texture
     {
-        public readonly int Handle;
+        int Handle;
+        bool Generated;
+        byte[] Bitmap;
+        Size Size;
 
         public Texture(string file)
         {
             var bitmap = new Bitmap(Image.FromFile(file));
-            Handle = GL.GenTexture();
+            Generated = false;
+            Bitmap = BitmapToByteArray(bitmap);
+            Size = bitmap.Size;
+        }
+
+        public void Use(TextureUnit unit)
+        {
+            if (!Generated)
+            {
+                Handle = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, Handle);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, Size.Width, Size.Height, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, Bitmap);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+                Generated = true;
+            }
+            GL.ActiveTexture(unit);
             GL.BindTexture(TextureTarget.Texture2D, Handle);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, BitmapToByteArray(bitmap));
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         }
 
         public static byte[] BitmapToByteArray(Bitmap bitmap)

@@ -152,9 +152,9 @@ namespace VDGTech
         public void Draw()
         {
             if (Disposed) return;
-            foreach (var c in Children)
+            for(int i=0;i<Children.Count;i++)
             {
-                c.Draw();
+                Children[i].Draw();
             }
         }
 

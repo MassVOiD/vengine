@@ -23,8 +23,7 @@ namespace VDGTech
         public void Use()
         {
             Program.Use();
-            GL.ActiveTexture(TextureUnit.Texture0);
-            GL.BindTexture(TextureTarget.Texture2D, Tex.Handle);
+            Tex.Use(TextureUnit.Texture0);
         }
     }
 }

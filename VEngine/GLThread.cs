@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using OpenTK.Graphics.OpenGL4;
 
 namespace VDGTech
 {
@@ -12,6 +13,15 @@ namespace VDGTech
         static public event EventHandler<OpenTK.Input.MouseButtonEventArgs> OnMouseDown, OnMouseUp;
         static public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyDown, OnKeyUp;
         static public event EventHandler<OpenTK.KeyPressEventArgs> OnKeyPress;
+
+        static public void CheckErrors()
+        {
+            var error = GL.GetError();
+            if (error != ErrorCode.NoError)
+            {
+                Console.WriteLine(error.ToString());
+            }
+        }
 
         static public void Invoke(Action action)
         {

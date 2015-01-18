@@ -30,7 +30,6 @@ namespace Tester
         public InfiniteGround()
         {
             Ground3dInfo = new Object3dInfo(Vertices.ToList(), Indices.ToList());
-            Ground3dInfo.GenerateBuffers();
             Ground = new Mesh3d(Ground3dInfo, new ManualShaderMaterial(Media.ReadAllText("InfiniteGround.vertex.glsl"), Media.ReadAllText("InfiniteGround.fragment.glsl")));
         }
 

@@ -25,17 +25,13 @@ namespace VDGTech
             AreBuffersGenerated = false;
         }
 
-        public void GenerateBuffers()
+        void GenerateBuffers()
         {
+            VAOHandle = GL.GenVertexArray();
+            GL.BindVertexArray(VAOHandle);
+
             VertexBuffer = GL.GenBuffer();
             IndexBuffer = GL.GenBuffer();
-
-            var error = GL.GetError();
-            if (error != ErrorCode.NoError)
-            {
-                Console.WriteLine(error.ToString());
-                throw new ApplicationException("OpenGL error");
-            }
 
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBuffer);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndexBuffer);
@@ -44,22 +40,7 @@ namespace VDGTech
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * VBO.Count), varray, BufferUsageHint.StaticDraw);
             GL.BufferData(BufferTarget.ElementArrayBuffer, new IntPtr(sizeof(uint) * Indices.Count), iarray, BufferUsageHint.StaticDraw);
 
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-
-            VAOHandle = GL.GenVertexArray();
-            GL.BindVertexArray(VAOHandle);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBuffer);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, IndexBuffer);
             GL.EnableVertexAttribArray(0);
-
-            error = GL.GetError();
-            if (error != ErrorCode.NoError)
-            {
-                Console.WriteLine(error.ToString());
-                throw new ApplicationException("OpenGL error");
-            }
 
             GL.VertexAttribPointer(
                 0,                  // attribute 0
@@ -85,12 +66,9 @@ namespace VDGTech
                 4 * 5);
 
             GL.BindVertexArray(0);
-            error = GL.GetError();
-            if (error != ErrorCode.NoError)
-            {
-                Console.WriteLine(error.ToString());
-                throw new ApplicationException("OpenGL error");
-            }
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+            AreBuffersGenerated = true;
         }
 
         public static Object3dInfo LoadFromObj(string infile)
@@ -209,7 +187,7 @@ namespace VDGTech
         }
 
         static Object3dInfo Current = null;
-        private BvhTriangleMeshShape CachedBvhTriangleMeshShape; 
+        private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
 
         public BvhTriangleMeshShape GetAccurateCollisionShape(float scale = 1.0f)
         {
@@ -225,44 +203,34 @@ namespace VDGTech
         {
             if (!AreBuffersGenerated)
             {
-                //GenerateBuffers();
-                AreBuffersGenerated = true;
+                GenerateBuffers();
             }
-            if (Current != this)
+            Current = this;
+            // OPTIMIZATION SHOULD OCCUR HERE
+            GLThread.CheckErrors();
+            GL.BindVertexArray(VAOHandle);
+            GLThread.CheckErrors();
+            ShaderProgram.Current.Use();
+            GLThread.CheckErrors();
+            if (WireFrameRendering)
             {
-                Current = this;
-                GL.BindVertexArray(VAOHandle);
-                ShaderProgram.Current.Use();
-                if (WireFrameRendering)
-                {
-                    GL.DrawElementsBaseVertex(PrimitiveType.LineStrip, Indices.Count,
-                        DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
-                }
-                else
-                {
-                    GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
-                        DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
-                }
-                var error = GL.GetError();
-                if (error != ErrorCode.NoError)
-                {
-                    Console.WriteLine(error.ToString());
-                    throw new ApplicationException("OpenGL error");
-                }
+                GL.DrawElementsBaseVertex(PrimitiveType.LineStrip, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+                GLThread.CheckErrors();
             }
             else
             {
-                if (WireFrameRendering)
-                {
-                    GL.DrawElementsBaseVertex(PrimitiveType.LineStrip, Indices.Count,
-                        DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
-                }
-                else
-                {
-                    GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
-                        DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
-                }
+                GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+                GLThread.CheckErrors();
             }
+            var error = GL.GetError();
+            if (error != ErrorCode.NoError)
+            {
+                Console.WriteLine(error.ToString());
+                throw new ApplicationException("OpenGL error");
+            }
+
         }
     }
 }

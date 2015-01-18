@@ -12,6 +12,8 @@ uniform float Time;
 uniform vec3 input_Color;
 
 out vec3 normal;
+out vec4 positionWorldSpace;
+out vec3 positionModelSpace;
 
 void main(){
 
@@ -19,5 +21,7 @@ void main(){
     vec4 n = vec4(in_normal,0);
 	mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrix;
     gl_Position = mvp * v;
+	positionWorldSpace = ModelMatrix * v;
+	positionModelSpace = in_position;
 	normal = (ProjectionMatrix * ModelMatrix * n).xyz;
 }

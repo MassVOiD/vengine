@@ -9,15 +9,25 @@ namespace VDGTech
     public class ShaderProgram
     {
         public static ShaderProgram Current = null;
-        public int Handle = -1;
+        int Handle = -1;
         Dictionary<string, int> UniformLocationsCache;
+        string VertexSource, FragmentSource;
+        bool Compiled;
+        static public bool Lock = false;
 
         public ShaderProgram(string vertex, string fragment)
         {
             UniformLocationsCache = new Dictionary<string, int>();
 
-            int vertexShaderHandle = CompileSingleShader(ShaderType.VertexShader, vertex);
-            int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, fragment);
+            VertexSource = vertex;
+            FragmentSource = fragment;
+            Compiled = false;
+        }
+
+        void Compile()
+        {
+            int vertexShaderHandle = CompileSingleShader(ShaderType.VertexShader, VertexSource);
+            int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, FragmentSource);
 
             Handle = GL.CreateProgram();
 
@@ -35,6 +45,7 @@ namespace VDGTech
 
             Console.WriteLine(GL.GetProgramInfoLog(Handle));
 
+            Compiled = true;
         }
 
         public void BindAttributeLocation(int index, string name)
@@ -42,55 +53,63 @@ namespace VDGTech
             GL.BindAttribLocation(Handle, index, name);
         }
 
-        int GetUniformLocation(string name)
+        static int GetUniformLocation(string name)
         {
-            if (Handle == -1) return 0;
-            if (UniformLocationsCache.ContainsKey(name)) return UniformLocationsCache[name];
-            int location = GL.GetUniformLocation(Handle, name);
-            UniformLocationsCache.Add(name, location);
+            if (Current.Handle == -1) return -1;
+            if (Current.UniformLocationsCache.ContainsKey(name) && !Lock) return Current.UniformLocationsCache[name];
+            int location = GL.GetUniformLocation(Current.Handle, name);
+            GLThread.CheckErrors();
+            if (!Lock) Current.UniformLocationsCache.Add(name, location);
+            if (Lock && name == "Time") return -1;
             return location;
         }
 
         public void SetUniform(string name, Matrix4 data)
         {
             int location = GetUniformLocation(name);
-            GL.UniformMatrix4(location, false, ref data);
+            if(location >= 0) GL.UniformMatrix4(location, false, ref data);
         }
 
         public void SetUniform(string name, float data)
         {
             int location = GetUniformLocation(name);
-            GL.Uniform1(location, data);
+            if (location >= 0) GL.Uniform1(location, data);
+        }
+        public void SetUniform(string name, int data)
+        {
+            int location = GetUniformLocation(name);
+            if (location >= 0) GL.Uniform1(location, data);
         }
 
         public void SetUniform(string name, Vector2 data)
         {
             int location = GetUniformLocation(name);
-            GL.Uniform2(location, data);
+            if (location >= 0) GL.Uniform2(location, data);
         }
 
         public void SetUniform(string name, Vector3 data)
         {
             int location = GetUniformLocation(name);
-            GL.Uniform3(location, data);
+            if (location >= 0) GL.Uniform3(location, data);
         }
 
         public void SetUniform(string name, Color4 data)
         {
             int location = GetUniformLocation(name);
-            GL.Uniform4(location, data);
+            if (location >= 0) GL.Uniform4(location, data);
         }
 
         public void SetUniform(string name, Vector4 data)
         {
             int location = GetUniformLocation(name);
-            GL.Uniform4(location, data);
+            if (location >= 0) GL.Uniform4(location, data);
         }
 
         public void Use()
         {
             //if (Current == this) return;
-            GL.UseProgram(Handle);
+            if (!Compiled) Compile();
+            if(!Lock) GL.UseProgram(Handle);
             Current = this;
         }
 

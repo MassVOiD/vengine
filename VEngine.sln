@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshConverter", "MeshConver
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UDPDebugger", "UDPDebugger\UDPDebugger.csproj", "{38AA642A-EE15-49DF-8D3A-A20D813EABA6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GLSLLint", "GLSLLint\GLSLLint.csproj", "{957A7861-1BE8-4D70-B809-A1791FD5E33D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,16 @@ Global
 		{38AA642A-EE15-49DF-8D3A-A20D813EABA6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{38AA642A-EE15-49DF-8D3A-A20D813EABA6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{38AA642A-EE15-49DF-8D3A-A20D813EABA6}.Release|x86.ActiveCfg = Release|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{957A7861-1BE8-4D70-B809-A1791FD5E33D}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

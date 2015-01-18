@@ -14,10 +14,12 @@ namespace VDGTech
         private Object3dInfo ObjectInfo;
         private CollisionShape PhysicalShape;
         public RigidBody PhysicalBody;
+        private Random Randomizer;
         public bool HasBeenModified { get; private set; }
 
         public Mesh3d(Object3dInfo objectInfo, IMaterial material)
         {
+            Randomizer = new Random();
             ObjectInfo = objectInfo;
             Material = material;
             UpdateMatrix();
@@ -104,26 +106,39 @@ namespace VDGTech
 
         public void Draw()
         {
+            GLThread.CheckErrors();
             if (HasBeenModified)
             {
                 UpdateMatrix();
+                GLThread.CheckErrors();
                 HasBeenModified = false;
+                GLThread.CheckErrors();
             }
             if (Camera.Current == null) return;
             ShaderProgram shader = Material.GetShaderProgram();
-            if (shader.Handle == -1) return;
+            GLThread.CheckErrors();
             Material.Use();
+            GLThread.CheckErrors();
             if (Sun.Current != null) Sun.Current.BindToShader(shader);
+            GLThread.CheckErrors();
             shader.SetUniform("ModelMatrix", Matrix);
+            GLThread.CheckErrors();
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
+            GLThread.CheckErrors();
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
+            GLThread.CheckErrors();
             shader.SetUniform("CameraPosition", Camera.Current.Position);
+            GLThread.CheckErrors();
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+            GLThread.CheckErrors();
+            shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
+            GLThread.CheckErrors();
 
             ObjectInfo.Draw();
+            GLThread.CheckErrors();
         }
 
-        public void UpdateMatrix()
+        void UpdateMatrix()
         {
             Matrix = Matrix4.CreateFromQuaternion(Orientation) * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
         }

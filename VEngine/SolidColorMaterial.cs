@@ -5,7 +5,7 @@ namespace VDGTech
 {
     public class SolidColorMaterial : IMaterial
     {
-        protected static ShaderProgram Program;
+        protected ShaderProgram Program;
         private Color4 Colour;
 
         public SolidColorMaterial(Color color)

@@ -71,6 +71,7 @@
   <ItemGroup>
     <Compile Include="Camera.cs" />
     <Compile Include="Debugger.cs" />
+    <Compile Include="Framebuffer.cs" />
     <Compile Include="GLThread.cs" />
     <Compile Include="IMaterial.cs" />
     <Compile Include="MathExtensions.cs" />
@@ -83,6 +84,7 @@
     <Compile Include="ManualShaderMaterial.cs" />
     <Compile Include="SkyboxMaterial.cs" />
     <Compile Include="SingleTextureMaterial.cs" />
+    <Compile Include="VEngineInvisibleAdapter.cs" />
     <Compile Include="World.cs" />
     <Compile Include="ShaderProgram.cs" />
     <Compile Include="SolidColorMaterial.cs" />
@@ -95,11 +97,15 @@
   <ItemGroup>
     <None Include="media\Mountains.vertex.glsl" />
     <None Include="media\Mountains.fragment.glsl" />
+    <None Include="media\PostProcess.fragment.glsl" />
     <None Include="media\SingleTextureMaterial.fragment.glsl" />
     <None Include="media\InfiniteGround.fragment.glsl" />
+    <None Include="media\PostProcess.vertex.glsl" />
     <None Include="media\SingleTextureMaterial.vertex.glsl" />
+    <None Include="media\WriteNormals.fragment.glsl" />
     <None Include="media\SolidColorMaterial.fragment.glsl" />
     <None Include="media\InfiniteGround.vertex.glsl" />
+    <None Include="media\WriteNormals.vertex.glsl" />
     <None Include="media\SolidColorMaterial.vertex.glsl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

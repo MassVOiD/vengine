@@ -17,14 +17,11 @@ namespace Tester
         {
             Body3dInfo = Object3dInfo.LoadFromCompressed(Media.Get("airplane.rend"));
 
-            Body3dInfo.GenerateBuffers();
-
             Body = new Mesh3d(Body3dInfo, new SolidColorMaterial(Color.Cyan));
             Body.SetMass(10.0f);
             Body.SetCollisionShape(new BoxShape(10,2,10));
             Body.SetOrientation(Quaternion.FromAxisAngle(new Vector3(1, 1, 1), 0.4f));
-            Body.SetPosition(new Vector3(400, 700, 0));
-            Body.UpdateMatrix();
+            Body.SetPosition(new Vector3(400, 900, 0));
             
             GLThread.OnUpdate += OnUpdate;
             GLThread.OnBeforeDraw += GLThread_OnBeforeDraw;
@@ -42,7 +39,9 @@ namespace Tester
             if (keyboard.IsKeyDown(OpenTK.Input.Key.W))
             {
                 var bodyDirection = Body.GetOrientation().ToDirection();
-                Body.PhysicalBody.ApplyCentralForce(bodyDirection * 100.0f);
+                // DAMP A HELL OF IT 
+                //Body.PhysicalBody.LinearVelocity *= 0.993f;
+                Body.PhysicalBody.ApplyCentralForce(bodyDirection * 400.0f);
             }
             if (keyboard.IsKeyDown(OpenTK.Input.Key.S))
             {
@@ -54,8 +53,9 @@ namespace Tester
                 var up = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up);
                 var left = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left);
                 var right = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Right);
-                Body.PhysicalBody.ApplyForce(down * 250.0f, Body.GetPosition() + right);
-                Body.PhysicalBody.ApplyForce(up * 250.0f, Body.GetPosition() + left);
+                float damping = 1.0f / (Body.PhysicalBody.LinearVelocity.Length + 0.13f) + 4.35f;
+                Body.PhysicalBody.ApplyForce(down * 250.0f * damping, Body.GetPosition() + right);
+                Body.PhysicalBody.ApplyForce(up * 250.0f * damping, Body.GetPosition() + left);
             }
             if (keyboard.IsKeyDown(OpenTK.Input.Key.D))
             {
@@ -63,8 +63,9 @@ namespace Tester
                 var up = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up);
                 var left = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left);
                 var right = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Right);
-                Body.PhysicalBody.ApplyForce(up * 250.0f, Body.GetPosition() + right);
-                Body.PhysicalBody.ApplyForce(down * 250.0f, Body.GetPosition() + left);
+                float damping = 1.0f / (Body.PhysicalBody.LinearVelocity.Length + 0.13f) + 4.35f;
+                Body.PhysicalBody.ApplyForce(up * 250.0f * damping, Body.GetPosition() + right);
+                Body.PhysicalBody.ApplyForce(down * 250.0f * damping, Body.GetPosition() + left);
             }
             if (keyboard.IsKeyDown(OpenTK.Input.Key.J))
             {
@@ -72,8 +73,9 @@ namespace Tester
                 var backward = -Body.GetOrientation().ToDirection();
                 var down = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Down);
                 var up = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up);
-                Body.PhysicalBody.ApplyForce(up * 290.0f, Body.GetPosition() + forward);
-                Body.PhysicalBody.ApplyForce(down * 290.0f, Body.GetPosition() + backward);
+                float damping = 1.0f / (Body.PhysicalBody.LinearVelocity.Length + 0.13f) + 0.85f;
+                Body.PhysicalBody.ApplyForce(up * 290.0f * damping, Body.GetPosition() + forward);
+                Body.PhysicalBody.ApplyForce(down * 290.0f * damping, Body.GetPosition() + backward);
             }
             if (keyboard.IsKeyDown(OpenTK.Input.Key.U))
             {
@@ -81,20 +83,22 @@ namespace Tester
                 var backward = -Body.GetOrientation().ToDirection();
                 var down = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Down);
                 var up = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up);
-                Body.PhysicalBody.ApplyForce(up * 290.0f, Body.GetPosition() + backward);
-                Body.PhysicalBody.ApplyForce(down * 290.0f, Body.GetPosition() + forward);
+                float damping = 1.0f / (Body.PhysicalBody.LinearVelocity.Length + 0.13f) + 0.85f;
+                Body.PhysicalBody.ApplyForce(up * 290.0f * damping, Body.GetPosition() + backward);
+                Body.PhysicalBody.ApplyForce(down * 290.0f * damping, Body.GetPosition() + forward);
             }
         }
 
         void GLThread_OnBeforeDraw(object sender, EventArgs e)
         {
             float velocity = Body.PhysicalBody.LinearVelocity.Length;
-            float upforce = 2.0f * (float)Math.Atan(velocity / 70.0f) / (float)Math.PI * 3.0f;
+            float upforce = velocity < 0.1f ? 0 : 2.0f * (float)Math.Atan(velocity / 70.0f) / (float)Math.PI * 3.0f;
             var bodyDirection = Body.GetOrientation().ToDirection();
             var upDirection = Body.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up);
-            Camera.Current.Position = Body.GetPosition() - Body.GetOrientation().ToDirection() * 15.0f * upforce + upDirection * 5.0f;
-            Camera.Current.Orientation = Body.GetOrientation();
-            Camera.Current.Update();
+            Camera.Current.Position = Body.GetPosition() - Body.GetOrientation().ToDirection() * 25.0f * (upforce + 1.0f) + upDirection * 5.0f;
+            //Camera.Current.Orientation = Body.GetOrientation();
+            //Camera.Current.Update();
+            Camera.Current.LookAt(Body.GetPosition() + Body.GetOrientation().ToDirection() * 125.0f);
         }
 
         public void Delete()

@@ -12,7 +12,6 @@ namespace VDGTech
         {
             if (Current == null) Current = this;
             var info = Object3dInfo.LoadFromObj(Media.Get("skybox.obj"));
-            info.GenerateBuffers();
             Mesh = new Mesh3d(info, material);
             Mesh.SetScale(100);
         }

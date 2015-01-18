@@ -2,19 +2,42 @@
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace VDGTech
 {
     public class VEngineWindowAdapter : GameWindow, IVEngineDisplayAdapter
     {
+
+        static float[] postProcessingPlaneVertices = {
+                -1.0f, -1.0f, 0.9f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, -1.0f, 0.9f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                -1.0f, 1.0f, 0.9f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, 1.0f, 0.9f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
+            };
+        static uint[] postProcessingPlaneIndices = {
+                0, 1, 2, 3, 2, 1
+            };
+
+        Framebuffer PostProcessFramebuffer, NormalWritingFramebuffer;
+        ShaderProgram NormalWritingShaderProgram;
+        Mesh3d PostProcessingMesh;
+
         public VEngineWindowAdapter(string title, int width, int height)
             : base(width, height,
-                new OpenTK.Graphics.GraphicsMode(32, 24, 8, 4), title, GameWindowFlags.Default,
+                new OpenTK.Graphics.GraphicsMode(32, 32, 0, 4), title, GameWindowFlags.Default,
                 DisplayDevice.Default, 4, 3,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             GLThread.StartTime = DateTime.Now;
+
+            PostProcessFramebuffer = new Framebuffer(width, height);
+            NormalWritingFramebuffer = new Framebuffer(width, height);
+            NormalWritingShaderProgram = new ShaderProgram(Media.ReadAllText("WriteNormals.vertex.glsl"), Media.ReadAllText("WriteNormals.fragment.glsl"));
+            Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
+            PostProcessingMesh = new Mesh3d(postPlane3dInfo, new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.fragment.glsl")));
 
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
@@ -105,21 +128,44 @@ namespace VDGTech
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            //GL.Viewport(0, 0, Width, Height);
-            
+            World.Root.UpdatePhysics((float)e.Time);
+            GLThread.InvokeOnBeforeDraw();
+            GLThread.InvokeQueue();
+
+            PostProcessFramebuffer.Use();
+            GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            GLThread.InvokeQueue();
-            GLThread.InvokeOnBeforeDraw();
             if (Skybox.Current != null) Skybox.Current.Draw();
             World.Root.Draw();
+
+            NormalWritingFramebuffer.Use();
+            GL.Viewport(0, 0, Width, Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            NormalWritingShaderProgram.Use();
+            ShaderProgram.Lock = true;
+            if (Skybox.Current != null) Skybox.Current.Draw();
+            World.Root.Draw();
+            ShaderProgram.Lock = false;
+
+            PostProcessFramebuffer.RevertToDefault();
+            GLThread.CheckErrors();
+            GL.Viewport(0, 0, Width, Height);
+            GLThread.CheckErrors();
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GLThread.CheckErrors();
+
+            PostProcessFramebuffer.UseTexture(0);
+            NormalWritingFramebuffer.UseTexture(2);
+            GLThread.CheckErrors();
+            //PostProcessingShaderProgram.Use();
+            GLThread.CheckErrors();
+            PostProcessingMesh.Draw();
+            GLThread.CheckErrors();
+
             GLThread.InvokeOnAfterDraw();
-            var error = GL.GetError();
-            if (error != ErrorCode.NoError)
-            {
-                Console.WriteLine(error.ToString());
-                throw new ApplicationException("OpenGL error");
-            }
+            GLThread.CheckErrors();
 
             SwapBuffers();
         }
@@ -128,7 +174,6 @@ namespace VDGTech
         {
             //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f));
             GLThread.InvokeOnUpdate();
-            World.Root.UpdatePhysics((float)e.Time);
             Debugger.Send("FrameTime", e.Time);
             Debugger.Send("FPS", 1.0/e.Time);
             var keyboard = OpenTK.Input.Keyboard.GetState();
