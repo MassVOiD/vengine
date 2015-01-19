@@ -14,7 +14,7 @@ float hash3(vec3 uv) {
 
 void main()
 {
-	vec4 color = vec4(0.7, 0.0, 0.7, 1.0);
+	vec4 color = vec4(0.3, 0.4, 0.7, 1.0);
 	
 	color += clamp(positionWorldSpace.y/670.0, 0.0, 1.0) * 0.2;
 	if(positionWorldSpace.y > 600.0)
@@ -24,7 +24,7 @@ void main()
 
 	//float d = clamp(380.0f / length(CameraPosition - positionWorldSpace.xyz), 0.2, 1.0);
 	//color *= d;
-	float diffuse = clamp(dot(vec3(1.0, 1.0, 1.0), normalize(-normal)), 0.2, 1.0);
+	float diffuse = clamp(dot(vec3(-1.0, 1.0, -1.0), normalize(normal)), 0.2, 1.0);
 	color *= diffuse;
 	
     outColor = color;

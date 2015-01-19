@@ -45,11 +45,8 @@ namespace VDGTech
         }
         public Vector3 GetDirection()
         {
-            var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
-            var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
             Vector4 direction = -Vector4.UnitZ;
-            direction = Vector4.Transform(direction, rotationY);
-            direction = Vector4.Transform(direction, rotationX);
+            direction = Vector4.Transform(direction, Orientation);
             return direction.Xyz;
         }
 

@@ -14,6 +14,11 @@ namespace VDGTech
         public ManualShaderMaterial()
         {
         }
+
+        public static ManualShaderMaterial FromName(string name)
+        {
+            return new ManualShaderMaterial(Media.ReadAllText(name + ".vertex.glsl"), Media.ReadAllText(name + ".fragment.glsl"));
+        }
         
         public ShaderProgram GetShaderProgram()
         {

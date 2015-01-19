@@ -39,19 +39,21 @@ void main()
 	
 	float light = 0.0;
 	
-	if(depth < 1.0) for (float i = 0; i < 12; i += 1.0)
+	if(depth < 1.0) for (float i = 0; i < 22; i += 1.0)
 	{
-		vec2 shift = normalize(hash2x2(UV * hash1(i))) * (i/12.0);
-		shift.x = shift.x * 2.0 - 1.0;
-		shift.y = shift.y * 2.0 - 1.0;
-		vec2 point = UV + shift * 0.0094;
+		vec2 shift = normalize(hash2x2(UV * hash1(i))) * (i/22.0);
+		shift.x = shift.x - 1.0 * 2.0;
+		shift.y = shift.y - 1.0 * 2.0;
+		vec2 point = UV + shift * (0.00494);
 		vec3 depthHere = texture(normalTexColor, point).rgb;
 		float d = texture(texDepth, point).r;
-		float delta = abs(rgb2h(normal) - rgb2h(depthHere));
+		float delta = length(normal - depthHere);
 		float delta2 = d - depth;
-		if(delta2 < 0.001 && delta > 0.1 && delta < 0.5) light += delta / 8.0f;
+		//if(delta2 < 0.005 && d < depth && delta < 1.41) light += delta / 46.0f;
+		if(delta2 < 0.005) light += delta / 66.0f;
 	}
-	color -= light;
+	//color -= light;
+	//color = vec3(1.0 - light);
     outColor = vec4(color, 1.0);
 	
 }

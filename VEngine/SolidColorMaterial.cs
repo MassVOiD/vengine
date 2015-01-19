@@ -22,7 +22,7 @@ namespace VDGTech
         public void Use()
         {
             Program.Use();
-            Program.SetUniform("input_Color", Colour);
+            if(!ShaderProgram.Lock) Program.SetUniform("input_Color", Colour);
         }
     }
 }

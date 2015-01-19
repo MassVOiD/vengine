@@ -93,6 +93,16 @@ namespace VDGTech
 
             File.WriteAllBytes(outfile, memstream.ToArray());
         }
+
+        public static string OBJToCSharpCode(string infile )
+        {
+            string[] lines = File.ReadAllLines(infile);
+            var data = ParseOBJString(lines);
+
+            return "static float[] vertices = {" + string.Join(", ", data.Item1.Select<float, string>(a => a.ToString() + "f")) +
+                "};\r\nstatic uint[] indices = {" + string.Join(", ", data.Item2.Select<uint, string>(a => a.ToString())) + "};";
+        }
+
         public static Object3dInfo LoadFromCompressed(string infile)
         {
             var inStream = File.OpenRead(infile);
@@ -199,38 +209,31 @@ namespace VDGTech
             return CachedBvhTriangleMeshShape;
         }
 
-        public void Draw()
+        void DrawPrepare()
         {
             if (!AreBuffersGenerated)
             {
                 GenerateBuffers();
             }
             Current = this;
-            // OPTIMIZATION SHOULD OCCUR HERE
-            GLThread.CheckErrors();
             GL.BindVertexArray(VAOHandle);
-            GLThread.CheckErrors();
             ShaderProgram.Current.Use();
-            GLThread.CheckErrors();
-            if (WireFrameRendering)
-            {
-                GL.DrawElementsBaseVertex(PrimitiveType.LineStrip, Indices.Count,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
-                GLThread.CheckErrors();
-            }
-            else
-            {
-                GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
-                GLThread.CheckErrors();
-            }
-            var error = GL.GetError();
-            if (error != ErrorCode.NoError)
-            {
-                Console.WriteLine(error.ToString());
-                throw new ApplicationException("OpenGL error");
-            }
+        }
 
+        public void Draw()
+        {
+            DrawPrepare();
+            GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+            GLThread.CheckErrors();
+
+        }
+        public void DrawInstanced(int count)
+        {
+            DrawPrepare();
+            GL.DrawElementsInstancedBaseVertex(PrimitiveType.Triangles, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero, count,  0);
+            GLThread.CheckErrors();
         }
     }
 }

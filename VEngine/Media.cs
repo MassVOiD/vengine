@@ -9,20 +9,21 @@ namespace VDGTech
 
         public static string Get(string name)
         {
-            if (Map == null) LoadFileMap("../../../VEngine/media");
+            if (Map == null) LoadFileMap();
             if (!Map.ContainsKey(name)) throw new KeyNotFoundException(name);
             return Map[name];
         }
 
         public static string ReadAllText(string name)
         {
-            if (Map == null) LoadFileMap("../../../VEngine/media");
+            if (Map == null) LoadFileMap();
             if (!Map.ContainsKey(name)) throw new KeyNotFoundException(name);
             return File.ReadAllText(Map[name]);
         }
 
-        private static void LoadFileMap(string path)
+        private static void LoadFileMap(string path = null)
         {
+            path = path == null ? SharpScript.CreateClass(File.ReadAllText("Config.cs")).MediaPath : path;
             if (Map == null) Map = new Dictionary<string, string>();
             string[] files = Directory.GetFiles(path);
             string[] dirs = Directory.GetDirectories(path);

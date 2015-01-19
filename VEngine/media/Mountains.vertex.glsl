@@ -16,7 +16,11 @@ out vec3 normal;
 
 void main(){
 
+	float iidx = mod(gl_InstanceID, 16);
+	float iidz = gl_InstanceID / 16;
+
     vec4 v = vec4(in_position,1);
+	v += vec4(iidx * 100.0, 0.0,iidz * 100.0, 0.0);
     vec4 n = vec4(in_normal,1);
 	mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrix;
 	positionWorldSpace = ModelMatrix * v;

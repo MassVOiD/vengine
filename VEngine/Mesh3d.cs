@@ -15,11 +15,13 @@ namespace VDGTech
         private CollisionShape PhysicalShape;
         public RigidBody PhysicalBody;
         private Random Randomizer;
+        public int Instances;
         public bool HasBeenModified { get; private set; }
 
         public Mesh3d(Object3dInfo objectInfo, IMaterial material)
         {
             Randomizer = new Random();
+            Instances = 1;
             ObjectInfo = objectInfo;
             Material = material;
             UpdateMatrix();
@@ -134,7 +136,14 @@ namespace VDGTech
             shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
             GLThread.CheckErrors();
 
-            ObjectInfo.Draw();
+            if (Instances > 1)
+            {
+                ObjectInfo.DrawInstanced(Instances);
+            }
+            else
+            {
+                ObjectInfo.Draw();
+            }
             GLThread.CheckErrors();
         }
 

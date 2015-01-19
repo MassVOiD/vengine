@@ -12,10 +12,10 @@ namespace VDGTech
     {
 
         static float[] postProcessingPlaneVertices = {
-                -1.0f, -1.0f, 0.9f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, -1.0f, 0.9f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-                -1.0f, 1.0f, 0.9f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 0.9f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
+                -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
             };
         static uint[] postProcessingPlaneIndices = {
                 0, 1, 2, 3, 2, 1
@@ -28,7 +28,7 @@ namespace VDGTech
         public VEngineWindowAdapter(string title, int width, int height)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(32, 32, 0, 4), title, GameWindowFlags.Default,
-                DisplayDevice.Default, 4, 3,
+                DisplayDevice.Default, 4, 4,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             GLThread.StartTime = DateTime.Now;
@@ -40,6 +40,7 @@ namespace VDGTech
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.fragment.glsl")));
 
             GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Lequal);
             GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
@@ -145,7 +146,6 @@ namespace VDGTech
 
             NormalWritingShaderProgram.Use();
             ShaderProgram.Lock = true;
-            if (Skybox.Current != null) Skybox.Current.Draw();
             World.Root.Draw();
             ShaderProgram.Lock = false;
 

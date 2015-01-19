@@ -107,7 +107,7 @@ namespace VDGTech
 
         public void Use()
         {
-            //if (Current == this) return;
+            if (Current == this) return;
             if (!Compiled) Compile();
             if(!Lock) GL.UseProgram(Handle);
             Current = this;

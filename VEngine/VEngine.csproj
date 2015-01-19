@@ -70,6 +70,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Camera.cs" />
+    <None Include="Config.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Compile Include="Debugger.cs" />
     <Compile Include="Framebuffer.cs" />
     <Compile Include="GLThread.cs" />
@@ -80,6 +83,7 @@
     <Compile Include="Mesh3d.cs" />
     <Compile Include="Object3dInfo.cs" />
     <Compile Include="PostProcessLoadingMaterial.cs" />
+    <Compile Include="SharpScript.cs" />
     <Compile Include="Skybox.cs" />
     <Compile Include="ManualShaderMaterial.cs" />
     <Compile Include="SkyboxMaterial.cs" />
