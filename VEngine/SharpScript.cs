@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace VDGTech
 {
-    class SharpScript
+    public class SharpScript
     {
         private static CSharpCodeProvider compiler = new CSharpCodeProvider(new Dictionary<String, String> { { "CompilerVersion", "v3.5" } });
         public static dynamic CreateClass(string script)

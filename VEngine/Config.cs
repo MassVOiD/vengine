@@ -1,1 +1,0 @@
-﻿public string MediaPath = "../../../VEngine/media";

@@ -2,6 +2,7 @@
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +42,6 @@ namespace VDGTech
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
-            GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             GL.Enable(EnableCap.DepthClamp);
@@ -99,6 +99,13 @@ namespace VDGTech
 
         void PhysicsThread()
         {
+            long time = Stopwatch.GetTimestamp();
+            while(true)
+            {
+                var now = Stopwatch.GetTimestamp();
+                World.Root.UpdatePhysics((now - time) / (float)Stopwatch.Frequency);
+                time = now;
+            }
         }
 
         void Mouse_Move(object sender, OpenTK.Input.MouseMoveEventArgs e)
@@ -107,7 +114,7 @@ namespace VDGTech
             {
                 var p = this.PointToScreen(new System.Drawing.Point(Width / 2, Height / 2));
                 var p2 = this.PointToScreen(new System.Drawing.Point(e.X, e.Y));
-               // Camera.Current.ProcessMouseMovement(p2.X - p.X, p2.Y - p.Y);
+                GLThread.InvokeOnMouseMove(new OpenTK.Input.MouseMoveEventArgs(e.X, e.Y, p2.X - p.X, p2.Y - p.Y));
                 System.Windows.Forms.Cursor.Position = p;
             }
         }
@@ -129,7 +136,6 @@ namespace VDGTech
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            World.Root.UpdatePhysics((float)e.Time);
             GLThread.InvokeOnBeforeDraw();
             GLThread.InvokeQueue();
 
@@ -139,8 +145,7 @@ namespace VDGTech
 
             if (Skybox.Current != null) Skybox.Current.Draw();
             World.Root.Draw();
-
-            NormalWritingFramebuffer.Use();
+            /*NormalWritingFramebuffer.Use();
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -149,20 +154,20 @@ namespace VDGTech
             World.Root.Draw();
             ShaderProgram.Lock = false;
 
+            LightPool.MapAll();
+            */
             PostProcessFramebuffer.RevertToDefault();
-            GLThread.CheckErrors();
+
             GL.Viewport(0, 0, Width, Height);
-            GLThread.CheckErrors();
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            GLThread.CheckErrors();
 
             PostProcessFramebuffer.UseTexture(0);
-            NormalWritingFramebuffer.UseTexture(2);
+            //NormalWritingFramebuffer.UseTexture(2);
+            //LightPool.UseTextures(4);
+
             GLThread.CheckErrors();
-            //PostProcessingShaderProgram.Use();
-            GLThread.CheckErrors();
+
             PostProcessingMesh.Draw();
-            GLThread.CheckErrors();
 
             GLThread.InvokeOnAfterDraw();
             GLThread.CheckErrors();

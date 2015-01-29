@@ -13,12 +13,10 @@ namespace MeshConverter
         {
             string infile = args[0];
             string outfile = args[1];
-            if (!System.IO.File.Exists(infile) && infile == "cs") Console.WriteLine(Object3dInfo.OBJToCSharpCode(outfile));
-            else
-            {
-                Object3dInfo.CompressAndSave(infile, outfile);
-                Console.WriteLine("Done");
-            }
+
+            Object3dInfo.CompressAndSave(infile, outfile);
+            Console.WriteLine("Done");
+
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using VDGTech;
 using System.Drawing;
-using BulletSharp;
 
 namespace Tester
 {

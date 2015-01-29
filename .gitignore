@@ -1,0 +1,8 @@
+*.cache
+bin
+obj
+*.pdb
+binaries
+Performance1.psess
+/VEngine.v12.suo
+/MeshConverter/MeshConverter.csproj.user

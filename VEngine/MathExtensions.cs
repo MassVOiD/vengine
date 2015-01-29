@@ -9,6 +9,24 @@ namespace VDGTech
 {
     public static class MathExtensions
     {
+
+        public static Vector3 ToOpenTK(this BEPUutilities.Vector3 v)
+        {
+            return new Vector3(v.X, v.Y, v.Z);
+        }
+        public static Quaternion ToOpenTK(this BEPUutilities.Quaternion q)
+        {
+            return q;
+        }
+        public static BEPUutilities.Vector3 ToBepu(this Vector3 v)
+        {
+            return new BEPUutilities.Vector3(v.X, v.Y, v.Z);
+        }
+        public static BEPUutilities.Quaternion ToBepu(this Quaternion q)
+        {
+            return q;
+        }
+
         public static Vector3 ToDirection(this Quaternion quaternion)
         {
             return Vector3.Transform(-Vector3.UnitZ, quaternion);

@@ -64,12 +64,25 @@ namespace VDGTech
             return location;
         }
 
+        public void SetUniformArray(string name, Matrix4[] data)
+        {
+            for(int i = 0;i < data.Length;i++)
+            {
+                int location = GetUniformLocation(name + "_" + i);
+                if(location >= 0)
+                {
+                    GL.UniformMatrix4(location, false, ref data[i]);
+                    GLThread.CheckErrors();
+                }
+            }
+        }
+
         public void SetUniform(string name, Matrix4 data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0) GL.UniformMatrix4(location, false, ref data);
+            if(location >= 0)
+                GL.UniformMatrix4(location, false, ref data);
         }
-
         public void SetUniform(string name, float data)
         {
             int location = GetUniformLocation(name);

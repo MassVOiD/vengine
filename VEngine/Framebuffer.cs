@@ -9,30 +9,39 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace VDGTech
 {
-    class Framebuffer
+    public class Framebuffer
     {
-        int FBO, RBO, TexColor, TexDepth;
+        int FBO, RBO, TexColor, TexDepth, Width, Height;
+        bool Generated;
 
         public Framebuffer(int width, int height)
         {
+            Generated = false;
+            Width = width;
+            Height = height;
+        }
+
+        void Generate()
+        {
+            Generated = true;
             FBO = GL.GenFramebuffer();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
 
             TexColor = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, TexColor);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.Float, (IntPtr)0);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb32f, Width, Height, 0, PixelFormat.Rgba, PixelType.Float, (IntPtr)0);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 
             TexDepth = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, TexDepth);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32, width, height, 0, PixelFormat.DepthComponent, PixelType.UnsignedInt, (IntPtr)0);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32, Width, Height, 0, PixelFormat.DepthComponent, PixelType.UnsignedInt, (IntPtr)0);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 
             RBO = GL.GenRenderbuffer();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RBO);
-            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, width, height);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, Width, Height);
 
             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, RBO);
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexColor, 0);
@@ -40,7 +49,7 @@ namespace VDGTech
 
             GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
-            if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
+            if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             {
                 throw new Exception("Framebuffer not complete");
             }
@@ -48,6 +57,8 @@ namespace VDGTech
 
         public void Use()
         {
+            if(!Generated)
+                Generate();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
         }
         public void UseTexture(int startIndex)

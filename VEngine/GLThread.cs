@@ -10,6 +10,7 @@ namespace VDGTech
         private static Queue<Action> ActionQueue = new Queue<Action>();
         static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw, OnLoad;
         static public event EventHandler<OpenTK.Input.MouseWheelEventArgs> OnMouseWheel;
+        static public event EventHandler<OpenTK.Input.MouseMoveEventArgs> OnMouseMove;
         static public event EventHandler<OpenTK.Input.MouseButtonEventArgs> OnMouseDown, OnMouseUp;
         static public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyDown, OnKeyUp;
         static public event EventHandler<OpenTK.KeyPressEventArgs> OnKeyPress;
@@ -63,6 +64,10 @@ namespace VDGTech
         static public void InvokeOnMouseWheel(OpenTK.Input.MouseWheelEventArgs e)
         {
             if (OnMouseWheel != null) OnMouseWheel.Invoke(null, e);
+        }
+        static public void InvokeOnMouseMove(OpenTK.Input.MouseMoveEventArgs e)
+        {
+            if (OnMouseMove != null) OnMouseMove.Invoke(null, e);
         }
         static public void InvokeOnLoad()
         {

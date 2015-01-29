@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using VDGTech;
 using System.Drawing;
+using BEPUphysics.Entities.Prefabs;
 
 namespace Tester
 {
@@ -12,9 +13,12 @@ namespace Tester
         private static void Main(string[] args)
         {
             VEngineWindowAdapter window = null;
+            var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
+            Media.SearchPath = Config.MediaPath;
+
             var renderThread = Task.Factory.StartNew(() =>
             {
-                window = new VEngineWindowAdapter("Test", 1600, 900);
+                window = new VEngineWindowAdapter("Test", Config.Width, Config.Height);
                 window.Run(60);
             });
 
@@ -39,25 +43,43 @@ namespace Tester
             World.Root.UpdateMatrix();
             World.Root.Add(postPlane);
 
-            Object3dInfo ball3dInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"));
-            Object3dInfo terrain3dInfo = Object3dInfo.LoadFromCompressed(Media.Get("mountains.rend"));
+            Object3dInfo ball3dInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"))[0];
+            Object3dInfo terrain3dInfo = Object3dInfo.LoadFromCompressed(Media.Get("terrain.rend"));
             Random rand = new Random();
+
+
+            //Texture tex = new Texture(Media.Get("earthsmall.png")); 
+            
+
+
+            Mesh3d terrain = new Mesh3d(terrain3dInfo, ManualShaderMaterial.FromName("Mountains"));
+            terrain.SetScale(100);
+            terrain.SetPosition(new Vector3(0, -1900, 0));
+            terrain.SetMass(0);
+           // terrain.Instances = 256;
+            var terrainShape = terrain3dInfo.GetAccurateCollisionShape(terrain.GetPosition(), 100.0f);
+            terrain.SetStaticCollisionMesh(terrainShape);
+            World.Root.Add(terrain);
+
+
+            Airplane copter = new Airplane();
+            World.Root.Add(copter);
 
             bool Shooting = false;
             GLThread.OnKeyDown += (o, e) =>
             {
                 if (e.Key == OpenTK.Input.Key.Space)
                 {
-                    if (Shooting) return;
+                    //if (Shooting) return;
                     Shooting = true;
                     Mesh3d ball = new Mesh3d(ball3dInfo, new SolidColorMaterial(Color.Yellow));
-                    ball.SetScale(1);
-                    ball.SetPosition(Camera.Current.Position);
-                    ball.SetCollisionShape(new BulletSharp.SphereShape(1));
+                    ball.SetScale(10.0f);
+                    ball.SetPosition(copter.Body.GetPosition() + copter.Body.GetOrientation().ToDirection() * 20.0f);
+                    ball.SetCollisionShape(new Sphere(ball.GetPosition(), 10.0f, 4.1f));
                     ball.SetMass(4.1f);
                     World.Root.Add(ball);
-                    Vector3 direction = Camera.Current.GetDirection() * 140.0f;
-                    ball.PhysicalBody.ApplyCentralImpulse(direction);
+                    Vector3 direction = copter.Body.GetOrientation().ToDirection() * 1140.0f;
+                    ball.GetCollisionShape().ApplyImpulse(Vector3.Zero, direction);
                 }
             };
             GLThread.OnKeyUp += (o, e) =>
@@ -67,31 +89,6 @@ namespace Tester
                     Shooting = false;
                 }
             };
-/*
-            Texture tex = new Texture(Media.Get("earthsmall.png")); 
-            for (int i = 0; i < 5; i++)
-            {
-                Mesh3d ball = new Mesh3d(ball3dInfo, new SingleTextureMaterial(tex));
-                ball.SetScale(1);
-                ball.SetPosition(new Vector3(rand.Next(-200, 200), 850, rand.Next(-200, 200)));
-                ball.SetCollisionShape(new BulletSharp.SphereShape(4));
-                ball.SetMass(15.5f);
-                World.Root.Add(ball);
-            }*/
-
-
-            Mesh3d terrain = new Mesh3d(terrain3dInfo, ManualShaderMaterial.FromName("Mountains"));
-            terrain.SetScale(160);
-            terrain.SetPosition(Vector3.Zero);
-            terrain.SetMass(0);
-           // terrain.Instances = 256;
-            var terrainShape = terrain3dInfo.GetAccurateCollisionShape(10.0f);
-            terrain.SetCollisionShape(terrainShape);
-            World.Root.Add(terrain);
-
-            Airplane copter = new Airplane();
-            World.Root.Add(copter);
-
 
             World.Root.Remove(postPlane);
 

@@ -6,6 +6,7 @@ namespace VDGTech
     public class Media
     {
         private static Dictionary<string, string> Map;
+        public static string SearchPath;
 
         public static string Get(string name)
         {
@@ -23,7 +24,7 @@ namespace VDGTech
 
         private static void LoadFileMap(string path = null)
         {
-            path = path == null ? SharpScript.CreateClass(File.ReadAllText("Config.cs")).MediaPath : path;
+            path = path == null ? SearchPath : path;
             if (Map == null) Map = new Dictionary<string, string>();
             string[] files = Directory.GetFiles(path);
             string[] dirs = Directory.GetDirectories(path);

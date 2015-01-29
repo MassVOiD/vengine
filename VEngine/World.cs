@@ -1,6 +1,14 @@
 ﻿using OpenTK;
 using System.Collections.Generic;
-using BulletSharp;
+using BEPUphysics;
+using BEPUphysics.BroadPhaseEntries;
+using BEPUphysics.BroadPhaseEntries.MobileCollidables;
+using BEPUphysics.Character;
+using BEPUphysics.Entities;
+using BEPUphysics.Entities.Prefabs;
+using BEPUphysics.CollisionRuleManagement;
+using BEPUutilities.Threading;
+using System;
 
 namespace VDGTech
 {
@@ -14,145 +22,97 @@ namespace VDGTech
         private Matrix4 Matrix;
         public volatile bool Disposed;
 
-        public DiscreteDynamicsWorld PhysicalWorld;
-        CollisionDispatcher Dispatcher;
-        DbvtBroadphase Broadphase;
-        CollisionConfiguration CollisionConf;
-        CollisionShape GroundShape;
-        CollisionObject Ground;
-        Dictionary<IRenderable, CollisionObject> CollisionObjects;
+        public Space PhysicalWorld;
+        Dictionary<IRenderable, Entity> CollisionObjects;
 
         public World()
         {
             Children = new List<IRenderable>();
-            CollisionConf = new DefaultCollisionConfiguration();
-            Dispatcher = new CollisionDispatcher(CollisionConf);
-            Broadphase = new DbvtBroadphase();
-            PhysicalWorld = new DiscreteDynamicsWorld(Dispatcher, Broadphase, null, CollisionConf);
-            PhysicalWorld.Gravity = new Vector3(0, -10, 0);
-            GroundShape = new StaticPlaneShape(Vector3.UnitY, 1.0f);
-            Ground = CreateRigidBody(0, Matrix4.CreateTranslation(0, 0, 0), GroundShape, null);
-            CollisionObjects = new Dictionary<IRenderable, CollisionObject>();
-            if(Root == null) Root = this;
-        }
-
-        public RigidBody CreateRigidBody(float mass, Matrix4 startTransform, CollisionShape shape, Mesh3d reference)
-        {
-            bool isDynamic = (mass != 0.0f);
-
-            Vector3 localInertia = Vector3.Zero;
-            if (isDynamic)
-                shape.CalculateLocalInertia(mass, out localInertia);
-
-            DefaultMotionState myMotionState = new DefaultMotionState(startTransform);
-
-            RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
-            RigidBody body = new RigidBody(rbInfo);
-            body.UserObject = reference;
-
-            PhysicalWorld.AddRigidBody(body);
-
-            return body;
-        }
-
-        public virtual void UpdatePhysics(float elapsedTime)
-        {
-            if (Disposed) return;
-            lock (PhysicalWorld)
+            // this will sslow down graphics thread and its not what we want here
+            var parallelLooper = new ParallelLooper();
+            if(Environment.ProcessorCount > 1)
             {
-                PhysicalWorld.StepSimulation(elapsedTime);
-                int len = PhysicalWorld.CollisionObjectArray.Count;
-                Mesh3d mesh;
-                CollisionObject body;
-                for (int i = 0; i < len; i++)
+                for(int i = 0; i < Environment.ProcessorCount; i++)
                 {
-                    body = PhysicalWorld.CollisionObjectArray[i];
-                    mesh = body.UserObject as Mesh3d;
-                    if (mesh != null)
-                    {
-                        mesh.UpdateMatrixFromPhysics(body.WorldTransform);
-                    }
+                    parallelLooper.AddThread();
                 }
             }
+            PhysicalWorld = new Space(parallelLooper);
+            PhysicalWorld.ForceUpdater.Gravity = new Vector3(0, -9.81f, 0);
+            //GroundShape = new StaticPlaneShape(Vector3.UnitY, 1.0f);
+            //Ground = CreateRigidBody(0, Matrix4.CreateTranslation(0, 0, 0), GroundShape, null);
+            CollisionObjects = new Dictionary<IRenderable, Entity>();
+            if(Root == null)
+                Root = this;
+        }
+
+        public void CreateRigidBody(float mass, Matrix4 startTransform, Entity shape, Mesh3d reference)
+        {
+            shape.Mass = mass;
+            shape.Tag = reference;
+            shape.WorldTransform = startTransform;
+
+            PhysicalWorld.Add(shape);
+        }
+
+        public virtual void UpdatePhysics(float time)
+        {
+            PhysicalWorld.Update(time);
+            int len = PhysicalWorld.Entities.Count;
+            Mesh3d mesh;
+            Entity body;
+            for(int i = 0; i < len; i++)
+            {
+                body = PhysicalWorld.Entities[i];
+                mesh = body.Tag as Mesh3d;
+                if(mesh != null)
+                {
+                    //mesh.UpdateMatrixFromPhysics(body.OrientationMatrix * body.Position);
+                    mesh.SetOrientation(body.Orientation);
+                    mesh.SetPosition(body.Position);
+
+                }
+            }
+
         }
 
         public void Add(IRenderable renderable)
         {
             Children.Add(renderable);
-            if (renderable is Mesh3d)
+            if(renderable is Mesh3d)
             {
                 Mesh3d mesh = renderable as Mesh3d;
-                if (mesh.GetCollisionShape() != null || renderable is IPhysical)
+                if(mesh.GetCollisionShape() != null || renderable is IPhysical)
                 {
-                    lock (PhysicalWorld)
+                    lock(PhysicalWorld)
                     {
-                        CollisionObjects.Add(renderable, mesh.CreateRigidBody());
-                        PhysicalWorld.AddRigidBody(mesh.PhysicalBody);
+                        PhysicalWorld.Add(mesh.GetCollisionShape());
+                    }
+                }
+                if(mesh.GetStaticCollisionMesh() != null || renderable is IPhysical)
+                {
+                    lock(PhysicalWorld)
+                    {
+                        PhysicalWorld.Add(mesh.GetStaticCollisionMesh());
                     }
                 }
             }
-            else if (renderable is IPhysical)
+            else if(renderable is IPhysical)
             {
                 IPhysical physicalObject = renderable as IPhysical;
-                lock (PhysicalWorld)
+                lock(PhysicalWorld)
                 {
-                    PhysicalWorld.AddRigidBody(physicalObject.GetRigidBody());
+                    PhysicalWorld.Add(physicalObject.GetCollisionShape());
                 }
 
             }
-        }
-
-        public void DisposePhysics()
-        {
-            Disposed = true;
-            int i;
-            //remove/dispose constraints]
-            try
-            {
-                for (i = PhysicalWorld.NumConstraints - 1; i >= 0; i--)
-                {
-                    TypedConstraint constraint = PhysicalWorld.GetConstraint(i);
-                    PhysicalWorld.RemoveConstraint(constraint);
-                    constraint.Dispose();
-                }
-            }
-            catch { }
-
-            try
-            {
-                //remove the rigidbodies from the dynamics world and delete them
-                for (i = PhysicalWorld.NumCollisionObjects - 1; i >= 0; i--)
-                {
-                    CollisionObject obj = PhysicalWorld.CollisionObjectArray[i];
-                    RigidBody body = obj as RigidBody;
-                    if (body != null && body.MotionState != null)
-                    {
-                        body.MotionState.Dispose();
-                    }
-                    PhysicalWorld.RemoveCollisionObject(obj);
-                    obj.Dispose();
-                }
-            }
-            catch { }
-
-            //delete collision shapes
-            foreach (var shape in CollisionObjects.Values)
-                shape.Dispose();
-            CollisionObjects.Clear();
-
-            PhysicalWorld.Dispose();
-            Broadphase.Dispose();
-            if (Dispatcher != null)
-            {
-                Dispatcher.Dispose();
-            }
-            CollisionConf.Dispose();
         }
 
         public void Draw()
         {
-            if (Disposed) return;
-            for(int i=0;i<Children.Count;i++)
+            if(Disposed)
+                return;
+            for(int i = 0; i < Children.Count; i++)
             {
                 Children[i].Draw();
             }
@@ -161,12 +121,12 @@ namespace VDGTech
         public void Remove(IRenderable renderable)
         {
             Children.Remove(renderable);
-            if (renderable is Mesh3d)
+            if(renderable is Mesh3d)
             {
                 Mesh3d mesh = renderable as Mesh3d;
-                if (mesh.GetCollisionShape() != null)
+                if(mesh.GetCollisionShape() != null)
                 {
-                    PhysicalWorld.RemoveCollisionObject(CollisionObjects[renderable]);
+                    PhysicalWorld.Remove(CollisionObjects[renderable]);
                 }
             }
         }

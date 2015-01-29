@@ -33,12 +33,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\binaries\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Optimize>true</Optimize>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\Release\</OutputPath>
@@ -50,9 +52,11 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BulletSharp, Version=2.83.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\OpenTK\1.1\Binaries\OpenTK\Release\BulletSharp.dll</HintPath>
+    <Reference Include="BEPUphysics">
+      <HintPath>G:\bepuphysics\BEPUphysics\bin\Debug\BEPUphysics.dll</HintPath>
+    </Reference>
+    <Reference Include="BEPUutilities">
+      <HintPath>G:\bepuphysics\BEPUphysics\bin\Debug\BEPUutilities.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -70,14 +74,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Camera.cs" />
-    <None Include="Config.cs">
+    <Content Include="Config.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
     <Compile Include="Debugger.cs" />
+    <Compile Include="FOVLight.cs" />
     <Compile Include="Framebuffer.cs" />
+    <Compile Include="Generators\MeshGenerator.cs" />
+    <Compile Include="Generators\Object3dGenerator.cs" />
     <Compile Include="GLThread.cs" />
     <Compile Include="IMaterial.cs" />
+    <Compile Include="LightPool.cs" />
     <Compile Include="MathExtensions.cs" />
+    <Compile Include="Particles\ParticleGenerator.cs" />
+    <Compile Include="Particles\ParticleSystem.cs" />
     <Compile Include="RenderableInterfaces.cs" />
     <Compile Include="Media.cs" />
     <Compile Include="Mesh3d.cs" />
@@ -97,20 +107,6 @@
     <Compile Include="VEngineDisplayAdapter.cs" />
     <Compile Include="VEngineWindowAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="media\Mountains.vertex.glsl" />
-    <None Include="media\Mountains.fragment.glsl" />
-    <None Include="media\PostProcess.fragment.glsl" />
-    <None Include="media\SingleTextureMaterial.fragment.glsl" />
-    <None Include="media\InfiniteGround.fragment.glsl" />
-    <None Include="media\PostProcess.vertex.glsl" />
-    <None Include="media\SingleTextureMaterial.vertex.glsl" />
-    <None Include="media\WriteNormals.fragment.glsl" />
-    <None Include="media\SolidColorMaterial.fragment.glsl" />
-    <None Include="media\InfiniteGround.vertex.glsl" />
-    <None Include="media\WriteNormals.vertex.glsl" />
-    <None Include="media\SolidColorMaterial.vertex.glsl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

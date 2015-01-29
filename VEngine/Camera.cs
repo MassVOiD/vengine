@@ -5,7 +5,7 @@ namespace VDGTech
     public class Camera
     {
         static public Camera Current;
-        public Matrix4 ViewMatrix, ProjectionMatrix;
+        public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
         public Vector3 Position;
         public Quaternion Orientation;
         public float Pitch, Roll;
@@ -23,6 +23,7 @@ namespace VDGTech
 
         public void LookAt(Vector3 location)
         {
+            RotationMatrix = Matrix4.LookAt(-Vector3.Zero, location - Position, new Vector3(0, 1, 0));
             ViewMatrix = Matrix4.LookAt(Position, location, new Vector3(0, 1, 0));
         }
 
@@ -41,57 +42,27 @@ namespace VDGTech
         public void Update()
         {
             Orientation.Invert();
-            ViewMatrix = Matrix4.CreateTranslation(-Position) * Matrix4.CreateFromQuaternion(Orientation);
+            RotationMatrix = Matrix4.CreateFromQuaternion(Orientation);
+            ViewMatrix = Matrix4.CreateTranslation(-Position) * RotationMatrix;
+        }
+        public void UpdateFromRollPitch()
+        {
+            var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, Pitch);
+            var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, Roll);
+            RotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
+            ViewMatrix = Matrix4.CreateTranslation(-Position) * RotationMatrix;
         }
         public Vector3 GetDirection()
         {
             Vector4 direction = -Vector4.UnitZ;
-            direction = Vector4.Transform(direction, Orientation);
+            direction = Vector4.Transform(direction, RotationMatrix);
+            direction.Normalize();
             return direction.Xyz;
         }
 
         public void ProcessKeyboardState(OpenTK.Input.KeyboardState keys)
         {
-            /*if (keys.IsKeyDown(OpenTK.Input.Key.W))
-            {
-                var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
-                var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
-                Vector4 direction = Vector4.UnitZ;
-                direction = Vector4.Transform(direction, rotationY);
-                direction = Vector4.Transform(direction, rotationX);
-                Position -= direction.Xyz;
-                Update();
-            }
-            if (keys.IsKeyDown(OpenTK.Input.Key.S))
-            {
-                var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
-                var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
-                Vector4 direction = -Vector4.UnitZ;
-                direction = Vector4.Transform(direction, rotationY);
-                direction = Vector4.Transform(direction, rotationX);
-                Position -= direction.Xyz;
-                Update();
-            }
-            if (keys.IsKeyDown(OpenTK.Input.Key.A))
-            {
-                var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
-                var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
-                Vector4 direction = Vector4.UnitX;
-                direction = Vector4.Transform(direction, rotationY);
-                direction = Vector4.Transform(direction, rotationX);
-                Position -= direction.Xyz;
-                Update();
-            }
-            if (keys.IsKeyDown(OpenTK.Input.Key.D))
-            {
-                var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
-                var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
-                Vector4 direction = -Vector4.UnitX;
-                direction = Vector4.Transform(direction, rotationY);
-                direction = Vector4.Transform(direction, rotationX);
-                Position -= direction.Xyz;
-                Update();
-            }*/
+            /**/
         }
     }
 }
