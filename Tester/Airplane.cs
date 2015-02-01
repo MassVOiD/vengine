@@ -20,7 +20,7 @@ namespace Tester
             Mode = CameraMode.BehindTowardsVelocity;
             Body = new Mesh3d(Body3dInfo, new SolidColorMaterial(Color.Cyan));
             Body.SetMass(1.0f);
-            Body.SetPosition(new Vector3(400, 900, 0));
+            Body.SetPosition(new Vector3(0, 6900, 0));
             Body.SetCollisionShape(new Box(Body.GetPosition(), 10,2,10, 100.0f));
             Body.SetOrientation(Quaternion.FromAxisAngle(new Vector3(1, 1, 1), 0.4f));
             

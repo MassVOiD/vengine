@@ -27,6 +27,15 @@ namespace VDGTech
             AreBuffersGenerated = false;
         }
 
+        public void Dispose()
+        {
+            Indices = new List<uint>();
+            Indices = null;
+            VBO = new List<float>();
+            VBO = null;
+            GC.Collect();
+        }
+
         void GenerateBuffers()
         {
             // Here I create VAO handle
@@ -107,6 +116,21 @@ namespace VDGTech
                 File.WriteAllBytes(outdir + "/" + element.Name + ".o3i", memstream.ToArray());
             }
         }
+        public static void CompressAndSave(Object3dInfo data, string outfile)
+        {
+            MemoryStream memstream = new MemoryStream();
+            memstream.Write(BitConverter.GetBytes(data.VBO.Count), 0, 4);
+            memstream.Write(BitConverter.GetBytes(data.Indices.Count), 0, 4);
+            foreach(float v in data.VBO)
+                memstream.Write(BitConverter.GetBytes(v), 0, 4);
+            foreach(uint v in data.Indices)
+                memstream.Write(BitConverter.GetBytes(v), 0, 4);
+            memstream.Flush();
+            if(File.Exists(outfile + ".o3i"))
+                File.Delete(outfile + ".o3i");
+            File.WriteAllBytes(outfile + ".o3i", memstream.ToArray());
+            
+        }
 
         public static Object3dInfo LoadFromCompressed(string infile)
         {
@@ -131,7 +155,7 @@ namespace VDGTech
                 inStream.Read(buf, 0, 4);
                 indices.Add(BitConverter.ToUInt32(buf, 0));
             }
-
+            inStream.Close();
             return new Object3dInfo(vertices, indices);
         }
 

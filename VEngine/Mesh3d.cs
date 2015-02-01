@@ -55,7 +55,8 @@ namespace VDGTech
             shader.SetUniform("ModelMatrix", Matrix);
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
-            shader.SetUniformArray("LightsVPs", LightPool.GetVPMatrices());
+            shader.SetUniformArray("LightsPs", LightPool.GetPMatrices());
+            shader.SetUniformArray("LightsVs", LightPool.GetVMatrices());
 
             shader.SetUniform("CameraPosition", Camera.Current.Position);
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
@@ -107,6 +108,7 @@ namespace VDGTech
         {
             PhysicalShape = shape;
             PhysicalShape.Tag = this;
+            PhysicalShape.CollisionInformation.Tag = this;
             HasBeenModified = true;
             return this;
         }

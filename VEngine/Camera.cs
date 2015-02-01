@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using BEPUphysics;
+using OpenTK;
 
 namespace VDGTech
 {
@@ -25,6 +26,14 @@ namespace VDGTech
         {
             RotationMatrix = Matrix4.LookAt(-Vector3.Zero, location - Position, new Vector3(0, 1, 0));
             ViewMatrix = Matrix4.LookAt(Position, location, new Vector3(0, 1, 0));
+        }
+
+
+        public Mesh3d RayCast()
+        {
+            RayCastResult rcResult;
+            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position, -GetDirection()),1000.0f, out rcResult);
+            return rcResult.HitObject != null ? rcResult.HitObject.Tag as Mesh3d : null;
         }
 
         public void ProcessMouseMovement(int deltax, int deltay)
@@ -54,9 +63,12 @@ namespace VDGTech
         }
         public Vector3 GetDirection()
         {
-            Vector4 direction = -Vector4.UnitZ;
-            direction = Vector4.Transform(direction, RotationMatrix);
-            direction.Normalize();
+            var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
+            var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
+            Vector4 direction = Vector4.UnitZ;
+            direction = Vector4.Transform(direction, rotationY);
+            direction = Vector4.Transform(direction, rotationX);
+            System.Console.WriteLine(direction.ToString());
             return direction.Xyz;
         }
 

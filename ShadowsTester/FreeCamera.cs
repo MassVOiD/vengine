@@ -13,7 +13,7 @@ namespace ShadowsTester
         Camera Cam;
         public FreeCamera()
         {
-            Cam = new Camera(new Vector3(0, 0, 0), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 0.4f, 100.0f);
+            Cam = new Camera(new Vector3(0, 20, 0), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 2.0f, 200.0f);
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
         }
@@ -37,6 +37,20 @@ namespace ShadowsTester
         {
             var keyboard = OpenTK.Input.Keyboard.GetState();
 
+            float speed = 3.0f;
+            if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))
+            {
+                speed = 300.0f;
+            }
+            if(keyboard.IsKeyDown(OpenTK.Input.Key.AltLeft))
+            {
+                speed = 30.0f;
+            }
+            if(keyboard.IsKeyDown(OpenTK.Input.Key.ControlLeft))
+            {
+                speed = 0.3f;
+            }
+
             if(keyboard.IsKeyDown(OpenTK.Input.Key.W))
             {
                 var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Cam.Pitch);
@@ -44,7 +58,7 @@ namespace ShadowsTester
                 Vector4 direction = Vector4.UnitZ;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                Cam.Position -= direction.Xyz;
+                Cam.Position -= direction.Xyz * speed;
                 Cam.UpdateFromRollPitch();
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.S))
@@ -54,7 +68,7 @@ namespace ShadowsTester
                 Vector4 direction = -Vector4.UnitZ;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                Cam.Position -= direction.Xyz;
+                Cam.Position -= direction.Xyz * speed;
                 Cam.UpdateFromRollPitch();
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.A))
@@ -64,7 +78,7 @@ namespace ShadowsTester
                 Vector4 direction = Vector4.UnitX;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                Cam.Position -= direction.Xyz;
+                Cam.Position -= direction.Xyz * speed;
                 Cam.UpdateFromRollPitch();
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.D))
@@ -74,7 +88,7 @@ namespace ShadowsTester
                 Vector4 direction = -Vector4.UnitX;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                Cam.Position -= direction.Xyz;
+                Cam.Position -= direction.Xyz * speed;
                 Cam.UpdateFromRollPitch();
             }
 

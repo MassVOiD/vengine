@@ -26,9 +26,13 @@ namespace VDGTech
             ViewPort = new Size(mapwidth, mapheight);
         }
 
-        public Matrix4 GetVPMatrix()
+        public Matrix4 GetVMatrix()
         {
-            return camera.ProjectionMatrix * camera.ViewMatrix;
+            return camera.ViewMatrix;
+        }
+        public Matrix4 GetPMatrix()
+        {
+            return camera.ProjectionMatrix;
         }
 
         public void Map()

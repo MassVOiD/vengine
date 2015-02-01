@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using VDGTech;
 using System.Drawing;
 using BEPUphysics.Entities.Prefabs;
+using VDGTech.Generators;
 
 namespace Tester
 {
@@ -35,7 +36,7 @@ namespace Tester
             World.Root = new World();
             Mesh3d postPlane = null;
 
-            Camera camera = new Camera(new Vector3(52, 22, 5), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 20.0f, 10000.0f);
+            Camera camera = new Camera(new Vector3(52, 22, 5), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 5.0f, 200000.0f);
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
             postPlane = new Mesh3d(postPlane3dInfo, new PostProcessLoadingMaterial());
@@ -51,7 +52,7 @@ namespace Tester
             //Texture tex = new Texture(Media.Get("earthsmall.png")); 
             
 
-
+            /*
             Mesh3d terrain = new Mesh3d(terrain3dInfo, ManualShaderMaterial.FromName("Mountains"));
             terrain.SetScale(100);
             terrain.SetPosition(new Vector3(0, -1900, 0));
@@ -59,7 +60,30 @@ namespace Tester
            // terrain.Instances = 256;
             var terrainShape = terrain3dInfo.GetAccurateCollisionShape(terrain.GetPosition(), 100.0f);
             terrain.SetStaticCollisionMesh(terrainShape);
-            World.Root.Add(terrain);
+            World.Root.Add(terrain);*/
+
+            Func<uint, uint, float> terrainGen = (x, y) =>
+            {
+                return
+                    SimplexNoise.Noise.Generate(x, y) +
+                    (SimplexNoise.Noise.Generate((float)x / 4, (float)y / 4) * 11) +
+                    (SimplexNoise.Noise.Generate((float)x / 14, (float)y / 14) * 160) +
+                    (SimplexNoise.Noise.Generate((float)x / 26, (float)y / 26) * 300);
+            };
+
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-60000.0f, -60000.0f), new Vector2(60000.0f, 60000.0f), new Vector2(20, 20), Vector3.UnitY, 444, terrainGen);
+
+            Mesh3d ground = new Mesh3d(groundInfo, new SolidColorMaterial(Color.Green));
+            //ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
+            //ground.GetStaticCollisionMesh().Material.Bounciness = 1.0f;
+            World.Root.Add(ground);
+
+            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-60000.0f, -60000.0f), new Vector2(60000.0f, 60000.0f), new Vector2(20, 20), Vector3.UnitY);
+
+            Mesh3d water = new Mesh3d(waterInfo, new SolidColorMaterial(Color.FromArgb(140, Color.Blue)));
+            water.SetPosition(new Vector3(0, 0, 0));
+            World.Root.Add(water);
+
 
 
             Airplane copter = new Airplane();
@@ -96,6 +120,7 @@ namespace Tester
             skybox.Use();
 
             GLThread.Invoke(() =>  window.StartPhysicsThread());
+            terrain3dInfo.Dispose();
             renderThread.Wait();
         }
     }

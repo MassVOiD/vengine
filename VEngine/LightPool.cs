@@ -29,9 +29,13 @@ namespace VDGTech
             }
         }
 
-        public static Matrix4[] GetVPMatrices()
+        public static Matrix4[] GetPMatrices()
         {
-            return Lights.Select<ILight, Matrix4>(a => a.GetVPMatrix()).ToArray();
+            return Lights.Select<ILight, Matrix4>(a => a.GetPMatrix()).ToArray();
+        }
+        public static Matrix4[] GetVMatrices()
+        {
+            return Lights.Select<ILight, Matrix4>(a => a.GetVMatrix()).ToArray();
         }
 
         public static void UseTextures(int index)

@@ -12,7 +12,8 @@ namespace VDGTech
     {
         void Map();
         void UseTexture(int index);
-        Matrix4 GetVPMatrix();
+        Matrix4 GetPMatrix();
+        Matrix4 GetVMatrix();
     }
     public interface IPhysical
     {

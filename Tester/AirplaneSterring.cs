@@ -18,14 +18,14 @@ namespace Tester
             if (keyboard.IsKeyDown(OpenTK.Input.Key.W))
             {
                 var bodyDirection = Body.GetOrientation().ToDirection();
-                if (Body.GetCollisionShape().LinearVelocity.Length() < 625.0f)
-                {
-                    Body.GetCollisionShape().LinearVelocity += bodyDirection.ToBepu() * 4.0f;
-                }
+                //if (Body.GetCollisionShape().LinearVelocity.Length() < 625.0f)
+                //{
+                    Body.GetCollisionShape().LinearVelocity += bodyDirection.ToBepu() * 14.0f;
+                //}
             }
             if (keyboard.IsKeyDown(OpenTK.Input.Key.S))
             {
-                Body.GetCollisionShape().LinearVelocity *= 0.995f;
+                Body.GetCollisionShape().LinearVelocity *= 0.985f;
             }
             float rollMult = 25.0f;
             float pitchMult = 58.0f;

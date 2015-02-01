@@ -120,10 +120,16 @@ namespace VDGTech
 
         public void Use()
         {
-            if (Current == this) return;
-            if (!Compiled) Compile();
-            if(!Lock) GL.UseProgram(Handle);
-            Current = this;
+            if(!Lock)
+            {
+                if(Current == this)
+                    return;
+                if(!Compiled)
+                    Compile();
+                if(!Lock)
+                    GL.UseProgram(Handle);
+                Current = this;
+            }
         }
 
         private int CompileSingleShader(ShaderType type, string source)

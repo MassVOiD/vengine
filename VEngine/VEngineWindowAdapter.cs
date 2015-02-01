@@ -24,11 +24,12 @@ namespace VDGTech
 
         Framebuffer PostProcessFramebuffer, NormalWritingFramebuffer;
         ShaderProgram NormalWritingShaderProgram;
+        IMaterial PostProcessingDefaultMaterial;
         Mesh3d PostProcessingMesh;
 
         public VEngineWindowAdapter(string title, int width, int height)
             : base(width, height,
-                new OpenTK.Graphics.GraphicsMode(32, 32, 0, 4), title, GameWindowFlags.Default,
+                new OpenTK.Graphics.GraphicsMode(32, 32, 0, 16), title, GameWindowFlags.Default,
                 DisplayDevice.Default, 4, 4,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
@@ -38,7 +39,8 @@ namespace VDGTech
             NormalWritingFramebuffer = new Framebuffer(width, height);
             NormalWritingShaderProgram = new ShaderProgram(Media.ReadAllText("WriteNormals.vertex.glsl"), Media.ReadAllText("WriteNormals.fragment.glsl"));
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
-            PostProcessingMesh = new Mesh3d(postPlane3dInfo, new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.fragment.glsl")));
+            PostProcessingDefaultMaterial = new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.fragment.glsl"));
+            PostProcessingMesh = new Mesh3d(postPlane3dInfo, PostProcessingDefaultMaterial);
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
@@ -47,6 +49,10 @@ namespace VDGTech
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
+
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
             GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
                 Console.WriteLine("{0} {1} {2} {3} {4} {5}", source, type, id, severity, length, message);
@@ -60,6 +66,15 @@ namespace VDGTech
             MouseWheel += VEngineWindowAdapter_MouseWheel;
             Load += VEngineWindowAdapter_Load;
             CursorVisible = false;
+        }
+
+        public void SetCustomPostProcessingMaterial(IMaterial material)
+        {
+            PostProcessingMesh.Material = material;
+        }
+        public void SetDefaultPostProcessingMaterial()
+        {
+            PostProcessingMesh.Material = PostProcessingDefaultMaterial;
         }
 
         void VEngineWindowAdapter_Load(object sender, EventArgs e)
@@ -139,33 +154,28 @@ namespace VDGTech
             GLThread.InvokeOnBeforeDraw();
             GLThread.InvokeQueue();
 
+            LightPool.MapAll();
+
             PostProcessFramebuffer.Use();
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             if (Skybox.Current != null) Skybox.Current.Draw();
+
+            LightPool.UseTextures(0);
             World.Root.Draw();
-            /*NormalWritingFramebuffer.Use();
+            NormalWritingFramebuffer.Use();
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            NormalWritingShaderProgram.Use();
-            ShaderProgram.Lock = true;
-            World.Root.Draw();
-            ShaderProgram.Lock = false;
-
-            LightPool.MapAll();
-            */
             PostProcessFramebuffer.RevertToDefault();
 
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             PostProcessFramebuffer.UseTexture(0);
-            //NormalWritingFramebuffer.UseTexture(2);
-            //LightPool.UseTextures(4);
 
-            GLThread.CheckErrors();
+            LightPool.UseTextures(2);
 
             PostProcessingMesh.Draw();
 
