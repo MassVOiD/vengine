@@ -4,10 +4,6 @@ layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
 layout(binding = 2) uniform sampler2D vertexPositions;
 layout(binding = 3) uniform sampler2D depth2;
-layout(binding = 4) uniform sampler2D coneLightVertexPos;
-layout(binding = 5) uniform sampler2D coneLightDepth;
-
-uniform mat4 LightsVPs_0;
 
 in vec2 UV;
 uniform float Time;

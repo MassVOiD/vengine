@@ -31,7 +31,7 @@ namespace ShadowsTester
 
             World.Root = new World();
 
-            new FreeCamera();
+            var freeCamera = new FreeCamera();
 
 
             Object3dInfo icosphereInfo = Object3dInfo.LoadFromCompressed(Media.Get("Icosphere.o3i"));
@@ -72,12 +72,15 @@ namespace ShadowsTester
             Func<uint, uint, float> terrainGen = (x, y) =>
             {
                 float h =
-                    SimplexNoise.Noise.Generate(x, y) * 3;
+                    SimplexNoise.Noise.Generate(x, y) +
+                    (SimplexNoise.Noise.Generate((float)x / 4, (float)y / 4) * 11.5f) +
+                    (SimplexNoise.Noise.Generate((float)x / 14, (float)y / 14) * 33) +
+                    (SimplexNoise.Noise.Generate((float)x / 126, (float)y / 126) * 87);
                 return h;
             };
 
-            //Object3dInfo groundInfo = Object3dGenerator.CreateGround(new Vector2(-15000, -15000), new Vector2(15000, 15000), new Vector2(1000, 1000), Vector3.UnitY);
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-150, -150), new Vector2(150, 150), new Vector2(10, 10), Vector3.UnitY, 64, terrainGen);
+            //Object3dInfo groundInfo = Object3dGenerator.CreateGround(new Vector2(-150, -150), new Vector2(150, 150), new Vector2(1000, 1000), Vector3.UnitY);
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-1000, -1000), new Vector2(1000, 1000), new Vector2(10, 10), Vector3.UnitY, 256, terrainGen);
             //Object3dInfo groundInfo = Object3dInfo.LoadFromCompressed(Media.Get("terrain4.o3i"));
 
 
@@ -92,9 +95,18 @@ namespace ShadowsTester
             water.SetPosition(new Vector3(0, -150, 0));
             World.Root.Add(water);*/
 
-            FOVLight coneLight = new FOVLight(new Vector3(150, 150, 150), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 4500, 4500, 3.14f / 2.0f, 1.0f, 10000.0f);
+            FOVLight coneLight = new FOVLight(new Vector3(60, 30, 60), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 2.0f, 1.0f, 10000.0f);
+            //var ms = (float)DateTime.Now.TimeOfDay.TotalMilliseconds / 10000.0f;
+            ///coneLight.SetPosition(new Vector3((float)Math.Sin(ms) * 20, 15, (float)Math.Cos(-ms)) * 20, Vector3.Zero);
+            //System.Timers.Timer lightMovement = new System.Timers.Timer(40);
+            //lightMovement.Elapsed += (o, e) =>
+            //{
+               //var ms = (float)DateTime.Now.TimeOfDay.TotalMilliseconds / 10000.0f;
+               // coneLight.SetPosition(new Vector3((float)Math.Sin(ms) * 20, 15, (float)Math.Cos(-ms)) * 20, Vector3.Zero);
+           // };
+            //lightMovement.Start();
             LightPool.Add(coneLight);
-
+            
             var color = new SolidColorMaterial(Color.FromArgb(rand.Next(255), rand.Next(255), rand.Next(255)));
             for(int i = 0; i < 130; i++)
             {
@@ -102,9 +114,9 @@ namespace ShadowsTester
                 a.SetScale(1);
                 a.SetPosition(new Vector3(rand.Next(-150, 150), 25, rand.Next(-150, 150)));
                 a.SetMass(15.5f);
-                a.SetCollisionShape(new Sphere(a.GetPosition(), 1.0f, 20.0f));
+                a.SetCollisionShape(new Sphere(a.GetPosition(), 0.8f, 20.0f));
                 var s = a.GetCollisionShape();
-                s.Material.Bounciness = 1.0f;
+                s.Material.Bounciness = 0.5f;
                 s.LinearDamping = 0;
                 s.Material.KineticFriction = 1.0f;
                 s.PositionUpdateMode = BEPUphysics.PositionUpdating.PositionUpdateMode.Discrete;
@@ -114,13 +126,13 @@ namespace ShadowsTester
             
             Object3dInfo simplecubeInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"))[1];
             SingleTextureMaterial cubewood = new SingleTextureMaterial(new Texture(Media.Get("wood.jpg")));
-            float cubesize = 0.384960f * 2.0f;
-            for(int i = 0; i < 12; i++)
-                for(int g = 0; g < 12; g++)
+            float cubesize = 0.384960f * 6.0f;
+            for(int i = 0; i < 22; i++)
+                for(int g = 0; g < 32; g++)
             {
                 Mesh3d a = new Mesh3d(simplecubeInfo, color);
-                a.SetScale(1);
-                a.SetPosition(new Vector3(i * cubesize, g * cubesize, 40));
+                a.SetScale(3);
+                a.SetPosition(new Vector3(i * cubesize, g * cubesize, -40));
                 a.SetMass(15.5f);
                 a.SetCollisionShape(new Box(a.GetPosition(), cubesize, cubesize, cubesize, 20.0f));
                 var s = a.GetCollisionShape();
@@ -134,19 +146,27 @@ namespace ShadowsTester
 
             GLThread.OnMouseUp += (o, e) =>
             {
-                Mesh3d mesh = Camera.Current.RayCast();
-                if(mesh != null && mesh.GetCollisionShape() != null)
+                if(e.Button == OpenTK.Input.MouseButton.Left)
                 {
-                    Console.WriteLine(mesh.GetCollisionShape().ToString());
-                    mesh.GetCollisionShape().LinearVelocity += (Vector3.UnitY * 20.0f).ToBepu();
+                    Mesh3d mesh = Camera.Current.RayCast();
+                    if(mesh != null && mesh.GetCollisionShape() != null)
+                    {
+                        Console.WriteLine(mesh.GetCollisionShape().ToString());
+                        mesh.GetCollisionShape().LinearVelocity += (Vector3.UnitY * 20.0f).ToBepu();
+                    }
+                }
+                if(e.Button == OpenTK.Input.MouseButton.Right)
+                {
+                    coneLight.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Orientation);
                 }
             };
+            /*
             System.Timers.Timer datetimer = new System.Timers.Timer(1000);
             datetimer.Elapsed += (o, e) =>
             {
                 datetex.UpdateFromText(DateTime.Now.ToShortTimeString() + ":" + DateTime.Now.Second.ToString(), "Segoe UI", 160.0f, Color.Black, Color.White);
-            };
-            datetimer.Start();
+            };*/
+            //datetimer.Start();
             GLThread.Invoke(() => window.StartPhysicsThread());
             GLThread.Invoke(() => window.SetDefaultPostProcessingMaterial());
             renderThread.Wait();

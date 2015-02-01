@@ -57,6 +57,7 @@ namespace VDGTech
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
             shader.SetUniformArray("LightsPs", LightPool.GetPMatrices());
             shader.SetUniformArray("LightsVs", LightPool.GetVMatrices());
+            shader.SetUniformArray("LightsPos", LightPool.GetPositions());
 
             shader.SetUniform("CameraPosition", Camera.Current.Position);
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);

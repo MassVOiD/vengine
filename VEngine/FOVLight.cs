@@ -35,6 +35,23 @@ namespace VDGTech
             return camera.ProjectionMatrix;
         }
 
+        public Vector3 GetPosition()
+        {
+            return camera.Position;
+        }
+
+        public void SetPosition(Vector3 position, Vector3 lookat)
+        {
+            camera.Position = position;
+            camera.LookAt(lookat);
+        }
+        public void SetPosition(Vector3 position, Quaternion orientation)
+        {
+            camera.Position = position;
+            camera.Orientation = orientation;
+            camera.Update();
+        }
+
         public void Map()
         {
             FBO.Use();

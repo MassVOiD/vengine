@@ -71,7 +71,7 @@ namespace Tester
                     (SimplexNoise.Noise.Generate((float)x / 26, (float)y / 26) * 300);
             };
 
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-60000.0f, -60000.0f), new Vector2(60000.0f, 60000.0f), new Vector2(20, 20), Vector3.UnitY, 444, terrainGen);
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-60000.0f, -60000.0f), new Vector2(60000.0f, 60000.0f), new Vector2(20, 20), Vector3.UnitY, 222, terrainGen);
 
             Mesh3d ground = new Mesh3d(groundInfo, new SolidColorMaterial(Color.Green));
             //ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
@@ -118,6 +118,9 @@ namespace Tester
 
             Skybox skybox = new Skybox(ManualShaderMaterial.FromName("Skybox"));
             skybox.Use();
+
+            FOVLight coneLight = new FOVLight(new Vector3(150, 150, 150), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2000, 2000, 3.14f / 2.0f, 1.0f, 10000.0f);
+            LightPool.Add(coneLight);
 
             GLThread.Invoke(() =>  window.StartPhysicsThread());
             terrain3dInfo.Dispose();

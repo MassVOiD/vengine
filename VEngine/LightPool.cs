@@ -37,6 +37,10 @@ namespace VDGTech
         {
             return Lights.Select<ILight, Matrix4>(a => a.GetVMatrix()).ToArray();
         }
+        public static Vector3[] GetPositions()
+        {
+            return Lights.Select<ILight, Vector3>(a => a.GetPosition()).ToArray();
+        }
 
         public static void UseTextures(int index)
         {

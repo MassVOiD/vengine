@@ -58,6 +58,7 @@ namespace VDGTech
         {
             var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, Pitch);
             var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, Roll);
+            Orientation = Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted());
             RotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
             ViewMatrix = Matrix4.CreateTranslation(-Position) * RotationMatrix;
         }

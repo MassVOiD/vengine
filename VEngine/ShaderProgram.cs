@@ -66,12 +66,25 @@ namespace VDGTech
 
         public void SetUniformArray(string name, Matrix4[] data)
         {
-            for(int i = 0;i < data.Length;i++)
+            for(int i = 0; i < data.Length; i++)
             {
                 int location = GetUniformLocation(name + "_" + i);
                 if(location >= 0)
                 {
                     GL.UniformMatrix4(location, false, ref data[i]);
+                    GLThread.CheckErrors();
+                }
+            }
+        }
+
+        public void SetUniformArray(string name, Vector3[] data)
+        {
+            for(int i = 0; i < data.Length; i++)
+            {
+                int location = GetUniformLocation(name + "_" + i);
+                if(location >= 0)
+                {
+                    GL.Uniform3(location, data[i]);
                     GLThread.CheckErrors();
                 }
             }

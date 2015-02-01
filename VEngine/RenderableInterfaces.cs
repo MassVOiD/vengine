@@ -14,6 +14,7 @@ namespace VDGTech
         void UseTexture(int index);
         Matrix4 GetPMatrix();
         Matrix4 GetVMatrix();
+        Vector3 GetPosition();
     }
     public interface IPhysical
     {

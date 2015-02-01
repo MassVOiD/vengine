@@ -10,7 +10,7 @@ namespace ShadowsTester
 {
     class FreeCamera
     {
-        Camera Cam;
+        public Camera Cam;
         public FreeCamera()
         {
             Cam = new Camera(new Vector3(0, 20, 0), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 2.0f, 200.0f);
@@ -37,14 +37,14 @@ namespace ShadowsTester
         {
             var keyboard = OpenTK.Input.Keyboard.GetState();
 
-            float speed = 3.0f;
+            float speed = 1;
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))
             {
-                speed = 300.0f;
+                speed = 4;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.AltLeft))
             {
-                speed = 30.0f;
+                speed = 6;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ControlLeft))
             {

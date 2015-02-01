@@ -18,7 +18,7 @@ void main(){
     //vec4 n = vec4(in_normal,0);
 	mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrix;
 	//normal = (ProjectionMatrix * ModelMatrix * n).xyz;
-	vertexPosition = mvp * v;
+	vertexPosition = ModelMatrix * v;
 	gl_Position = mvp * v;
 	//gl_Position.z = pow(gl_Position.z, 99);
 }

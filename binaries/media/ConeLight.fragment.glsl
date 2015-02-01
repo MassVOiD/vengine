@@ -11,6 +11,6 @@ void main()
 {
 	vec3 d1 = vertexPosition.xyz;
 	vec3 d2 = LightPosition;
-	//gl_FragDepth = length(vertexPosition.xyz - LightPosition);
-    outColor = vec4(d2.x, d2.y, d2.z, length(vertexPosition.xyz - LightPosition) * 10.0f);
+	gl_FragDepth = length(vertexPosition.xyz - LightPosition) / 4120.0f;
+    outColor = vec4(0,0,0,0);
 }
