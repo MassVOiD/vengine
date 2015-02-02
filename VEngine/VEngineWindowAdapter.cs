@@ -189,6 +189,7 @@ namespace VDGTech
         {
             //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f));
             GLThread.InvokeOnUpdate();
+            MeshLinker.Resolve();
             Debugger.Send("FrameTime", e.Time);
             Debugger.Send("FPS", 1.0/e.Time);
             var keyboard = OpenTK.Input.Keyboard.GetState();

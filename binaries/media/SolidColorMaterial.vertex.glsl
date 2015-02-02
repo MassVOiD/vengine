@@ -29,7 +29,7 @@ void main(){
 	LightScreenSpace = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 	
 	positionWorldSpace = (ModelMatrix * v).xyz;
-	normal = (ProjectionMatrix * ModelMatrix * n).xyz;
+	normal = (ModelMatrix * n).xyz;
 	
     gl_Position = (ProjectionMatrix * ViewMatrix * ModelMatrix) * v;   
 }

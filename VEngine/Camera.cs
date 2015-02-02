@@ -32,7 +32,7 @@ namespace VDGTech
         public Mesh3d RayCast()
         {
             RayCastResult rcResult;
-            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position, -GetDirection()),1000.0f, out rcResult);
+            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position, GetDirection()),1000.0f, out rcResult);
             return rcResult.HitObject != null ? rcResult.HitObject.Tag as Mesh3d : null;
         }
 
@@ -70,7 +70,7 @@ namespace VDGTech
             direction = Vector4.Transform(direction, rotationY);
             direction = Vector4.Transform(direction, rotationX);
             System.Console.WriteLine(direction.ToString());
-            return direction.Xyz;
+            return -direction.Xyz;
         }
 
         public void ProcessKeyboardState(OpenTK.Input.KeyboardState keys)

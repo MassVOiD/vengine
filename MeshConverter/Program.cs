@@ -11,10 +11,19 @@ namespace MeshConverter
     {
         static void Main(string[] args)
         {
-            string infile = args[0];
-            string outfile = args[1];
+            string mode = args[0];
+            string infile = args[1];
+            string outfile = args[2];
 
-            Object3dInfo.CompressAndSave(infile, outfile);
+            if(mode == "separate")
+            {
+
+                Object3dInfo.CompressAndSave(infile, outfile);
+            }
+            else if(mode == "single")
+            {
+                Object3dInfo.CompressAndSaveSingle(infile, outfile);
+            }
             Console.WriteLine("Done");
 
         }

@@ -41,6 +41,10 @@ namespace VDGTech
         {
             return Lights.Select<ILight, Vector3>(a => a.GetPosition()).ToArray();
         }
+        public static float[] GetFarPlanes()
+        {
+            return Lights.Select<ILight, float>(a => a.GetFarPlane()).ToArray();
+        }
 
         public static void UseTextures(int index)
         {

@@ -79,6 +79,7 @@
     <Content Include="Config.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Compile Include="ComputeShader.cs" />
     <Compile Include="Debugger.cs" />
     <Compile Include="FOVLight.cs" />
     <Compile Include="Framebuffer.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="IMaterial.cs" />
     <Compile Include="LightPool.cs" />
     <Compile Include="MathExtensions.cs" />
+    <Compile Include="MeshLinker.cs" />
     <Compile Include="Particles\ParticleGenerator.cs" />
     <Compile Include="Particles\ParticleSystem.cs" />
     <Compile Include="RenderableInterfaces.cs" />

@@ -40,15 +40,15 @@ namespace ShadowsTester
             float speed = 1;
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))
             {
-                speed = 4;
+                speed *= 4;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.AltLeft))
             {
-                speed = 6;
+                speed *= 60;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ControlLeft))
             {
-                speed = 0.3f;
+                speed *= 0.3f;
             }
 
             if(keyboard.IsKeyDown(OpenTK.Input.Key.W))

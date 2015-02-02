@@ -71,14 +71,14 @@ namespace Tester
                     (SimplexNoise.Noise.Generate((float)x / 26, (float)y / 26) * 300);
             };
 
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-60000.0f, -60000.0f), new Vector2(60000.0f, 60000.0f), new Vector2(20, 20), Vector3.UnitY, 222, terrainGen);
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-6000.0f, -6000.0f), new Vector2(6000.0f, 6000.0f), new Vector2(20, 20), Vector3.UnitY, 333, terrainGen);
 
             Mesh3d ground = new Mesh3d(groundInfo, new SolidColorMaterial(Color.Green));
             //ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
             //ground.GetStaticCollisionMesh().Material.Bounciness = 1.0f;
             World.Root.Add(ground);
 
-            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-60000.0f, -60000.0f), new Vector2(60000.0f, 60000.0f), new Vector2(20, 20), Vector3.UnitY);
+            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-6000.0f, -6000.0f), new Vector2(6000.0f, 6000.0f), new Vector2(20, 20), Vector3.UnitY);
 
             Mesh3d water = new Mesh3d(waterInfo, new SolidColorMaterial(Color.FromArgb(140, Color.Blue)));
             water.SetPosition(new Vector3(0, 0, 0));
@@ -114,13 +114,32 @@ namespace Tester
                 }
             };
 
+
             World.Root.Remove(postPlane);
 
             Skybox skybox = new Skybox(ManualShaderMaterial.FromName("Skybox"));
             skybox.Use();
 
-            FOVLight coneLight = new FOVLight(new Vector3(150, 150, 150), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2000, 2000, 3.14f / 2.0f, 1.0f, 10000.0f);
+            FOVLight coneLight = new FOVLight(new Vector3(1500, 1500, 1500), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 1024, 1024, 3.14f / 2.0f, 1.0f, 10000.0f);
             LightPool.Add(coneLight);
+
+
+            GLThread.OnMouseUp += (o, e) =>
+            {
+                if(e.Button == OpenTK.Input.MouseButton.Left)
+                {
+                    Mesh3d mesh = Camera.Current.RayCast();
+                    if(mesh != null && mesh.GetCollisionShape() != null)
+                    {
+                        Console.WriteLine(mesh.GetCollisionShape().ToString());
+                        mesh.GetCollisionShape().LinearVelocity += (Vector3.UnitY * 20.0f).ToBepu();
+                    }
+                }
+                if(e.Button == OpenTK.Input.MouseButton.Right)
+                {
+                    coneLight.SetPosition(Camera.Current.Position, Camera.Current.Orientation);
+                }
+            };
 
             GLThread.Invoke(() =>  window.StartPhysicsThread());
             terrain3dInfo.Dispose();

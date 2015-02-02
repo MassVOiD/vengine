@@ -15,6 +15,7 @@ namespace VDGTech
         Matrix4 GetPMatrix();
         Matrix4 GetVMatrix();
         Vector3 GetPosition();
+        float GetFarPlane();
     }
     public interface IPhysical
     {

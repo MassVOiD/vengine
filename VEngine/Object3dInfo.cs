@@ -89,6 +89,12 @@ namespace VDGTech
             var data = ParseOBJString(lines);
             return data.Select<ObjFileData, Object3dInfo>(a => new Object3dInfo(a.VBO, a.Indices)).ToArray();
         }
+        public static Object3dInfo LoadFromObjSingle(string infile)
+        {
+            string[] lines = File.ReadAllLines(infile);
+            var data = ParseOBJStringSingle(lines);
+            return new Object3dInfo(data.VBO, data.Indices);
+        }
 
         class ObjFileData
         {
@@ -116,6 +122,24 @@ namespace VDGTech
                 File.WriteAllBytes(outdir + "/" + element.Name + ".o3i", memstream.ToArray());
             }
         }
+        public static void CompressAndSaveSingle(string infile, string outdir)
+        {
+            string[] lines = File.ReadAllLines(infile);
+            var element = ParseOBJStringSingle(lines);
+
+            MemoryStream memstream = new MemoryStream();
+            memstream.Write(BitConverter.GetBytes(element.VBO.Count), 0, 4);
+            memstream.Write(BitConverter.GetBytes(element.Indices.Count), 0, 4);
+            foreach(float v in element.VBO)
+                memstream.Write(BitConverter.GetBytes(v), 0, 4);
+            foreach(uint v in element.Indices)
+                memstream.Write(BitConverter.GetBytes(v), 0, 4);
+            memstream.Flush();
+            if(File.Exists(outdir + ".o3i"))
+                File.Delete(outdir + ".o3i");
+            File.WriteAllBytes(outdir + ".o3i", memstream.ToArray());
+
+        }
         public static void CompressAndSave(Object3dInfo data, string outfile)
         {
             MemoryStream memstream = new MemoryStream();
@@ -129,7 +153,7 @@ namespace VDGTech
             if(File.Exists(outfile + ".o3i"))
                 File.Delete(outfile + ".o3i");
             File.WriteAllBytes(outfile + ".o3i", memstream.ToArray());
-            
+
         }
 
         public static Object3dInfo LoadFromCompressed(string infile)
@@ -250,6 +274,83 @@ namespace VDGTech
             return objects;
         }
 
+
+        static ObjFileData ParseOBJStringSingle(string[] lines)
+        {
+            List<ObjFileData> objects = new List<ObjFileData>();
+            List<Vector3> temp_vertices = new List<Vector3>(), temp_normals = new List<Vector3>();
+            List<Vector2> temp_uvs = new List<Vector2>();
+            List<float> out_vertex_buffer = new List<float>();
+            List<uint> index_buffer = new List<uint>();
+            HashSet<Tuple<int, int, int>> indicesRedecer = new HashSet<Tuple<int, int, int>>();
+            ;
+            //out_vertex_buffer.AddRange(Enumerable.Repeat<double>(0, 8));
+            uint vcount = 0;
+
+            ObjFileData current = new ObjFileData();
+
+            Match match = Match.Empty;
+            foreach(string line in lines)
+            {
+                if(line.StartsWith("vt"))
+                {
+                    match = Regex.Match(line, @"vt ([0-9.-]+) ([0-9.-]+)");
+                    temp_uvs.Add(new Vector2(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture)));
+                }
+                else if(line.StartsWith("vn"))
+                {
+                    match = Regex.Match(line, @"vn ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
+                    temp_normals.Add(new Vector3(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture)));
+                }
+                else if(line.StartsWith("v"))
+                {
+                    match = Regex.Match(line, @"v ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
+                    temp_vertices.Add(new Vector3(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture)));
+                }
+                else if(line.StartsWith("f"))
+                {
+                    match = Regex.Match(line, @"f ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+)");
+                    if(match.Success)
+                    {
+                        for(int i = 1; ; )
+                        {
+                            Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
+                            Vector2 uv = temp_uvs[int.Parse(match.Groups[i++].Value) - 1];
+                            Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
+
+                            out_vertex_buffer.AddRange(new float[] { vertex.X, vertex.Y, vertex.Z, uv.X, uv.Y, normal.X, normal.Y, normal.Z });
+                            index_buffer.Add(vcount++);
+                            if(i >= 9)
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        match = Regex.Match(line, @"f ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+)");
+                        if(match.Success)
+                        {
+                            for(int i = 1; ; )
+                            {
+                                Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
+                                Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
+
+                                out_vertex_buffer.AddRange(new float[] { vertex.X, vertex.Y, vertex.Z, 0.0f, 0.0f, normal.X, normal.Y, normal.Z });
+                                index_buffer.Add(vcount++);
+                                if(i >= 6)
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+            current.VBO = out_vertex_buffer;
+            current.Indices = index_buffer;
+            objects.Add(current);
+            current = new ObjFileData();
+            current.Name = match.Groups[1].Value;
+            return objects.First();
+        }
+
         static Object3dInfo Current = null;
         private StaticMesh CachedBvhTriangleMeshShape;
 
@@ -262,7 +363,7 @@ namespace VDGTech
                 vectors.Add(new BEPUutilities.Vector3(VBO[i] * scale, VBO[i + 1] * scale, VBO[i + 2] * scale) + position.ToBepu());
 
             var staticMesh = new StaticMesh(
-                vectors.ToArray(), 
+                vectors.ToArray(),
                 Indices.Select<uint, int>(a => (int)a).ToArray(),
                 new BEPUutilities.AffineTransform(BEPUutilities.Matrix3x3.CreateFromAxisAngle(BEPUutilities.Vector3.Up, 0), Vector3.Zero));
             staticMesh.Sidedness = BEPUutilities.TriangleSidedness.DoubleSided;

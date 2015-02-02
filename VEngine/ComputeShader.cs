@@ -1,38 +1,38 @@
-﻿using OpenTK;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using System;
-using System.Collections.Generic;
 
 namespace VDGTech
 {
-    public class ShaderProgram
+    class ComputeShader
     {
-        public static ShaderProgram Current = null;
+        public static ComputeShader Current = null;
         int Handle = -1;
         Dictionary<string, int> UniformLocationsCache;
-        string VertexSource, FragmentSource;
+        string ComputeSource;
         bool Compiled;
         static public bool Lock = false;
 
-        public ShaderProgram(string vertex, string fragment)
+        public ComputeShader(string source, string fragment)
         {
             UniformLocationsCache = new Dictionary<string, int>();
 
-            VertexSource = vertex;
-            FragmentSource = fragment;
+            ComputeSource = source;
             Compiled = false;
         }
 
         void Compile()
         {
-            int vertexShaderHandle = CompileSingleShader(ShaderType.VertexShader, VertexSource);
-            int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, FragmentSource);
+            int shaderHandle = CompileSingleShader(ShaderType.ComputeShader, ComputeSource);
 
             Handle = GL.CreateProgram();
 
-            GL.AttachShader(Handle, vertexShaderHandle);
-            GL.AttachShader(Handle, fragmentShaderHandle);
+            GL.AttachShader(Handle, shaderHandle);
 
             GL.LinkProgram(Handle);
 
@@ -85,18 +85,6 @@ namespace VDGTech
                 if(location >= 0)
                 {
                     GL.Uniform3(location, data[i]);
-                    GLThread.CheckErrors();
-                }
-            }
-        }
-        public void SetUniformArray(string name, float[] data)
-        {
-            for(int i = 0; i < data.Length; i++)
-            {
-                int location = GetUniformLocation(name + "_" + i);
-                if(location >= 0)
-                {
-                    GL.Uniform1(location, data[i]);
                     GLThread.CheckErrors();
                 }
             }

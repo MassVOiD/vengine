@@ -23,7 +23,7 @@ namespace VDGTech
         public void Use()
         {
             Program.Use();
-            Tex.Use(TextureUnit.Texture0);
+            Tex.Use(TextureUnit.Texture3);
         }
     }
 }

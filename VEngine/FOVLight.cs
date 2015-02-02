@@ -16,12 +16,14 @@ namespace VDGTech
         public Camera camera;
         public Framebuffer FBO;
         ManualShaderMaterial Shader;
+        float FarPlane;
         Size ViewPort;
         public FOVLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
+            FarPlane = far;
             camera = new Camera(position, Vector3.Zero, mapwidth / mapheight, fov, near, far);
             camera.LookAt(Vector3.Zero);
-            FBO = new Framebuffer(mapwidth, mapheight);
+            FBO = new Framebuffer(mapwidth, mapheight, true);
             Shader = ManualShaderMaterial.FromName("ConeLight");
             ViewPort = new Size(mapwidth, mapheight);
         }
@@ -38,6 +40,10 @@ namespace VDGTech
         public Vector3 GetPosition()
         {
             return camera.Position;
+        }
+        public float GetFarPlane()
+        {
+            return FarPlane;
         }
 
         public void SetPosition(Vector3 position, Vector3 lookat)
@@ -62,6 +68,7 @@ namespace VDGTech
             Shader.Use();
             ShaderProgram.Lock = true;
             Shader.GetShaderProgram().SetUniform("LightPosition", camera.Position);
+            Shader.GetShaderProgram().SetUniform("FarPlane", FarPlane);
             World.Root.Draw();
             ShaderProgram.Lock = false;
             Camera.Current = last;
