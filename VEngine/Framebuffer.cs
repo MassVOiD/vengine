@@ -11,7 +11,8 @@ namespace VDGTech
 {
     public class Framebuffer
     {
-        int FBO, RBO, TexColor, TexDepth, Width, Height;
+        int FBO, RBO, Width, Height;
+        int TexColor, TexDepth;
         bool Generated, DepthOnly;
 
 
@@ -54,7 +55,8 @@ namespace VDGTech
             GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, Width, Height);
 
             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, RBO);
-            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexColor, 0);
+            if(!DepthOnly)
+                GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexColor, 0);
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TexDepth, 0);
 
             GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
@@ -73,11 +75,18 @@ namespace VDGTech
         }
         public void UseTexture(int startIndex)
         {
-            GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexColor);
-            GL.ActiveTexture(TextureUnit.Texture1 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
-
+            if(DepthOnly)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
+                GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+            }
+            else
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
+                GL.BindTexture(TextureTarget.Texture2D, TexColor);
+                GL.ActiveTexture(TextureUnit.Texture1 + startIndex);
+                GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+            }
             // this is because somebody recommended it on stackoverflow
             GL.ActiveTexture(TextureUnit.Texture0);
         }

@@ -69,6 +69,7 @@ namespace VDGTech
             ShaderProgram.Lock = true;
             Shader.GetShaderProgram().SetUniform("LightPosition", camera.Position);
             Shader.GetShaderProgram().SetUniform("FarPlane", FarPlane);
+            Shader.GetShaderProgram().SetUniform("LogEnchacer", 4.0f);
             World.Root.Draw();
             ShaderProgram.Lock = false;
             Camera.Current = last;

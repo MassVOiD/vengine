@@ -51,7 +51,7 @@ namespace VDGTech
             int i = index;
             foreach(var light in Lights){
                 light.UseTexture(i);
-                i += 2;
+                i++;
             }
         }
 

@@ -97,6 +97,7 @@
     <Compile Include="Mesh3d.cs" />
     <Compile Include="Object3dInfo.cs" />
     <Compile Include="PostProcessLoadingMaterial.cs" />
+    <Compile Include="ShaderPreparser.cs" />
     <Compile Include="SharpScript.cs" />
     <Compile Include="Skybox.cs" />
     <Compile Include="ManualShaderMaterial.cs" />

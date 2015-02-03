@@ -36,6 +36,7 @@ namespace ShadowsTester
         void UpdateSterring(object o, EventArgs e)
         {
             var keyboard = OpenTK.Input.Keyboard.GetState();
+            KeyboardHandler.Process();
 
             float speed = 1;
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))

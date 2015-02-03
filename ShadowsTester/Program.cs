@@ -34,11 +34,11 @@ namespace ShadowsTester
 
             var freeCamera = new FreeCamera();
 
-
+            
             Object3dInfo icosphereInfo = Object3dInfo.LoadFromCompressed(Media.Get("Icosphere.o3i"));
             Mesh3d icosphere = new Mesh3d(icosphereInfo, new SolidColorMaterial(Color.Yellow));
             World.Root.Add(icosphere);
-
+            /*
             Object3dInfo cube1Info = Object3dInfo.LoadFromCompressed(Media.Get("Cube_Cube.001.o3i"));
             Mesh3d cube1 = new Mesh3d(cube1Info, new SolidColorMaterial(Color.Yellow));
             World.Root.Add(cube1);
@@ -112,7 +112,7 @@ namespace ShadowsTester
             var whellFL = MeshLinker.Link(fiatBody, fiatWheelFR, new Vector3(0.83068f, 0.05185f, -1.31027f), Quaternion.Identity);
             var whellRR = MeshLinker.Link(fiatBody, fiatWheelFR, new Vector3(-0.83068f, 0.05185f, 1.24699f), Quaternion.Identity);
             var whellRL = MeshLinker.Link(fiatBody, fiatWheelFR, new Vector3(0.83068f, 0.05185f, 1.24699f), Quaternion.Identity);
-            
+            */
 
 
             /*Object3dInfo coneInfo = Object3dInfo.LoadFromCompressed(Media.Get("Cone.o3i"));
@@ -132,13 +132,13 @@ namespace ShadowsTester
                     SimplexNoise.Noise.Generate(x, y) +
                     (SimplexNoise.Noise.Generate((float)x / 4, (float)y / 4) * 11.5f) +
                     (SimplexNoise.Noise.Generate((float)x / 14, (float)y / 14) * 33) +
-                    (SimplexNoise.Noise.Generate((float)x / 126, (float)y / 126) * 187);
+                    (SimplexNoise.Noise.Generate((float)x / 126, (float)y / 126) * 687);
                 return h * 1.3f - 30.0f;
             };
 
-            //Object3dInfo groundInfo = Object3dGenerator.CreateGround(new Vector2(-150, -150), new Vector2(150, 150), new Vector2(1000, 1000), Vector3.UnitY);
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-100, -100), new Vector2(100, 100), new Vector2(10, 10), Vector3.UnitY, 44, (x, y) => 0);
-            //Object3dInfo groundInfo = Object3dInfo.LoadFromCompressed(Media.Get("terrain4.o3i"));
+            //Object3dInfo groundInfo = Object3dGenerator.CreateGround(new Vector2(-15000, -15000), new Vector2(15000, 15000), new Vector2(1000, 1000), Vector3.UnitY);
+            //Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-5000, -5000), new Vector2(5000, 5000), new Vector2(10, 10), Vector3.UnitY, 512, terrainGen);
+            Object3dInfo groundInfo = Object3dInfo.LoadFromCompressed(Media.Get("terrain4.o3i"));
 
 
             Mesh3d ground = new Mesh3d(groundInfo, new SingleTextureMaterial(new Texture(Media.Get("tiles.jpg"))));
@@ -152,19 +152,26 @@ namespace ShadowsTester
             water.SetPosition(new Vector3(0, -150, 0));
             World.Root.Add(water);*/
 
-            FOVLight coneLight = new FOVLight(new Vector3(60, 30, 60), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 6700, 6700, 3.14f / 2.0f, 1.0f, 300.0f);
-            //var ms = (float)DateTime.Now.TimeOfDay.TotalMilliseconds / 10000.0f;
-            ///coneLight.SetPosition(new Vector3((float)Math.Sin(ms) * 20, 15, (float)Math.Cos(-ms)) * 20, Vector3.Zero);
-            //System.Timers.Timer lightMovement = new System.Timers.Timer(40);
-            //lightMovement.Elapsed += (o, e) =>
-            //{
-               //var ms = (float)DateTime.Now.TimeOfDay.TotalMilliseconds / 10000.0f;
-               // coneLight.SetPosition(new Vector3((float)Math.Sin(ms) * 20, 15, (float)Math.Cos(-ms)) * 20, Vector3.Zero);
-           // };
-            //lightMovement.Start();
+            Object3dInfo chickInfo = Object3dInfo.LoadFromObjSingle(Media.Get("chick.obj"));
+            Mesh3d chick = new Mesh3d(chickInfo, new SingleTextureMaterial(new Texture(Media.Get("chick.png"))));
+            chick.SetScale(0.4f);
+            chick.SetPosition(new Vector3(0, 3.3f * 4, 0));
+            World.Root.Add(chick);
+
+            FOVLight coneLight = new FOVLight(new Vector3(65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 38000.0f);
             LightPool.Add(coneLight);
-            
+            /*
+            FOVLight coneLight2 = new FOVLight(new Vector3(-65, 30, -65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 380.0f);
+            LightPool.Add(coneLight2);
+
+            FOVLight coneLight3 = new FOVLight(new Vector3(65, 30, -65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 380.0f);
+            LightPool.Add(coneLight3);
+
+            FOVLight coneLight4 = new FOVLight(new Vector3(-65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 380.0f);
+            LightPool.Add(coneLight4);*/
+
             var color = new SolidColorMaterial(Color.FromArgb(rand.Next(255), rand.Next(255), rand.Next(255)));
+            /*
             for(int i = 0; i < 33; i++)
             {
                 Mesh3d a = new Mesh3d(icosphereInfo, color);
@@ -179,13 +186,13 @@ namespace ShadowsTester
                 s.PositionUpdateMode = BEPUphysics.PositionUpdating.PositionUpdateMode.Discrete;
                 
                 World.Root.Add(a);
-            }
+            }*/
             
             Object3dInfo simplecubeInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"))[1];
             SingleTextureMaterial cubewood = new SingleTextureMaterial(new Texture(Media.Get("wood.jpg")));
             
-            for(int i = 0; i < 12; i++)
-                for(int g = 0; g < 12; g++)
+            for(int i = 0; i < 2; i++)
+                for(int g = 0; g < 32; g++)
             {
                 float scale = i;
                 float cubesize = 0.384960f * scale;

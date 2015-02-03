@@ -1,6 +1,7 @@
 ﻿using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+using OldGL = OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 
@@ -19,8 +20,8 @@ namespace VDGTech
         {
             UniformLocationsCache = new Dictionary<string, int>();
 
-            VertexSource = vertex;
-            FragmentSource = fragment;
+            VertexSource = ShaderPreparser.Preparse(vertex);
+            FragmentSource = ShaderPreparser.Preparse(fragment);
             Compiled = false;
         }
 
@@ -66,39 +67,63 @@ namespace VDGTech
 
         public void SetUniformArray(string name, Matrix4[] data)
         {
-            for(int i = 0; i < data.Length; i++)
+            int location = GetUniformLocation(name);
+            List<float> floats = new List<float>();
+            foreach(var v in data)
             {
-                int location = GetUniformLocation(name + "_" + i);
-                if(location >= 0)
-                {
-                    GL.UniformMatrix4(location, false, ref data[i]);
-                    GLThread.CheckErrors();
-                }
+
+                floats.Add(v.Row0.X);
+                floats.Add(v.Row0.Y);
+                floats.Add(v.Row0.Z);
+                floats.Add(v.Row0.W);
+
+                floats.Add(v.Row1.X);
+                floats.Add(v.Row1.Y);
+                floats.Add(v.Row1.Z);
+                floats.Add(v.Row1.W);
+
+                floats.Add(v.Row2.X);
+                floats.Add(v.Row2.Y);
+                floats.Add(v.Row2.Z);
+                floats.Add(v.Row2.W);
+
+                floats.Add(v.Row3.X);
+                floats.Add(v.Row3.Y);
+                floats.Add(v.Row3.Z);
+                floats.Add(v.Row3.W);
+
             }
+            if(location >= 0)
+            {
+                GL.UniformMatrix4(location, data.Length, false, floats.ToArray());
+                GLThread.CheckErrors();
+            }
+            
         }
 
         public void SetUniformArray(string name, Vector3[] data)
         {
-            for(int i = 0; i < data.Length; i++)
+            int location = GetUniformLocation(name);
+            List<float> floats = new List<float>();
+            foreach(var v in data)
             {
-                int location = GetUniformLocation(name + "_" + i);
-                if(location >= 0)
-                {
-                    GL.Uniform3(location, data[i]);
-                    GLThread.CheckErrors();
-                }
+                floats.Add(v.X);
+                floats.Add(v.Y);
+                floats.Add(v.Z);
+            }
+            if(location >= 0)
+            {
+                GL.Uniform3(location, data.Length, floats.ToArray());
+                GLThread.CheckErrors();
             }
         }
         public void SetUniformArray(string name, float[] data)
         {
-            for(int i = 0; i < data.Length; i++)
+            int location = GetUniformLocation(name);
+            if(location >= 0)
             {
-                int location = GetUniformLocation(name + "_" + i);
-                if(location >= 0)
-                {
-                    GL.Uniform1(location, data[i]);
-                    GLThread.CheckErrors();
-                }
+                GL.Uniform1(location, data.Length, data);
+                GLThread.CheckErrors();
             }
         }
 

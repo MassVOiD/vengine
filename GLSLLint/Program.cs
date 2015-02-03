@@ -25,8 +25,11 @@ namespace GLSLLint
             var window = new VEngineInvisibleAdapter();
 
             int shader = GL.CreateShader(type);
-
-            GL.ShaderSource(shader, source);
+            System.IO.Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
+            var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
+            Media.SearchPath = Config.MediaPath;
+            Console.WriteLine(ShaderPreparser.Preparse(source));
+            GL.ShaderSource(shader, ShaderPreparser.Preparse(source));
 
             GL.CompileShader(shader);
 
