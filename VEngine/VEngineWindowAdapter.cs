@@ -34,6 +34,7 @@ namespace VDGTech
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             GLThread.StartTime = DateTime.Now;
+            GLThread.Resolution = new Vector2(width, height);
 
             PostProcessFramebuffer = new Framebuffer(width, height);
             NormalWritingFramebuffer = new Framebuffer(width, height);

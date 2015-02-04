@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK;
 
 namespace VDGTech
 {
     public class GLThread
     {
         static public DateTime StartTime;
+        static public Vector2 Resolution;
         private static Queue<Action> ActionQueue = new Queue<Action>();
         static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw, OnLoad;
         static public event EventHandler<OpenTK.Input.MouseWheelEventArgs> OnMouseWheel;

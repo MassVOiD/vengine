@@ -4,15 +4,15 @@
 
 out vec2 UV;
 
-out vec2 LightScreenSpace[MAX_LIGHTS];
-out vec3 positionWorldSpace;
-out vec3 positionModelSpace;
-out vec3 normal;
+smooth out vec2 LightScreenSpace[MAX_LIGHTS];
+smooth out vec3 positionWorldSpace;
+smooth out vec3 positionModelSpace;
+smooth out vec3 normal;
 
 void main(){
 
-    vec4 v = vec4(in_position,1);
-    vec4 n = vec4(in_normal,0);
+	vec4 v = vec4(in_position,1);
+	vec4 n = vec4(in_normal,0);
 	mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrix;
 	
 	for(uint i = 0; i < LightsCount; i++){
@@ -24,8 +24,8 @@ void main(){
 	positionModelSpace = in_position;
 	normal = (ModelMatrix * n).xyz;
 	
-    gl_Position = (ProjectionMatrix * ViewMatrix * ModelMatrix) * v;   
+	gl_Position = (ProjectionMatrix * ViewMatrix * ModelMatrix) * v;   
 	
-    UV.x = in_uv.x;
-    UV.y = -in_uv.y;
+	UV.x = in_uv.x;
+	UV.y = -in_uv.y;
 }

@@ -1,26 +1,43 @@
 #version 430 core
+	
 out vec4 outColor;
-in vec2 cubetexcoord;
 in float time;
 
-void main( void ) {
-	vec2 resolution = vec2(1600, 900);
-	vec2 position = (( gl_FragCoord.xy / resolution.xy )*2.0 - 1.0);
-	vec2 uv = gl_FragCoord.xy / resolution;
-	position.x *= resolution.x / resolution.y;
-	vec3 color = vec3(0.0);
-	
-	float speed = 2.0;
+uniform vec2 resolution;
 
-	color += vec3(0.15, 0.4, 0.35) * (1.0 / distance(
-		vec2(1.0, 0.0)
-		, position) * 0.15);
+vec2 position;
+
+vec3 ball(vec3 colour, float sizec, float xc, float yc){
+	return colour * (sizec / distance(position, vec2(xc, yc)));
+}
+
+vec3 grid(vec3 colour, float linesize, float xc, float yc){
+	float xmod = mod(position.x, xc);
+	float ymod = mod(position.y, yc);
+	return xmod < linesize || ymod < linesize ? vec3(0) : colour;
+}
+
+vec3 circle(vec3 colour, float size, float linesize, float xc, float yc){
+	float dist = distance(position, vec2(xc, yc));
+	return colour * clamp(-(abs(dist - size)*linesize * 100.0) + 0.9, 0.0, 2.0);
+}
+
+vec3 red = vec3(2, 1, 1);
+vec3 green = vec3(1, 2, 1);
+vec3 blue = vec3(1, 1, 2);
+void main( void ) {
+
+	position = ( gl_FragCoord.xy / resolution.xy );
+	position.y = position.y * resolution.y/resolution.x + 0.25;
 	
-	// color small dot
-	color += vec3(0.15, 0.15, 0.15) * (1.0 / distance(
-		vec2(sin(time*9.0) / 6.0 + 1.0, cos(time*9.0) / 6.0)
-		, position) * 0.09);
+	vec3 color = vec3(0.0);
+	float ratio = resolution.x / resolution.y;
+	color += circle(blue, 0.085, 0.6, 0.5, 0.5);
 	
-	outColor = vec4(color, 1.0);
+	color += grid(blue * 0.1, 0.001, 0.06, 0.06);
+	color *= 1.0 - distance(position, vec2(0.5, 0.5));
+	color += ball(green, 0.01, sin(time*4.0) / 12.0 + 0.5, cos(time*4.0) / 12.0 + 0.5);
+	color *= ball(green, 0.01, -sin(time*-8.0) / 12.0 + 0.5, -cos(time*-8.0) / 12.0 + 0.5) + 0.5;
+	gl_FragColor = vec4(color, 1.0 );
 
 }

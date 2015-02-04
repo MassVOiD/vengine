@@ -12,28 +12,52 @@ namespace VDGTech
         public static ShaderProgram Current = null;
         int Handle = -1;
         Dictionary<string, int> UniformLocationsCache;
-        string VertexSource, FragmentSource;
+        string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
         bool Compiled;
         static public bool Lock = false;
 
-        public ShaderProgram(string vertex, string fragment)
+        public ShaderProgram(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
         {
             UniformLocationsCache = new Dictionary<string, int>();
 
             VertexSource = ShaderPreparser.Preparse(vertex);
             FragmentSource = ShaderPreparser.Preparse(fragment);
+            if(geometry != null)
+            {
+                GeometrySource = ShaderPreparser.Preparse(geometry);
+            }
+            if(tesscontrol != null && tesseval != null)
+            {
+                TessControlSource = ShaderPreparser.Preparse(tesscontrol);
+                TessEvaluationSource = ShaderPreparser.Preparse(tesseval);
+            }
             Compiled = false;
         }
 
         void Compile()
         {
-            int vertexShaderHandle = CompileSingleShader(ShaderType.VertexShader, VertexSource);
-            int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, FragmentSource);
-
             Handle = GL.CreateProgram();
 
+            int vertexShaderHandle = CompileSingleShader(ShaderType.VertexShader, VertexSource);
             GL.AttachShader(Handle, vertexShaderHandle);
+
+            int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, FragmentSource);
             GL.AttachShader(Handle, fragmentShaderHandle);
+
+            if(GeometrySource != null)
+            {
+                int geometryShaderHandle = CompileSingleShader(ShaderType.GeometryShader, GeometrySource);
+                GL.AttachShader(Handle, geometryShaderHandle);
+            }
+
+            if(TessControlSource != null && TessEvaluationSource != null)
+            {
+                int tessCShaderHandle = CompileSingleShader(ShaderType.TessControlShader, TessControlSource);
+                GL.AttachShader(Handle, tessCShaderHandle);
+
+                int tessEShaderHandle = CompileSingleShader(ShaderType.TessEvaluationShader, TessEvaluationSource);
+                GL.AttachShader(Handle, tessEShaderHandle);
+            }
 
             GL.LinkProgram(Handle);
 

@@ -1,8 +1,8 @@
 #include LightingSamplers.glsl
 #include Mesh3dUniforms.glsl
 
-in vec2 LightScreenSpace[MAX_LIGHTS];
-in vec3 positionModelSpace;
+smooth in vec2 LightScreenSpace[MAX_LIGHTS];
+smooth in vec3 positionModelSpace;
 
 vec2 hash2x2(vec2 co) {
 	return vec2(
@@ -25,7 +25,7 @@ float getShadowPercent(vec2 uv, uint i){
 		else if(i==5)distance1 = texture(lightDepth5, fakeUV).r;
 		else if(i==6)distance1 = texture(lightDepth6, fakeUV).r;
 		else if(i==7)distance1 = texture(lightDepth7, fakeUV).r;
-		float logEnchancer = 20.0f;
+		float logEnchancer = 0.1f;
 		float badass_depth = log(logEnchancer*distance2 + 1.0) / log(logEnchancer*LightsFarPlane[i] + 1.0);
 		float diff = abs(distance1 -  badass_depth);
 		if(diff > (0.0008)) accum *= 0.96f;
@@ -53,5 +53,6 @@ vec3 processLighting(vec3 color){
 		diffuse += clamp(dot(normalize(LightsPos[i]), normalize(normal)), 0.2, 1.0);
 	}
 	diffuse = clamp(diffuse, 0.0, 1.0);
+	diffuse = 1.0;
 	return (color * diffuse).xyz;
 }

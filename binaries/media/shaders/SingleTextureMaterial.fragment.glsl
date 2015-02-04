@@ -1,8 +1,8 @@
 #version 430 core
 
 
-in vec3 positionWorldSpace;
-in vec3 normal;
+smooth in vec3 positionWorldSpace;
+smooth in vec3 normal;
 out vec4 outColor;
 
 #include Lighting.glsl

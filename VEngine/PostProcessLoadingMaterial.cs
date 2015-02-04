@@ -17,6 +17,7 @@
         public void Use()
         {
             Program.Use();
+            Program.SetUniform("resolution", GLThread.Resolution);
         }
     }
 }

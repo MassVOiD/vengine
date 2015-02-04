@@ -4,10 +4,10 @@
 
 uniform vec3 input_Color;
 
-out vec2 LightScreenSpace[MAX_LIGHTS];
-out vec3 positionWorldSpace;
-out vec3 positionModelSpace;
-out vec3 normal;
+smooth out vec2 LightScreenSpace[MAX_LIGHTS];
+smooth out vec3 positionWorldSpace;
+smooth out vec3 positionModelSpace;
+smooth out vec3 normal;
 
 void main(){
 

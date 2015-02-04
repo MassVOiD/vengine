@@ -130,15 +130,14 @@ namespace ShadowsTester
             {
                 float h =
                     SimplexNoise.Noise.Generate(x, y) +
-                    (SimplexNoise.Noise.Generate((float)x / 4, (float)y / 4) * 11.5f) +
-                    (SimplexNoise.Noise.Generate((float)x / 14, (float)y / 14) * 33) +
-                    (SimplexNoise.Noise.Generate((float)x / 126, (float)y / 126) * 687);
-                return h * 1.3f - 30.0f;
+                    (SimplexNoise.Noise.Generate((float)x / 14, (float)y / 14) * 13) +
+                    (SimplexNoise.Noise.Generate((float)x / 126, (float)y / 126) * 187);
+                return h * 0.1f - 30.0f;
             };
 
             //Object3dInfo groundInfo = Object3dGenerator.CreateGround(new Vector2(-15000, -15000), new Vector2(15000, 15000), new Vector2(1000, 1000), Vector3.UnitY);
-            //Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-5000, -5000), new Vector2(5000, 5000), new Vector2(10, 10), Vector3.UnitY, 512, terrainGen);
-            Object3dInfo groundInfo = Object3dInfo.LoadFromCompressed(Media.Get("terrain4.o3i"));
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-100, -100), new Vector2(100, 100), new Vector2(10, 10), Vector3.UnitY, 13, terrainGen);
+            //Object3dInfo groundInfo = Object3dInfo.LoadFromCompressed(Media.Get("terrain4.o3i"));
 
 
             Mesh3d ground = new Mesh3d(groundInfo, new SingleTextureMaterial(new Texture(Media.Get("tiles.jpg"))));
@@ -151,14 +150,14 @@ namespace ShadowsTester
             Mesh3d water = new Mesh3d(waterInfo, new SolidColorMaterial(Color.FromArgb(140, Color.Blue)));
             water.SetPosition(new Vector3(0, -150, 0));
             World.Root.Add(water);*/
-
+            
             Object3dInfo chickInfo = Object3dInfo.LoadFromObjSingle(Media.Get("chick.obj"));
             Mesh3d chick = new Mesh3d(chickInfo, new SingleTextureMaterial(new Texture(Media.Get("chick.png"))));
             chick.SetScale(0.4f);
             chick.SetPosition(new Vector3(0, 3.3f * 4, 0));
             World.Root.Add(chick);
 
-            FOVLight coneLight = new FOVLight(new Vector3(65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 38000.0f);
+            FOVLight coneLight = new FOVLight(new Vector3(65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 380.0f);
             LightPool.Add(coneLight);
             /*
             FOVLight coneLight2 = new FOVLight(new Vector3(-65, 30, -65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 380.0f);
