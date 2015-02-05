@@ -28,8 +28,11 @@ namespace GLSLLint
             System.IO.Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
             var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
             Media.SearchPath = Config.MediaPath;
-            Console.WriteLine(ShaderPreparser.Preparse(source));
-            GL.ShaderSource(shader, ShaderPreparser.Preparse(source));
+            string src = ShaderPreparser.Preparse(source);
+            GL.ShaderSource(shader, src);
+            int i = 0;
+            string split = String.Join("\r\n", src.Split('\n').Select(a => (i++).ToString() + ": " + a).ToArray());
+            Console.WriteLine(split);
 
             GL.CompileShader(shader);
 

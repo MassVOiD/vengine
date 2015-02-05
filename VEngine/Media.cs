@@ -28,7 +28,7 @@ namespace VDGTech
             if (Map == null) Map = new Dictionary<string, string>();
             string[] files = Directory.GetFiles(path);
             string[] dirs = Directory.GetDirectories(path);
-            foreach (string file in files) Map.Add(Path.GetFileName(file), Path.GetFullPath(file));
+            foreach (string file in files) if(!Map.ContainsKey(Path.GetFileName(file))) Map.Add(Path.GetFileName(file), Path.GetFullPath(file));
             foreach (string dir in dirs) LoadFileMap(dir);
         }
     }

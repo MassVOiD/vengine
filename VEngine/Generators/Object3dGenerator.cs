@@ -93,7 +93,7 @@ namespace VDGTech.Generators
                     count += 4;
                 }
 
-                GC.Collect();
+                //GC.Collect();
             }
             GC.Collect();
 

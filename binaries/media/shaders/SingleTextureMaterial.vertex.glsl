@@ -9,6 +9,7 @@ smooth out vec3 positionWorldSpace;
 smooth out vec3 positionModelSpace;
 smooth out vec3 normal;
 
+
 void main(){
 
 	vec4 v = vec4(in_position,1);

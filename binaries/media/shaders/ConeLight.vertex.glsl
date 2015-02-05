@@ -10,7 +10,7 @@ uniform mat4 ProjectionMatrix;
 uniform vec3 LightPosition;
 
 //out vec3 normal;
-out vec4 vertexPosition;
+smooth out vec4 vertexPosition;
 
 void main(){
 

@@ -23,7 +23,7 @@ namespace VDGTech
 
         public int Instances;
         public IMaterial Material;
-        public Matrix4 Matrix;
+        public Matrix4 Matrix, RotationMatrix;
         private float Mass = 1.0f, Scale = 1.0f;
         private Object3dInfo ObjectInfo;
         private Quaternion Orientation = Quaternion.Identity;
@@ -53,8 +53,10 @@ namespace VDGTech
             if(Sun.Current != null)
                 Sun.Current.BindToShader(shader);
             shader.SetUniform("ModelMatrix", Matrix);
+            shader.SetUniform("RotationMatrix", RotationMatrix);
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
+            shader.SetUniform("LogEnchacer", 20.0f);
             shader.SetUniformArray("LightsPs", LightPool.GetPMatrices());
             shader.SetUniformArray("LightsVs", LightPool.GetVMatrices());
             shader.SetUniformArray("LightsPos", LightPool.GetPositions());
@@ -163,11 +165,13 @@ namespace VDGTech
             Matrix = Matrix4.CreateScale(Scale) * matrix;
             Position = Matrix.ExtractTranslation();
             Orientation = PhysicalShape.Orientation;
+            RotationMatrix = Matrix4.CreateFromQuaternion(Orientation);
         }
 
         private void UpdateMatrix()
         {
-            Matrix = Matrix4.CreateFromQuaternion(Orientation) * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
+            RotationMatrix = Matrix4.CreateFromQuaternion(Orientation);
+            Matrix = RotationMatrix * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
         }
     }
 }

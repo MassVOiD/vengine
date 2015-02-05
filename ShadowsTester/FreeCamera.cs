@@ -13,7 +13,7 @@ namespace ShadowsTester
         public Camera Cam;
         public FreeCamera()
         {
-            Cam = new Camera(new Vector3(0, 20, 0), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 2.0f, 200.0f);
+            Cam = new Camera(new Vector3(0, 20, 0), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 2.0f, 20000.0f);
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
         }

@@ -1,12 +1,7 @@
 #version 430 core
-
-
-smooth in vec3 positionWorldSpace;
-smooth in vec3 normal;
-out vec4 outColor;
-
 #include Lighting.glsl
 
+out vec4 outColor;
 layout(binding = 8) uniform sampler2D tex;
 in vec2 UV;
 

@@ -10,7 +10,7 @@ namespace VDGTech
 
         public SolidColorMaterial(Color color)
         {
-            Program = new ShaderProgram(Media.ReadAllText("SolidColorMaterial.vertex.glsl"), Media.ReadAllText("SolidColorMaterial.fragment.glsl"));
+            Program = new ShaderProgram(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("SolidColorMaterial.fragment.glsl"));
             Colour = color;
         }
 

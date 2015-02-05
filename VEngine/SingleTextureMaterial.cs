@@ -11,9 +11,14 @@ namespace VDGTech
 
         public SingleTextureMaterial(Texture tex)
         {
-            Program = new ShaderProgram(Media.ReadAllText("SingleTextureMaterial.vertex.glsl"),
-                Media.ReadAllText("SingleTextureMaterial.fragment.glsl"), Media.ReadAllText("SingleTextureMaterial.geometry.glsl"));
+            Program = new ShaderProgram(Media.ReadAllText("Generic.vertex.glsl"),
+                Media.ReadAllText("SingleTextureMaterial.fragment.glsl"));
             Tex = tex;
+        }
+
+        public static SingleTextureMaterial FromMedia(string key)
+        {
+            return new SingleTextureMaterial(new Texture(Media.Get(key)));
         }
 
         public ShaderProgram GetShaderProgram()

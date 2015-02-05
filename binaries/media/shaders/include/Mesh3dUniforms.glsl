@@ -1,6 +1,8 @@
 uniform mat4 ModelMatrix;
+uniform mat4 RotationMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
+uniform float LogEnchacer;
 
 const int MAX_LIGHTS = 24;
 uniform int LightsCount;

@@ -386,7 +386,7 @@ namespace VDGTech
         public void Draw()
         {
             DrawPrepare();
-            GL.DrawElementsBaseVertex(PrimitiveType.Triangles, Indices.Count,
+            GL.DrawElementsBaseVertex(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, Indices.Count,
                     DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
             GLThread.CheckErrors();
 
