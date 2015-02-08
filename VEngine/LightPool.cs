@@ -24,8 +24,8 @@ namespace VDGTech
         
         public static void MapAll()
         {
-            foreach(var light in Lights){
-                light.Map();
+            for(int i =0;i<Lights.Count;i++){
+                Lights[i].Map();
             }
         }
 

@@ -7,18 +7,24 @@ namespace VDGTech
     public class SingleTextureMaterial : IMaterial
     {
         protected static ShaderProgram Program;
-        private Texture Tex;
+        private Texture Tex, NormalMap;
 
-        public SingleTextureMaterial(Texture tex)
+        public SingleTextureMaterial(Texture tex, Texture normalMap = null)
         {
             Program = new ShaderProgram(Media.ReadAllText("Generic.vertex.glsl"),
                 Media.ReadAllText("SingleTextureMaterial.fragment.glsl"));
             Tex = tex;
+            NormalMap = normalMap;
         }
 
         public static SingleTextureMaterial FromMedia(string key)
         {
             return new SingleTextureMaterial(new Texture(Media.Get(key)));
+        }
+
+        public static SingleTextureMaterial FromMedia(string key, string normalmap_key)
+        {
+            return new SingleTextureMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)));
         }
 
         public ShaderProgram GetShaderProgram()
@@ -30,6 +36,11 @@ namespace VDGTech
         {
             Program.Use();
             Tex.Use(TextureUnit.Texture8);
+            if(NormalMap != null)
+            {
+                Program.SetUniform("UseNormalMap", 1);
+                NormalMap.Use(TextureUnit.Texture9);
+            } else Program.SetUniform("UseNormalMap", 0);
         }
     }
 }

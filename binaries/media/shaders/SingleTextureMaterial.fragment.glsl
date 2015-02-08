@@ -1,9 +1,9 @@
 #version 430 core
+in vec2 UV;
 #include Lighting.glsl
 
 out vec4 outColor;
 layout(binding = 8) uniform sampler2D tex;
-in vec2 UV;
 
 void main()
 {

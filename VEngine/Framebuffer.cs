@@ -12,7 +12,7 @@ namespace VDGTech
     public class Framebuffer
     {
         int FBO, RBO, Width, Height;
-        int TexColor, TexDepth;
+        public int TexColor, TexDepth;
         bool Generated, DepthOnly;
 
 

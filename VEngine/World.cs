@@ -42,9 +42,9 @@ namespace VDGTech
             PhysicalWorld = new Space(parallelLooper);
             PhysicalWorld.Solver.AllowMultithreading = true;
             PhysicalWorld.ForceUpdater.Gravity = new Vector3(0, -9.81f, 0);
-            SolverSettings.DefaultMinimumIterationCount = 0;
-            PhysicalWorld.TimeStepSettings.MaximumTimeStepsPerFrame = 4;
-            PhysicalWorld.Solver.IterationLimit = 4;
+            //SolverSettings.DefaultMinimumIterationCount = 0;
+            //PhysicalWorld.TimeStepSettings.MaximumTimeStepsPerFrame = 4;
+            //PhysicalWorld.Solver.IterationLimit = 4;
             GeneralConvexPairTester.UseSimplexCaching = true;
             //GroundShape = new StaticPlaneShape(Vector3.UnitY, 1.0f);
             //Ground = CreateRigidBody(0, Matrix4.CreateTranslation(0, 0, 0), GroundShape, null);
@@ -64,23 +64,7 @@ namespace VDGTech
 
         public virtual void UpdatePhysics(float time)
         {
-            PhysicalWorld.Update(time);
 
-            int len = PhysicalWorld.Entities.Count;
-            Mesh3d mesh;
-            Entity body;
-            for(int i = 0; i < len; i++)
-            {
-                body = PhysicalWorld.Entities[i];
-                mesh = body.Tag as Mesh3d;
-                if(mesh != null)
-                {
-                    //mesh.UpdateMatrixFromPhysics(body.OrientationMatrix * body.Position);
-                    mesh.SetOrientation(body.BufferedStates.InterpolatedStates.Orientation);
-                    mesh.SetPosition(body.BufferedStates.InterpolatedStates.Position);
-
-                }
-            }
 
         }
 
@@ -118,9 +102,26 @@ namespace VDGTech
 
         public void Draw()
         {
+
+            PhysicalWorld.Update();
+            int len = PhysicalWorld.Entities.Count;
+            Mesh3d mesh;
+            Entity body;
+            for(int i = 0; i < len; i++)
+            {
+                body = PhysicalWorld.Entities[i];
+                mesh = body.Tag as Mesh3d;
+                if(mesh != null)
+                {
+                    //mesh.UpdateMatrixFromPhysics(body.OrientationMatrix * body.Position);
+                    mesh.SetOrientation(body.BufferedStates.InterpolatedStates.Orientation);
+                    mesh.SetPosition(body.BufferedStates.InterpolatedStates.Position);
+
+                }
+            }
             for(int i = 0; i < Children.Count; i++)
             {
-                Children[i].Draw();
+                if(Children[i] != null) Children[i].Draw();
             }
         }
 

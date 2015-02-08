@@ -5,18 +5,25 @@ using System.Text;
 using System.Threading.Tasks;
 using VDGTech;
 using OpenTK;
+using BEPUphysics.Entities.Prefabs;
 
 namespace ShadowsTester
 {
     class FreeCamera
     {
         public Camera Cam;
+        Sphere collisionShape;
         public FreeCamera()
         {
             Cam = new Camera(new Vector3(0, 20, 0), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 2.0f, 20000.0f);
+            collisionShape = new Sphere(Cam.Position, 0.1f, 20.0f);
+            collisionShape.LinearDamping = 0.5f;
+            collisionShape.IsAffectedByGravity = false;
+            World.Root.PhysicalWorld.Add(collisionShape);
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
         }
+
 
         void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
@@ -29,6 +36,8 @@ namespace ShadowsTester
                 Cam.Roll = MathHelper.Pi / 2;
             if(Cam.Roll < -MathHelper.Pi / 2)
                 Cam.Roll = -MathHelper.Pi / 2;
+
+            Cam.Position = collisionShape.MotionState.Position;
 
             Cam.UpdateFromRollPitch();
         }
@@ -59,8 +68,7 @@ namespace ShadowsTester
                 Vector4 direction = Vector4.UnitZ;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                Cam.Position -= direction.Xyz * speed;
-                Cam.UpdateFromRollPitch();
+                collisionShape.LinearVelocity -= direction.Xyz.ToBepu() * speed;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.S))
             {
@@ -69,8 +77,8 @@ namespace ShadowsTester
                 Vector4 direction = -Vector4.UnitZ;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                Cam.Position -= direction.Xyz * speed;
-                Cam.UpdateFromRollPitch();
+                collisionShape.LinearVelocity -= direction.Xyz.ToBepu() * speed;
+
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.A))
             {
@@ -79,8 +87,8 @@ namespace ShadowsTester
                 Vector4 direction = Vector4.UnitX;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                Cam.Position -= direction.Xyz * speed;
-                Cam.UpdateFromRollPitch();
+                collisionShape.LinearVelocity -= direction.Xyz.ToBepu() * speed;
+
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.D))
             {
@@ -89,9 +97,14 @@ namespace ShadowsTester
                 Vector4 direction = -Vector4.UnitX;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                Cam.Position -= direction.Xyz * speed;
-                Cam.UpdateFromRollPitch();
+                collisionShape.LinearVelocity -= direction.Xyz.ToBepu() * speed;
+
             }
+
+            collisionShape.LinearVelocity *= 0.94f;
+            Cam.Position = collisionShape.MotionState.Position;
+
+            Cam.UpdateFromRollPitch();
 
         }
     }

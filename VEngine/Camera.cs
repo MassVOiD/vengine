@@ -16,7 +16,19 @@ namespace VDGTech
             Position = position;
             //ViewMatrix = Matrix4.LookAt(position, lookAt, new Vector3(0, 1, 0));
             Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
-            if (Current == null) Current = this;
+            if(Current == null)
+                Current = this;
+            Pitch = 0.0f;
+            Roll = 0.0f;
+            Update();
+        }
+        public Camera(Vector3 position, Vector3 lookAt, Vector2 size, float near, float far)
+        {
+            Position = position;
+            //ViewMatrix = Matrix4.LookAt(position, lookAt, new Vector3(0, 1, 0));
+            Matrix4.CreateOrthographic(size.X, size.Y, near, far, out ProjectionMatrix);
+            if(Current == null)
+                Current = this;
             Pitch = 0.0f;
             Roll = 0.0f;
             Update();
@@ -32,7 +44,8 @@ namespace VDGTech
         public Mesh3d RayCast()
         {
             RayCastResult rcResult;
-            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position, GetDirection()),1000.0f, out rcResult);
+            var dir = GetDirection();
+            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position + (dir * 2), dir), 1000.0f, out rcResult);
             return rcResult.HitObject != null ? rcResult.HitObject.Tag as Mesh3d : null;
         }
 

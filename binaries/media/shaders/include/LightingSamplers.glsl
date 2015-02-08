@@ -6,3 +6,4 @@ layout(binding = 4) uniform sampler2D lightDepth4;
 layout(binding = 5) uniform sampler2D lightDepth5;
 layout(binding = 6) uniform sampler2D lightDepth6;
 layout(binding = 7) uniform sampler2D lightDepth7;
+layout(binding = 9) uniform sampler2D normalMap;

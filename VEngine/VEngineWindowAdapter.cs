@@ -176,8 +176,7 @@ namespace VDGTech
 
             PostProcessFramebuffer.UseTexture(0);
 
-            //LightPool.UseTextures(2);
-
+            LightPool.UseTextures(2);
             PostProcessingMesh.Draw();
 
             GLThread.InvokeOnAfterDraw();

@@ -4,14 +4,24 @@ uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
 uniform float LogEnchacer;
 
-const int MAX_LIGHTS = 24;
+const int MAX_LIGHTS = 8;
 uniform int LightsCount;
 uniform mat4 LightsPs[MAX_LIGHTS];
 uniform mat4 LightsVs[MAX_LIGHTS];
 uniform vec3 LightsPos[MAX_LIGHTS];
 uniform float LightsFarPlane[MAX_LIGHTS];
 
+
+const int MAX_INSTANCES = 3000;
+uniform int Instances;
+uniform mat4 ModelMatrixes[MAX_INSTANCES];
+uniform mat4 RotationMatrixes[MAX_INSTANCES];
+
 uniform float RandomSeed;
 uniform vec3 CameraPosition;
 uniform float Time;
 
+
+uniform float DiffuseComponent;
+uniform float SpecularComponent;
+uniform float SpecularSize;

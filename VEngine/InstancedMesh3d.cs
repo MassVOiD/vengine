@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.BroadPhaseEntries.MobileCollidables;
@@ -10,9 +11,9 @@ using OpenTK;
 
 namespace VDGTech
 {
-    public class Mesh3d : IRenderable
+    public class InstancedMesh3d : IRenderable
     {
-        public Mesh3d(Object3dInfo objectInfo, IMaterial material)
+        public InstancedMesh3d(Object3dInfo objectInfo, IMaterial material)
         {
             Randomizer = new Random();
             Instances = 1;
@@ -23,13 +24,11 @@ namespace VDGTech
 
         public int Instances;
         public IMaterial Material;
-        public Matrix4 Matrix, RotationMatrix;
-        private float Mass = 1.0f, Scale = 1.0f;
+        public List<Matrix4> Matrix, RotationMatrix;
+        public List<float> Scales = new List<float>();
         private Object3dInfo ObjectInfo;
-        private Quaternion Orientation = Quaternion.Identity;
-        private Entity PhysicalShape;
-        private StaticMesh StaticMesh;
-        private Vector3 Position = new Vector3(0, 0, 0);
+        public List<Quaternion> Orientations = new List<Quaternion>();
+        public List<Vector3> Positions = new List<Vector3>();
         private Random Randomizer;
         public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
 
@@ -53,11 +52,11 @@ namespace VDGTech
 
             if(Sun.Current != null)
                 Sun.Current.BindToShader(shader);
-            shader.SetUniform("ModelMatrix", Matrix);
-            shader.SetUniform("RotationMatrix", RotationMatrix);
+            shader.SetUniformArray("ModelMatrixes", Matrix.ToArray());
+            shader.SetUniformArray("RotationMatrixes", RotationMatrix.ToArray());
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
-            shader.SetUniform("LogEnchacer",0.01f);
+            shader.SetUniform("LogEnchacer", 0.01f);
             shader.SetUniform("SpecularSize", SpecularSize);
             shader.SetUniform("SpecularComponent", SpecularComponent);
             shader.SetUniform("DiffuseComponent", DiffuseComponent);
@@ -71,7 +70,8 @@ namespace VDGTech
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
             shader.SetUniform("resolution", GLThread.Resolution);
-            shader.SetUniform("Instances", 1);
+            shader.SetUniform("Instances", Instances);
+
 
             if(Instances > 1)
             {
@@ -84,100 +84,62 @@ namespace VDGTech
             GLThread.CheckErrors();
         }
 
-        public Entity GetCollisionShape()
+        public Quaternion GetOrientation(int index)
         {
-            return PhysicalShape;
-        }
-        public StaticMesh GetStaticCollisionMesh()
-        {
-            return StaticMesh;
+            return Orientations[index];
         }
 
-        public float GetMass()
+        public Vector3 GetPosition(int index)
         {
-            return Mass;
+            return Positions[index];
         }
 
-        public Quaternion GetOrientation()
+        public InstancedMesh3d Rotate(int index, Quaternion rotation)
         {
-            return Orientation;
-        }
-
-        public Vector3 GetPosition()
-        {
-            return Position;
-        }
-
-        public Mesh3d Rotate(Quaternion rotation)
-        {
-            Orientation = Quaternion.Multiply(Orientation, rotation);
+            Orientations[index] = Quaternion.Multiply(Orientations[index], rotation);
             HasBeenModified = true;
             return this;
         }
 
-        public Mesh3d SetCollisionShape(Entity shape)
+        public InstancedMesh3d SetOrientation(int index, Quaternion orientation)
         {
-            PhysicalShape = shape;
-            PhysicalShape.Tag = this;
-            PhysicalShape.CollisionInformation.Tag = this;
-            HasBeenModified = true;
-            return this;
-        }
-        public Mesh3d SetStaticCollisionMesh(StaticMesh shape)
-        {
-            StaticMesh = shape;
-            StaticMesh.Tag = this;
+            Orientations[index] = orientation;
             HasBeenModified = true;
             return this;
         }
 
-        public Mesh3d SetMass(float mass)
+        public InstancedMesh3d SetPosition(int index, Vector3 position)
         {
-            Mass = mass;
+            Positions[index] = position;
             HasBeenModified = true;
             return this;
         }
 
-        public Mesh3d SetOrientation(Quaternion orientation)
+        public InstancedMesh3d SetScale(int index, float scale)
         {
-            Orientation = orientation;
-            HasBeenModified = true;
-            return this;
-        }
-
-        public Mesh3d SetPosition(Vector3 position)
-        {
-            Position = position;
-            HasBeenModified = true;
-            return this;
-        }
-
-        public Mesh3d SetScale(float scale)
-        {
-            Scale = scale;
+            Scales[index] = scale;
             UpdateMatrix();
             return this;
         }
 
-        public Mesh3d Translate(Vector3 translation)
+        public InstancedMesh3d Translate(int index, Vector3 translation)
         {
-            Position += translation;
+            Positions[index] += translation;
             HasBeenModified = true;
             return this;
         }
 
-        public void UpdateMatrixFromPhysics(Matrix4 matrix)
+        public void UpdateMatrix()
         {
-            Matrix = Matrix4.CreateScale(Scale) * matrix;
-            Position = Matrix.ExtractTranslation();
-            Orientation = PhysicalShape.Orientation;
-            RotationMatrix = Matrix4.CreateFromQuaternion(Orientation);
-        }
-
-        private void UpdateMatrix()
-        {
-            RotationMatrix = Matrix4.CreateFromQuaternion(Orientation);
-            Matrix = RotationMatrix * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
+            RotationMatrix = new List<Matrix4>();
+            Matrix = new List<Matrix4>();
+            if(Instances > Positions.Count)
+                Instances = Positions.Count;
+            for(int i = 0; i < Instances; i++)
+            {
+                RotationMatrix.Add(Matrix4.CreateFromQuaternion(Orientations[i]));
+                Matrix.Add(RotationMatrix[i] * Matrix4.CreateScale(Scales[i]) * Matrix4.CreateTranslation(Positions[i]));
+            }
         }
     }
 }

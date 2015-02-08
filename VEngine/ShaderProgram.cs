@@ -10,7 +10,7 @@ namespace VDGTech
     public class ShaderProgram
     {
         public static ShaderProgram Current = null;
-        int Handle = -1;
+        public int Handle = -1;
         Dictionary<string, int> UniformLocationsCache;
         string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
         bool Compiled;

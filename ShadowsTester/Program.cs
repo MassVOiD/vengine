@@ -37,8 +37,8 @@ namespace ShadowsTester
 
             Object3dInfo icosphereInfo = Object3dInfo.LoadFromCompressed(Media.Get("Icosphere.o3i"));
             Mesh3d icosphere = new Mesh3d(icosphereInfo, new SolidColorMaterial(Color.White));
-            
-            icosphere.SetScale(1.0f);
+
+            icosphere.SetScale(30.0f);
             World.Root.Add(icosphere);
             /*
             Object3dInfo cube1Info = Object3dInfo.LoadFromCompressed(Media.Get("Cube_Cube.001.o3i"));
@@ -131,65 +131,110 @@ namespace ShadowsTester
             Func<uint, uint, float> terrainGen = (x, y) =>
             {
                 float h =
-                    SimplexNoise.Noise.Generate(x, y) * 5.0f +
-                    (SimplexNoise.Noise.Generate((float)x / 32, (float)y / 14) * 14) +
-                    (SimplexNoise.Noise.Generate((float)x / 11, (float)y / 122) * 44);
-                return h - 100.0f;
+                    (SimplexNoise.Noise.Generate((float)x, (float)y) * 2) +
+                    (SimplexNoise.Noise.Generate((float)x / 6, (float)y / 7) * 2) +
+                    (SimplexNoise.Noise.Generate((float)x / 24, (float)y / 23) * 2) +
+                    (SimplexNoise.Noise.Generate((float)x / 35, (float)y / 66) * 33) +
+                    (SimplexNoise.Noise.Generate((float)x / 99, (float)y / 111) * 400);
+                return h;
             };
             Func<uint, uint, float> waterGen = (x, y) =>
             {
                 float h =
-                    SimplexNoise.Noise.Generate(x, y) * 2.0f +
-                    (SimplexNoise.Noise.Generate((float)x / 14, (float)y / 14) * 13) +
-                    (SimplexNoise.Noise.Generate((float)x / 64, (float)y / 126) * 33);
-                return h * 0.3f - 100.0f;
+                    (SimplexNoise.Noise.Generate((float)x, (float)y) * 2) +
+                    (SimplexNoise.Noise.Generate((float)x / 4, (float)y / 4) * 3) +
+                    (SimplexNoise.Noise.Generate((float)x / 7, (float)y / 7) * 6);
+                return h;
             };
 
-            //Object3dInfo groundInfo = Object3dGenerator.CreateGround(new Vector2(-15000, -15000), new Vector2(15000, 15000), new Vector2(1000, 1000), Vector3.UnitY);
-            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-3022, -3022), new Vector2(3022, 3022), new Vector2(10, 10), Vector3.UnitY, 512, waterGen);
+            //Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-15000, -15000), new Vector2(15000, 15000), new Vector2(100, 100), Vector3.UnitY);
+             //Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-4000, -4000), new Vector2(4000, 4000), new Vector2(10, 10), Vector3.UnitY, 512, terrainGen);
+             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-4000, -4000), new Vector2(4000, 4000), new Vector2(100, 100), Vector3.UnitY, 256, waterGen);
 
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3022, -3022), new Vector2(3022, 3022), new Vector2(100, 100), Vector3.UnitY, 512, terrainGen);
+            //  Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-1000, -1000), new Vector2(1000, 1000), new Vector2(100, 100), Vector3.UnitY, 512, terrainGen);
             //Object3dInfo groundInfo = Object3dInfo.LoadFromCompressed(Media.Get("terrain4.o3i"));
 
 
-            var color = new SolidColorMaterial(Color.FromArgb(111, Color.FromArgb(0, 92, 143)));
-            Mesh3d water = new Mesh3d(waterInfo, color);
-           // water.SetStaticCollisionMesh(waterInfo.GetAccurateCollisionShape(Vector3.Zero));
-           // water.GetStaticCollisionMesh().Material.Bounciness = 1.0f;
+             var texx = SingleTextureMaterial.FromMedia("tiles_tex.png", "tiles_map.png");
+            var co = Color.FromArgb(255, Color.FromArgb(0, 92, 143));
+            var color = new SolidColorMaterial(Color.Silver);
+            var watercolor = new SolidColorMaterial(co);
+            Mesh3d water = new Mesh3d(waterInfo, texx);
+            water.SetStaticCollisionMesh(waterInfo.GetAccurateCollisionShape(Vector3.Zero));
+            water.GetStaticCollisionMesh().Material.Bounciness = 1.0f;
+            //water.SpecularSize = 15.0f;
+            water.DiffuseComponent = 0.5f;
             World.Root.Add(water);
 
-            var texx = SingleTextureMaterial.FromMedia("rocks.jpg");
+            Object3dInfo simplecubeInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"))[1];
+            InstancedMesh3d instancedBalls = new InstancedMesh3d(simplecubeInfo, watercolor);
+            for(int i = 0; i < 3000; i++)
+            {
+                instancedBalls.Positions.Add(new Vector3((float)Math.Sin((float)i / 30.0f) * 500, 300.0f + (float)Math.Cos((float)i / 30.0f) * 500, (i * 4 - 750.0f)));
+                instancedBalls.Orientations.Add(Quaternion.Identity);
+                instancedBalls.Scales.Add(rand.Next(143) + 11);
+
+            }
+            GLThread.OnBeforeDraw += (o, e) =>
+            {
+                for(int i = 0; i < 3000; i++)
+                {
+                    instancedBalls.Positions[i] = (new Vector3((float)Math.Sin((float)DateTime.Now.TimeOfDay.TotalMilliseconds * i / 600000.0f) * 500,
+                        300.0f + (float)Math.Cos((float)DateTime.Now.TimeOfDay.TotalMilliseconds * i / 600000.0f) * 500, (i*4 - 750.0f)));
+                    instancedBalls.Rotate(i, Quaternion.FromAxisAngle(Vector3.UnitZ, 0.0001f * i));
+                }
+                instancedBalls.UpdateMatrix();
+            };
+            instancedBalls.Instances = 1500;
+            instancedBalls.UpdateMatrix();
+            GLThread.OnUpdate += (o, e) =>
+            {
+            };
+            World.Root.Add(instancedBalls);
+
+            /*
             Mesh3d ground = new Mesh3d(groundInfo, texx);
-         //   ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
-          //  ground.GetStaticCollisionMesh().Material.Bounciness = 0.0f;
-            World.Root.Add(ground);
+            ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
+            ground.GetStaticCollisionMesh().Material.Bounciness = 1.0f;
+            World.Root.Add(ground);*/
+
+            //  Mesh3d ground = new Mesh3d(groundInfo, texx);
+            //   ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
+            //  ground.GetStaticCollisionMesh().Material.Bounciness = 0.0f;
+            // World.Root.Add(ground);
 
             /*Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-10000, -10000), new Vector2(10000, 10000), new Vector2(20, 20), Vector3.UnitY);
 
             Mesh3d water = new Mesh3d(waterInfo, new SolidColorMaterial(Color.FromArgb(140, Color.Blue)));
             water.SetPosition(new Vector3(0, -150, 0));
             World.Root.Add(water);*/
-            
-            Object3dInfo chickInfo = Object3dInfo.LoadFromObjSingle(Media.Get("chick.obj"));
-            Mesh3d chick = new Mesh3d(chickInfo, new SingleTextureMaterial(new Texture(Media.Get("chick.png"))));
-            chick.SetScale(0.4f);
-            chick.SetPosition(new Vector3(0, 3.3f * 4, 0));
-            World.Root.Add(chick);
+            /*
+            Object3dInfo chickInfo = Object3dInfo.LoadFromObjSingle(Media.Get("House01.obj"));
+            Mesh3d chick = new Mesh3d(chickInfo, texx);
+            chick.SetScale(20.4f);
+            chick.SetPosition(new Vector3(0, 200.0f + 3.3f * 4, 0));
+            World.Root.Add(chick);*/
 
-            FOVLight coneLight = new FOVLight(new Vector3(65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 20000.0f);
+            FOVLight coneLight = new FOVLight(new Vector3(65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 6666, 6666, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
             icosphere.SetPosition(new Vector3(65, 30, 65));
             LightPool.Add(coneLight);
             /*
-            FOVLight coneLight2 = new FOVLight(new Vector3(-65, 30, -65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 380.0f);
+            FOVLight coneLight2 = new FOVLight(new Vector3(-30, 15, -30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
             LightPool.Add(coneLight2);
 
-            FOVLight coneLight3 = new FOVLight(new Vector3(65, 30, -65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 380.0f);
+            FOVLight coneLight3 = new FOVLight(new Vector3(30, 15, -30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
             LightPool.Add(coneLight3);
 
-            FOVLight coneLight4 = new FOVLight(new Vector3(-65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 2048, 2048, 3.14f / 3.0f, 1.0f, 380.0f);
-            LightPool.Add(coneLight4);*/
+            FOVLight coneLight4 = new FOVLight(new Vector3(-30, 15, 30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
+            LightPool.Add(coneLight4);
 
-            
+            FOVLight coneLight5 = new FOVLight(new Vector3(-30, 15, 30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
+            LightPool.Add(coneLight5);
+
+            FOVLight coneLight6 = new FOVLight(new Vector3(-30, 15, 30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
+            LightPool.Add(coneLight6);
+            */
+
             for(int i = 0; i < 12; i++)
             {
                 Mesh3d a = new Mesh3d(icosphereInfo, color);
@@ -205,30 +250,37 @@ namespace ShadowsTester
                 
                 World.Root.Add(a);
             }
-            
-            Object3dInfo simplecubeInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"))[1];
+
             SingleTextureMaterial cubewood = new SingleTextureMaterial(new Texture(Media.Get("wood.jpg")));
-            /*
+
             for(int i = 0; i < 3; i++)
-                for(int g = 0; g < 26; g++)
+                for(int g = 0; g < 16; g++)
                     for(int h = 0; h < 3; h++)
-            {
-                float scale = 25.0f - ((float)g* 0.1f);
-                float cubesize = 0.384960f * scale;
-                Mesh3d a = new Mesh3d(simplecubeInfo, color);
-                a.SetScale(scale / 2.0f);
-                a.SetPosition(new Vector3(i * cubesize, g * cubesize, cubesize * h + 20.0f));
-                a.SetMass(15.5f);
-                a.SetCollisionShape(new Box(a.GetPosition(), cubesize, cubesize, cubesize, 11.1f));
-                var s = a.GetCollisionShape();
-                s.Material.Bounciness = 0.0f;
-                s.LinearDamping = 0;
-                s.Material.KineticFriction = 1.0f;
-                s.Material.StaticFriction = 1.0f;
-                s.PositionUpdateMode = BEPUphysics.PositionUpdating.PositionUpdateMode.Continuous;
-                        
-                World.Root.Add(a);
-            }*/
+                    {
+                        if((i != 0 || i != 2) && (g != 0 && g != 8) && (h != 0 && h != 2))
+                            continue;
+                        float scale = 25.0f;
+                        float cubesize = 0.384960f * scale;
+                        Mesh3d a = new Mesh3d(simplecubeInfo, color);
+                        a.SetScale(scale / 2.0f);
+                        a.SetPosition(new Vector3(2.0f * i * cubesize, 2.0f * g * cubesize + 20.0f, 2.0f * cubesize * h + 20.0f));
+                        a.SetMass(15.5f);
+                        a.SpecularComponent = 1.0f;
+                        a.DiffuseComponent = 0.3f;
+                        a.SpecularSize = 5.1f;
+                        a.SetCollisionShape(new Box(a.GetPosition(), cubesize, cubesize, cubesize, 11.1f));
+                        var s = a.GetCollisionShape();
+                        s.Material.Bounciness = 0.0f;
+                        s.LinearDamping = 0;
+                        s.Material.KineticFriction = 1.0f;
+                        s.Material.StaticFriction = 1.0f;
+                        s.PositionUpdateMode = BEPUphysics.PositionUpdating.PositionUpdateMode.Discrete;
+
+                        World.Root.Add(a);
+                    }
+
+            //mirror
+
 
             GLThread.OnMouseUp += (o, e) =>
             {
@@ -250,11 +302,40 @@ namespace ShadowsTester
                         mesh.GetCollisionShape().LinearVelocity += (Vector3.UnitY * 20.0f).ToBepu();
                     }
                 }
-                if(e.Button == OpenTK.Input.MouseButton.Right)
+
+            };
+
+            GLThread.OnKeyUp += (o, e) =>
+            {
+                if(e.Key == OpenTK.Input.Key.Number1)
                 {
-                    coneLight.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Orientation);
+                    coneLight.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position + freeCamera.Cam.Orientation.ToDirection());
+                    //coneLight2.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position - freeCamera.Cam.Orientation.ToDirection());
+                    //coneLight3.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position + freeCamera.Cam.Orientation.GetTangent(MathExtensions.TangentDirection.Left));
+                    //coneLight4.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position + freeCamera.Cam.Orientation.GetTangent(MathExtensions.TangentDirection.Right));
+                    //coneLight5.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position + freeCamera.Cam.Orientation.GetTangent(MathExtensions.TangentDirection.Down));
+                    //coneLight6.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position + freeCamera.Cam.Orientation.GetTangent(MathExtensions.TangentDirection.Up));
+                    //icosphere.SetPosition(freeCamera.Cam.Position);
+                    //icosphere.DiffuseComponent = 999.0f;
+                }/*
+                if(e.Key == OpenTK.Input.Key.Number2)
+                {
+                    coneLight2.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Orientation);
                     icosphere.SetPosition(freeCamera.Cam.Position);
+                    icosphere.DiffuseComponent = 999.0f;
                 }
+                if(e.Key == OpenTK.Input.Key.Number3)
+                {
+                    coneLight3.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Orientation);
+                    icosphere.SetPosition(freeCamera.Cam.Position);
+                    icosphere.DiffuseComponent = 999.0f;
+                }
+                if(e.Key == OpenTK.Input.Key.Number4)
+                {
+                    coneLight4.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Orientation);
+                    icosphere.SetPosition(freeCamera.Cam.Position);
+                    icosphere.DiffuseComponent = 999.0f;
+                }*/
             };
             /*
             System.Timers.Timer datetimer = new System.Timers.Timer(1000);
