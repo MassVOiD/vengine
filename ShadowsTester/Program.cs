@@ -29,8 +29,9 @@ namespace ShadowsTester
             {
                 window.SetCustomPostProcessingMaterial(new PostProcessLoadingMaterial());
             });
-
             World.Root = new World();
+
+            System.Threading.Thread.Sleep(1000);
 
             var freeCamera = new FreeCamera();
 
@@ -165,33 +166,33 @@ namespace ShadowsTester
             //water.SpecularSize = 15.0f;
             water.DiffuseComponent = 0.5f;
             World.Root.Add(water);
-
             Object3dInfo simplecubeInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"))[1];
+            
             InstancedMesh3d instancedBalls = new InstancedMesh3d(simplecubeInfo, watercolor);
-            for(int i = 0; i < 3000; i++)
+            for(int i = 0; i < 4000; i++)
             {
-                instancedBalls.Positions.Add(new Vector3((float)Math.Sin((float)i / 30.0f) * 500, 300.0f + (float)Math.Cos((float)i / 30.0f) * 500, (i * 4 - 750.0f)));
+                instancedBalls.Positions.Add(new Vector3((float)Math.Sin((float)i / 30.0f) * 500, 300.0f + (float)Math.Cos((float)i / 30.0f) * 500, (i - 750.0f)));
                 instancedBalls.Orientations.Add(Quaternion.Identity);
-                instancedBalls.Scales.Add(rand.Next(143) + 11);
+                instancedBalls.Scales.Add(rand.Next(11) + 11);
 
             }
             GLThread.OnBeforeDraw += (o, e) =>
             {
-                for(int i = 0; i < 3000; i++)
+                for(int i = 0; i < 1000; i++)
                 {
                     instancedBalls.Positions[i] = (new Vector3((float)Math.Sin((float)DateTime.Now.TimeOfDay.TotalMilliseconds * i / 600000.0f) * 500,
-                        300.0f + (float)Math.Cos((float)DateTime.Now.TimeOfDay.TotalMilliseconds * i / 600000.0f) * 500, (i*4 - 750.0f)));
-                    instancedBalls.Rotate(i, Quaternion.FromAxisAngle(Vector3.UnitZ, 0.0001f * i));
+                        300.0f + (float)Math.Cos((float)DateTime.Now.TimeOfDay.TotalMilliseconds * i / 600000.0f) * 500, (i - 750.0f)));
+                    instancedBalls.Rotate(i, Quaternion.FromAxisAngle(Vector3.UnitZ, 0.001f * i));
                 }
                 instancedBalls.UpdateMatrix();
             };
-            instancedBalls.Instances = 1500;
+            instancedBalls.Instances = 1000;
             instancedBalls.UpdateMatrix();
             GLThread.OnUpdate += (o, e) =>
             {
             };
             World.Root.Add(instancedBalls);
-
+            
             /*
             Mesh3d ground = new Mesh3d(groundInfo, texx);
             ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
@@ -209,13 +210,13 @@ namespace ShadowsTester
             water.SetPosition(new Vector3(0, -150, 0));
             World.Root.Add(water);*/
             /*
-            Object3dInfo chickInfo = Object3dInfo.LoadFromObjSingle(Media.Get("House01.obj"));
-            Mesh3d chick = new Mesh3d(chickInfo, texx);
+            Object3dInfo chickInfo = Object3dInfo.LoadFromObjSingle(Media.Get("cave.obj"));
+            Mesh3d chick = new Mesh3d(chickInfo, color);
             chick.SetScale(20.4f);
             chick.SetPosition(new Vector3(0, 200.0f + 3.3f * 4, 0));
             World.Root.Add(chick);*/
 
-            FOVLight coneLight = new FOVLight(new Vector3(65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 6666, 6666, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
+            FOVLight coneLight = new FOVLight(new Vector3(65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 1024, 1024, MathHelper.PiOver2, 1.0f, 13200.0f);
             icosphere.SetPosition(new Vector3(65, 30, 65));
             LightPool.Add(coneLight);
             /*
@@ -234,7 +235,7 @@ namespace ShadowsTester
             FOVLight coneLight6 = new FOVLight(new Vector3(-30, 15, 30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
             LightPool.Add(coneLight6);
             */
-
+            /*
             for(int i = 0; i < 12; i++)
             {
                 Mesh3d a = new Mesh3d(icosphereInfo, color);
@@ -257,18 +258,16 @@ namespace ShadowsTester
                 for(int g = 0; g < 16; g++)
                     for(int h = 0; h < 3; h++)
                     {
-                        if((i != 0 || i != 2) && (g != 0 && g != 8) && (h != 0 && h != 2))
-                            continue;
                         float scale = 25.0f;
                         float cubesize = 0.384960f * scale;
-                        Mesh3d a = new Mesh3d(simplecubeInfo, color);
+                        Mesh3d a = new Mesh3d(icosphereInfo, color);
                         a.SetScale(scale / 2.0f);
                         a.SetPosition(new Vector3(2.0f * i * cubesize, 2.0f * g * cubesize + 20.0f, 2.0f * cubesize * h + 20.0f));
-                        a.SetMass(15.5f);
+                        a.SetMass(0.5f);
                         a.SpecularComponent = 1.0f;
                         a.DiffuseComponent = 0.3f;
                         a.SpecularSize = 5.1f;
-                        a.SetCollisionShape(new Box(a.GetPosition(), cubesize, cubesize, cubesize, 11.1f));
+                        a.SetCollisionShape(new Sphere(a.GetPosition(), cubesize, 11.1f));
                         var s = a.GetCollisionShape();
                         s.Material.Bounciness = 0.0f;
                         s.LinearDamping = 0;
@@ -278,15 +277,39 @@ namespace ShadowsTester
 
                         World.Root.Add(a);
                     }
-
+            */
             //mirror
 
+            Skybox skybox = new Skybox(ManualShaderMaterial.FromName("Skybox"));
+            skybox.Use();
+
+            Object3dInfo oldhouseInfo = Object3dInfo.LoadFromObjSingle(Media.Get("oldhouse.obj"));
+            SolidColorMaterial oldhouseMaterial = new SolidColorMaterial(Color.Red);
+
+            InstancedMesh3d oldhouseInstances = new InstancedMesh3d(oldhouseInfo, oldhouseMaterial);
+            World.Root.Add(oldhouseInstances);
 
             GLThread.OnMouseUp += (o, e) =>
             {
+                if(e.Button == OpenTK.Input.MouseButton.Right)
+                {
+                    Vector3 position = Camera.Current.RayCastPosition();
+                    if(position != null)
+                    {
+                        Console.WriteLine(position);
+                        World.Root.Explode(position, 2000.0f, 1000.0f);
+                        icosphere.SetPosition(position);
+                        oldhouseInstances.Positions.Add(position);
+                        oldhouseInstances.Orientations.Add(Quaternion.Identity);
+                        oldhouseInstances.Scales.Add(0.2f);
+                        oldhouseInstances.Instances++;
+                        oldhouseInstances.UpdateMatrix();
+
+                    }
+                }
                 if(e.Button == OpenTK.Input.MouseButton.Middle)
                 {
-                    Mesh3d mesh = Camera.Current.RayCast();
+                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
                     if(mesh != null && mesh.GetCollisionShape() != null)
                     {
                         Console.WriteLine(mesh.GetCollisionShape().ToString());
@@ -295,7 +318,7 @@ namespace ShadowsTester
                 }
                 if(e.Button == OpenTK.Input.MouseButton.Left)
                 {
-                    Mesh3d mesh = Camera.Current.RayCast();
+                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
                     if(mesh != null && mesh.GetCollisionShape() != null)
                     {
                         Console.WriteLine(mesh.GetCollisionShape().ToString());

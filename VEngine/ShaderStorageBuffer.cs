@@ -17,7 +17,7 @@ namespace VDGTech
 {
     public class ShaderStorageBuffer
     {
-        uint Handle = -1;
+        int Handle = -1;
         bool Generated;
         byte[] data;
         public ShaderStorageBuffer()
@@ -26,14 +26,14 @@ namespace VDGTech
 
         public void MapData(byte[] buffer)
         {
-            Handle = (uint)GL.GenBuffer();
+            Handle = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
             GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, BufferUsageHint.DynamicCopy);
         }
 
         public void Use(uint point)
         {
-            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, Handle);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, (uint)Handle);
         }
 
     }

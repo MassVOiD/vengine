@@ -9,4 +9,5 @@ void main()
 {
 	vec4 color = texture(tex, UV);
 	outColor = vec4(processLighting(color.xyz), color.a);
+	//outColor = vec4(color.xyz, color.a);
 }

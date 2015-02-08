@@ -40,13 +40,20 @@ namespace VDGTech
             ViewMatrix = Matrix4.LookAt(Position, location, new Vector3(0, 1, 0));
         }
 
-
-        public Mesh3d RayCast()
+        
+        public Mesh3d RayCastMesh3d()
         {
             RayCastResult rcResult;
             var dir = GetDirection();
-            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position + (dir * 2), dir), 1000.0f, out rcResult);
+            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position + (dir * 2), dir), 10000.0f, out rcResult);
             return rcResult.HitObject != null ? rcResult.HitObject.Tag as Mesh3d : null;
+        }
+        public Vector3 RayCastPosition()
+        {
+            RayCastResult rcResult;
+            var dir = GetDirection();
+            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position + (dir * 2), dir), 10000.0f, out rcResult);
+            return rcResult.HitData.Location;
         }
 
         public void ProcessMouseMovement(int deltax, int deltay)

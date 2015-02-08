@@ -174,9 +174,9 @@ namespace VDGTech
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            PostProcessFramebuffer.UseTexture(0);
+            PostProcessFramebuffer.UseTexture(8);
 
-            LightPool.UseTextures(2);
+            LightPool.UseTextures(0);
             PostProcessingMesh.Draw();
 
             GLThread.InvokeOnAfterDraw();

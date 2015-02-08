@@ -11,6 +11,7 @@ using BEPUutilities.Threading;
 using System;
 using BEPUphysics.CollisionTests.CollisionAlgorithms;
 using BEPUphysics.Constraints;
+using BU = BEPUutilities;
 
 namespace VDGTech
 {
@@ -64,8 +65,62 @@ namespace VDGTech
 
         public virtual void UpdatePhysics(float time)
         {
+            PhysicalWorld.Update(time*2);
+            int len = PhysicalWorld.Entities.Count;
+            Mesh3d mesh;
+            Entity body;
+            for(int i = 0; i < len; i++)
+            {
+                body = PhysicalWorld.Entities[i];
+                mesh = body.Tag as Mesh3d;
+                if(mesh != null)
+                {
+                    //mesh.UpdateMatrixFromPhysics(body.OrientationMatrix * body.Position);
+                    mesh.SetOrientation(body.BufferedStates.InterpolatedStates.Orientation);
+                    mesh.SetPosition(body.BufferedStates.InterpolatedStates.Position);
 
+                }
+            }
+        }
 
+        public void Explode(OpenTK.Vector3 position, float magnitude, float maxDistance)
+        {
+            List<BroadPhaseEntry> affectedEntries = new List<BroadPhaseEntry>();
+            PhysicalWorld.BroadPhase.QueryAccelerator.GetEntries(new BU.BoundingSphere(position, maxDistance), affectedEntries);
+
+            foreach(BroadPhaseEntry entry in affectedEntries)
+            {
+                var entityCollision = entry as EntityCollidable;
+                if(entityCollision != null)
+                {
+                    var e = entityCollision.Entity;
+                    //Don't bother applying impulses to kinematic entities; they have infinite inertia.
+                    if(e.IsDynamic)
+                    {
+                        BU.Vector3 offset = e.Position - position.ToBepu();
+                        float distanceSquared = offset.LengthSquared();
+                        if(distanceSquared > BU.Toolbox.Epsilon) //Be kind to the engine and don't give it a value divided by zero.
+                        {
+                            var distance = (float)Math.Sqrt(distanceSquared);
+                            //This applies a force inversely proportional to the distance.
+                            //Note the extra distance term in the denominator.  This normalizes the
+                            //offset, resulting in a quadratic explosion falloff.
+                            //A linear falloff could be accomplished by not including the extra distance term.
+                            e.LinearMomentum += (offset * ((magnitude * 100.0f) / (distanceSquared)));
+                            //The above only applies a linear impulse, which is quick and usually sufficient to look like an explosion.
+                            //If you want some extra chaotic spinning, try applying an angular impulse.
+                            //Using e.ApplyImpulse with an appropriate impulse location or e.applyAngularImpulse will do the job.
+
+                        }
+                        else
+                        {
+                            e.LinearMomentum += (new BEPUutilities.Vector3(0, magnitude, 0));
+                        }
+                    }
+                }
+            }
+
+            affectedEntries.Clear();
         }
 
         public void Add(IRenderable renderable)
@@ -103,22 +158,6 @@ namespace VDGTech
         public void Draw()
         {
 
-            PhysicalWorld.Update();
-            int len = PhysicalWorld.Entities.Count;
-            Mesh3d mesh;
-            Entity body;
-            for(int i = 0; i < len; i++)
-            {
-                body = PhysicalWorld.Entities[i];
-                mesh = body.Tag as Mesh3d;
-                if(mesh != null)
-                {
-                    //mesh.UpdateMatrixFromPhysics(body.OrientationMatrix * body.Position);
-                    mesh.SetOrientation(body.BufferedStates.InterpolatedStates.Orientation);
-                    mesh.SetPosition(body.BufferedStates.InterpolatedStates.Position);
-
-                }
-            }
             for(int i = 0; i < Children.Count; i++)
             {
                 if(Children[i] != null) Children[i].Draw();

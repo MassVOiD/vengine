@@ -128,7 +128,7 @@ namespace Tester
             {
                 if(e.Button == OpenTK.Input.MouseButton.Left)
                 {
-                    Mesh3d mesh = Camera.Current.RayCast();
+                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
                     if(mesh != null && mesh.GetCollisionShape() != null)
                     {
                         Console.WriteLine(mesh.GetCollisionShape().ToString());

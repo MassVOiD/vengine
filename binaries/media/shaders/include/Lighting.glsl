@@ -77,9 +77,9 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	return distance1;
 }
 
-float getShadowPercent(vec2 uv, uint i){
+float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 1.0;
-	float distance2 = distance(positionWorldSpace, LightsPos[i]);
+	float distance2 = distance(pos, LightsPos[i]);
 	//float distanceCam = distance(positionWorldSpace.xyz, CameraPosition);
 	float distance1 = 0.0;
 	vec2 fakeUV = vec2(0.0);
@@ -111,7 +111,8 @@ vec3 processLighting(vec3 color){
 		if(Instances>1) clipspace = ((LightsPs[x] * LightsVs[x] * ModelMatrixes[instanceId]) * vec4(positionModelSpace, 1.0));
 		else clipspace = ((LightsPs[x] * LightsVs[x] * ModelMatrix) * vec4(positionModelSpace, 1.0));
 
-		LightScreenSpaceFromGeo[x] = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+		vec3 tmp = clipspace.xyz / clipspace.w;
+		LightScreenSpaceFromGeo[x] = clipspace.z > 0 ? (tmp.xy + 1.0) / 2.0 : vec2(10, 10);
 	}
 	bool shadow = false;
 	int lightsIlluminating = 0;
@@ -127,7 +128,7 @@ vec3 processLighting(vec3 color){
 	if(UseNormalMap == 1){
 		vec3 nmap = texture(normalMap, UV).rbg * 2.0 - 1.0;
 		//nmap = (RotationMatrix * vec4(nmap, 0.0)).xyz;
-		if(Instances>1) normalNew = vec3 (RotationMatrix * vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1));
+		if(Instances>1) normalNew = vec3 (RotationMatrixes[instanceId] * vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1));
 		else normalNew = vec3 (RotationMatrix * vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1));
 		normalNew = nmap;
 	}
@@ -138,9 +139,9 @@ vec3 processLighting(vec3 color){
 		float diffuseComponent = 0.0;
 		if(shadow) for(uint i = 0; i < LightsCount; i++)
 		{
-			float percent = clamp(getShadowPercent(LightScreenSpaceFromGeo[i], i), 0.0, 1.0);
+			float percent = clamp(getShadowPercent(LightScreenSpaceFromGeo[i], positionWorldSpace, i), 0.0, 1.0);
 			multiplier += (percent);
-			float culler = 1.0;// = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
+			float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
 			specularComponent += specular(normalNew, i) * SpecularComponent * culler;
 			diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * culler;
 		}

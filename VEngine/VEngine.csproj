@@ -104,6 +104,7 @@
     <Compile Include="ManualShaderMaterial.cs" />
     <Compile Include="SkyboxMaterial.cs" />
     <Compile Include="SingleTextureMaterial.cs" />
+    <Compile Include="ShaderStorageBuffer.cs" />
     <Compile Include="VEngineInvisibleAdapter.cs" />
     <Compile Include="World.cs" />
     <Compile Include="ShaderProgram.cs" />

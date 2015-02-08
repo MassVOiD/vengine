@@ -12,7 +12,7 @@ uniform vec3 LightsPos[MAX_LIGHTS];
 uniform float LightsFarPlane[MAX_LIGHTS];
 
 
-const int MAX_INSTANCES = 3000;
+const int MAX_INSTANCES = 1024;
 uniform int Instances;
 uniform mat4 ModelMatrixes[MAX_INSTANCES];
 uniform mat4 RotationMatrixes[MAX_INSTANCES];

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using BEPUphysics;
 using BEPUphysics.BroadPhaseEntries;
@@ -39,7 +40,7 @@ namespace VDGTech
         }
 
         public void Draw()
-        {
+        {            
             if(HasBeenModified)
             {
                 UpdateMatrix();
@@ -49,11 +50,6 @@ namespace VDGTech
                 return;
             ShaderProgram shader = Material.GetShaderProgram();
             Material.Use();
-
-            if(Sun.Current != null)
-                Sun.Current.BindToShader(shader);
-            shader.SetUniformArray("ModelMatrixes", Matrix.ToArray());
-            shader.SetUniformArray("RotationMatrixes", RotationMatrix.ToArray());
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
             shader.SetUniform("LogEnchacer", 0.01f);
@@ -72,14 +68,12 @@ namespace VDGTech
             shader.SetUniform("resolution", GLThread.Resolution);
             shader.SetUniform("Instances", Instances);
 
-
-            if(Instances > 1)
+            for(int i = 0; i < Instances; i += 1024)
             {
-                ObjectInfo.DrawInstanced(Instances);
-            }
-            else
-            {
-                ObjectInfo.Draw();
+                shader.SetUniformArray("ModelMatrixes", Matrix.Skip(i).ToArray());
+                shader.SetUniformArray("RotationMatrixes", RotationMatrix.Skip(i).ToArray());
+                ObjectInfo.DrawInstanced(Math.Min(Instances - i, 1024));
+     
             }
             GLThread.CheckErrors();
         }

@@ -8,4 +8,5 @@ void main()
 {
 	//processLighting(input_Color.xyz);
 	outColor = vec4(processLighting(input_Color.xyz), input_Color.a);
+	//outColor = vec4(input_Color.xyz, input_Color.a);
 }
