@@ -35,11 +35,11 @@ namespace VDGTech
         public void Use()
         {
             Program.Use();
-            Tex.Use(TextureUnit.Texture8);
+            Tex.Use(TextureUnit.Texture0);
             if(NormalMap != null)
             {
                 Program.SetUniform("UseNormalMap", 1);
-                NormalMap.Use(TextureUnit.Texture9);
+                NormalMap.Use(TextureUnit.Texture1);
             } else Program.SetUniform("UseNormalMap", 0);
         }
     }

@@ -7,6 +7,7 @@ using VDGTech;
 using System.Threading.Tasks;
 using System.Drawing;
 using VDGTech.Generators;
+using VDGTech.Particles;
 using BEPUphysics.Entities.Prefabs;
 using BEPUphysics.Vehicle;
 
@@ -16,6 +17,7 @@ namespace ShadowsTester
     {
         static void Main(string[] args)
         {
+            //System.Threading.Thread.Sleep(1000);
             VEngineWindowAdapter window = null;
             var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
             Media.SearchPath = Config.MediaPath;
@@ -31,7 +33,7 @@ namespace ShadowsTester
             });
             World.Root = new World();
 
-            System.Threading.Thread.Sleep(1000);
+            //System.Threading.Thread.Sleep(1000);
 
             var freeCamera = new FreeCamera();
 
@@ -132,25 +134,24 @@ namespace ShadowsTester
             Func<uint, uint, float> terrainGen = (x, y) =>
             {
                 float h =
-                    (SimplexNoise.Noise.Generate((float)x, (float)y) * 2) +
-                    (SimplexNoise.Noise.Generate((float)x / 6, (float)y / 7) * 2) +
-                    (SimplexNoise.Noise.Generate((float)x / 24, (float)y / 23) * 2) +
-                    (SimplexNoise.Noise.Generate((float)x / 35, (float)y / 66) * 33) +
-                    (SimplexNoise.Noise.Generate((float)x / 99, (float)y / 111) * 400);
+                    (SimplexNoise.Noise.Generate((float)x, (float)y)) +
+                    (SimplexNoise.Noise.Generate((float)x / 6, (float)y / 7) * 8) +
+                    (SimplexNoise.Noise.Generate((float)x / 24, (float)y / 23) * 31) +
+                    (SimplexNoise.Noise.Generate((float)x / 35, (float)y / 66) * 80) +
+                    (SimplexNoise.Noise.Generate((float)x / 99, (float)y / 111) * 122);
                 return h;
             };
             Func<uint, uint, float> waterGen = (x, y) =>
             {
                 float h =
-                    (SimplexNoise.Noise.Generate((float)x, (float)y) * 2) +
-                    (SimplexNoise.Noise.Generate((float)x / 4, (float)y / 4) * 3) +
-                    (SimplexNoise.Noise.Generate((float)x / 7, (float)y / 7) * 6);
+                    (SimplexNoise.Noise.Generate((float)x, (float)y) / 2) +
+                    (SimplexNoise.Noise.Generate((float)x / 4, (float)y / 4));
                 return h;
             };
 
             //Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-15000, -15000), new Vector2(15000, 15000), new Vector2(100, 100), Vector3.UnitY);
-             //Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-4000, -4000), new Vector2(4000, 4000), new Vector2(10, 10), Vector3.UnitY, 512, terrainGen);
-             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-4000, -4000), new Vector2(4000, 4000), new Vector2(100, 100), Vector3.UnitY, 256, waterGen);
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-2000, -2000), new Vector2(2000, 2000), new Vector2(10, 10), Vector3.UnitY, 256, terrainGen);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2000, -2000), new Vector2(2000, 2000), new Vector2(100, 100), Vector3.UnitY, 256, waterGen);
 
             //  Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-1000, -1000), new Vector2(1000, 1000), new Vector2(100, 100), Vector3.UnitY, 512, terrainGen);
             //Object3dInfo groundInfo = Object3dInfo.LoadFromCompressed(Media.Get("terrain4.o3i"));
@@ -160,14 +161,14 @@ namespace ShadowsTester
             var co = Color.FromArgb(255, Color.FromArgb(0, 92, 143));
             var color = new SolidColorMaterial(Color.Silver);
             var watercolor = new SolidColorMaterial(co);
-            Mesh3d water = new Mesh3d(waterInfo, texx);
+            Mesh3d water = new Mesh3d(waterInfo, watercolor);
             water.SetStaticCollisionMesh(waterInfo.GetAccurateCollisionShape(Vector3.Zero));
             water.GetStaticCollisionMesh().Material.Bounciness = 1.0f;
             //water.SpecularSize = 15.0f;
-            water.DiffuseComponent = 0.5f;
+           // water.DiffuseComponent = 0.5f;
             World.Root.Add(water);
             Object3dInfo simplecubeInfo = Object3dInfo.LoadFromObj(Media.Get("cube_simple.obj"))[1];
-            
+            /*
             InstancedMesh3d instancedBalls = new InstancedMesh3d(simplecubeInfo, watercolor);
             for(int i = 0; i < 4000; i++)
             {
@@ -178,7 +179,7 @@ namespace ShadowsTester
             }
             GLThread.OnBeforeDraw += (o, e) =>
             {
-                for(int i = 0; i < 1000; i++)
+                for(int i = 0; i < 4000; i++)
                 {
                     instancedBalls.Positions[i] = (new Vector3((float)Math.Sin((float)DateTime.Now.TimeOfDay.TotalMilliseconds * i / 600000.0f) * 500,
                         300.0f + (float)Math.Cos((float)DateTime.Now.TimeOfDay.TotalMilliseconds * i / 600000.0f) * 500, (i - 750.0f)));
@@ -186,18 +187,18 @@ namespace ShadowsTester
                 }
                 instancedBalls.UpdateMatrix();
             };
-            instancedBalls.Instances = 1000;
+            instancedBalls.Instances = 4000;
             instancedBalls.UpdateMatrix();
             GLThread.OnUpdate += (o, e) =>
             {
             };
-            World.Root.Add(instancedBalls);
+            World.Root.Add(instancedBalls);*/
             
-            /*
+            
             Mesh3d ground = new Mesh3d(groundInfo, texx);
             ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
             ground.GetStaticCollisionMesh().Material.Bounciness = 1.0f;
-            World.Root.Add(ground);*/
+            World.Root.Add(ground);
 
             //  Mesh3d ground = new Mesh3d(groundInfo, texx);
             //   ground.SetStaticCollisionMesh(groundInfo.GetAccurateCollisionShape(Vector3.Zero));
@@ -209,34 +210,20 @@ namespace ShadowsTester
             Mesh3d water = new Mesh3d(waterInfo, new SolidColorMaterial(Color.FromArgb(140, Color.Blue)));
             water.SetPosition(new Vector3(0, -150, 0));
             World.Root.Add(water);*/
-            /*
-            Object3dInfo chickInfo = Object3dInfo.LoadFromObjSingle(Media.Get("cave.obj"));
-            Mesh3d chick = new Mesh3d(chickInfo, color);
-            chick.SetScale(20.4f);
-            chick.SetPosition(new Vector3(0, 200.0f + 3.3f * 4, 0));
-            World.Root.Add(chick);*/
 
-            FOVLight coneLight = new FOVLight(new Vector3(65, 30, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 1024, 1024, MathHelper.PiOver2, 1.0f, 13200.0f);
+
+            ProjectionLight coneLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 7000, 7000, MathHelper.PiOver2, 1.0f, 13200.0f);
             icosphere.SetPosition(new Vector3(65, 30, 65));
+            coneLight.BuildOrthographicProjection(4000, 4000, -1000, 1000);
             LightPool.Add(coneLight);
+
+
+            //var gen = ParticleGenerator.CreateBox(new Vector3(0, 45, 0), new Vector3(2000, 70, 2000), Quaternion.Identity, Vector3.UnitZ, Vector3.UnitZ * 50.0f, 1.0f, 1.0f, 327.0f);
+          //  ParticleSystem.Generators.Add(gen);
+            
+
             /*
-            FOVLight coneLight2 = new FOVLight(new Vector3(-30, 15, -30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
-            LightPool.Add(coneLight2);
-
-            FOVLight coneLight3 = new FOVLight(new Vector3(30, 15, -30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
-            LightPool.Add(coneLight3);
-
-            FOVLight coneLight4 = new FOVLight(new Vector3(-30, 15, 30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
-            LightPool.Add(coneLight4);
-
-            FOVLight coneLight5 = new FOVLight(new Vector3(-30, 15, 30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
-            LightPool.Add(coneLight5);
-
-            FOVLight coneLight6 = new FOVLight(new Vector3(-30, 15, 30), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 256, 256, MathHelper.PiOver2 * 1.1f, 1.0f, 13200.0f);
-            LightPool.Add(coneLight6);
-            */
-            /*
-            for(int i = 0; i < 12; i++)
+            for(int i = 0; i < 3; i++)
             {
                 Mesh3d a = new Mesh3d(icosphereInfo, color);
                 a.SetScale(1);
@@ -250,12 +237,12 @@ namespace ShadowsTester
                 s.PositionUpdateMode = BEPUphysics.PositionUpdating.PositionUpdateMode.Discrete;
                 
                 World.Root.Add(a);
-            }
+            }*/
 
-            SingleTextureMaterial cubewood = new SingleTextureMaterial(new Texture(Media.Get("wood.jpg")));
-
+            //SingleTextureMaterial cubewood = new SingleTextureMaterial(new Texture(Media.Get("wood.jpg")));
+            /*
             for(int i = 0; i < 3; i++)
-                for(int g = 0; g < 16; g++)
+                for(int g = 0; g < 3; g++)
                     for(int h = 0; h < 3; h++)
                     {
                         float scale = 25.0f;
@@ -283,9 +270,9 @@ namespace ShadowsTester
             Skybox skybox = new Skybox(ManualShaderMaterial.FromName("Skybox"));
             skybox.Use();
 
-            Object3dInfo oldhouseInfo = Object3dInfo.LoadFromObjSingle(Media.Get("oldhouse.obj"));
-            SolidColorMaterial oldhouseMaterial = new SolidColorMaterial(Color.Red);
-
+            Object3dInfo oldhouseInfo = Object3dInfo.LoadFromObjSingle(Media.Get("chick2obj.obj"));
+            SingleTextureMaterial oldhouseMaterial = SingleTextureMaterial.FromMedia("chick.png");
+            
             InstancedMesh3d oldhouseInstances = new InstancedMesh3d(oldhouseInfo, oldhouseMaterial);
             World.Root.Add(oldhouseInstances);
 
@@ -297,11 +284,11 @@ namespace ShadowsTester
                     if(position != null)
                     {
                         Console.WriteLine(position);
-                        World.Root.Explode(position, 2000.0f, 1000.0f);
+                        World.Root.Explode(position, 200.0f, 100.0f);
                         icosphere.SetPosition(position);
-                        oldhouseInstances.Positions.Add(position);
+                        oldhouseInstances.Positions.Add(position + new Vector3(0, 12, 0));
                         oldhouseInstances.Orientations.Add(Quaternion.Identity);
-                        oldhouseInstances.Scales.Add(0.2f);
+                        oldhouseInstances.Scales.Add(3.6f);
                         oldhouseInstances.Instances++;
                         oldhouseInstances.UpdateMatrix();
 
@@ -340,25 +327,8 @@ namespace ShadowsTester
                     //coneLight6.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position + freeCamera.Cam.Orientation.GetTangent(MathExtensions.TangentDirection.Up));
                     //icosphere.SetPosition(freeCamera.Cam.Position);
                     //icosphere.DiffuseComponent = 999.0f;
-                }/*
-                if(e.Key == OpenTK.Input.Key.Number2)
-                {
-                    coneLight2.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Orientation);
-                    icosphere.SetPosition(freeCamera.Cam.Position);
-                    icosphere.DiffuseComponent = 999.0f;
                 }
-                if(e.Key == OpenTK.Input.Key.Number3)
-                {
-                    coneLight3.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Orientation);
-                    icosphere.SetPosition(freeCamera.Cam.Position);
-                    icosphere.DiffuseComponent = 999.0f;
-                }
-                if(e.Key == OpenTK.Input.Key.Number4)
-                {
-                    coneLight4.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Orientation);
-                    icosphere.SetPosition(freeCamera.Cam.Position);
-                    icosphere.DiffuseComponent = 999.0f;
-                }*/
+               
             };
             /*
             System.Timers.Timer datetimer = new System.Timers.Timer(1000);

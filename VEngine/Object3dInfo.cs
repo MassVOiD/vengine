@@ -140,6 +140,21 @@ namespace VDGTech
             File.WriteAllBytes(outdir + ".o3i", memstream.ToArray());
 
         }
+        public static void CompressAndSaveSingle(Object3dInfo element, string outfile)
+        {
+            MemoryStream memstream = new MemoryStream();
+            memstream.Write(BitConverter.GetBytes(element.VBO.Count), 0, 4);
+            memstream.Write(BitConverter.GetBytes(element.Indices.Count), 0, 4);
+            foreach(float v in element.VBO)
+                memstream.Write(BitConverter.GetBytes(v), 0, 4);
+            foreach(uint v in element.Indices)
+                memstream.Write(BitConverter.GetBytes(v), 0, 4);
+            memstream.Flush();
+            if(File.Exists(outfile + ".o3i"))
+                File.Delete(outfile + ".o3i");
+            File.WriteAllBytes(outfile + ".o3i", memstream.ToArray());
+
+        }
         public static void CompressAndSave(Object3dInfo data, string outfile)
         {
             MemoryStream memstream = new MemoryStream();
@@ -158,29 +173,47 @@ namespace VDGTech
 
         public static Object3dInfo LoadFromCompressed(string infile)
         {
-            var inStream = File.OpenRead(infile);
-
-            byte[] buf = new byte[4];
-
-            inStream.Read(buf, 0, 4);
-            int vcount = BitConverter.ToInt32(buf, 0);
-            inStream.Read(buf, 0, 4);
-            int icount = BitConverter.ToInt32(buf, 0);
-
-            List<float> vertices = new List<float>();
-            List<uint> indices = new List<uint>();
-            while(vcount-- > 0)
+            using(var fileStream = File.OpenRead(infile))
             {
-                inStream.Read(buf, 0, 4);
-                vertices.Add(BitConverter.ToSingle(buf, 0));
+                MemoryStream inStream = new MemoryStream();
+                fileStream.CopyTo(inStream);
+                inStream.Seek(0, SeekOrigin.Begin);
+                byte[] buf = new byte[64];
+
+                inStream.Read(buf, 0, 8);
+                int vcount = BitConverter.ToInt32(buf, 0);
+                Console.WriteLine(vcount);
+                int icount = BitConverter.ToInt32(buf, 4);
+                Console.WriteLine(icount);
+
+                List<float> vertices = new List<float>();
+                List<uint> indices = new List<uint>();
+                while(vcount > 0)
+                {
+                    inStream.Read(buf, 0, 4 * 8);
+
+                    vertices.Add(BitConverter.ToSingle(buf, 0));
+                    vertices.Add(BitConverter.ToSingle(buf, 4));
+                    vertices.Add(BitConverter.ToSingle(buf, 8));
+                    vertices.Add(BitConverter.ToSingle(buf, 12));
+
+                    vertices.Add(BitConverter.ToSingle(buf, 16));
+                    vertices.Add(BitConverter.ToSingle(buf, 20));
+                    vertices.Add(BitConverter.ToSingle(buf, 24));
+                    vertices.Add(BitConverter.ToSingle(buf, 28));
+                    vcount -= 8;
+                }
+                while(icount > 0)
+                {
+                    inStream.Read(buf, 0, 4 * 3);
+                    indices.Add(BitConverter.ToUInt32(buf, 0));
+                    indices.Add(BitConverter.ToUInt32(buf, 4));
+                    indices.Add(BitConverter.ToUInt32(buf, 8));
+                    icount -= 3;
+                }
+                
+                return new Object3dInfo(vertices, indices);
             }
-            while(icount-- > 0)
-            {
-                inStream.Read(buf, 0, 4);
-                indices.Add(BitConverter.ToUInt32(buf, 0));
-            }
-            inStream.Close();
-            return new Object3dInfo(vertices, indices);
         }
 
         static List<ObjFileData> ParseOBJString(string[] lines)
@@ -273,7 +306,6 @@ namespace VDGTech
             current.Name = match.Groups[1].Value;
             return objects;
         }
-
 
         static ObjFileData ParseOBJStringSingle(string[] lines)
         {

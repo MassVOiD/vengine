@@ -9,13 +9,14 @@ namespace VDGTech
         public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
         public Vector3 Position;
         public Quaternion Orientation;
-        public float Pitch, Roll;
+        public float Pitch, Roll, Far;
 
         public Camera(Vector3 position, Vector3 lookAt, float aspectRatio, float fov, float near, float far)
         {
             Position = position;
             //ViewMatrix = Matrix4.LookAt(position, lookAt, new Vector3(0, 1, 0));
             Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
+            Far = far;
             if(Current == null)
                 Current = this;
             Pitch = 0.0f;
@@ -25,6 +26,7 @@ namespace VDGTech
         public Camera(Vector3 position, Vector3 lookAt, Vector2 size, float near, float far)
         {
             Position = position;
+            Far = far;
             //ViewMatrix = Matrix4.LookAt(position, lookAt, new Vector3(0, 1, 0));
             Matrix4.CreateOrthographic(size.X, size.Y, near, far, out ProjectionMatrix);
             if(Current == null)

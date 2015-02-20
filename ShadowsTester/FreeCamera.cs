@@ -19,6 +19,7 @@ namespace ShadowsTester
             collisionShape = new Sphere(Cam.Position, 0.1f, 20.0f);
             collisionShape.LinearDamping = 0.5f;
             collisionShape.IsAffectedByGravity = false;
+            collisionShape.PositionUpdateMode = BEPUphysics.PositionUpdating.PositionUpdateMode.Continuous;
             World.Root.PhysicalWorld.Add(collisionShape);
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;

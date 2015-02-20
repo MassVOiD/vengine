@@ -6,7 +6,13 @@ using System.Threading.Tasks;
 
 namespace VDGTech.Particles
 {
-    class ParticleSystem
+    public class ParticleSystem
     {
+        public static List<ParticleGenerator> Generators = new List<ParticleGenerator>();
+
+        public static void DrawAll()
+        {
+            Generators.ForEach(a => a.Draw());
+        }
     }
 }

@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Threading;
 using System.Runtime.CompilerServices;
+using System.IO;
 
 namespace VDGTech.Generators
 {
     public class Object3dGenerator
     {
+        public static bool UseCache = true;
 
         public static Object3dInfo CreateGround(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal)
         {
@@ -26,6 +28,38 @@ namespace VDGTech.Generators
                 0, 1, 2, 3, 2, 1
             };
             return new Object3dInfo(VBO.ToList(), indices.ToList());
+        }
+
+        static private Object3dInfo GetCachedOrNull(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions)
+        {
+            if(!UseCache)
+                return null;
+            string filename = start.X.ToString() + start.Y.ToString() + end.X.ToString() + end.Y.ToString() +
+                uvScale.X.ToString() + uvScale.Y.ToString() + normal.X.ToString() + normal.Y.ToString() + normal.Z.ToString() +
+                subdivisions.ToString();
+            if(!Directory.Exists("terrain_generator_cache"))
+                Directory.CreateDirectory("terrain_generator_cache");
+            if(!File.Exists("terrain_generator_cache/" + filename + ".o3i"))
+                return null;
+            try
+            {
+                return Object3dInfo.LoadFromCompressed("terrain_generator_cache/" + filename + ".o3i");
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        static private void SaveCache(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Object3dInfo info3d)
+        {
+            if(!UseCache)
+                return;
+            string filename = start.X.ToString() + start.Y.ToString() + end.X.ToString() + end.Y.ToString() +
+                uvScale.X.ToString() + uvScale.Y.ToString() + normal.X.ToString() + normal.Y.ToString() + normal.Z.ToString() +
+                subdivisions.ToString();
+            if(!Directory.Exists("terrain_generator_cache"))
+                Directory.CreateDirectory("terrain_generator_cache");
+            Object3dInfo.CompressAndSaveSingle(info3d, "terrain_generator_cache/" + filename);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -52,6 +86,9 @@ namespace VDGTech.Generators
 
         public static Object3dInfo CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<uint, uint, float> heightGenerator)
         {
+            var cache = GetCachedOrNull(start, end, uvScale, normal, subdivisions);
+            if(cache != null)
+                return cache;
             var VBO = new List<float>();
             var VBOParts = new List<float[]>();
             var indices = new List<uint>();
@@ -168,7 +205,11 @@ namespace VDGTech.Generators
                 VBO.AddRange(VBOParts[i]);
             }
 
-            return new Object3dInfo(VBO, indices);
+            var finalObject = new Object3dInfo(VBO, indices);
+
+            SaveCache(start, end, uvScale, normal, subdivisions, finalObject);
+
+            return finalObject;
         }
     }
 }

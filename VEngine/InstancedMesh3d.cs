@@ -40,7 +40,9 @@ namespace VDGTech
         }
 
         public void Draw()
-        {            
+        {
+            if(Instances < 2)
+                return;
             if(HasBeenModified)
             {
                 UpdateMatrix();

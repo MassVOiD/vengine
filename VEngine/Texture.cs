@@ -48,8 +48,8 @@ namespace VDGTech
             {
                 GL.DeleteTexture(Handle);
             }
-            Bitmap = BitmapToByteArray(bitmap);
             Size = bitmap.Size;
+            Bitmap = BitmapToByteArray(bitmap);
         }
 
         public void Update(Bitmap bitmap)
@@ -59,8 +59,8 @@ namespace VDGTech
             {
                 GL.DeleteTexture(Handle);
             }
-            Bitmap = BitmapToByteArray(bitmap);
             Size = bitmap.Size;
+            Bitmap = BitmapToByteArray(bitmap);
         }
 
         public void Use(TextureUnit unit)
@@ -92,7 +92,7 @@ namespace VDGTech
             byte[] bytedata = new byte[numbytes];
             IntPtr ptr = bmpdata.Scan0;
             Marshal.Copy(ptr, bytedata, 0, numbytes);
-            bitmap.UnlockBits(bmpdata);
+            //bitmap.UnlockBits(bmpdata);
             return bytedata;
 
         }

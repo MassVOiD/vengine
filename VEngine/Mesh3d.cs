@@ -68,6 +68,7 @@ namespace VDGTech
             shader.SetUniform("LightsCount", LightPool.GetPositions().Length);
 
             shader.SetUniform("CameraPosition", Camera.Current.Position);
+            shader.SetUniform("FarPlane", Camera.Current.Far);
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
             shader.SetUniform("resolution", GLThread.Resolution);

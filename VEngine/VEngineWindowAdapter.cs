@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using VDGTech.Particles;
 
 namespace VDGTech
 {
@@ -29,7 +30,7 @@ namespace VDGTech
 
         public VEngineWindowAdapter(string title, int width, int height)
             : base(width, height,
-                new OpenTK.Graphics.GraphicsMode(32, 32, 0, 16), title, GameWindowFlags.Default,
+                new OpenTK.Graphics.GraphicsMode(32, 32, 0, 0), title, GameWindowFlags.Default,
                 DisplayDevice.Default, 4, 4,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
@@ -163,20 +164,21 @@ namespace VDGTech
 
             if (Skybox.Current != null) Skybox.Current.Draw();
 
-            LightPool.UseTextures(0);
+            LightPool.UseTextures(2);
             World.Root.Draw();
-            NormalWritingFramebuffer.Use();
+            ParticleSystem.DrawAll();
+            /*NormalWritingFramebuffer.Use();
             GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);*/
 
             PostProcessFramebuffer.RevertToDefault();
 
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            PostProcessFramebuffer.UseTexture(8);
+            PostProcessFramebuffer.UseTexture(0);
 
-            LightPool.UseTextures(0);
+            //LightPool.UseTextures(2);
             PostProcessingMesh.Draw();
 
             GLThread.InvokeOnAfterDraw();

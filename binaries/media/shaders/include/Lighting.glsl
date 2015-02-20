@@ -1,5 +1,10 @@
 #include LightingSamplers.glsl
 #include Mesh3dUniforms.glsl
+/*
+Instane lighting
+Part of: https://github.com/achlubek/vengine
+@author Adrian Chlubek
+*/
 
 vec2 LightScreenSpaceFromGeo[MAX_LIGHTS];
 smooth in vec3 positionModelSpace;
@@ -74,6 +79,27 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	else if(i==5)distance1 = texture(lightDepth5, uv).r;
 	else if(i==6)distance1 = texture(lightDepth6, uv).r;
 	else if(i==7)distance1 = texture(lightDepth7, uv).r;
+	else if(i==8)distance1 = texture(lightDepth8, uv).r;
+	else if(i==9)distance1 = texture(lightDepth9, uv).r;
+	else if(i==10)distance1 = texture(lightDepth10, uv).r;
+	else if(i==11)distance1 = texture(lightDepth11, uv).r;
+	else if(i==12)distance1 = texture(lightDepth12, uv).r;
+	else if(i==13)distance1 = texture(lightDepth13, uv).r;
+	else if(i==14)distance1 = texture(lightDepth14, uv).r;
+	else if(i==15)distance1 = texture(lightDepth15, uv).r;
+	else if(i==16)distance1 = texture(lightDepth16, uv).r;
+	else if(i==17)distance1 = texture(lightDepth17, uv).r;
+	else if(i==18)distance1 = texture(lightDepth18, uv).r;
+	else if(i==19)distance1 = texture(lightDepth19, uv).r;
+	else if(i==20)distance1 = texture(lightDepth20, uv).r;
+	else if(i==21)distance1 = texture(lightDepth21, uv).r;
+	else if(i==22)distance1 = texture(lightDepth22, uv).r;
+	else if(i==23)distance1 = texture(lightDepth23, uv).r;
+	else if(i==24)distance1 = texture(lightDepth24, uv).r;
+	else if(i==25)distance1 = texture(lightDepth25, uv).r;
+	else if(i==26)distance1 = texture(lightDepth26, uv).r;
+	else if(i==27)distance1 = texture(lightDepth27, uv).r;
+	else if(i==28)distance1 = texture(lightDepth28, uv).r;
 	return distance1;
 }
 
@@ -85,10 +111,11 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	vec2 fakeUV = vec2(0.0);
 	vec2 offsetDistance = vec2(0.0);
 	float badass_depth = log(LogEnchacer*distance2 + 1.0) / log(LogEnchacer*LightsFarPlane[i] + 1.0);
+	//float centerDiff = abs(badass_depth - lookupDepthFromLight(i, uv)) * 10000.0;
 
 	for(int g = 0; g < 14; g++){ 
 		vec2 gauss = vec2(0, getGaussianKernel(g));
-		offsetDistance = gauss * (distance2 / LightsFarPlane[i] / 60.0);
+		offsetDistance = gauss * (distance2 / LightsFarPlane[i] /5.0);
 		fakeUV = uv + offsetDistance;
 		distance1 = lookupDepthFromLight(i, fakeUV);
 		float diff = abs(distance1 -  badass_depth);
@@ -96,12 +123,15 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	}
 	for(int g = 0; g < 14; g++){ 
 		vec2 gauss = vec2(getGaussianKernel(g), 0);
-		offsetDistance = gauss * (distance2 / LightsFarPlane[i] / 60.0);
+		offsetDistance = gauss * (distance2 / LightsFarPlane[i] / 5.0);
 		fakeUV = uv + offsetDistance;
 		distance1 = lookupDepthFromLight(i, fakeUV);
 		float diff = abs(distance1 -  badass_depth);
 		if(diff > 0.0001) accum -= 1.0/28.0;
 	}
+	//distance1 = lookupDepthFromLight(i, uv);
+	//float diff = abs(distance1 -  badass_depth);
+	//if(diff > 0.0001) accum -= 1.0;	
 	return accum;
 }
 
@@ -153,7 +183,6 @@ vec3 processLighting(vec3 color){
 		color = color + prediffuse;
 		//color = vec3(diff);
 	}
-
 	//float diffuse = 1.0;
 	return color.xyz;
 }

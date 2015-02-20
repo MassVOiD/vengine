@@ -11,14 +11,14 @@ using System.Drawing;
 
 namespace VDGTech
 {
-    public class FOVLight : ILight
+    public class ProjectionLight : ILight
     {
         public Camera camera;
         public Framebuffer FBO;
         ManualShaderMaterial Shader;
         float FarPlane;
         Size ViewPort;
-        public FOVLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
+        public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
             FarPlane = far;
             camera = new Camera(position, Vector3.Zero, mapwidth / mapheight, fov, near, far);
@@ -26,6 +26,16 @@ namespace VDGTech
             FBO = new Framebuffer(mapwidth, mapheight, true);
             Shader = ManualShaderMaterial.FromName("ConeLight");
             ViewPort = new Size(mapwidth, mapheight);
+        }
+
+        public void BuildOrthographicProjection(float width, float height, float near, float far)
+        {
+            camera.ProjectionMatrix = Matrix4.CreateOrthographic(width, height, near, far);
+        }
+
+        public void SetProjection(Matrix4 matrix)
+        {
+            camera.ProjectionMatrix = matrix;
         }
 
         public Matrix4 GetVMatrix()

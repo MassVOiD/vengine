@@ -120,7 +120,7 @@ namespace Tester
             Skybox skybox = new Skybox(ManualShaderMaterial.FromName("Skybox"));
             skybox.Use();
 
-            FOVLight coneLight = new FOVLight(new Vector3(1500, 1500, 1500), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 1024, 1024, 3.14f / 2.0f, 1.0f, 10000.0f);
+            ProjectionLight coneLight = new ProjectionLight(new Vector3(1500, 1500, 1500), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 3), 1024, 1024, 3.14f / 2.0f, 1.0f, 10000.0f);
             LightPool.Add(coneLight);
 
 

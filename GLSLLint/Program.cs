@@ -12,15 +12,44 @@ namespace GLSLLint
     {
         static void Main(string[] args)
         {
-            string typestr = args[0];
+            string source = null;
             ShaderType type = ShaderType.VertexShader;
-            if (typestr == "vertex" || typestr == "v") type = ShaderType.VertexShader;
-            if (typestr == "fragment" || typestr == "f") type = ShaderType.FragmentShader;
-            if (typestr == "compute" || typestr == "c") type = ShaderType.ComputeShader;
-            if (typestr == "geometry" || typestr == "g") type = ShaderType.GeometryShader;
-            if (typestr == "tesscontrol" || typestr == "tc") type = ShaderType.TessControlShader;
-            if (typestr == "tesseval" || typestr == "te") type = ShaderType.TessEvaluationShader;
-            string source = System.IO.File.ReadAllText(args[1]);
+            if(args.Length == 2)
+            {
+                string typestr = args[0];
+                type = ShaderType.VertexShader;
+                if(typestr == "vertex" || typestr == "v")
+                    type = ShaderType.VertexShader;
+                if(typestr == "fragment" || typestr == "f")
+                    type = ShaderType.FragmentShader;
+                if(typestr == "compute" || typestr == "c")
+                    type = ShaderType.ComputeShader;
+                if(typestr == "geometry" || typestr == "g")
+                    type = ShaderType.GeometryShader;
+                if(typestr == "tesscontrol" || typestr == "tc")
+                    type = ShaderType.TessControlShader;
+                if(typestr == "tesseval" || typestr == "te")
+                    type = ShaderType.TessEvaluationShader;
+                source = System.IO.File.ReadAllText(args[1]);
+            }
+            else if(args.Length == 1)
+            {
+                string path = args[0];
+                type = ShaderType.VertexShader;
+                if(path.EndsWith(".vertex.glsl"))
+                    type = ShaderType.VertexShader;
+                if(path.EndsWith(".fragment.glsl"))
+                    type = ShaderType.FragmentShader;
+                if(path.EndsWith(".compute.glsl"))
+                    type = ShaderType.ComputeShader;
+                if(path.EndsWith(".geometry.glsl"))
+                    type = ShaderType.GeometryShader;
+                if(path.EndsWith(".tesscontrol.glsl"))
+                    type = ShaderType.TessControlShader;
+                if(path.EndsWith(".tesseval.glsl"))
+                    type = ShaderType.TessEvaluationShader;
+                source = System.IO.File.ReadAllText(path);
+            }
 
             var window = new VEngineInvisibleAdapter();
 

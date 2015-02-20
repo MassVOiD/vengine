@@ -105,6 +105,10 @@
     <Compile Include="SkyboxMaterial.cs" />
     <Compile Include="SingleTextureMaterial.cs" />
     <Compile Include="ShaderStorageBuffer.cs" />
+    <Compile Include="BufferTexture.cs" />
+    <Compile Include="UI\Rectangle.cs" />
+    <Compile Include="UI\Text.cs" />
+    <Compile Include="UI\UIRenderer.cs" />
     <Compile Include="VEngineInvisibleAdapter.cs" />
     <Compile Include="World.cs" />
     <Compile Include="ShaderProgram.cs" />
