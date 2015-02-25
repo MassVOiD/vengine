@@ -17,8 +17,21 @@ namespace VDGTech
         static public bool Lock = false;
         public bool UsingTesselation = false;
 
-        public ShaderProgram(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
+
+        public static ShaderProgram Compile(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
         {
+            string concatedNames = vertex + fragment + geometry + (tesscontrol != null ? tesscontrol : "notess") + (tesseval != null ? tesseval : "notessev");
+    
+            var cached = ShaderCache.GetShaderProgramOrNull(concatedNames);
+            if(cached != null) return cached;
+            var output =  new ShaderProgram(vertex, fragment, geometry, tesscontrol, tesseval);
+            ShaderCache.CacheShaderProgram(concatedNames, output);
+            return output;
+        }
+        private ShaderProgram(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
+        {
+            
+
             UniformLocationsCache = new Dictionary<string, int>();
 
             VertexSource = ShaderPreparser.Preparse(vertex);
@@ -29,9 +42,9 @@ namespace VDGTech
             }
             if(tesscontrol != null && tesseval != null)
             {
-                //TessControlSource = ShaderPreparser.Preparse(tesscontrol);
-                //TessEvaluationSource = ShaderPreparser.Preparse(tesseval);
-                //UsingTesselation = true;
+                TessControlSource = ShaderPreparser.Preparse(tesscontrol);
+                TessEvaluationSource = ShaderPreparser.Preparse(tesseval);
+                UsingTesselation = true;
             }
             Compiled = false;
         }
@@ -48,12 +61,12 @@ namespace VDGTech
 
             if(TessControlSource != null && TessEvaluationSource != null)
             {
-                //int tessCShaderHandle = CompileSingleShader(ShaderType.TessControlShader, TessControlSource);
-                //GL.AttachShader(Handle, tessCShaderHandle);
+                int tessCShaderHandle = CompileSingleShader(ShaderType.TessControlShader, TessControlSource);
+                GL.AttachShader(Handle, tessCShaderHandle);
 
-                //int tessEShaderHandle = CompileSingleShader(ShaderType.TessEvaluationShader, TessEvaluationSource);
-                //GL.AttachShader(Handle, tessEShaderHandle);
-                //GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
+                int tessEShaderHandle = CompileSingleShader(ShaderType.TessEvaluationShader, TessEvaluationSource);
+                GL.AttachShader(Handle, tessEShaderHandle);
+                GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
             }
 
 

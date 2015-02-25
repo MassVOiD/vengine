@@ -5,7 +5,7 @@ namespace VDGTech
 {
     public class SkyboxMaterial : IMaterial
     {
-        private static ShaderProgram Program = new ShaderProgram(Media.ReadAllText("Skybox.vertex.glsl"), Media.ReadAllText("Skybox.fragment.glsl"));
+        private static ShaderProgram Program = ShaderProgram.Compile(Media.ReadAllText("Skybox.vertex.glsl"), Media.ReadAllText("Skybox.fragment.glsl"));
         
         public ShaderProgram GetShaderProgram()
         {

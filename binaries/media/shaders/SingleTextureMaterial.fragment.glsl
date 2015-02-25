@@ -12,5 +12,5 @@ void main()
 	outColor = vec4(processLighting(color.xyz), color.a);
 	updateDepth();
 	//float dist = barycentric.x < 0.02 || barycentric.y < 0.02 || barycentric.z < 0.02 ? 1.0 : 0.0;
-	//outColor = vec4(dist, dist, dist, color.a);
+	//outColor = vec4(barycentric, color.a);
 }

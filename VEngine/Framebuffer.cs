@@ -46,10 +46,18 @@ namespace VDGTech
 
             TexDepth = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, TexDepth);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32f, Width, Height, 0, PixelFormat.DepthComponent, PixelType.Float, (IntPtr)0);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-
+            if(DepthOnly)
+            {
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32f, Width, Height, 0, PixelFormat.DepthComponent, PixelType.Float, (IntPtr)0);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            }
+            else
+            {
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32f, Width, Height, 0, PixelFormat.DepthComponent, PixelType.Float, (IntPtr)0);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            }
             RBO = GL.GenRenderbuffer();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RBO);
             GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, Width, Height);
@@ -75,10 +83,12 @@ namespace VDGTech
         }
         public void UseTexture(int startIndex)
         {
+
             if(DepthOnly)
             {
                 GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
                 GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+
             }
             else
             {
@@ -89,6 +99,13 @@ namespace VDGTech
             }
             // this is because somebody recommended it on stackoverflow
             GL.ActiveTexture(TextureUnit.Texture0);
+        }
+        public float GetDepth(float x, float y)
+        {
+            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+            float[] pixels = new float[Width * Height];
+            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.DepthComponent, PixelType.Float, pixels);
+            return pixels[(int)(Width * x) + (int)((Height *y) * Width)];
         }
         public void RevertToDefault()
         {

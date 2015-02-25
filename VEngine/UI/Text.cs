@@ -8,5 +8,11 @@ namespace VDGTech.UI
 {
     class Text
     {
+        public Texture Tex;
+        public ShaderProgram Program;
+        public Text(float x, float y, string text)
+        {
+
+        }
     }
 }

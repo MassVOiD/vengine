@@ -10,9 +10,9 @@ namespace VDGTech.Particles
     {
         public static List<ParticleGenerator> Generators = new List<ParticleGenerator>();
 
-        public static void DrawAll()
+        public static void DrawAll(bool depthOnly = false)
         {
-            Generators.ForEach(a => a.Draw());
+            Generators.ForEach(a => a.Draw(depthOnly));
         }
     }
 }

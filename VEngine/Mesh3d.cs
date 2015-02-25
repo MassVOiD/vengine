@@ -74,14 +74,8 @@ namespace VDGTech
             shader.SetUniform("resolution", GLThread.Resolution);
             shader.SetUniform("Instances", 1);
 
-            if(Instances > 1)
-            {
-                ObjectInfo.DrawInstanced(Instances);
-            }
-            else
-            {
-                ObjectInfo.Draw();
-            }
+            ObjectInfo.Draw();
+            
             GLThread.CheckErrors();
         }
 

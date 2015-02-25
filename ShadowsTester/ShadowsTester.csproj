@@ -55,8 +55,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Airplane.cs" />
+    <Compile Include="AirplanePhysics.cs" />
+    <Compile Include="AirplaneSterring.cs" />
     <Compile Include="KeyboardHandler.cs" />
     <Compile Include="FreeCamera.cs" />
+    <Compile Include="MapSaveLoad.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimplexNoise.cs" />

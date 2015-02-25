@@ -1,7 +1,7 @@
 #version 430 core
 	
 out vec4 outColor;
-in float time;
+uniform float Time;
 
 uniform vec2 resolution;
 
@@ -36,8 +36,8 @@ void main( void ) {
 	
 	color += grid(blue * 0.1, 0.001, 0.06, 0.06);
 	color *= 1.0 - distance(position, vec2(0.5, 0.5));
-	color += ball(green, 0.01, sin(time*4.0) / 12.0 + 0.5, cos(time*4.0) / 12.0 + 0.5);
-	color *= ball(green, 0.01, -sin(time*-8.0) / 12.0 + 0.5, -cos(time*-8.0) / 12.0 + 0.5) + 0.5;
+	color += ball(green, 0.01, sin(Time*4.0) / 12.0 + 0.5, cos(Time*4.0) / 12.0 + 0.5);
+	color *= ball(green, 0.01, -sin(Time*-8.0) / 12.0 + 0.5, -cos(Time*-8.0) / 12.0 + 0.5) + 0.5;
 	gl_FragColor = vec4(color, 1.0 );
 
 }

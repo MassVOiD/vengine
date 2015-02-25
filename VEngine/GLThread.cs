@@ -22,7 +22,7 @@ namespace VDGTech
             var error = GL.GetError();
             if (error != ErrorCode.NoError)
             {
-                Console.WriteLine(error.ToString());
+                //Console.WriteLine(error.ToString());
             }
         }
 

@@ -81,12 +81,12 @@
     </Content>
     <Compile Include="ComputeShader.cs" />
     <Compile Include="Debugger.cs" />
-    <Compile Include="FOVLight.cs" />
+    <Compile Include="ProjectionLight.cs" />
     <Compile Include="Framebuffer.cs" />
     <Compile Include="Generators\MeshGenerator.cs" />
     <Compile Include="Generators\Object3dGenerator.cs" />
     <Compile Include="GLThread.cs" />
-    <Compile Include="IMaterial.cs" />
+    <Compile Include="Materials\IMaterial.cs" />
     <Compile Include="LightPool.cs" />
     <Compile Include="MathExtensions.cs" />
     <Compile Include="InstancedMesh3d.cs" />
@@ -97,13 +97,14 @@
     <Compile Include="Media.cs" />
     <Compile Include="Mesh3d.cs" />
     <Compile Include="Object3dInfo.cs" />
-    <Compile Include="PostProcessLoadingMaterial.cs" />
+    <Compile Include="Materials\PostProcessLoadingMaterial.cs" />
+    <Compile Include="ShaderCache.cs" />
     <Compile Include="ShaderPreparser.cs" />
     <Compile Include="SharpScript.cs" />
     <Compile Include="Skybox.cs" />
-    <Compile Include="ManualShaderMaterial.cs" />
-    <Compile Include="SkyboxMaterial.cs" />
-    <Compile Include="SingleTextureMaterial.cs" />
+    <Compile Include="Materials\ManualShaderMaterial.cs" />
+    <Compile Include="Materials\SkyboxMaterial.cs" />
+    <Compile Include="Materials\SingleTextureMaterial.cs" />
     <Compile Include="ShaderStorageBuffer.cs" />
     <Compile Include="BufferTexture.cs" />
     <Compile Include="UI\Rectangle.cs" />
@@ -112,7 +113,7 @@
     <Compile Include="VEngineInvisibleAdapter.cs" />
     <Compile Include="World.cs" />
     <Compile Include="ShaderProgram.cs" />
-    <Compile Include="SolidColorMaterial.cs" />
+    <Compile Include="Materials\SolidColorMaterial.cs" />
     <Compile Include="Sun.cs" />
     <Compile Include="Texture.cs" />
     <Compile Include="VEngineDisplayAdapter.cs" />

@@ -43,9 +43,9 @@ namespace VDGTech
             PhysicalWorld = new Space(parallelLooper);
             PhysicalWorld.Solver.AllowMultithreading = true;
             PhysicalWorld.ForceUpdater.Gravity = new Vector3(0, -9.81f, 0);
-            //SolverSettings.DefaultMinimumIterationCount = 0;
-            //PhysicalWorld.TimeStepSettings.MaximumTimeStepsPerFrame = 4;
-            //PhysicalWorld.Solver.IterationLimit = 4;
+            SolverSettings.DefaultMinimumIterationCount = 0;
+            PhysicalWorld.TimeStepSettings.MaximumTimeStepsPerFrame = 4;
+            PhysicalWorld.Solver.IterationLimit = 4;
             GeneralConvexPairTester.UseSimplexCaching = true;
             //GroundShape = new StaticPlaneShape(Vector3.UnitY, 1.0f);
             //Ground = CreateRigidBody(0, Matrix4.CreateTranslation(0, 0, 0), GroundShape, null);
@@ -65,7 +65,7 @@ namespace VDGTech
 
         public virtual void UpdatePhysics(float time)
         {
-            PhysicalWorld.Update(time*2);
+            PhysicalWorld.Update(time*8.0f);
             int len = PhysicalWorld.Entities.Count;
             Mesh3d mesh;
             Entity body;
@@ -78,7 +78,7 @@ namespace VDGTech
                     //mesh.UpdateMatrixFromPhysics(body.OrientationMatrix * body.Position);
                     mesh.SetOrientation(body.BufferedStates.InterpolatedStates.Orientation);
                     mesh.SetPosition(body.BufferedStates.InterpolatedStates.Position);
-
+                    
                 }
             }
         }
@@ -155,9 +155,9 @@ namespace VDGTech
             }
         }
 
+        public bool ShouldUpdatePhysics = false;
         public void Draw()
         {
-
             for(int i = 0; i < Children.Count; i++)
             {
                 if(Children[i] != null) Children[i].Draw();

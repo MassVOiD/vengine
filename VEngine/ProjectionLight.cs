@@ -8,6 +8,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using VDGTech;
 using System.Drawing;
+using VDGTech.Particles;
 
 namespace VDGTech
 {
@@ -78,10 +79,11 @@ namespace VDGTech
             Shader.Use();
             ShaderProgram.Lock = true;
             Shader.GetShaderProgram().SetUniform("LightPosition", camera.Position);
-            Shader.GetShaderProgram().SetUniform("FarPlane", FarPlane);
-            Shader.GetShaderProgram().SetUniform("LogEnchacer", 4.0f);
+            Shader.GetShaderProgram().SetUniform("FarPlane", camera.Far);
+            Shader.GetShaderProgram().SetUniform("LogEnchacer", 0.01f);
             World.Root.Draw();
             ShaderProgram.Lock = false;
+            //ParticleSystem.DrawAll(true);
             Camera.Current = last;
         }
 

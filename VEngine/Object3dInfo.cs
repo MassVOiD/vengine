@@ -9,6 +9,8 @@ using System.Linq;
 //using BEPUutilities;
 using BEPUphysics.BroadPhaseEntries;
 using BEPUphysics.Entities.Prefabs;
+using BEPUphysics.Entities;
+using BEPUphysics.CollisionShapes.ConvexShapes;
 
 namespace VDGTech
 {
@@ -82,7 +84,7 @@ namespace VDGTech
 
             AreBuffersGenerated = true;
         }
-
+        
         public static Object3dInfo[] LoadFromObj(string infile)
         {
             string[] lines = File.ReadAllLines(infile);
@@ -404,6 +406,43 @@ namespace VDGTech
             return CachedBvhTriangleMeshShape;
         }
 
+        public void Normalize()
+        {
+            List<Vector3> vectors = new List<Vector3>();
+            float maxval = 0.0001f;
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                if(vertex.Length > maxval)
+                    maxval = vertex.Length;
+            }
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                VBO[i] /= maxval;
+                VBO[i + 1] /= maxval;
+                VBO[i + 2] /= maxval;
+            }
+        }
+
+        public Object3dInfo Copy()
+        {
+            return new Object3dInfo(VBO, Indices);
+        }
+
+        public Entity GetConvexHull(Vector3 position, float scale = 1.0f, float mass = 1.0f)
+        {
+
+            //if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
+            List<BEPUutilities.Vector3> vectors = new List<BEPUutilities.Vector3>();
+            for(int i = 0; i < VBO.Count; i += 8)
+                vectors.Add(new BEPUutilities.Vector3(VBO[i] * scale, VBO[i + 1] * scale, VBO[i + 2] * scale) + position.ToBepu());
+
+            var convex = new MobileMesh(vectors.ToArray(), Indices.Select<uint, int>(a => (int)a).ToArray(), 
+                new BEPUutilities.AffineTransform(BEPUutilities.Matrix3x3.CreateFromAxisAngle(BEPUutilities.Vector3.Up, 0), Vector3.Zero), BEPUphysics.CollisionShapes.MobileMeshSolidity.DoubleSided, mass);
+
+            return convex;
+        }
+
         void DrawPrepare()
         {
             if(!AreBuffersGenerated)
@@ -412,22 +451,22 @@ namespace VDGTech
             }
             Current = this;
             GL.BindVertexArray(VAOHandle);
-            ShaderProgram.Current.Use();
+            //ShaderProgram.Current.Use();
         }
 
         public void Draw()
         {
             DrawPrepare();
-            GL.DrawElementsBaseVertex(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, Indices.Count,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero, 0);
+            GL.DrawElements(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero);
             GLThread.CheckErrors();
 
         }
         public void DrawInstanced(int count)
         {
             DrawPrepare();
-            GL.DrawElementsInstancedBaseVertex(PrimitiveType.Triangles, Indices.Count,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero, count, 0);
+            GL.DrawElementsInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, Indices.Count,
+                    DrawElementsType.UnsignedInt, IntPtr.Zero, count);
             GLThread.CheckErrors();
         }
     }

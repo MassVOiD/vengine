@@ -6,6 +6,8 @@ in vec2 UV;
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
 
+uniform float LensBlurAmount;
+uniform float CameraCurrentDepth;
 
 out vec4 outColor;
 
@@ -33,27 +35,48 @@ vec3 ball(vec3 colour, float sizec, float xc, float yc){
 float getNearDiff(float originalDepth){
 	float diff = 0.0;
 	int counter = 0;
+	float lastMaxDelta = 0.0;
+	float maxval = 0.0;
 	for(float i=-2.0;i<2.0;i+=0.5){
 		for(float g=-2.0;g<2.0;g+=0.5){
 			float depth = texture(texDepth, UV + vec2(i/460.0,g/460.0)).r;
 			if(abs(depth - originalDepth) > 0.002)diff += 1.0;
+			float calcval = dot(vec2(0.0), normalize(vec2(i*g, depth)));
+			if(maxval < calcval) maxval = calcval;
+			lastMaxDelta = maxval - calcval;
+			if(lastMaxDelta > 0.3)diff += 1.0;
 			counter++;
 		}
 	}
-	return pow(diff/counter, 1.0);
+	return diff/counter;
 }
-float getAveragedDepth(){
+#define MATH_E 2.7182818284
+
+float reverseLog(float depth){
+	return pow(MATH_E, depth - 1.0) / LogEnchacer;
+}
+float getAveragedDepth(float dist){
 	float diff = 0.0;
 	int counter = 0;
 	for(float i=-2.0;i<2.0;i+=0.3){
 		for(float g=-2.0;g<2.0;g+=0.3){
-			float depth = texture(texDepth, UV + vec2(i*0.005*ratio,g*0.005)).r;
+			float depth = reverseLog(texture(texDepth, UV + vec2(i*dist*ratio,g*dist)).r);
 			diff += depth;
 			counter++;
 		}
 	}
 	return diff/counter;
 }
+
+	
+float getSSAOAmount(float originalDepth){
+	if(originalDepth > 0.999) return 0.0;
+	float val = (reverseLog(originalDepth) - getAveragedDepth(0.0005 / originalDepth));
+	if(val > 0.1) return 0.0;
+	if(val < 0.0) return 0.0;
+	return clamp(log(val * 10.0 + 1.0), 0.0, 1.0);
+}
+
 float getNearDiffByColor(vec3 originalColor){
 	float diff = 0.0;
 	for(int i=-2;i<2;i++){
@@ -67,9 +90,9 @@ float getNearDiffByColor(vec3 originalColor){
 
 vec3 blur(float amount){
 	vec3 outc = vec3(0);
-	for(int g = 0; g < 14; g++){ 
-		for(int g2 = 0; g2 < 14; g2++){ 
-			vec2 gauss = vec2(getGaussianKernel(g) * amount, getGaussianKernel(g2) * amount);
+	for(float g = 0; g < 14.0; g+=1.0){ 
+		for(float g2 = 0; g2 < 14.0; g2+=1.0){ 
+			vec2 gauss = vec2(getGaussianKernel(int(g)) * amount, getGaussianKernel(int(g2)) * amount);
 			vec3 color = texture(texColor, UV + gauss).rgb;
 			outc += color;
 		}
@@ -77,24 +100,27 @@ vec3 blur(float amount){
 	return outc / (14.0*14.0);
 }
 
-vec3 lensblur(float amount, float max_radius, int samples){
+vec3 lensblur(float amount, float max_radius, float samples){
 	vec3 finalColor = vec3(0.0,0.0,0.0);  
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
     float radius = max_radius;  
-	//float centerDepth = texture(texDepth, UV).r;
-    for(int x=samples*-1;x<samples;x++) {  
-        for(int y=samples*-1;y<samples;y++){  
-            vec2 coord = UV+(vec2(float(samples) / x * ratio, float(samples) / y) * 0.001 * amount);  
-			coord.x = clamp(coord.x, 0.0, 1.0);
-			coord.y = clamp(coord.y, 0.0, 1.0);
-            if(distance(coord, UV.xy) < float(max_radius)){  
-                //float depth = texture(texDepth, coord).r;
-				//if(depth - centerDepth < 0.01){
-				vec3 texel = texture(texColor, coord).rgb;
-				float w = length(texel)+0.1;  
-				weight+=w;  
-				finalColor += texel*w;  
-				//}
+	float centerDepth = texture(texDepth, UV).r;
+    for(float x=samples*-1.0;x<samples;x+= 1.0) {  
+        for(float y=samples*-1.0;y<samples;y+= 1.0){  
+			float xc = (x / samples) * ratio;
+			float yc = y / samples;
+			if(length(vec2(xc, yc)) > 1.0) continue;
+            vec2 coord = UV+(vec2(xc, yc) * 0.01 * amount);  
+			coord.x = clamp(abs(coord.x), 0.0, 1.0);
+			coord.y = clamp(abs(coord.y), 0.0, 1.0);
+            if(distance(coord, UV.xy) < max_radius){  
+                float depth = texture(texDepth, coord).r;
+				if(centerDepth - depth < 0.1){
+					vec3 texel = texture(texColor, coord).rgb;
+					float w = length(texel)+0.1;  
+					weight+=w;  
+					finalColor += texel*w;  
+				}
             }  
         }  
     } 
@@ -108,14 +134,18 @@ void main()
 	float depth = texture(texDepth, UV).r;
 	
 	//FXAA
-	//float edge = getNearDiff(depth);
-	//if(edge > 0.002)color1 = blur(edge * 0.1);
+	float edge = getNearDiff(depth);
+	if(edge > 0.002)color1 = blur(edge * 0.1);
 	//color1 = vec3(edge);
-	float focus = 0.09;
-	float avdepth = getAveragedDepth();
-	color1 = lensblur(clamp(abs(avdepth - focus) * 7.0, 0.0, 4.5), 0.009, 8);
+	if(LensBlurAmount > 0.001){
+		float focus = CameraCurrentDepth;
+		//float adepth = getAveragedDepth();
+		float avdepth = clamp(pow(abs(depth - focus), 1.5) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);
+		color1 = lensblur(avdepth, 2.1, 8.0);
 	
-	//color1 -= pow(distance(UV, vec2(0.5, 0.5)), 8);
+	}
+	
+	color1 -= vec3(getSSAOAmount(depth));
 	
 	//hdr but disabled
 	/*
@@ -168,7 +198,7 @@ void main()
 	//color1 = edge > 0.01 ? vec3(1) : vec3(0);
 
 	if(UV.x > 0.49 && UV.x < 0.51 && abs(UV.y - 0.5) < 0.0003) color1 = vec3(0);
-	if(UV.y > 0.48 && UV.y < 0.52 && abs(UV.x - 0.5) < 0.0006) color1 = vec3(0);
+	if(UV.y > 0.47 && UV.y < 0.53 && abs(UV.x - 0.5) < 0.0009) color1 = vec3(0);
 	
 	//color1 *= 1.0 - (pow(distance(UV, vec2(0.5, 0.5)) * 2.0, 2));
 		

@@ -23,7 +23,7 @@ namespace VDGTech
                 0, 1, 2, 3, 2, 1
             };
 
-        Framebuffer PostProcessFramebuffer, NormalWritingFramebuffer;
+        public Framebuffer PostProcessFramebuffer, NormalWritingFramebuffer;
         ShaderProgram NormalWritingShaderProgram;
         IMaterial PostProcessingDefaultMaterial;
         Mesh3d PostProcessingMesh;
@@ -39,7 +39,7 @@ namespace VDGTech
 
             PostProcessFramebuffer = new Framebuffer(width, height);
             NormalWritingFramebuffer = new Framebuffer(width, height);
-            NormalWritingShaderProgram = new ShaderProgram(Media.ReadAllText("WriteNormals.vertex.glsl"), Media.ReadAllText("WriteNormals.fragment.glsl"));
+            NormalWritingShaderProgram = ShaderProgram.Compile(Media.ReadAllText("WriteNormals.vertex.glsl"), Media.ReadAllText("WriteNormals.fragment.glsl"));
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
             PostProcessingDefaultMaterial = new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.fragment.glsl"));
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, PostProcessingDefaultMaterial);
@@ -51,6 +51,8 @@ namespace VDGTech
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
+
+            GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
 
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
@@ -165,6 +167,7 @@ namespace VDGTech
             if (Skybox.Current != null) Skybox.Current.Draw();
 
             LightPool.UseTextures(2);
+            World.Root.ShouldUpdatePhysics = true;
             World.Root.Draw();
             ParticleSystem.DrawAll();
             /*NormalWritingFramebuffer.Use();
@@ -177,7 +180,9 @@ namespace VDGTech
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             PostProcessFramebuffer.UseTexture(0);
-
+            PostProcessingMesh.Material.GetShaderProgram().Use();
+            PostProcessingMesh.Material.GetShaderProgram().SetUniform("CameraCurrentDepth", Camera.Current.CurrentDepthFocus);
+            PostProcessingMesh.Material.GetShaderProgram().SetUniform("LensBlurAmount", Camera.Current.LensBlurAmount);
             //LightPool.UseTextures(2);
             PostProcessingMesh.Draw();
 

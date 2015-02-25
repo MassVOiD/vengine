@@ -6,7 +6,7 @@
 
         public PostProcessLoadingMaterial()
         {
-            Program = new ShaderProgram(Media.ReadAllText("Loading.vertex.glsl"), Media.ReadAllText("Loading.fragment.glsl"));
+            Program = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Loading.fragment.glsl"));
         }
 
         public ShaderProgram GetShaderProgram()

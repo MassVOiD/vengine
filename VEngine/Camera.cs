@@ -10,6 +10,8 @@ namespace VDGTech
         public Vector3 Position;
         public Quaternion Orientation;
         public float Pitch, Roll, Far;
+        public float CurrentDepthFocus = 0.06f;
+        public float LensBlurAmount = 0.0f;
 
         public Camera(Vector3 position, Vector3 lookAt, float aspectRatio, float fov, float near, float far)
         {

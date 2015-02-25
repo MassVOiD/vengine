@@ -11,7 +11,7 @@ namespace VDGTech
 
         public SingleTextureMaterial(Texture tex, Texture normalMap = null)
         {
-            Program = new ShaderProgram(Media.ReadAllText("Generic.vertex.glsl"),
+            Program = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"),
                 Media.ReadAllText("SingleTextureMaterial.fragment.glsl"));
             Tex = tex;
             NormalMap = normalMap;
