@@ -1,22 +1,23 @@
-﻿using OpenTK;
-using System.Drawing;
+﻿using System.Drawing;
+using OpenTK;
 
 namespace VDGTech
 {
     public class Sun
     {
-        public static Sun Current;
-        private float Brightness;
-        private Color LightColor;
-        private Vector3 NormalizedPosition;
-
         public Sun(Vector3 positionFromZero, Color color, float brightness)
         {
             NormalizedPosition = positionFromZero.Normalized();
             LightColor = color;
             Brightness = brightness;
-            if (Current == null) Current = this;
+            if(Current == null)
+                Current = this;
         }
+
+        public static Sun Current;
+        private float Brightness;
+        private Color LightColor;
+        private Vector3 NormalizedPosition;
 
         public void BindToShader(ShaderProgram shader)
         {

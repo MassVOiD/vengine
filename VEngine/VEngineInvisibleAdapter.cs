@@ -1,8 +1,7 @@
-﻿using OpenTK;
+﻿using System;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using System;
-using System.Threading.Tasks;
 
 namespace VDGTech
 {
@@ -14,7 +13,6 @@ namespace VDGTech
                 DisplayDevice.Default, 4, 3,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
-            
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
@@ -22,7 +20,6 @@ namespace VDGTech
             {
                 Console.WriteLine("{0} {1} {2} {3} {4} {5}", source, type, id, severity, length, message);
             }, (IntPtr)0);
-            
         }
     }
 }

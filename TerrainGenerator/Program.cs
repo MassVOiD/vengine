@@ -1,24 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OpenTK;
 using VDGTech;
 using VDGTech.Generators;
-using OpenTK;
-using System.Threading;
 
 namespace TerrainGenerator
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-
             Func<uint, uint, float> terrainGen = (x, y) =>
             {
                 return
-                    SimplexNoise.Noise.Generate(x, y) *10 +
+                    SimplexNoise.Noise.Generate(x, y) * 10 +
                     (SimplexNoise.Noise.Generate((float)x / 43, (float)y / 43) * 123) +
                     (SimplexNoise.Noise.Generate((float)x / 96, (float)y / 114) * 566) +
                     (SimplexNoise.Noise.Generate((float)x / 326, (float)y / 226) * 1700);
@@ -27,7 +21,7 @@ namespace TerrainGenerator
             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-16000.0f, -16000.0f), new Vector2(16000.0f, 16000.0f), new Vector2(20, 20), Vector3.UnitY, 1024, terrainGen);
             Object3dInfo.CompressAndSave(groundInfo, "terrain4");
             Console.WriteLine("Done 4");
-           
+
             Console.Read();
         }
     }

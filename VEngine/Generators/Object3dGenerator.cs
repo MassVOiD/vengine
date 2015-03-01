@@ -1,14 +1,9 @@
-﻿using OpenTK;
-using VDGTech;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
-using System.Threading;
-using System.Runtime.CompilerServices;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using OpenTK;
 
 namespace VDGTech.Generators
 {
@@ -28,60 +23,6 @@ namespace VDGTech.Generators
                 0, 1, 2, 3, 2, 1
             };
             return new Object3dInfo(VBO.ToList(), indices.ToList());
-        }
-
-        static private Object3dInfo GetCachedOrNull(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions)
-        {
-            if(!UseCache)
-                return null;
-            string filename = start.X.ToString() + start.Y.ToString() + end.X.ToString() + end.Y.ToString() +
-                uvScale.X.ToString() + uvScale.Y.ToString() + normal.X.ToString() + normal.Y.ToString() + normal.Z.ToString() +
-                subdivisions.ToString();
-            if(!Directory.Exists("terrain_generator_cache"))
-                Directory.CreateDirectory("terrain_generator_cache");
-            if(!File.Exists("terrain_generator_cache/" + filename + ".o3i"))
-                return null;
-            try
-            {
-                return Object3dInfo.LoadFromCompressed("terrain_generator_cache/" + filename + ".o3i");
-            }
-            catch
-            {
-                return null;
-            }
-        }
-        static private void SaveCache(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Object3dInfo info3d)
-        {
-            if(!UseCache)
-                return;
-            string filename = start.X.ToString() + start.Y.ToString() + end.X.ToString() + end.Y.ToString() +
-                uvScale.X.ToString() + uvScale.Y.ToString() + normal.X.ToString() + normal.Y.ToString() + normal.Z.ToString() +
-                subdivisions.ToString();
-            if(!Directory.Exists("terrain_generator_cache"))
-                Directory.CreateDirectory("terrain_generator_cache");
-            Object3dInfo.CompressAndSaveSingle(info3d, "terrain_generator_cache/" + filename);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static float[] GetTerrainVertex(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, uint x, uint y, float partx, float party, Func<uint, uint, float> heightGenerator)
-        {
-            return new float[]{
-                start.X + ((end.X - start.X) * partx), 
-                heightGenerator.Invoke(x, y), 
-                start.Y + ((end.Y - start.Y) * party), 
-                partx * uvScale.X, 
-                party * uvScale.Y
-            };
-        }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static Vector3 GetVector(float[] VBOPart)
-        {
-            return new Vector3(VBOPart[0], VBOPart[1], VBOPart[2]);
-        }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static Vector3 GetNormal(float[] VBOPart)
-        {
-            return new Vector3(VBOPart[5], VBOPart[6], VBOPart[7]);
         }
 
         public static Object3dInfo CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<uint, uint, float> heightGenerator)
@@ -197,7 +138,6 @@ namespace VDGTech.Generators
                             }
                         }
                     }
-
             }
 
             for(int i = 0; i < VBOParts.Count; i++)
@@ -210,6 +150,63 @@ namespace VDGTech.Generators
             SaveCache(start, end, uvScale, normal, subdivisions, finalObject);
 
             return finalObject;
+        }
+
+        static private Object3dInfo GetCachedOrNull(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions)
+        {
+            if(!UseCache)
+                return null;
+            string filename = start.X.ToString() + start.Y.ToString() + end.X.ToString() + end.Y.ToString() +
+                uvScale.X.ToString() + uvScale.Y.ToString() + normal.X.ToString() + normal.Y.ToString() + normal.Z.ToString() +
+                subdivisions.ToString();
+            if(!Directory.Exists("terrain_generator_cache"))
+                Directory.CreateDirectory("terrain_generator_cache");
+            if(!File.Exists("terrain_generator_cache/" + filename + ".o3i"))
+                return null;
+            try
+            {
+                return Object3dInfo.LoadFromCompressed("terrain_generator_cache/" + filename + ".o3i");
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector3 GetNormal(float[] VBOPart)
+        {
+            return new Vector3(VBOPart[5], VBOPart[6], VBOPart[7]);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static float[] GetTerrainVertex(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, uint x, uint y, float partx, float party, Func<uint, uint, float> heightGenerator)
+        {
+            return new float[]{
+                start.X + ((end.X - start.X) * partx),
+                heightGenerator.Invoke(x, y),
+                start.Y + ((end.Y - start.Y) * party),
+                partx * uvScale.X,
+                party * uvScale.Y
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector3 GetVector(float[] VBOPart)
+        {
+            return new Vector3(VBOPart[0], VBOPart[1], VBOPart[2]);
+        }
+
+        static private void SaveCache(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Object3dInfo info3d)
+        {
+            if(!UseCache)
+                return;
+            string filename = start.X.ToString() + start.Y.ToString() + end.X.ToString() + end.Y.ToString() +
+                uvScale.X.ToString() + uvScale.Y.ToString() + normal.X.ToString() + normal.Y.ToString() + normal.Z.ToString() +
+                subdivisions.ToString();
+            if(!Directory.Exists("terrain_generator_cache"))
+                Directory.CreateDirectory("terrain_generator_cache");
+            Object3dInfo.CompressAndSaveSingle(info3d, "terrain_generator_cache/" + filename);
         }
     }
 }

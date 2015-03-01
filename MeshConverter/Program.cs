@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VDGTech;
 
 namespace MeshConverter
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             string mode = args[0];
             string infile = args[1];
@@ -17,7 +13,6 @@ namespace MeshConverter
 
             if(mode == "separate")
             {
-
                 Object3dInfo.CompressAndSave(infile, outfile);
             }
             else if(mode == "single")
@@ -25,7 +20,6 @@ namespace MeshConverter
                 Object3dInfo.CompressAndSaveSingle(infile, outfile);
             }
             Console.WriteLine("Done");
-
         }
     }
 }

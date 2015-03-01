@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace VDGTech.UI
+﻿namespace VDGTech.UI
 {
-    class UIRenderer
+    internal class UIRenderer
     {
     }
 }

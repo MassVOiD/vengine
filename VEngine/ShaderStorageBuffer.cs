@@ -1,28 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Drawing;
-using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using OldGL = OpenTK.Graphics.OpenGL;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Drawing.Drawing2D;
 
 namespace VDGTech
 {
     public class ShaderStorageBuffer
     {
-        int Handle = -1;
-        bool Generated;
-        byte[] data;
         public ShaderStorageBuffer()
         {
         }
+
+        private byte[] data;
+        private bool Generated;
+        private int Handle = -1;
 
         public void MapData(byte[] buffer)
         {
@@ -35,6 +24,5 @@ namespace VDGTech
         {
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, (uint)Handle);
         }
-
     }
 }

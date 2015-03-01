@@ -1,35 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
-using OpenTK;
-using OpenTK.Graphics;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
 using OldGL = OpenTK.Graphics.OpenGL;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Drawing.Drawing2D;
 
 namespace VDGTech
 {
     public class Texture
     {
-        int Handle = -1;
-        bool Generated;
-        byte[] Bitmap;
-        Size Size;
-        public bool UseNearestFilter = false;
-        private Texture()
-        {
-        }
-
         public Texture(string file)
         {
             Update(file);
         }
+
         public Texture(int handle)
         {
             Handle = handle;
@@ -39,6 +24,23 @@ namespace VDGTech
         public Texture(Bitmap bitmap)
         {
             Update(bitmap);
+        }
+
+        private Texture()
+        {
+        }
+
+        public bool UseNearestFilter = false;
+        private byte[] Bitmap;
+        private bool Generated;
+        private int Handle = -1;
+        private Size Size;
+
+        public static Texture FromText(string text, string font, float size, Color textColor, Color background)
+        {
+            var tex = new Texture();
+            tex.UpdateFromText(text, font, size, textColor, background);
+            return tex;
         }
 
         public void Update(string file)
@@ -62,6 +64,25 @@ namespace VDGTech
             }
             Size = bitmap.Size;
             Bitmap = BitmapToByteArray(bitmap);
+        }
+
+        public void UpdateFromText(string text, string font, float size, Color textColor, Color background)
+        {
+            Bitmap bmp = new Bitmap(1, 1);
+            var textSize = Graphics.FromImage(bmp).MeasureString(text, new Font(font, size), new PointF(0, 0), StringFormat.GenericDefault);
+            bmp = new Bitmap((int)textSize.Width, (int)textSize.Height);
+
+            RectangleF rectf = new RectangleF(0, 0, nlpo2((int)textSize.Width), nlpo2((int)textSize.Height));
+
+            Graphics g = Graphics.FromImage(bmp);
+            g.FillRectangle(new SolidBrush(background), rectf);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            g.DrawString(text, new Font(font, size), new SolidBrush(textColor), rectf);
+
+            g.Flush();
+            Update(bmp);
         }
 
         public void Use(TextureUnit unit)
@@ -103,9 +124,9 @@ namespace VDGTech
             Marshal.Copy(ptr, bytedata, 0, numbytes);
             //bitmap.UnlockBits(bmpdata);
             return bytedata;
-
         }
-        static int nlpo2(int x)
+
+        private static int nlpo2(int x)
         {
             x--; // comment out to always take the next biggest power of two, even if x is already a power of two
             x |= (x >> 1);
@@ -114,32 +135,6 @@ namespace VDGTech
             x |= (x >> 8);
             x |= (x >> 16);
             return (x + 1);
-        }
-        public static Texture FromText(string text, string font, float size, Color textColor, Color background)
-        {
-            var tex = new Texture();
-            tex.UpdateFromText(text, font, size, textColor, background);
-            return tex;
-
-        }
-        public void UpdateFromText(string text, string font, float size, Color textColor, Color background)
-        {
-            Bitmap bmp = new Bitmap(1, 1);
-            var textSize = Graphics.FromImage(bmp).MeasureString(text, new Font(font, size), new PointF(0, 0), StringFormat.GenericDefault);
-            bmp = new Bitmap((int)textSize.Width, (int)textSize.Height);
-
-            RectangleF rectf = new RectangleF(0, 0, nlpo2((int)textSize.Width), nlpo2((int)textSize.Height));
-
-            Graphics g = Graphics.FromImage(bmp);
-            g.FillRectangle(new SolidBrush(background), rectf);
-            g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            g.DrawString(text, new Font(font, size), new SolidBrush(textColor), rectf);
-
-            g.Flush();
-            Update(bmp);
-
         }
     }
 }
