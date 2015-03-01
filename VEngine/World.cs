@@ -1,17 +1,7 @@
 ﻿using OpenTK;
 using System.Collections.Generic;
-using BEPUphysics;
-using BEPUphysics.BroadPhaseEntries;
-using BEPUphysics.BroadPhaseEntries.MobileCollidables;
-using BEPUphysics.Character;
-using BEPUphysics.Entities;
-using BEPUphysics.Entities.Prefabs;
-using BEPUphysics.CollisionRuleManagement;
-using BEPUutilities.Threading;
 using System;
-using BEPUphysics.CollisionTests.CollisionAlgorithms;
-using BEPUphysics.Constraints;
-using BU = BEPUutilities;
+using BulletSharp;
 
 namespace VDGTech
 {
@@ -25,102 +15,77 @@ namespace VDGTech
         private Matrix4 Matrix;
         public volatile bool Disposed;
 
-        public Space PhysicalWorld;
-        Dictionary<IRenderable, Entity> CollisionObjects;
+        public Line2dPool LinesPool;
+
+        public DiscreteDynamicsWorld PhysicalWorld;
+        CollisionDispatcher Dispatcher;
+        DbvtBroadphase Broadphase;
+        CollisionConfiguration CollisionConf;
+        Dictionary<IRenderable, CollisionObject> CollisionObjects;
 
         public World()
         {
             Children = new List<IRenderable>();
-            // this will sslow down graphics thread and its not what we want here
-            var parallelLooper = new ParallelLooper();
-            if(Environment.ProcessorCount > 1)
-            {
-                for(int i = 0; i < Environment.ProcessorCount; i++)
-                {
-                    parallelLooper.AddThread();
-                }
-            }
-            PhysicalWorld = new Space(parallelLooper);
-            PhysicalWorld.Solver.AllowMultithreading = true;
-            PhysicalWorld.ForceUpdater.Gravity = new Vector3(0, -9.81f, 0);
-            SolverSettings.DefaultMinimumIterationCount = 0;
-            PhysicalWorld.TimeStepSettings.MaximumTimeStepsPerFrame = 4;
-            PhysicalWorld.Solver.IterationLimit = 4;
-            GeneralConvexPairTester.UseSimplexCaching = true;
-            //GroundShape = new StaticPlaneShape(Vector3.UnitY, 1.0f);
-            //Ground = CreateRigidBody(0, Matrix4.CreateTranslation(0, 0, 0), GroundShape, null);
-            CollisionObjects = new Dictionary<IRenderable, Entity>();
+            LinesPool = new Line2dPool();
+            CollisionConf = new DefaultCollisionConfiguration();
+            Dispatcher = new CollisionDispatcher(CollisionConf);
+            Broadphase = new DbvtBroadphase();
+            PhysicalWorld = new DiscreteDynamicsWorld(Dispatcher, Broadphase, null, CollisionConf);
+            PhysicalWorld.Gravity = new Vector3(0, -10, 0);
+            PhysicalWorld.SolverInfo.SolverMode = SolverModes.Simd;
+            CollisionObjects = new Dictionary<IRenderable, CollisionObject>();
             if(Root == null)
                 Root = this;
         }
 
-        public void CreateRigidBody(float mass, Matrix4 startTransform, Entity shape, Mesh3d reference)
+        private void SortByShader()
         {
-            shape.Mass = mass;
-            shape.Tag = reference;
-            shape.WorldTransform = startTransform;
-
-            PhysicalWorld.Add(shape);
+            Children.Sort((a, b) =>
+            {
+                if(!(a is Mesh3d))return 0;
+                if(!(b is Mesh3d))return 0;
+                var am = a as Mesh3d;
+                var bm = b as Mesh3d;
+                return am.GetHashCode() - bm.GetHashCode();
+            });
         }
+
+        public RigidBody CreateRigidBody(float mass, Matrix4 startTransform, CollisionShape shape, Mesh3d reference)
+        {
+            bool isDynamic = (mass != 0.0f);
+
+            Vector3 localInertia = Vector3.Zero;
+            if(isDynamic)
+                shape.CalculateLocalInertia(mass, out localInertia);
+
+            DefaultMotionState myMotionState = new DefaultMotionState(startTransform);
+
+            RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
+            RigidBody body = new RigidBody(rbInfo);
+            body.UserObject = reference;
+
+            PhysicalWorld.AddRigidBody(body);
+
+            return body;
+        }
+
 
         public virtual void UpdatePhysics(float time)
         {
-            PhysicalWorld.Update(time*8.0f);
-            int len = PhysicalWorld.Entities.Count;
+            PhysicalWorld.StepSimulation(time*4.0f);
+            int len = PhysicalWorld.CollisionObjectArray.Count;
             Mesh3d mesh;
-            Entity body;
+            CollisionObject body;
             for(int i = 0; i < len; i++)
             {
-                body = PhysicalWorld.Entities[i];
-                mesh = body.Tag as Mesh3d;
+                body = PhysicalWorld.CollisionObjectArray[i];
+                mesh = body.UserObject as Mesh3d;
                 if(mesh != null)
                 {
-                    //mesh.UpdateMatrixFromPhysics(body.OrientationMatrix * body.Position);
-                    mesh.SetOrientation(body.BufferedStates.InterpolatedStates.Orientation);
-                    mesh.SetPosition(body.BufferedStates.InterpolatedStates.Position);
-                    
+                    mesh.Transformation.SetPosition((Matrix4.CreateScale(Scale) * body.WorldTransform).ExtractTranslation());
+                    mesh.Transformation.SetOrientation(mesh.PhysicalBody.Orientation);
                 }
             }
-        }
-
-        public void Explode(OpenTK.Vector3 position, float magnitude, float maxDistance)
-        {
-            List<BroadPhaseEntry> affectedEntries = new List<BroadPhaseEntry>();
-            PhysicalWorld.BroadPhase.QueryAccelerator.GetEntries(new BU.BoundingSphere(position, maxDistance), affectedEntries);
-
-            foreach(BroadPhaseEntry entry in affectedEntries)
-            {
-                var entityCollision = entry as EntityCollidable;
-                if(entityCollision != null)
-                {
-                    var e = entityCollision.Entity;
-                    //Don't bother applying impulses to kinematic entities; they have infinite inertia.
-                    if(e.IsDynamic)
-                    {
-                        BU.Vector3 offset = e.Position - position.ToBepu();
-                        float distanceSquared = offset.LengthSquared();
-                        if(distanceSquared > BU.Toolbox.Epsilon) //Be kind to the engine and don't give it a value divided by zero.
-                        {
-                            var distance = (float)Math.Sqrt(distanceSquared);
-                            //This applies a force inversely proportional to the distance.
-                            //Note the extra distance term in the denominator.  This normalizes the
-                            //offset, resulting in a quadratic explosion falloff.
-                            //A linear falloff could be accomplished by not including the extra distance term.
-                            e.LinearMomentum += (offset * ((magnitude * 100.0f) / (distanceSquared)));
-                            //The above only applies a linear impulse, which is quick and usually sufficient to look like an explosion.
-                            //If you want some extra chaotic spinning, try applying an angular impulse.
-                            //Using e.ApplyImpulse with an appropriate impulse location or e.applyAngularImpulse will do the job.
-
-                        }
-                        else
-                        {
-                            e.LinearMomentum += (new BEPUutilities.Vector3(0, magnitude, 0));
-                        }
-                    }
-                }
-            }
-
-            affectedEntries.Clear();
         }
 
         public void Add(IRenderable renderable)
@@ -133,14 +98,11 @@ namespace VDGTech
                 {
                     lock(PhysicalWorld)
                     {
-                        PhysicalWorld.Add(mesh.GetCollisionShape());
-                    }
-                }
-                if(mesh.GetStaticCollisionMesh() != null || renderable is IPhysical)
-                {
-                    lock(PhysicalWorld)
-                    {
-                        PhysicalWorld.Add(mesh.GetStaticCollisionMesh());
+                        CollisionObjects.Add(renderable, mesh.CreateRigidBody());
+                        mesh.PhysicalBody.SetSleepingThresholds(0, 0);
+                        mesh.PhysicalBody.ContactProcessingThreshold = 0;
+                        mesh.PhysicalBody.CcdMotionThreshold = 0;
+                        PhysicalWorld.AddRigidBody(mesh.PhysicalBody);
                     }
                 }
             }
@@ -149,10 +111,14 @@ namespace VDGTech
                 IPhysical physicalObject = renderable as IPhysical;
                 lock(PhysicalWorld)
                 {
-                    PhysicalWorld.Add(physicalObject.GetCollisionShape());
+                    PhysicalWorld.AddRigidBody(physicalObject.GetRigidBody());
+                    physicalObject.GetRigidBody().SetSleepingThresholds(0, 0);
+                    physicalObject.GetRigidBody().ContactProcessingThreshold = 0;
+                    physicalObject.GetRigidBody().CcdMotionThreshold = 0;
                 }
 
             }
+            SortByShader();
         }
 
         public bool ShouldUpdatePhysics = false;
@@ -172,7 +138,7 @@ namespace VDGTech
                 Mesh3d mesh = renderable as Mesh3d;
                 if(mesh.GetCollisionShape() != null)
                 {
-                    PhysicalWorld.Remove(CollisionObjects[renderable]);
+                    PhysicalWorld.RemoveCollisionObject(CollisionObjects[renderable]);
                 }
             }
         }

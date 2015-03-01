@@ -121,9 +121,15 @@ namespace VDGTech
             long time = Stopwatch.GetTimestamp();
             while(true)
             {
-                var now = Stopwatch.GetTimestamp();
-                World.Root.UpdatePhysics((now - time) / (float)Stopwatch.Frequency);
-                time = now;
+                try
+                {
+                    var now = Stopwatch.GetTimestamp();
+                    World.Root.UpdatePhysics((now - time) / (float)Stopwatch.Frequency);
+                    time = now;
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -180,9 +186,20 @@ namespace VDGTech
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             PostProcessFramebuffer.UseTexture(0);
-            PostProcessingMesh.Material.GetShaderProgram().Use();
-            PostProcessingMesh.Material.GetShaderProgram().SetUniform("CameraCurrentDepth", Camera.Current.CurrentDepthFocus);
-            PostProcessingMesh.Material.GetShaderProgram().SetUniform("LensBlurAmount", Camera.Current.LensBlurAmount);
+            var ppProgram = PostProcessingMesh.Material.GetShaderProgram();
+            ppProgram.Use();
+            if(Camera.Current != null)
+            {
+                ppProgram.SetUniform("CameraCurrentDepth", Camera.Current.CurrentDepthFocus);
+                ppProgram.SetUniform("LensBlurAmount", Camera.Current.LensBlurAmount);
+            }
+            var linesStarts = World.Root.LinesPool.GetStartsVectors();
+            var linesEnds = World.Root.LinesPool.GetEndsVectors();
+            var linesColors = World.Root.LinesPool.GetColors();
+            ppProgram.SetUniform("Lines2dCount", linesStarts.Length);
+            ppProgram.SetUniformArray("Lines2dStarts", linesStarts);
+            ppProgram.SetUniformArray("Lines2dEnds", linesEnds);
+            ppProgram.SetUniformArray("Lines2dColors", linesColors);
             //LightPool.UseTextures(2);
             PostProcessingMesh.Draw();
 

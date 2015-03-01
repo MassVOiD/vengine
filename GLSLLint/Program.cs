@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VDGTech;
 using OpenTK.Graphics.OpenGL4;
+using System.Text.RegularExpressions;
 
 namespace GLSLLint
 {
@@ -60,8 +61,8 @@ namespace GLSLLint
             string src = ShaderPreparser.Preparse(source);
             GL.ShaderSource(shader, src);
             int i = 0;
-            string split = String.Join("\r\n", src.Split('\n').Select(a => (i++).ToString() + ": " + a).ToArray());
-            Console.WriteLine(split);
+            //string split = String.Join("\r\n", src.Split('\n').Select(a => (i++).ToString() + ": " + a).ToArray());
+            //Console.WriteLine(split);
 
             GL.CompileShader(shader);
 
@@ -71,7 +72,20 @@ namespace GLSLLint
             if (status_code != 1)
             {
                 Console.WriteLine("Compilation FAILED");
-                Console.WriteLine(compilationResult);
+                Console.WriteLine(compilationResult.Trim());
+                string[] errors = compilationResult.Split('\n');
+                var codes = src.Split('\n');
+                foreach(var line in errors)
+                {
+                    if(line.StartsWith("ERROR")){
+                        //ERROR: 0:169: error(#143) Undeclared identifier: distance1
+                        Match match = Regex.Match(line, @"ERROR: [0-9]+\:([0-9]+)\:");
+                        if(match.Success)
+                        {
+                            Console.WriteLine("in line: " + codes[int.Parse(match.Groups[1].Value) - 1].Trim());
+                        }
+                    }
+                }
             }
             else Console.WriteLine("OK");
             window.Close();

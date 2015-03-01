@@ -11,14 +11,14 @@ namespace VDGTech
     {
         public class LinkInfo
         {
-            public Mesh3d Parent, Child;
+            public ITransformable Parent, Child;
             public Vector3 Offset;
             public Quaternion Rotation;
         }
 
         static List<LinkInfo> Links = new List<LinkInfo>();
 
-        public static LinkInfo Link(Mesh3d parent, Mesh3d child, Vector3 offset, Quaternion Rotation)
+        public static LinkInfo Link(ITransformable parent, ITransformable child, Vector3 offset, Quaternion Rotation)
         {
             var link = new LinkInfo(){
                 Parent = parent,
@@ -39,8 +39,8 @@ namespace VDGTech
         {
             foreach(var link in Links)
             {
-                link.Child.SetPosition(link.Parent.GetPosition() + link.Offset);
-                link.Child.SetOrientation(Quaternion.Multiply(link.Parent.GetOrientation(), link.Rotation));
+                link.Child.GetTransformationManager().SetPosition(link.Parent.GetTransformationManager().GetPosition() + link.Offset);
+                link.Child.GetTransformationManager().SetOrientation(Quaternion.Multiply(link.Parent.GetTransformationManager().GetOrientation(), link.Rotation));
             }
         }
     }

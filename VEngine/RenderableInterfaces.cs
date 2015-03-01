@@ -1,5 +1,5 @@
 ﻿using OpenTK;
-using BEPUphysics.Entities;
+using BulletSharp;
 
 
 namespace VDGTech
@@ -8,6 +8,10 @@ namespace VDGTech
     {
         void Draw();
     }
+    public interface ITransformable
+    {
+        TransformationManager GetTransformationManager();
+    }
     public interface ILight
     {
         void Map();
@@ -15,12 +19,13 @@ namespace VDGTech
         Matrix4 GetPMatrix();
         Matrix4 GetVMatrix();
         Vector3 GetPosition();
+        Vector4 GetColor();
         float GetFarPlane();
     }
     public interface IPhysical
     {
-        Entity GetCollisionShape();
-        Entity GetRigidBody();
+        CollisionShape GetCollisionShape();
+        RigidBody GetRigidBody();
     }
     public interface IHasMass
     {

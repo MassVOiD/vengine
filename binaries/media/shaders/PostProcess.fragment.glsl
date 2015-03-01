@@ -11,6 +11,13 @@ uniform float CameraCurrentDepth;
 
 out vec4 outColor;
 
+const int MAX_LINES_2D = 256;
+
+uniform int Lines2dCount;
+uniform vec3 Lines2dStarts[MAX_LINES_2D];
+uniform vec3 Lines2dEnds[MAX_LINES_2D];
+uniform vec3 Lines2dColors[MAX_LINES_2D];
+
 uniform vec2 resolution;
 
 
@@ -126,26 +133,39 @@ vec3 lensblur(float amount, float max_radius, float samples){
     } 
 	return finalColor/weight;	
 }
+/*
+vec3 line(vec2 start, vec2 end, vec3 color){
+	float inter1 = (start.x - position.x) / (start.x - end.x);
+	float inter2 = (start.y - position.y) / (start.y - end.y);
+	vec2 ppos = mix(start, end, max(inter1, inter2));
+	float anglediff = 1.0;
+	if(distance(ppos, position) < 0.01) anglediff = 0.0;
+	if(position.x < min(start.x, end.x)) anglediff = 1.0;
+	if(position.y < min(start.y, end.y)) anglediff = 1.0;
+	if(position.x > max(start.x, end.x)) anglediff = 1.0;
+	if(position.y > max(start.y, end.y)) anglediff = 1.0;
+	return color * (clamp(1.0 - anglediff, 0.0, 1.0));
+}*/
 
 void main()
 {
 
 	vec3 color1 = texture(texColor, UV).rgb;
 	float depth = texture(texDepth, UV).r;
-	
+	/*
 	//FXAA
 	float edge = getNearDiff(depth);
 	if(edge > 0.002)color1 = blur(edge * 0.1);
-	//color1 = vec3(edge);
+	//color1 = vec3(edge);*/
 	if(LensBlurAmount > 0.001){
 		float focus = CameraCurrentDepth;
 		//float adepth = getAveragedDepth();
-		float avdepth = clamp(pow(abs(depth - focus), 1.5) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);
-		color1 = lensblur(avdepth, 2.1, 8.0);
+		float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);
+		color1 = lensblur(avdepth, 0.01, 8.0);
 	
 	}
 	
-	color1 -= vec3(getSSAOAmount(depth));
+	//color1 -= vec3(getSSAOAmount(depth));
 	
 	//hdr but disabled
 	/*
@@ -168,15 +188,15 @@ void main()
 		if(clipspace.z < 0.0) continue;
 		
 		vec4 clipspace2 = (LightsPs[i] * LightsVs[i]) * vec4(CameraPosition, 1.0);
-		if(clipspace2.z < 0.0) continue;
+		//if(clipspace2.z < 0.0) continue;
 		vec2 sspace = ((clipspace2.xyz / clipspace2.w).xy + 1.0) / 2.0;
 		float dist = distance(CameraPosition, LightsPos[i]);
 		dist = log(LogEnchacer*dist + 1.0) / log(LogEnchacer*LightsFarPlane[i] + 1.0);
 		float percent = lookupDepthFromLight(i, sspace);
 		dist = 1.0f - (dist - percent);
 		if(dist > 1) {
-			color1 += ball(vec3(1),1.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y);
-			color1 += ball(vec3(1),250.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y) * 0.1f;
+			color1 += ball(vec3(LightsColors[i]*6.0),0.9/ distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y);
+			color1 += ball(vec3(LightsColors[i]*6.0),20.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y) * 0.1f;
 		} else {
 			//color1 += ball(vec3(dist),3.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y);
 			//color1 += ball(vec3(dist),250.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y) * 0.1f;

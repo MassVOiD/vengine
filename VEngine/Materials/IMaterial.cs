@@ -4,6 +4,6 @@
     {
         ShaderProgram GetShaderProgram();
 
-        void Use();
+        bool Use();
     }
 }

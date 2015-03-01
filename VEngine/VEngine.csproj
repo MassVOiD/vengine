@@ -36,7 +36,7 @@
     <OutputPath>..\binaries\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Optimize>true</Optimize>
@@ -52,13 +52,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BEPUphysics, Version=1.4.0.0, Culture=neutral, PublicKeyToken=31f6a8732a21de19, processorArchitecture=AMD64">
+    <Reference Include="BulletSharp, Version=2.83.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\bepuphysics\BEPUphysics\bin\x64\Release\BEPUphysics.dll</HintPath>
-    </Reference>
-    <Reference Include="BEPUutilities, Version=1.4.0.0, Culture=neutral, PublicKeyToken=31f6a8732a21de19, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>G:\bepuphysics\BEPUphysics\bin\x64\Release\BEPUutilities.dll</HintPath>
+      <HintPath>..\Dependencies\BulletSharp.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -81,13 +77,16 @@
     </Content>
     <Compile Include="ComputeShader.cs" />
     <Compile Include="Debugger.cs" />
-    <Compile Include="ProjectionLight.cs" />
+    <Compile Include="Lights\PointLight.cs" />
+    <Compile Include="Lights\ProjectionLight.cs" />
     <Compile Include="Framebuffer.cs" />
     <Compile Include="Generators\MeshGenerator.cs" />
     <Compile Include="Generators\Object3dGenerator.cs" />
     <Compile Include="GLThread.cs" />
+    <Compile Include="Line2d.cs" />
+    <Compile Include="Line2dPool.cs" />
     <Compile Include="Materials\IMaterial.cs" />
-    <Compile Include="LightPool.cs" />
+    <Compile Include="Lights\LightPool.cs" />
     <Compile Include="MathExtensions.cs" />
     <Compile Include="InstancedMesh3d.cs" />
     <Compile Include="MeshLinker.cs" />
@@ -107,6 +106,7 @@
     <Compile Include="Materials\SingleTextureMaterial.cs" />
     <Compile Include="ShaderStorageBuffer.cs" />
     <Compile Include="BufferTexture.cs" />
+    <Compile Include="TransformationManager.cs" />
     <Compile Include="UI\Rectangle.cs" />
     <Compile Include="UI\Text.cs" />
     <Compile Include="UI\UIRenderer.cs" />

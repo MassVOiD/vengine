@@ -159,6 +159,23 @@ namespace VDGTech
                 GLThread.CheckErrors();
             }
         }
+        public void SetUniformArray(string name, Vector4[] data)
+        {
+            int location = GetUniformLocation(name);
+            List<float> floats = new List<float>();
+            foreach(var v in data)
+            {
+                floats.Add(v.X);
+                floats.Add(v.Y);
+                floats.Add(v.Z);
+                floats.Add(v.W);
+            }
+            if(location >= 0)
+            {
+                GL.Uniform4(location, data.Length, floats.ToArray());
+                GLThread.CheckErrors();
+            }
+        }
         public void SetUniformArray(string name, float[] data)
         {
             int location = GetUniformLocation(name);
@@ -210,18 +227,19 @@ namespace VDGTech
             if (location >= 0) GL.Uniform4(location, data);
         }
 
-        public void Use()
+        public bool Use()
         {
             if(!Lock)
             {
                 if(Current == this)
-                    return;
+                    return false;
                 if(!Compiled)
                     Compile();
-                if(!Lock)
-                    GL.UseProgram(Handle);
+                GL.UseProgram(Handle);
                 Current = this;
+                return true;
             }
+            return false;
         }
 
         private int CompileSingleShader(ShaderType type, string source)

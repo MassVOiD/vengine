@@ -1,13 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using BEPUphysics;
-using BEPUphysics.BroadPhaseEntries;
-using BEPUphysics.BroadPhaseEntries.MobileCollidables;
-using BEPUphysics.Character;
-using BEPUphysics.CollisionRuleManagement;
-using BEPUphysics.Entities;
-using BEPUphysics.Entities.Prefabs;
 using OpenTK;
 
 namespace VDGTech
@@ -62,9 +55,10 @@ namespace VDGTech
             shader.SetUniformArray("LightsVs", LightPool.GetVMatrices());
             shader.SetUniformArray("LightsPos", LightPool.GetPositions());
             shader.SetUniformArray("LightsFarPlane", LightPool.GetFarPlanes());
+            shader.SetUniformArray("LightsColors", LightPool.GetColors());
             shader.SetUniform("LightsCount", LightPool.GetPositions().Length);
 
-            shader.SetUniform("CameraPosition", Camera.Current.Position);
+            shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
             shader.SetUniform("FarPlane", Camera.Current.Far);
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());

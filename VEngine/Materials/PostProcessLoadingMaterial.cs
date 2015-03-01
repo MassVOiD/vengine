@@ -14,10 +14,11 @@
             return Program;
         }
 
-        public void Use()
+        public bool Use()
         {
-            Program.Use();
+            bool res = Program.Use();
             Program.SetUniform("resolution", GLThread.Resolution);
+            return res;
         }
     }
 }

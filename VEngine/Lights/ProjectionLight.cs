@@ -12,11 +12,12 @@ using VDGTech.Particles;
 
 namespace VDGTech
 {
-    public class ProjectionLight : ILight
+    public class ProjectionLight : ILight, ITransformable
     {
         public Camera camera;
         public Framebuffer FBO;
         ManualShaderMaterial Shader;
+        public Color LightColor = Color.White;
         float FarPlane;
         Size ViewPort;
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
@@ -32,6 +33,12 @@ namespace VDGTech
         public void BuildOrthographicProjection(float width, float height, float near, float far)
         {
             camera.ProjectionMatrix = Matrix4.CreateOrthographic(width, height, near, far);
+        }
+
+
+        public TransformationManager GetTransformationManager()
+        {
+            return camera.Transformation;
         }
 
         public void SetProjection(Matrix4 matrix)
@@ -50,7 +57,11 @@ namespace VDGTech
 
         public Vector3 GetPosition()
         {
-            return camera.Position;
+            return camera.Transformation.GetPosition();
+        }
+        public Vector4 GetColor()
+        {
+            return new Vector4(LightColor.R / 255.0f, LightColor.G / 255.0f, LightColor.B / 255.0f, LightColor.A / 255.0f);
         }
         public float GetFarPlane()
         {
@@ -59,26 +70,31 @@ namespace VDGTech
 
         public void SetPosition(Vector3 position, Vector3 lookat)
         {
-            camera.Position = position;
+            camera.Transformation.SetPosition(position);
             camera.LookAt(lookat);
         }
         public void SetPosition(Vector3 position, Quaternion orientation)
         {
-            camera.Position = position;
-            camera.Orientation = orientation;
+            camera.Transformation.SetPosition(position);
+            camera.Transformation.SetOrientation(orientation);
             camera.Update();
         }
 
         public void Map()
         {
             FBO.Use();
+            if(camera.Transformation.BeenModified)
+            {
+                camera.Update();
+                camera.Transformation.BeenModified = false;
+            }
             Camera last = Camera.Current;
             Camera.Current = camera;
             GL.Viewport(0, 0, ViewPort.Width, ViewPort.Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Shader.Use();
             ShaderProgram.Lock = true;
-            Shader.GetShaderProgram().SetUniform("LightPosition", camera.Position);
+            Shader.GetShaderProgram().SetUniform("LightPosition", camera.Transformation.GetPosition());
             Shader.GetShaderProgram().SetUniform("FarPlane", camera.Far);
             Shader.GetShaderProgram().SetUniform("LogEnchacer", 0.01f);
             World.Root.Draw();

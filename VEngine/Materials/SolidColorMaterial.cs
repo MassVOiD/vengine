@@ -5,12 +5,12 @@ namespace VDGTech
 {
     public class SolidColorMaterial : IMaterial
     {
-        protected ShaderProgram Program;
+        protected static ShaderProgram Program;
         private Color4 Colour;
 
         public SolidColorMaterial(Color color)
         {
-            Program = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("SolidColorMaterial.fragment.glsl"));
+            if(Program == null) Program = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("SolidColorMaterial.fragment.glsl"));
             Colour = color;
         }
 
@@ -19,10 +19,11 @@ namespace VDGTech
             return Program;
         }
 
-        public void Use()
+        public bool Use()
         {
-            Program.Use();
+            bool res = Program.Use();
             if(!ShaderProgram.Lock) Program.SetUniform("input_Color", Colour);
+            return res;
         }
     }
 }

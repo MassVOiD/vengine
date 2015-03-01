@@ -14,14 +14,14 @@ namespace ShadowsTester
             List<byte> buffer = new List<byte>();
             foreach(var mesh in meshes)
             {
-                buffer.AddRange(BitConverter.GetBytes(mesh.GetPosition().X));
-                buffer.AddRange(BitConverter.GetBytes(mesh.GetPosition().Y));
-                buffer.AddRange(BitConverter.GetBytes(mesh.GetPosition().Z));
+                buffer.AddRange(BitConverter.GetBytes(mesh.Transformation.GetPosition().X));
+                buffer.AddRange(BitConverter.GetBytes(mesh.Transformation.GetPosition().Y));
+                buffer.AddRange(BitConverter.GetBytes(mesh.Transformation.GetPosition().Z));
 
-                buffer.AddRange(BitConverter.GetBytes(mesh.GetOrientation().X));
-                buffer.AddRange(BitConverter.GetBytes(mesh.GetOrientation().Y));
-                buffer.AddRange(BitConverter.GetBytes(mesh.GetOrientation().Z));
-                buffer.AddRange(BitConverter.GetBytes(mesh.GetOrientation().W));
+                buffer.AddRange(BitConverter.GetBytes(mesh.Transformation.GetOrientation().X));
+                buffer.AddRange(BitConverter.GetBytes(mesh.Transformation.GetOrientation().Y));
+                buffer.AddRange(BitConverter.GetBytes(mesh.Transformation.GetOrientation().Z));
+                buffer.AddRange(BitConverter.GetBytes(mesh.Transformation.GetOrientation().W));
             }
             System.IO.File.WriteAllBytes(file, buffer.ToArray());
         }

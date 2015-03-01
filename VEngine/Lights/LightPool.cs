@@ -50,6 +50,10 @@ namespace VDGTech
         {
             return Lights.Select<ILight, float>(a => a.GetFarPlane()).ToArray();
         }
+        public static Vector4[] GetColors()
+        {
+            return Lights.Select<ILight, Vector4>(a => a.GetColor()).ToArray();
+        }
 
         public static void UseTextures(int index)
         {

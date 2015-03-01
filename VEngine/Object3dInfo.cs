@@ -6,21 +6,20 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.IO.Compression;
 using System.Linq;
+using System.Drawing;
 //using BEPUutilities;
-using BEPUphysics.BroadPhaseEntries;
-using BEPUphysics.Entities.Prefabs;
-using BEPUphysics.Entities;
-using BEPUphysics.CollisionShapes.ConvexShapes;
+using BulletSharp;
 
 namespace VDGTech
 {
     public class Object3dInfo
     {
-        private List<uint> Indices;
-        private List<float> VBO;
+        public List<uint> Indices;
+        public List<float> VBO;
         private int VertexBuffer, IndexBuffer, VAOHandle;
         private bool AreBuffersGenerated;
         public bool WireFrameRendering = false;
+        public string MaterialName = "";
 
         public Object3dInfo(List<float> vbo, List<uint> indices)
         {
@@ -84,7 +83,7 @@ namespace VDGTech
 
             AreBuffersGenerated = true;
         }
-        
+
         public static Object3dInfo[] LoadFromObj(string infile)
         {
             string[] lines = File.ReadAllLines(infile);
@@ -102,7 +101,7 @@ namespace VDGTech
         {
             public List<float> VBO;
             public List<uint> Indices;
-            public string Name;
+            public string Name, MaterialName;
         }
 
         public static void CompressAndSave(string infile, string outdir)
@@ -213,7 +212,7 @@ namespace VDGTech
                     indices.Add(BitConverter.ToUInt32(buf, 8));
                     icount -= 3;
                 }
-                
+
                 return new Object3dInfo(vertices, indices);
             }
         }
@@ -231,6 +230,7 @@ namespace VDGTech
             uint vcount = 0;
 
             ObjFileData current = new ObjFileData();
+            string currentMaterial = "";
 
             Match match = Match.Empty;
             foreach(string line in lines)
@@ -240,7 +240,11 @@ namespace VDGTech
                     match = Regex.Match(line, @"o (.+)");
                     current.VBO = out_vertex_buffer;
                     current.Indices = index_buffer;
-                    objects.Add(current);
+                    if(current.VBO.Count >= 8)
+                    {
+                        current.MaterialName = currentMaterial;
+                        objects.Add(current);
+                    }
                     current = new ObjFileData();
                     current.Name = match.Groups[1].Value;
                     vcount = 0;
@@ -249,6 +253,12 @@ namespace VDGTech
                     //temp_uvs = new List<Vector2>();
                     out_vertex_buffer = new List<float>();
                     index_buffer = new List<uint>();
+                }
+                if(line.StartsWith("usemtl"))
+                {
+                    match = Regex.Match(line, @"usemtl (.+)");
+                    currentMaterial = match.Groups[1].Value;
+                   
                 }
                 if(line.StartsWith("vt"))
                 {
@@ -303,6 +313,7 @@ namespace VDGTech
             }
             current.VBO = out_vertex_buffer;
             current.Indices = index_buffer;
+            current.MaterialName = currentMaterial;
             objects.Add(current);
             current = new ObjFileData();
             current.Name = match.Groups[1].Value;
@@ -386,23 +397,16 @@ namespace VDGTech
         }
 
         static Object3dInfo Current = null;
-        private StaticMesh CachedBvhTriangleMeshShape;
 
-        public StaticMesh GetAccurateCollisionShape(Vector3 position, float scale = 1.0f)
+        private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
+        public BvhTriangleMeshShape GetAccurateCollisionShape(float scale = 1.0f)
         {
-
             //if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
-            List<BEPUutilities.Vector3> vectors = new List<BEPUutilities.Vector3>();
+            List<Vector3> vectors = new List<Vector3>();
             for(int i = 0; i < VBO.Count; i += 8)
-                vectors.Add(new BEPUutilities.Vector3(VBO[i] * scale, VBO[i + 1] * scale, VBO[i + 2] * scale) + position.ToBepu());
-
-            var staticMesh = new StaticMesh(
-                vectors.ToArray(),
-                Indices.Select<uint, int>(a => (int)a).ToArray(),
-                new BEPUutilities.AffineTransform(BEPUutilities.Matrix3x3.CreateFromAxisAngle(BEPUutilities.Vector3.Up, 0), Vector3.Zero));
-            staticMesh.Sidedness = BEPUutilities.TriangleSidedness.DoubleSided;
-
-            CachedBvhTriangleMeshShape = staticMesh;
+                vectors.Add(new Vector3(VBO[i] * scale, VBO[i + 1] * scale, VBO[i + 2] * scale));
+            var smesh = new TriangleIndexVertexArray(Indices.Select<uint, int>(a => (int)a).ToArray(), vectors.ToArray());
+            CachedBvhTriangleMeshShape = new BvhTriangleMeshShape(smesh, false);
             return CachedBvhTriangleMeshShape;
         }
 
@@ -423,23 +427,94 @@ namespace VDGTech
                 VBO[i + 2] /= maxval;
             }
         }
+        public void FlipNormals()
+        {
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                VBO[i + 5] *= -1;
+                VBO[i + 6] *= -1;
+                VBO[i + 7] *= -1;
+            }
+        }
+        public void FlipFaces()
+        {
+            for(int i = 0; i < Indices.Count; i += 3)
+            {
+                uint tmp = Indices[i + 2];
+                Indices[i + 2] = Indices[i];
+                Indices[i] = tmp;
+            }
+        }
+
+
+        public void OriginToCenter()
+        {
+            float averagex = 0, averagey = 0, averagez = 0;
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                averagex += vertex.X;
+                averagey += vertex.Y;
+                averagez += vertex.Z;
+            }
+            averagex /= VBO.Count / 8.0f;
+            averagey /= VBO.Count / 8.0f;
+            averagez /= VBO.Count / 8.0f;
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                VBO[i] -= averagex;
+                VBO[i + 1] -= averagey;
+                VBO[i + 2] -= averagez;
+            }
+        }
+        public Vector3 GetAverageTranslationFromZero()
+        {
+            float averagex = 0, averagey = 0, averagez = 0;
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                averagex += vertex.X;
+                averagey += vertex.Y;
+                averagez += vertex.Z;
+            }
+            averagex /= VBO.Count / 8.0f;
+            averagey /= VBO.Count / 8.0f;
+            averagez /= VBO.Count / 8.0f;
+            return new Vector3(averagex, averagey, averagez);
+        }
+        public Vector3 GetAxisAlignedBox()
+        {
+            float maxx = 0, maxy = 0, maxz = 0;
+            float minx = 999999, miny = 999999, minz = 999999;
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                maxx = maxx < vertex.X ? vertex.X : maxx;
+                maxy = maxy < vertex.Y ? vertex.Y : maxy;
+                maxz = maxz < vertex.Z ? vertex.Z : maxz;
+                minx = minx > vertex.X ? vertex.X : minx;
+                miny = miny > vertex.Y ? vertex.Y : miny;
+                minz = minz > vertex.Z ? vertex.Z : minz;
+            }
+            return new Vector3(maxx - minx, maxy - miny, maxz - minz) / 2.0f;
+        }
 
         public Object3dInfo Copy()
         {
             return new Object3dInfo(VBO, Indices);
         }
 
-        public Entity GetConvexHull(Vector3 position, float scale = 1.0f, float mass = 1.0f)
+        public ConvexHullShape GetConvexHull(Vector3 position, float scale = 1.0f, float mass = 1.0f)
         {
 
             //if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
-            List<BEPUutilities.Vector3> vectors = new List<BEPUutilities.Vector3>();
-            for(int i = 0; i < VBO.Count; i += 8)
-                vectors.Add(new BEPUutilities.Vector3(VBO[i] * scale, VBO[i + 1] * scale, VBO[i + 2] * scale) + position.ToBepu());
-
-            var convex = new MobileMesh(vectors.ToArray(), Indices.Select<uint, int>(a => (int)a).ToArray(), 
-                new BEPUutilities.AffineTransform(BEPUutilities.Matrix3x3.CreateFromAxisAngle(BEPUutilities.Vector3.Up, 0), Vector3.Zero), BEPUphysics.CollisionShapes.MobileMeshSolidity.DoubleSided, mass);
-
+            List<Vector3> vectors = new List<Vector3>();
+            for(int i = 0; i < Indices.Count; i ++)
+            {
+                int vboIndex = i * 8;
+                vectors.Add(new Vector3(VBO[vboIndex] * scale, VBO[vboIndex + 1] * scale, VBO[vboIndex + 2] * scale) + position);
+            }
+            var convex = new ConvexHullShape(vectors.ToArray());
             return convex;
         }
 
@@ -459,7 +534,7 @@ namespace VDGTech
             DrawPrepare();
             GL.DrawElements(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, Indices.Count,
                     DrawElementsType.UnsignedInt, IntPtr.Zero);
-            GLThread.CheckErrors();
+            //GLThread.CheckErrors();
 
         }
         public void DrawInstanced(int count)
@@ -467,7 +542,146 @@ namespace VDGTech
             DrawPrepare();
             GL.DrawElementsInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, Indices.Count,
                     DrawElementsType.UnsignedInt, IntPtr.Zero, count);
-            GLThread.CheckErrors();
+            //GLThread.CheckErrors();
+        }
+
+        public class MaterialInfo
+        {
+            public Color DiffuseColor, SpecularColor, AmbientColor;
+            public float Transparency, SpecularStrength;
+            public string TextureName;
+            public MaterialInfo()
+            {
+                DiffuseColor = Color.White;
+                SpecularColor = Color.White;
+                AmbientColor = Color.White;
+                Transparency = 1.0f;
+                SpecularStrength = 1.0f;
+                TextureName = "";
+            }
+        }
+
+        public static Dictionary<string, MaterialInfo> LoadMaterialsFromMtl(string filename)
+        {
+            Dictionary<string, MaterialInfo> materials = new Dictionary<string, MaterialInfo>();
+            MaterialInfo currentMaterial = new MaterialInfo();
+            string currentName = "";
+            string[] lines = File.ReadAllLines(filename);
+            Match match;
+            foreach(string line in lines)
+            {
+                if(line.StartsWith("newmtl"))
+                {
+                    match = Regex.Match(line, @"newmtl (.+)");
+                    if(currentName != "")
+                    {
+                        materials.Add(currentName, currentMaterial);
+                        currentMaterial = new MaterialInfo();
+                    }
+                    currentName = match.Groups[1].Value;
+                }
+                if(line.StartsWith("Ns"))
+                {
+                    match = Regex.Match(line, @"Ns ([0-9.-]+)");
+                    float val = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    currentMaterial.SpecularStrength = val;
+                }
+                if(line.StartsWith("d"))
+                {
+                    match = Regex.Match(line, @"d ([0-9.-]+)");
+                    float val = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    currentMaterial.Transparency = val;
+                }
+                if(line.StartsWith("Ka"))
+                {
+                    match = Regex.Match(line, @"Ka ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
+                    int r = (int)(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    int g = (int)(float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    int b = (int)(float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    if(r > 255)
+                        r = 255;
+                    if(g > 255)
+                        g = 255;
+                    if(b > 255)
+                        b = 255;
+                    currentMaterial.AmbientColor = Color.FromArgb(r, g, b);
+                }
+                if(line.StartsWith("Kd"))
+                {
+                    match = Regex.Match(line, @"Kd ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
+                    int r = (int)(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    int g = (int)(float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    int b = (int)(float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    if(r > 255)
+                        r = 255;
+                    if(g > 255)
+                        g = 255;
+                    if(b > 255)
+                        b = 255;
+                    currentMaterial.DiffuseColor = Color.FromArgb(r, g, b);
+                }
+                if(line.StartsWith("Ks"))
+                {
+                    match = Regex.Match(line, @"Ks ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
+                    int r = (int)(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    int g = (int)(float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    int b = (int)(float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
+                    if(r > 255)
+                        r = 255;
+                    if(g > 255)
+                        g = 255;
+                    if(b > 255)
+                        b = 255;
+                    currentMaterial.SpecularColor = Color.FromArgb(r, g, b);
+                }
+                if(line.StartsWith("map_Kd"))
+                {
+                    match = Regex.Match(line, @"map_Kd (.+)");
+                    currentMaterial.TextureName = match.Groups[1].Value;
+                }
+            }
+            if(currentName != "") materials.Add(currentName, currentMaterial);
+            return materials;
+        }
+
+        public static List<Mesh3d> LoadSceneFromObj(string objfile, string mtlfile, float scale = 1.0f)
+        {
+            string[] lines = File.ReadAllLines(objfile);
+            var objs = ParseOBJString(lines);
+            var mtllib = LoadMaterialsFromMtl(mtlfile);
+            List<Mesh3d> meshes = new List<Mesh3d>();
+            foreach(var obj in objs)
+            {
+                var mat = mtllib.ContainsKey(obj.MaterialName) ? mtllib[obj.MaterialName] : null;
+                IMaterial material = null;
+                if(mat != null && mat.TextureName.Length > 0)
+                {
+                    material = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName));
+                }
+                else if(mat != null)
+                {
+                    material = new SolidColorMaterial(mat.DiffuseColor);
+                }
+                else 
+                {
+                    material = new SolidColorMaterial(Color.Pink);
+                }
+
+                for(int i = 0; i < obj.VBO.Count; i += 8)
+                {
+                    obj.VBO[i] *= scale;
+                    obj.VBO[i + 1] *= scale;
+                    obj.VBO[i + 2] *= scale;
+                }
+                var o3di = new Object3dInfo(obj.VBO, obj.Indices);
+                var trans = o3di.GetAverageTranslationFromZero();
+                o3di.OriginToCenter();
+                Mesh3d mesh = new Mesh3d(o3di, material);
+                mesh.Transformation.Translate(trans);
+                //mesh.SetCollisionShape(o3di.GetConvexHull(mesh.GetPosition(), 1.0f, 1.0f));
+                meshes.Add(mesh);
+            }
+            return meshes;
         }
     }
 }

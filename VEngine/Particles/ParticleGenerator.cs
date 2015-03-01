@@ -70,7 +70,7 @@ namespace VDGTech.Particles
                 Program.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
                 Program.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
 
-                Program.SetUniform("CameraPosition", Camera.Current.Position);
+                Program.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
                 Program.SetUniform("FarPlane", Camera.Current.Far);
                 Program.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
                 Program.SetUniform("Resolution", GLThread.Resolution);
@@ -82,7 +82,7 @@ namespace VDGTech.Particles
                 Program.SetUniform("Gravity", Gravity);
                 Program.SetUniform("Bounciness", Bounciness);
                 Program.SetUniform("Ground", Ground);
-                Program.SetUniform("Orientation", Matrix4.CreateFromQuaternion(Quaternion.Multiply(Camera.Current.Orientation, Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.PiOver2))));
+                Program.SetUniform("Orientation", Matrix4.CreateFromQuaternion(Quaternion.Multiply(Camera.Current.Transformation.GetOrientation(), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.PiOver2))));
                 Program.SetUniform("OrientationOriginal", Matrix4.CreateFromQuaternion(Orientation));
                 Program.SetUniform("PlaneSize", PlaneSize);
                 Program.SetUniform("BoxSize", BoxSize);
@@ -104,7 +104,7 @@ namespace VDGTech.Particles
             DepthWriter.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             DepthWriter.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
 
-            DepthWriter.SetUniform("CameraPosition", Camera.Current.Position);
+            DepthWriter.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
             DepthWriter.SetUniform("FarPlane", Camera.Current.Far);
             DepthWriter.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             //DepthWriter.SetUniform("Resolution", GLThread.Resolution);
@@ -116,7 +116,7 @@ namespace VDGTech.Particles
             DepthWriter.SetUniform("Gravity", Gravity);
             //DepthWriter.SetUniform("Bounciness", Bounciness);
             //DepthWriter.SetUniform("Ground", Ground);
-            DepthWriter.SetUniform("Orientation", Matrix4.CreateFromQuaternion(Quaternion.Multiply(Camera.Current.Orientation, Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.PiOver2))));
+            DepthWriter.SetUniform("Orientation", Matrix4.CreateFromQuaternion(Quaternion.Multiply(Camera.Current.Transformation.GetOrientation(), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.PiOver2))));
             DepthWriter.SetUniform("OrientationOriginal", Matrix4.CreateFromQuaternion(Orientation));
             DepthWriter.SetUniform("PlaneSize", PlaneSize);
             DepthWriter.SetUniform("BoxSize", BoxSize);

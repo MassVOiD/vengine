@@ -12,9 +12,9 @@ namespace VDGTech
             return Program;
         }
 
-        public void Use()
+        public bool Use()
         {
-            Program.Use();
+            return Program.Use();
         }
     }
 }

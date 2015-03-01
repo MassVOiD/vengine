@@ -11,6 +11,7 @@ uniform mat4 LightsPs[MAX_LIGHTS];
 uniform mat4 LightsVs[MAX_LIGHTS];
 uniform vec3 LightsPos[MAX_LIGHTS];
 uniform float LightsFarPlane[MAX_LIGHTS];
+uniform vec4 LightsColors[MAX_LIGHTS];
 
 
 const int MAX_INSTANCES = 1024;

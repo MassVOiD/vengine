@@ -103,6 +103,12 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	return distance1;
 }
 
+float getBlurAmount(vec2 uv, uint i){
+	float distance1 = lookupDepthFromLight(i, uv + vec2(0.004, 0.004)) + lookupDepthFromLight(i, uv + vec2(0.004, -0.004)) 
+	+ lookupDepthFromLight(i, uv + vec2(-0.004, 0.004)) + lookupDepthFromLight(i, uv + vec2(-0.004, -0.004));
+	return abs(distance1/4.0 - lookupDepthFromLight(i, uv) );
+}
+const float gaussKernel[14] = float[14](-0.028, -0.024,-0.020,-0.016,-0.012,-0.008,-0.004,.004,.008,.012,0.016,0.020,0.024,0.028); 
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 1.0;
 	float distance2 = distance(pos, LightsPos[i]);
@@ -112,26 +118,34 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	vec2 offsetDistance = vec2(0.0);
 	float badass_depth = log(LogEnchacer*distance2 + 1.0) / log(LogEnchacer*LightsFarPlane[i] + 1.0);
 	//float centerDiff = abs(badass_depth - lookupDepthFromLight(i, uv)) * 10000.0;
-
-	for(int g = 0; g < 14; g++){ 
-		vec2 gauss = vec2(0, getGaussianKernel(g));
-		offsetDistance = gauss * (distance2 / LightsFarPlane[i] /5.0);
-		fakeUV = uv + offsetDistance;
-		distance1 = lookupDepthFromLight(i, fakeUV);
+	
+	//float blurAmount = getBlurAmount(uv, i);
+	float blurAmount = 1;
+	if(blurAmount > 0.0001){
+		//float gaussKernel[14] = float[14](-0.028, -0.024,-0.020,-0.016,-0.012,-0.008,-0.004,.004,.008,.012,0.016,0.020,0.024,0.028); 
+		
+		
+		for(int g = 0; g < 14; g++){ 
+			vec2 gauss = vec2(0, gaussKernel[g]);
+			offsetDistance = gauss * (distance2 / LightsFarPlane[i] /15.0 + 0.03f);
+			fakeUV = uv + offsetDistance;
+			distance1 = lookupDepthFromLight(i, fakeUV);
+			float diff = abs(distance1 -  badass_depth);
+			if(diff > 0.001) accum -= 1.0/28.0;
+		}
+		for(int g = 0; g < 14; g++){ 
+			vec2 gauss = vec2(gaussKernel[g], 0);
+			offsetDistance = gauss * (distance2 / LightsFarPlane[i] / 15.0 + 0.03f);
+			fakeUV = uv + offsetDistance;
+			distance1 = lookupDepthFromLight(i, fakeUV);
+			float diff = abs(distance1 -  badass_depth);
+			if(diff > 0.001) accum -= 1.0/28.0;
+		}
+	} else {
+		distance1 = lookupDepthFromLight(i, uv);
 		float diff = abs(distance1 -  badass_depth);
-		if(diff > 0.0001) accum -= 1.0/28.0;
+		if(diff > 0.001) accum -= 1.0;
 	}
-	for(int g = 0; g < 14; g++){ 
-		vec2 gauss = vec2(getGaussianKernel(g), 0);
-		offsetDistance = gauss * (distance2 / LightsFarPlane[i] / 5.0);
-		fakeUV = uv + offsetDistance;
-		distance1 = lookupDepthFromLight(i, fakeUV);
-		float diff = abs(distance1 -  badass_depth);
-		if(diff > 0.0001) accum -= 1.0/28.0;
-	}
-	//distance1 = lookupDepthFromLight(i, uv);
-	//float diff = abs(distance1 -  badass_depth);
-	//if(diff > 0.0001) accum -= 1.0;	
 	return accum;
 }
 
@@ -165,22 +179,36 @@ vec3 processLighting(vec3 color){
 	
 	float multiplier = 0.0;
 	if(DiffuseComponent < 100.0){
-		float specularComponent = 0.0;
-		float diffuseComponent = 0.0;
-		if(shadow) for(uint i = 0; i < LightsCount; i++)
-		{
-			float percent = clamp(getShadowPercent(LightScreenSpaceFromGeo[i], positionWorldSpace, i), 0.0, 1.0);
-			multiplier += (percent);
-			float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
-			specularComponent += specular(normalNew, i) * SpecularComponent * culler;
-			diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * culler;
+		vec3 specularComponent = vec3(0.0);
+		vec3 diffuseComponent = vec3(0.0);
+		if(shadow) {
+			for(uint i = 0; i < LightsCount; i++)
+			{
+				float percent = clamp(getShadowPercent(LightScreenSpaceFromGeo[i], positionWorldSpace, i), 0.0, 1.0);
+				multiplier += (percent);
+				//float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
+				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a;
+				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a;
+			} 
+		}else {
+			for(uint i = 0; i < LightsCount; i++)
+			{
+				//float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
+				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a;
+				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a;
+			}
 		}
-		if(shadow) multiplier /= lightsIlluminating;
 		specularComponent = clamp(specularComponent, 0.0, 1.0);
 		diffuseComponent = clamp(diffuseComponent, 0.0, 1.0);
 		vec3 prediffuse = color * diffuseComponent * 0.7;
-		color = (color *multiplier * diffuseComponent + (specularComponent*multiplier)).xyz;
+		if(shadow) {
+			multiplier /= lightsIlluminating; 
+			color = (color *multiplier * diffuseComponent + (specularComponent*multiplier)).xyz;
+		}else {
+			color = (color * diffuseComponent + (specularComponent)).xyz;
+		}
 		color = color + prediffuse;
+		
 		//color = vec3(diff);
 	}
 	//float diffuse = 1.0;

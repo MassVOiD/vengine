@@ -11,7 +11,7 @@ namespace VDGTech
 
         public SingleTextureMaterial(Texture tex, Texture normalMap = null)
         {
-            Program = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"),
+            if(Program == null) Program = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"),
                 Media.ReadAllText("SingleTextureMaterial.fragment.glsl"));
             Tex = tex;
             NormalMap = normalMap;
@@ -32,15 +32,16 @@ namespace VDGTech
             return Program;
         }
 
-        public void Use()
+        public bool Use()
         {
-            Program.Use();
+            bool res = Program.Use();
             Tex.Use(TextureUnit.Texture0);
             if(NormalMap != null)
             {
                 Program.SetUniform("UseNormalMap", 1);
                 NormalMap.Use(TextureUnit.Texture1);
             } else Program.SetUniform("UseNormalMap", 0);
+            return res;
         }
     }
 }

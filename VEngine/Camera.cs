@@ -1,21 +1,20 @@
-﻿using BEPUphysics;
-using OpenTK;
+﻿using OpenTK;
+using BulletSharp;
 
 namespace VDGTech
 {
-    public class Camera
+    public class Camera : ITransformable
     {
         static public Camera Current;
         public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
-        public Vector3 Position;
-        public Quaternion Orientation;
+        public TransformationManager Transformation;
         public float Pitch, Roll, Far;
         public float CurrentDepthFocus = 0.06f;
         public float LensBlurAmount = 0.0f;
 
         public Camera(Vector3 position, Vector3 lookAt, float aspectRatio, float fov, float near, float far)
         {
-            Position = position;
+            Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
             //ViewMatrix = Matrix4.LookAt(position, lookAt, new Vector3(0, 1, 0));
             Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
             Far = far;
@@ -27,7 +26,7 @@ namespace VDGTech
         }
         public Camera(Vector3 position, Vector3 lookAt, Vector2 size, float near, float far)
         {
-            Position = position;
+            Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
             Far = far;
             //ViewMatrix = Matrix4.LookAt(position, lookAt, new Vector3(0, 1, 0));
             Matrix4.CreateOrthographic(size.X, size.Y, near, far, out ProjectionMatrix);
@@ -38,26 +37,41 @@ namespace VDGTech
             Update();
         }
 
+        public TransformationManager GetTransformationManager()
+        {
+            return Transformation;
+        }
+
         public void LookAt(Vector3 location)
         {
-            RotationMatrix = Matrix4.LookAt(-Vector3.Zero, location - Position, new Vector3(0, 1, 0));
-            ViewMatrix = Matrix4.LookAt(Position, location, new Vector3(0, 1, 0));
+            RotationMatrix = Matrix4.LookAt(-Vector3.Zero, location - Transformation.GetPosition(), new Vector3(0, 1, 0));
+            ViewMatrix = Matrix4.LookAt(Transformation.GetPosition(), location, new Vector3(0, 1, 0));
         }
 
         
         public Mesh3d RayCastMesh3d()
         {
-            RayCastResult rcResult;
             var dir = GetDirection();
-            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position + (dir * 2), dir), 10000.0f, out rcResult);
-            return rcResult.HitObject != null ? rcResult.HitObject.Tag as Mesh3d : null;
+            ClosestRayResultCallback rrc = new ClosestRayResultCallback(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f);
+            World.Root.PhysicalWorld.RayTest(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f, rrc);
+            if(rrc.HasHit)
+            {
+                return rrc.CollisionObject.UserObject as Mesh3d;
+            }
+            else
+                return null;
         }
         public Vector3 RayCastPosition()
         {
-            RayCastResult rcResult;
             var dir = GetDirection();
-            World.Root.PhysicalWorld.RayCast(new BEPUutilities.Ray(Position + (dir * 2), dir), 10000.0f, out rcResult);
-            return rcResult.HitData.Location;
+            ClosestRayResultCallback rrc = new ClosestRayResultCallback(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f);
+            World.Root.PhysicalWorld.RayTest(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f, rrc);
+            if(rrc.HasHit)
+            {
+                return rrc.HitPointWorld;
+            }
+            else
+                return Vector3.Zero;
         }
 
         public void ProcessMouseMovement(int deltax, int deltay)
@@ -74,17 +88,17 @@ namespace VDGTech
 
         public void Update()
         {
-            Orientation.Invert();
-            RotationMatrix = Matrix4.CreateFromQuaternion(Orientation);
-            ViewMatrix = Matrix4.CreateTranslation(-Position) * RotationMatrix;
+            Transformation.GetOrientation().Invert();
+            RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
+            ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
         }
         public void UpdateFromRollPitch()
         {
             var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, Pitch);
             var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, Roll);
-            Orientation = Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted());
+            Transformation.SetOrientation(Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted()));
             RotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
-            ViewMatrix = Matrix4.CreateTranslation(-Position) * RotationMatrix;
+            ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
         }
         public Vector3 GetDirection()
         {
