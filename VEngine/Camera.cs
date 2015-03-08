@@ -1,17 +1,10 @@
-﻿using OpenTK;
-using BulletSharp;
+﻿using BulletSharp;
+using OpenTK;
 
 namespace VDGTech
 {
     public class Camera : ITransformable
     {
-        static public Camera Current;
-        public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
-        public TransformationManager Transformation;
-        public float Pitch, Roll, Far;
-        public float CurrentDepthFocus = 0.06f;
-        public float LensBlurAmount = 0.0f;
-
         public Camera(Vector3 position, Vector3 lookAt, float aspectRatio, float fov, float near, float far)
         {
             Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
@@ -24,6 +17,7 @@ namespace VDGTech
             Roll = 0.0f;
             Update();
         }
+
         public Camera(Vector3 position, Vector3 lookAt, Vector2 size, float near, float far)
         {
             Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
@@ -37,6 +31,24 @@ namespace VDGTech
             Update();
         }
 
+        static public Camera Current;
+        public float CurrentDepthFocus = 0.06f;
+        public float LensBlurAmount = 0.0f;
+        public float Pitch, Roll, Far;
+        public TransformationManager Transformation;
+        public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
+
+        public Vector3 GetDirection()
+        {
+            var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
+            var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
+            Vector4 direction = Vector4.UnitZ;
+            direction = Vector4.Transform(direction, rotationY);
+            direction = Vector4.Transform(direction, rotationX);
+            System.Console.WriteLine(direction.ToString());
+            return -direction.Xyz;
+        }
+
         public TransformationManager GetTransformationManager()
         {
             return Transformation;
@@ -48,30 +60,9 @@ namespace VDGTech
             ViewMatrix = Matrix4.LookAt(Transformation.GetPosition(), location, new Vector3(0, 1, 0));
         }
 
-        
-        public Mesh3d RayCastMesh3d()
+        public void ProcessKeyboardState(OpenTK.Input.KeyboardState keys)
         {
-            var dir = GetDirection();
-            ClosestRayResultCallback rrc = new ClosestRayResultCallback(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f);
-            World.Root.PhysicalWorld.RayTest(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f, rrc);
-            if(rrc.HasHit)
-            {
-                return rrc.CollisionObject.UserObject as Mesh3d;
-            }
-            else
-                return null;
-        }
-        public Vector3 RayCastPosition()
-        {
-            var dir = GetDirection();
-            ClosestRayResultCallback rrc = new ClosestRayResultCallback(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f);
-            World.Root.PhysicalWorld.RayTest(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f, rrc);
-            if(rrc.HasHit)
-            {
-                return rrc.HitPointWorld;
-            }
-            else
-                return Vector3.Zero;
+            /**/
         }
 
         public void ProcessMouseMovement(int deltax, int deltay)
@@ -86,12 +77,39 @@ namespace VDGTech
             Update();*/
         }
 
+        public Mesh3d RayCastMesh3d()
+        {
+            var dir = GetDirection();
+            ClosestRayResultCallback rrc = new ClosestRayResultCallback(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f);
+            World.Root.PhysicalWorld.RayTest(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f, rrc);
+            if(rrc.HasHit)
+            {
+                return rrc.CollisionObject.UserObject as Mesh3d;
+            }
+            else
+                return null;
+        }
+
+        public Vector3 RayCastPosition()
+        {
+            var dir = GetDirection();
+            ClosestRayResultCallback rrc = new ClosestRayResultCallback(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f);
+            World.Root.PhysicalWorld.RayTest(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f, rrc);
+            if(rrc.HasHit)
+            {
+                return rrc.HitPointWorld;
+            }
+            else
+                return Vector3.Zero;
+        }
+
         public void Update()
         {
             Transformation.GetOrientation().Invert();
             RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
             ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
         }
+
         public void UpdateFromRollPitch()
         {
             var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, Pitch);
@@ -99,21 +117,6 @@ namespace VDGTech
             Transformation.SetOrientation(Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted()));
             RotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
             ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
-        }
-        public Vector3 GetDirection()
-        {
-            var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
-            var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, -Roll);
-            Vector4 direction = Vector4.UnitZ;
-            direction = Vector4.Transform(direction, rotationY);
-            direction = Vector4.Transform(direction, rotationX);
-            System.Console.WriteLine(direction.ToString());
-            return -direction.Xyz;
-        }
-
-        public void ProcessKeyboardState(OpenTK.Input.KeyboardState keys)
-        {
-            /**/
         }
     }
 }

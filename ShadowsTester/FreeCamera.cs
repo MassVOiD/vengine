@@ -1,23 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using VDGTech;
-using OpenTK;
 using BulletSharp;
-
+using OpenTK;
+using VDGTech;
 
 namespace ShadowsTester
 {
-    class FreeCamera
+    internal class FreeCamera
     {
-        public Camera Cam;
-        SphereShape collisionShape;
-        RigidBody rigidBody;
-        public FreeCamera()
+        public FreeCamera(float aspectRatio, float fov)
         {
-            Cam = new Camera(new Vector3(0, 20, 0), new Vector3(0, 2, 0), 1600.0f / 900.0f, 3.14f / 2.0f, 2.0f, 20000.0f);
+            Cam = new Camera(new Vector3(20, 20, 20), new Vector3(0, 2, 0), aspectRatio, fov, 2.0f, 20000.0f);
             collisionShape = new SphereShape(0.01f);
             //collisionShape.LinearDamping = 0.5f;
             rigidBody = World.Root.CreateRigidBody(0.01f, Matrix4.CreateTranslation(Cam.Transformation.GetPosition()), collisionShape, null);
@@ -32,8 +24,11 @@ namespace ShadowsTester
             GLThread.OnMouseMove += OnMouseMove;
         }
 
+        public Camera Cam;
+        private SphereShape collisionShape;
+        private RigidBody rigidBody;
 
-        void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
+        private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
             Cam.Pitch += (float)e.XDelta / 100.0f;
             if(Cam.Pitch > MathHelper.TwoPi)
@@ -50,12 +45,12 @@ namespace ShadowsTester
             Cam.UpdateFromRollPitch();
         }
 
-        void UpdateSterring(object o, EventArgs e)
+        private void UpdateSterring(object o, EventArgs e)
         {
             var keyboard = OpenTK.Input.Keyboard.GetState();
             KeyboardHandler.Process();
 
-            float speed = 1;
+            float speed = 0.3f;
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))
             {
                 speed *= 4;
@@ -88,7 +83,6 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
                 rigidBody.LinearVelocity -= direction.Xyz * speed;
-
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.A))
             {
@@ -99,7 +93,6 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
                 rigidBody.LinearVelocity -= direction.Xyz * speed;
-
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.D))
             {
@@ -110,7 +103,6 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
                 rigidBody.LinearVelocity -= direction.Xyz * speed;
-
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.Space))
             {
@@ -120,18 +112,13 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 rigidBody.LinearVelocity -= direction.Xyz * speed;
-
             }
 
-           // rigidBody.LinearVelocity = new Vector3(
-           //     rigidBody.LinearVelocity.X * 0.94f,
-         //       rigidBody.LinearVelocity.Y * 0.94f,
-         //       rigidBody.LinearVelocity.Z * 0.94f);
+            // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f, rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
             Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
 
             Cam.UpdateFromRollPitch();
             Cam.Transformation.BeenModified = false;
-
         }
     }
 }

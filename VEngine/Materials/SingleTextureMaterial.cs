@@ -1,21 +1,20 @@
-﻿using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
-using System.Drawing;
+﻿using OpenTK.Graphics.OpenGL4;
 
 namespace VDGTech
 {
     public class SingleTextureMaterial : IMaterial
     {
-        protected static ShaderProgram Program;
-        private Texture Tex, NormalMap;
-
         public SingleTextureMaterial(Texture tex, Texture normalMap = null)
         {
-            if(Program == null) Program = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"),
-                Media.ReadAllText("SingleTextureMaterial.fragment.glsl"));
+            if(Program == null)
+                Program = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"),
+                    Media.ReadAllText("SingleTextureMaterial.fragment.glsl"));
             Tex = tex;
             NormalMap = normalMap;
         }
+
+        protected static ShaderProgram Program;
+        private Texture Tex, NormalMap;
 
         public static SingleTextureMaterial FromMedia(string key)
         {
@@ -40,7 +39,9 @@ namespace VDGTech
             {
                 Program.SetUniform("UseNormalMap", 1);
                 NormalMap.Use(TextureUnit.Texture1);
-            } else Program.SetUniform("UseNormalMap", 0);
+            }
+            else
+                Program.SetUniform("UseNormalMap", 0);
             return res;
         }
     }

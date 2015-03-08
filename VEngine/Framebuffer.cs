@@ -1,22 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VDGTech
 {
     public class Framebuffer
     {
-        int FBO, RBO, Width, Height;
-        public int TexColor, TexDepth;
-        bool Generated, DepthOnly;
-
-
-
         public Framebuffer(int width, int height, bool depthOnly = false)
         {
             Generated = false;
@@ -25,7 +13,49 @@ namespace VDGTech
             DepthOnly = depthOnly;
         }
 
-        void Generate()
+        public int TexColor, TexDepth;
+        private int FBO, RBO, Width, Height;
+        private bool Generated, DepthOnly;
+
+        public float GetDepth(float x, float y)
+        {
+            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+            float[] pixels = new float[Width * Height];
+            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.DepthComponent, PixelType.Float, pixels);
+            return pixels[(int)(Width * x) + (int)((Height * y) * Width)];
+        }
+
+        public void RevertToDefault()
+        {
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        }
+
+        public void Use()
+        {
+            if(!Generated)
+                Generate();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
+        }
+
+        public void UseTexture(int startIndex)
+        {
+            if(DepthOnly)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
+                GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+            }
+            else
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
+                GL.BindTexture(TextureTarget.Texture2D, TexColor);
+                GL.ActiveTexture(TextureUnit.Texture1 + startIndex);
+                GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+            }
+            // this is because somebody recommended it on stackoverflow
+            GL.ActiveTexture(TextureUnit.Texture0);
+        }
+
+        private void Generate()
         {
             Generated = true;
             FBO = GL.GenFramebuffer();
@@ -73,43 +103,6 @@ namespace VDGTech
             {
                 throw new Exception("Framebuffer not complete");
             }
-        }
-
-        public void Use()
-        {
-            if(!Generated)
-                Generate();
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
-        }
-        public void UseTexture(int startIndex)
-        {
-
-            if(DepthOnly)
-            {
-                GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-                GL.BindTexture(TextureTarget.Texture2D, TexDepth);
-
-            }
-            else
-            {
-                GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-                GL.BindTexture(TextureTarget.Texture2D, TexColor);
-                GL.ActiveTexture(TextureUnit.Texture1 + startIndex);
-                GL.BindTexture(TextureTarget.Texture2D, TexDepth);
-            }
-            // this is because somebody recommended it on stackoverflow
-            GL.ActiveTexture(TextureUnit.Texture0);
-        }
-        public float GetDepth(float x, float y)
-        {
-            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
-            float[] pixels = new float[Width * Height];
-            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.DepthComponent, PixelType.Float, pixels);
-            return pixels[(int)(Width * x) + (int)((Height *y) * Width)];
-        }
-        public void RevertToDefault()
-        {
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
     }
 }

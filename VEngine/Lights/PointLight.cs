@@ -1,20 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
-using VDGTech;
-using System.Drawing;
-using VDGTech.Particles;
-
-namespace VDGTech
+﻿namespace VDGTech
 {
     /*public class PointLight : ILight
     {
-        private 
+        private
         public PointLight(Vector3 position, int mapwidth, int mapheight, float near, float far)
         {
             FarPlane = far;

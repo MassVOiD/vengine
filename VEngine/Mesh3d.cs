@@ -1,6 +1,6 @@
 ﻿using System;
-using OpenTK;
 using BulletSharp;
+using OpenTK;
 
 namespace VDGTech
 {
@@ -8,6 +8,7 @@ namespace VDGTech
     {
         public Mesh3d(Object3dInfo objectInfo, IMaterial material)
         {
+            DisableDepthWrite = false;
             Randomizer = new Random();
             Instances = 1;
             ObjectInfo = objectInfo;
@@ -19,20 +20,36 @@ namespace VDGTech
         public int Instances;
         public IMaterial Material;
         public Matrix4 Matrix, RotationMatrix;
-        private float Mass = 1.0f;
-        private Object3dInfo ObjectInfo;
-        private CollisionShape PhysicalShape;
         public RigidBody PhysicalBody;
-        private Random Randomizer;
         public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
         public TransformationManager Transformation;
+        public bool DisableDepthWrite;
 
         private static int LastMaterialHash = 0;
+        private float Mass = 1.0f;
+        public Object3dInfo ObjectInfo;
+        private CollisionShape PhysicalShape;
+        private Random Randomizer;
 
 
-        public TransformationManager GetTransformationManager()
+        public RigidBody CreateRigidBody()
         {
-            return Transformation;
+            bool isDynamic = (Mass != 0.0f);
+            var shape = GetCollisionShape();
+
+            Vector3 localInertia = Vector3.Zero;
+            if(isDynamic)
+                shape.CalculateLocalInertia(Mass, out localInertia);
+
+            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) * Matrix4.CreateTranslation(Transformation.GetPosition()));
+
+            RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(Mass, myMotionState, shape, localInertia);
+            RigidBody body = new RigidBody(rbInfo);
+            body.UserObject = this;
+
+            PhysicalBody = body;
+
+            return body;
         }
 
         public void Draw()
@@ -44,17 +61,29 @@ namespace VDGTech
             }
             if(Camera.Current == null)
                 return;
-            ShaderProgram shader = Material.GetShaderProgram();
+
+            SetUniforms(Material);
+            Material.GetShaderProgram().SetUniformArray("ModelMatrixes", new Matrix4[] { Matrix });
+            Material.GetShaderProgram().SetUniformArray("RotationMatrixes", new Matrix4[] { RotationMatrix });
+           
+            if(DisableDepthWrite)
+                OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
+            ObjectInfo.Draw();
+            if(DisableDepthWrite)
+                OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
+
+            GLThread.CheckErrors();
+        }
+
+        public void SetUniforms(IMaterial material)
+        {
+            ShaderProgram shader = material.GetShaderProgram();
             bool shaderSwitchResult = Material.Use();
 
-         //   if(Sun.Current != null)
-        //        Sun.Current.BindToShader(shader);
-            // per mesh
+            // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
 
-            shader.SetUniform("ModelMatrix", Matrix);
             shader.SetUniform("SpecularComponent", SpecularComponent);
             shader.SetUniform("DiffuseComponent", DiffuseComponent);
-            shader.SetUniform("RotationMatrix", RotationMatrix);
             shader.SetUniform("SpecularSize", SpecularSize);
             shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
@@ -78,32 +107,7 @@ namespace VDGTech
                 shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
                 shader.SetUniform("FarPlane", Camera.Current.Far);
                 shader.SetUniform("resolution", GLThread.Resolution);
-
             }
-
-            ObjectInfo.Draw();
-
-            GLThread.CheckErrors();
-        }
-
-        public RigidBody CreateRigidBody()
-        {
-            bool isDynamic = (Mass != 0.0f);
-            var shape = GetCollisionShape();
-
-            Vector3 localInertia = Vector3.Zero;
-            if(isDynamic)
-                shape.CalculateLocalInertia(Mass, out localInertia);
-
-            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) * Matrix4.CreateTranslation(Transformation.GetPosition()));
-
-            RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(Mass, myMotionState, shape, localInertia);
-            RigidBody body = new RigidBody(rbInfo);
-            body.UserObject = this;
-
-            PhysicalBody = body;
-
-            return body;
         }
 
         public CollisionShape GetCollisionShape()
@@ -114,6 +118,11 @@ namespace VDGTech
         public float GetMass()
         {
             return Mass;
+        }
+
+        public TransformationManager GetTransformationManager()
+        {
+            return Transformation;
         }
 
         public Mesh3d SetCollisionShape(CollisionShape shape)

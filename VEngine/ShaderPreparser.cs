@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace VDGTech
 {
@@ -22,6 +17,7 @@ namespace VDGTech
             }
             return PrependWithInfo(filename, source);
         }
+
         public static string Preparse(string source)
         {
             Regex includeMatcher = new Regex("\\#include (.+)\n");
@@ -42,7 +38,7 @@ namespace VDGTech
             string[] split = content.Split('\n');
             for(int i = 0; i < split.Length; i++)
             {
-                split[i] = split[i] +" //" + srcFile + ":" + (i + 1).ToString();
+                split[i] = split[i] + " //" + srcFile + ":" + (i + 1).ToString();
             }
             return string.Join("\r\n", split);
         }

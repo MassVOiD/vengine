@@ -11,19 +11,10 @@ uniform vec3 LightPosition;
 smooth out vec3 vertexWorldSpace;
 
 void main(){
-		vec4 v = vec4(in_position,1);
-		//vec4 n = vec4(in_normal,0);
-	if(Instances > 1){
-		mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrixes[gl_InstanceID];
-		//normal = (ProjectionMatrix * ModelMatrixes[gl_InstanceID] * n).xyz;
-		vertexWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
-		gl_Position = mvp * v;
-	} else {
-		vec4 v = vec4(in_position,1);
-		//vec4 n = vec4(in_normal,0);
-		mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrix;
-		//normal = (ProjectionMatrix * ModelMatrix * n).xyz;
-		vertexWorldSpace = (ModelMatrix * v).xyz;
-		gl_Position = mvp * v;
-	}
+	vec4 v = vec4(in_position,1);
+
+	mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrixes[gl_InstanceID];
+	vertexWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
+	gl_Position = mvp * v;
+
 }

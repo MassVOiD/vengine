@@ -40,33 +40,20 @@ float specular(vec3 normalin, uint index){
 	vec3 lightRelativeToVPos = LightsPos[index] - positionWorldSpace.xyz;
 	vec3 cameraRelativeToVPos = CameraPosition - positionWorldSpace.xyz;
 	vec3 R = reflect(lightRelativeToVPos, normalin);
-	float cosAlpha = dot(normalize(cameraRelativeToVPos), normalize(R));
-	float clamped = clamp(-cosAlpha, 0.0, 1.0);
-	return clamp(pow(clamped, 10.0 * SpecularSize), 0.0, 1.0);
+	float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
+	return clamp(pow(cosAlpha, 80.0 / SpecularSize), 0.0, 1.0);
 }
 
 float diffuse(vec3 normalin, uint index){
 	vec3 lightRelativeToVPos = LightsPos[index] - positionWorldSpace.xyz;
 	float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normalin));
 	float angle = clamp(dotdiffuse, 0.0, 1.0);
-	return (angle)*2;
+	return (angle);
 }
 
+const float gaussKernel[14] = float[14](-0.028, -0.024,-0.020,-0.016,-0.012,-0.008,-0.004,.004,.008,.012,0.016,0.020,0.024,0.028); 
 float getGaussianKernel(int i){
-	if(i==0) return -0.028;
-	if(i==1) return -0.024;
-	if(i==2) return -0.020;
-	if(i==3) return -0.016;
-	if(i==4) return -0.012;
-	if(i==5) return -0.008;
-	if(i==6) return -0.004;
-	if(i==7) return 0.004;
-	if(i==8) return 0.008;
-	if(i==9) return 0.012;
-	if(i==10) return 0.016;
-	if(i==11) return 0.020;
-	if(i==12) return 0.024;
-	if(i==13) return 0.028;
+	return gaussKernel[i];
 }
 
 float lookupDepthFromLight(uint i, vec2 uv){
@@ -108,7 +95,6 @@ float getBlurAmount(vec2 uv, uint i){
 	+ lookupDepthFromLight(i, uv + vec2(-0.004, 0.004)) + lookupDepthFromLight(i, uv + vec2(-0.004, -0.004));
 	return abs(distance1/4.0 - lookupDepthFromLight(i, uv) );
 }
-const float gaussKernel[14] = float[14](-0.028, -0.024,-0.020,-0.016,-0.012,-0.008,-0.004,.004,.008,.012,0.016,0.020,0.024,0.028); 
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 1.0;
 	float distance2 = distance(pos, LightsPos[i]);
@@ -131,7 +117,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 			fakeUV = uv + offsetDistance;
 			distance1 = lookupDepthFromLight(i, fakeUV);
 			float diff = abs(distance1 -  badass_depth);
-			if(diff > 0.001) accum -= 1.0/28.0;
+			if(diff > 0.0001) accum -= 1.0/28.0;
 		}
 		for(int g = 0; g < 14; g++){ 
 			vec2 gauss = vec2(gaussKernel[g], 0);
@@ -139,12 +125,12 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 			fakeUV = uv + offsetDistance;
 			distance1 = lookupDepthFromLight(i, fakeUV);
 			float diff = abs(distance1 -  badass_depth);
-			if(diff > 0.001) accum -= 1.0/28.0;
+			if(diff > 0.0001) accum -= 1.0/28.0;
 		}
 	} else {
 		distance1 = lookupDepthFromLight(i, uv);
 		float diff = abs(distance1 -  badass_depth);
-		if(diff > 0.001) accum -= 1.0;
+		if(diff > 0.0001) accum -= 1.0;
 	}
 	return accum;
 }
@@ -152,8 +138,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 vec3 processLighting(vec3 color){
 	for(uint x = 0; x < LightsCount; x++){
 		vec4 clipspace = vec4(0);
-		if(Instances>1) clipspace = ((LightsPs[x] * LightsVs[x] * ModelMatrixes[instanceId]) * vec4(positionModelSpace, 1.0));
-		else clipspace = ((LightsPs[x] * LightsVs[x] * ModelMatrix) * vec4(positionModelSpace, 1.0));
+		clipspace = ((LightsPs[x] * LightsVs[x] * ModelMatrixes[instanceId]) * vec4(positionModelSpace, 1.0));
 
 		vec3 tmp = clipspace.xyz / clipspace.w;
 		LightScreenSpaceFromGeo[x] = clipspace.z > 0 ? (tmp.xy + 1.0) / 2.0 : vec2(10, 10);
@@ -171,10 +156,11 @@ vec3 processLighting(vec3 color){
 	vec3 normalNew  = normal;
 	if(UseNormalMap == 1){
 		vec3 nmap = texture(normalMap, UV).rbg * 2.0 - 1.0;
-		//nmap = (RotationMatrix * vec4(nmap, 0.0)).xyz;
-		if(Instances>1) normalNew = vec3 (RotationMatrixes[instanceId] * vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1));
-		else normalNew = vec3 (RotationMatrix * vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1));
-		normalNew = nmap;
+		nmap /= 1.5f; // to be sure
+
+		normalNew = (vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1)).xyz;
+
+		//normalNew = nmap;
 	}
 	
 	float multiplier = 0.0;

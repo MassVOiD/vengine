@@ -1,40 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK;
+﻿using OpenTK;
 
 namespace VDGTech
 {
     public static class MathExtensions
     {
-        
-        public static Vector3 ToDirection(this Quaternion quaternion)
+        public enum TangentDirection
         {
-            return Vector3.Transform(-Vector3.UnitZ, quaternion);
+            Up,
+            Down,
+            Left,
+            Right
+        }
+
+        public static Vector3 GetTangent(this Quaternion quaternion, TangentDirection direction)
+        {
+            switch(direction)
+            {
+                case TangentDirection.Up:
+                return Vector3.Transform(Vector3.UnitY, quaternion);
+
+                case TangentDirection.Down:
+                return Vector3.Transform(-Vector3.UnitY, quaternion);
+
+                case TangentDirection.Left:
+                return Vector3.Transform(Vector3.UnitX, quaternion);
+
+                case TangentDirection.Right:
+                return Vector3.Transform(-Vector3.UnitX, quaternion);
+            }
+            return Vector3.Zero;
         }
 
         public static Vector3 Rotate(this Vector3 vector, Quaternion quaternion)
         {
             return Vector3.Transform(vector, quaternion);
         }
-
-        public enum TangentDirection
+        public static Matrix4 ToMatrix(this Vector3 vector)
         {
-            Up, Down, Left, Right
+            return Matrix4.CreateTranslation(vector);
         }
 
-        public static Vector3 GetTangent(this Quaternion quaternion, TangentDirection direction)
+        public static Vector3 ToDirection(this Quaternion quaternion)
         {
-            switch (direction)
-            {
-                case TangentDirection.Up: return Vector3.Transform(Vector3.UnitY, quaternion);
-                case TangentDirection.Down: return Vector3.Transform(-Vector3.UnitY, quaternion);
-                case TangentDirection.Left: return Vector3.Transform(Vector3.UnitX, quaternion);
-                case TangentDirection.Right: return Vector3.Transform(-Vector3.UnitX, quaternion);
-            }
-            return Vector3.Zero;
+            return Vector3.Transform(-Vector3.UnitZ, quaternion);
         }
     }
 }

@@ -1,29 +1,18 @@
-﻿using OpenTK.Graphics;
-using System.Drawing;
+﻿using System.Drawing;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VDGTech
 {
     public class ManualShaderMaterial : IMaterial
     {
-        protected ShaderProgram Program;
-        protected Texture Tex = null;
-        protected Color Color;
-
         public ManualShaderMaterial(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
         {
             Program = ShaderProgram.Compile(vertex, fragment, geometry, tesscontrol, tesseval);
         }
 
-        public void SetTexture(Texture tex)
-        {
-            Tex = tex;
-        }
-
-        public void SetColor(Color color)
-        {
-            Color = color;
-        }
+        protected Color Color;
+        protected ShaderProgram Program;
+        protected Texture Tex = null;
 
         public static ManualShaderMaterial FromName(string name)
         {
@@ -33,6 +22,16 @@ namespace VDGTech
         public ShaderProgram GetShaderProgram()
         {
             return Program;
+        }
+
+        public void SetColor(Color color)
+        {
+            Color = color;
+        }
+
+        public void SetTexture(Texture tex)
+        {
+            Tex = tex;
         }
 
         public virtual bool Use()

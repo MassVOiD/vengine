@@ -51,8 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SculptScene.cs" />
     <Compile Include="KeyboardHandler.cs" />
     <Compile Include="FreeCamera.cs" />
+    <Compile Include="HomeScene.cs" />
+    <Compile Include="ManyCubesScene.cs" />
     <Compile Include="MapSaveLoad.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

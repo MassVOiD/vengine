@@ -1,25 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using VDGTech;
-using System.Drawing;
-using VDGTech.Particles;
 
 namespace VDGTech
 {
     public class ProjectionLight : ILight, ITransformable
     {
-        public Camera camera;
-        public Framebuffer FBO;
-        ManualShaderMaterial Shader;
-        public Color LightColor = Color.White;
-        float FarPlane;
-        Size ViewPort;
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
             FarPlane = far;
@@ -30,26 +16,28 @@ namespace VDGTech
             ViewPort = new Size(mapwidth, mapheight);
         }
 
+        public Camera camera;
+        public Framebuffer FBO;
+        public Color LightColor = Color.White;
+        private float FarPlane;
+        private ManualShaderMaterial Shader;
+        private Size ViewPort;
+
         public void BuildOrthographicProjection(float width, float height, float near, float far)
         {
             camera.ProjectionMatrix = Matrix4.CreateOrthographic(width, height, near, far);
         }
 
-
-        public TransformationManager GetTransformationManager()
+        public Vector4 GetColor()
         {
-            return camera.Transformation;
+            return new Vector4(LightColor.R / 255.0f, LightColor.G / 255.0f, LightColor.B / 255.0f, LightColor.A / 255.0f);
         }
 
-        public void SetProjection(Matrix4 matrix)
+        public float GetFarPlane()
         {
-            camera.ProjectionMatrix = matrix;
+            return FarPlane;
         }
 
-        public Matrix4 GetVMatrix()
-        {
-            return camera.ViewMatrix;
-        }
         public Matrix4 GetPMatrix()
         {
             return camera.ProjectionMatrix;
@@ -59,25 +47,15 @@ namespace VDGTech
         {
             return camera.Transformation.GetPosition();
         }
-        public Vector4 GetColor()
+
+        public TransformationManager GetTransformationManager()
         {
-            return new Vector4(LightColor.R / 255.0f, LightColor.G / 255.0f, LightColor.B / 255.0f, LightColor.A / 255.0f);
-        }
-        public float GetFarPlane()
-        {
-            return FarPlane;
+            return camera.Transformation;
         }
 
-        public void SetPosition(Vector3 position, Vector3 lookat)
+        public Matrix4 GetVMatrix()
         {
-            camera.Transformation.SetPosition(position);
-            camera.LookAt(lookat);
-        }
-        public void SetPosition(Vector3 position, Quaternion orientation)
-        {
-            camera.Transformation.SetPosition(position);
-            camera.Transformation.SetOrientation(orientation);
-            camera.Update();
+            return camera.ViewMatrix;
         }
 
         public void Map()
@@ -103,10 +81,27 @@ namespace VDGTech
             Camera.Current = last;
         }
 
+        public void SetPosition(Vector3 position, Vector3 lookat)
+        {
+            camera.Transformation.SetPosition(position);
+            camera.LookAt(lookat);
+        }
+
+        public void SetPosition(Vector3 position, Quaternion orientation)
+        {
+            camera.Transformation.SetPosition(position);
+            camera.Transformation.SetOrientation(orientation);
+            camera.Update();
+        }
+
+        public void SetProjection(Matrix4 matrix)
+        {
+            camera.ProjectionMatrix = matrix;
+        }
+
         public void UseTexture(int index)
         {
             FBO.UseTexture(index);
         }
-
     }
 }

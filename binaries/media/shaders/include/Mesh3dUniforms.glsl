@@ -1,5 +1,3 @@
-uniform mat4 ModelMatrix;
-uniform mat4 RotationMatrix;
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
 uniform float LogEnchacer;
@@ -14,7 +12,7 @@ uniform float LightsFarPlane[MAX_LIGHTS];
 uniform vec4 LightsColors[MAX_LIGHTS];
 
 
-const int MAX_INSTANCES = 1024;
+const int MAX_INSTANCES = 2000;
 uniform int Instances;
 uniform mat4 ModelMatrixes[MAX_INSTANCES];
 uniform mat4 RotationMatrixes[MAX_INSTANCES];

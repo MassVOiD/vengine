@@ -2,12 +2,12 @@
 {
     public class PostProcessLoadingMaterial : IMaterial
     {
-        private ShaderProgram Program;
-
         public PostProcessLoadingMaterial()
         {
             Program = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Loading.fragment.glsl"));
         }
+
+        private ShaderProgram Program;
 
         public ShaderProgram GetShaderProgram()
         {

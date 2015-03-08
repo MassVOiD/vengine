@@ -147,6 +147,19 @@ vec3 line(vec2 start, vec2 end, vec3 color){
 	return color * (clamp(1.0 - anglediff, 0.0, 1.0));
 }*/
 
+/* Branching as boobies (line width fixed) */
+float aligned(vec2 A, vec2 B, vec2 C){
+	float widthK = .75/resolution.x*max(distance(A, B),max(distance(A, C), distance(B, C)));
+	return 1.-smoothstep(widthK, widthK*4. ,abs((A.x * (B.y - C.y) + B.x * (C.y - A.y) + C.x * (A.y - B.y))));
+}
+/* Branching as boobies */
+vec3 line(vec2 A, vec2 B, vec3 color){
+	float dAB = distance(A, B);
+	vec2 A2p = A-UV;
+	vec2 B2p = B-UV;
+	return color*aligned(A, B, UV)*step(distance(A, UV), dAB)*step(distance(B, UV), dAB);
+}
+
 void main()
 {
 
@@ -167,20 +180,19 @@ void main()
 	
 	//color1 -= vec3(getSSAOAmount(depth));
 	
-	//hdr but disabled
-	/*
-	float maxbrightness = 1.0;
-	float tmplen = 0.0;
-	for(float i = 0; i < 1.0; i+=0.2){
-		for(float g = 0; g < 1.0; g+=0.2){
-			vec2 hash = vec2(0.5) + (vec2(i,g) - vec2(0.5)) * 0.1;
-			tmplen = length(texture(texColor, hash).rgb);
-			if(maxbrightness < tmplen) maxbrightness = tmplen;
-		}
+	for(int i=0;i<Lines2dCount;i++){
+		vec3 startWorld = Lines2dStarts[i];
+		vec3 endWorld = Lines2dEnds[i];
+		vec3 lineColor = Lines2dColors[i];
+		
+		vec4 startClipspace = (ProjectionMatrix * ViewMatrix) * vec4(startWorld, 1.0);
+		vec2 startSSpace = ((startClipspace.xyz / startClipspace.w).xy + 1.0) / 2.0;
+		
+		vec4 endClipspace = (ProjectionMatrix * ViewMatrix) * vec4(endWorld, 1.0);
+		vec2 endSSpace = ((endClipspace.xyz / endClipspace.w).xy + 1.0) / 2.0;
+		
+		color1 += line(startSSpace, endSSpace, lineColor);
 	}
-	if(maxbrightness < 1.0) maxbrightness = 1.0;
-	maxbrightness = 1.0 / log(maxbrightness * 2.0 + 1.0);
-	*/
 
 	for(int i=0;i<LightsCount;i++){
 		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(LightsPos[i], 1.0);
@@ -195,8 +207,8 @@ void main()
 		float percent = lookupDepthFromLight(i, sspace);
 		dist = 1.0f - (dist - percent);
 		if(dist > 1) {
-			color1 += ball(vec3(LightsColors[i]*6.0),0.9/ distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y);
-			color1 += ball(vec3(LightsColors[i]*6.0),20.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y) * 0.1f;
+			color1 += ball(vec3(LightsColors[i]*2.0),0.1/ distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y);
+			color1 += ball(vec3(LightsColors[i]*2.0),2.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y) * 0.03f;
 		} else {
 			//color1 += ball(vec3(dist),3.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y);
 			//color1 += ball(vec3(dist),250.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y) * 0.1f;
@@ -227,6 +239,11 @@ void main()
 	//	color1.y = log(color1.y + 1.0);
 	//	color1.z = log(color1.z + 1.0);
 	//}
+	
+	vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
+	color1 = vec3(pow(color1.r, gamma.r),
+                  pow(color1.g, gamma.g),
+                  pow(color1.b, gamma.b));
 		
     outColor = vec4(color1, 1);
 	

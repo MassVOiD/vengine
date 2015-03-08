@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -10,34 +6,6 @@ namespace VDGTech.Particles
 {
     public class ParticleGenerator
     {
-        enum GeneratorMode
-        {
-            Box,
-            Plane,
-            Point
-        };
-        GeneratorMode Mode;
-        Vector3 InitialVelocity;
-        Vector3 Gravity;
-        float Bounciness;
-        Vector3 Position;
-        Vector3 Ground;
-        Quaternion Orientation;
-        Vector2 PlaneSize;
-        Vector3 BoxSize;
-        float AlphaDecrease;
-        float Scale;
-
-        Object3dInfo Info3d;
-        ShaderProgram Program;
-        ShaderProgram DepthWriter;
-
-        float TimeRate;
-        int MaxInstances;
-        float TimeToLife;
-        DateTime StartTime;
-        Texture Tex;
-
         private ParticleGenerator(GeneratorMode mode, Vector3 position, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float scale, float bounciness, float alphaDecrease, Vector2 planeSize, Vector3 boxSize)
         {
             Mode = mode;
@@ -58,6 +26,66 @@ namespace VDGTech.Particles
             MaxInstances = 1000000;
             StartTime = DateTime.Now;
             Tex = new Texture(Media.Get("smoke.png"));
+        }
+
+        private float AlphaDecrease;
+
+        private float Bounciness;
+
+        private Vector3 BoxSize;
+
+        private ShaderProgram DepthWriter;
+
+        private Vector3 Gravity;
+
+        private Vector3 Ground;
+
+        private Object3dInfo Info3d;
+
+        private Vector3 InitialVelocity;
+
+        private int MaxInstances;
+
+        private GeneratorMode Mode;
+
+        private Quaternion Orientation;
+
+        private Vector2 PlaneSize;
+
+        private Vector3 Position;
+
+        private ShaderProgram Program;
+
+        private float Scale;
+
+        private DateTime StartTime;
+
+        private Texture Tex;
+
+        private float TimeRate;
+
+        private float TimeToLife;
+
+        private enum GeneratorMode
+        {
+            Box,
+            Plane,
+            Point
+        };
+
+        public static ParticleGenerator CreateBox(Vector3 position, Vector3 boxSize, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float bounciness, float alphaDecrease, float scale)
+        {
+            return new ParticleGenerator(GeneratorMode.Box, position, orientation, initialVelocity, gravity, scale, bounciness, alphaDecrease, Vector2.Zero, boxSize);
+        }
+
+        public static ParticleGenerator CreatePlane(Vector3 position, Vector2 planeSize, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float bounciness, float alphaDecrease, float scale)
+        {
+            return new ParticleGenerator(GeneratorMode.Plane, position, orientation, initialVelocity, gravity, scale, bounciness, alphaDecrease, planeSize, Vector3.Zero);
+        }
+
+        public static ParticleGenerator CreatePoint(Vector3 position, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float bounciness, float alphaDecrease, float scale)
+        {
+            return new ParticleGenerator(GeneratorMode.Point, position, orientation, initialVelocity, gravity, scale, bounciness, alphaDecrease, Vector2.Zero, Vector3.Zero);
         }
 
         public void Draw(bool onlyDepth = false)
@@ -129,24 +157,9 @@ namespace VDGTech.Particles
             //GL.Disable(EnableCap.DepthTest);
             //GL.DepthFunc(DepthFunction.Always);
             Info3d.DrawInstanced(MaxInstances);
-//
+            //
             //GL.Enable(EnableCap.CullFace);
-           // GL.CullFace(CullFaceMode.Back);
-
+            // GL.CullFace(CullFaceMode.Back);
         }
-
-        public static ParticleGenerator CreatePoint(Vector3 position, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float bounciness, float alphaDecrease, float scale)
-        {
-            return new ParticleGenerator(GeneratorMode.Point, position, orientation, initialVelocity, gravity, scale, bounciness, alphaDecrease, Vector2.Zero, Vector3.Zero);
-        }
-        public static ParticleGenerator CreateBox(Vector3 position, Vector3 boxSize, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float bounciness, float alphaDecrease, float scale)
-        {
-            return new ParticleGenerator(GeneratorMode.Box, position, orientation, initialVelocity, gravity, scale, bounciness, alphaDecrease, Vector2.Zero, boxSize);
-        }
-        public static ParticleGenerator CreatePlane(Vector3 position, Vector2 planeSize, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float bounciness, float alphaDecrease, float scale)
-        {
-            return new ParticleGenerator(GeneratorMode.Plane, position, orientation, initialVelocity, gravity, scale, bounciness, alphaDecrease, planeSize, Vector3.Zero);
-        }
-
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTK;
 
 namespace VDGTech
@@ -10,7 +10,8 @@ namespace VDGTech
         public InstancedMesh3d(Object3dInfo objectInfo, IMaterial material)
         {
             Randomizer = new Random();
-            Instances = 1;
+            Transformations = new List<TransformationManager>();
+            Instances = 0;
             ObjectInfo = objectInfo;
             Material = material;
             UpdateMatrix();
@@ -19,12 +20,10 @@ namespace VDGTech
         public int Instances;
         public IMaterial Material;
         public List<Matrix4> Matrix, RotationMatrix;
-        public List<float> Scales = new List<float>();
-        private Object3dInfo ObjectInfo;
-        public List<Quaternion> Orientations = new List<Quaternion>();
-        public List<Vector3> Positions = new List<Vector3>();
-        private Random Randomizer;
+        public List<TransformationManager> Transformations;
         public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
+        private Object3dInfo ObjectInfo;
+        private Random Randomizer;
 
         public bool HasBeenModified
         {
@@ -34,7 +33,7 @@ namespace VDGTech
 
         public void Draw()
         {
-            if(Instances < 2)
+            if(Instances < 1)
                 return;
             if(HasBeenModified)
             {
@@ -43,14 +42,36 @@ namespace VDGTech
             }
             if(Camera.Current == null)
                 return;
-            ShaderProgram shader = Material.GetShaderProgram();
-            Material.Use();
+            SetUniforms(Material);
+
+            for(int i = 0; i < Instances; i += 2000)
+            {
+                Material.GetShaderProgram().SetUniformArray("ModelMatrixes", Matrix.Skip(i).ToArray());
+                Material.GetShaderProgram().SetUniformArray("RotationMatrixes", RotationMatrix.Skip(i).ToArray());
+                ObjectInfo.DrawInstanced(Math.Min(Instances - i, 2000));
+            }
+            GLThread.CheckErrors();
+        }
+        static int LastMaterialHash = 0;
+        public void SetUniforms(IMaterial material)
+        {
+            ShaderProgram shader = material.GetShaderProgram();
+            bool shaderSwitchResult = Material.Use();
+
+            // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
+
+            shader.SetUniform("SpecularComponent", SpecularComponent);
+            shader.SetUniform("DiffuseComponent", DiffuseComponent);
+            shader.SetUniform("SpecularSize", SpecularSize);
+            shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
+            shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+
+            LastMaterialHash = Material.GetShaderProgram().GetHashCode();
+            // per world
+            shader.SetUniform("Instances", Instances);
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
             shader.SetUniform("LogEnchacer", 0.01f);
-            shader.SetUniform("SpecularSize", SpecularSize);
-            shader.SetUniform("SpecularComponent", SpecularComponent);
-            shader.SetUniform("DiffuseComponent", DiffuseComponent);
             shader.SetUniformArray("LightsPs", LightPool.GetPMatrices());
             shader.SetUniformArray("LightsVs", LightPool.GetVMatrices());
             shader.SetUniformArray("LightsPos", LightPool.GetPositions());
@@ -60,77 +81,79 @@ namespace VDGTech
 
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
             shader.SetUniform("FarPlane", Camera.Current.Far);
-            shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-            shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
             shader.SetUniform("resolution", GLThread.Resolution);
-            shader.SetUniform("Instances", Instances);
+            
+        }
 
-            for(int i = 0; i < Instances; i += 1024)
+        public class SingleInstancedMesh3dElement : ITransformable
+        {
+            public TransformationManager Transformation;
+            public TransformationManager GetTransformationManager()
             {
-                shader.SetUniformArray("ModelMatrixes", Matrix.Skip(i).ToArray());
-                shader.SetUniformArray("RotationMatrixes", RotationMatrix.Skip(i).ToArray());
-                ObjectInfo.DrawInstanced(Math.Min(Instances - i, 1024));
-     
+                return Transformation;
             }
-            GLThread.CheckErrors();
         }
 
-        public Quaternion GetOrientation(int index)
+        public SingleInstancedMesh3dElement Get(int index)
         {
-            return Orientations[index];
+            return new SingleInstancedMesh3dElement()
+            {
+                Transformation = Transformations[index]
+            };
         }
-
-        public Vector3 GetPosition(int index)
-        {
-            return Positions[index];
-        }
-
-        public InstancedMesh3d Rotate(int index, Quaternion rotation)
-        {
-            Orientations[index] = Quaternion.Multiply(Orientations[index], rotation);
-            HasBeenModified = true;
-            return this;
-        }
-
-        public InstancedMesh3d SetOrientation(int index, Quaternion orientation)
-        {
-            Orientations[index] = orientation;
-            HasBeenModified = true;
-            return this;
-        }
-
-        public InstancedMesh3d SetPosition(int index, Vector3 position)
-        {
-            Positions[index] = position;
-            HasBeenModified = true;
-            return this;
-        }
-
-        public InstancedMesh3d SetScale(int index, float scale)
-        {
-            Scales[index] = scale;
-            UpdateMatrix();
-            return this;
-        }
-
-        public InstancedMesh3d Translate(int index, Vector3 translation)
-        {
-            Positions[index] += translation;
-            HasBeenModified = true;
-            return this;
-        }
-
+        
         public void UpdateMatrix()
         {
             RotationMatrix = new List<Matrix4>();
             Matrix = new List<Matrix4>();
-            if(Instances > Positions.Count)
-                Instances = Positions.Count;
+            if(Instances > Transformations.Count)
+                Instances = Transformations.Count;
             for(int i = 0; i < Instances; i++)
             {
-                RotationMatrix.Add(Matrix4.CreateFromQuaternion(Orientations[i]));
-                Matrix.Add(RotationMatrix[i] * Matrix4.CreateScale(Scales[i]) * Matrix4.CreateTranslation(Positions[i]));
+                RotationMatrix.Add(Matrix4.CreateFromQuaternion(Transformations[i].GetOrientation()));
+                Matrix.Add(RotationMatrix[i] * Matrix4.CreateScale(Transformations[i].GetScale()) * Matrix4.CreateTranslation(Transformations[i].GetPosition()));
             }
+        }
+
+        // this is gonna be awesome
+        public static InstancedMesh3d FromSimilarMesh3dList(List<Mesh3d> meshes)
+        {
+            var first = meshes[0];
+            InstancedMesh3d result = new InstancedMesh3d(first.ObjectInfo, first.Material);
+            foreach(var m in meshes)
+            {
+                result.Transformations.Add(m.Transformation);
+                result.Instances++;
+            }
+            result.UpdateMatrix();
+            return result;
+        }
+        // this is gonna be awesome
+        public static List<InstancedMesh3d> FromMesh3dList(List<Mesh3d> meshes)
+        {
+            List<InstancedMesh3d> result = new List<InstancedMesh3d>();
+            meshes.Sort((a, b) => a.ObjectInfo.GetHash() - b.ObjectInfo.GetHash());
+            var first = meshes[0];
+            InstancedMesh3d current = new InstancedMesh3d(first.ObjectInfo, first.Material);
+            int lastHash = first.ObjectInfo.GetHash();
+            foreach(var m in meshes)
+            {
+                if(lastHash == m.ObjectInfo.GetHash())
+                {
+                    current.Transformations.Add(m.Transformation);
+                    current.Instances++;
+                }
+                else
+                {
+                    current.UpdateMatrix();
+                    result.Add(current);
+                    current = new InstancedMesh3d(m.ObjectInfo, m.Material);
+                    current.Transformations.Add(m.Transformation);
+                    current.Instances++;
+                }
+            }
+            result.Add(current);
+            return result;
         }
     }
 }

@@ -1,38 +1,49 @@
-﻿using OpenTK;
-using BulletSharp;
-
+﻿using BulletSharp;
+using OpenTK;
 
 namespace VDGTech
 {
-    public interface IRenderable
+    public interface IControllable
     {
         void Draw();
     }
-    public interface ITransformable
-    {
-        TransformationManager GetTransformationManager();
-    }
-    public interface ILight
-    {
-        void Map();
-        void UseTexture(int index);
-        Matrix4 GetPMatrix();
-        Matrix4 GetVMatrix();
-        Vector3 GetPosition();
-        Vector4 GetColor();
-        float GetFarPlane();
-    }
-    public interface IPhysical
-    {
-        CollisionShape GetCollisionShape();
-        RigidBody GetRigidBody();
-    }
+
     public interface IHasMass
     {
         void GetMass();
     }
-    public interface IControllable
+
+    public interface ILight
+    {
+        Vector4 GetColor();
+
+        float GetFarPlane();
+
+        Matrix4 GetPMatrix();
+
+        Vector3 GetPosition();
+
+        Matrix4 GetVMatrix();
+
+        void Map();
+
+        void UseTexture(int index);
+    }
+
+    public interface IPhysical
+    {
+        CollisionShape GetCollisionShape();
+
+        RigidBody GetRigidBody();
+    }
+
+    public interface IRenderable
     {
         void Draw();
+    }
+
+    public interface ITransformable
+    {
+        TransformationManager GetTransformationManager();
     }
 }

@@ -1,33 +1,16 @@
-﻿using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
 using VDGTech.Particles;
 
 namespace VDGTech
 {
     public class VEngineWindowAdapter : GameWindow, IVEngineDisplayAdapter
     {
-
-        static float[] postProcessingPlaneVertices = {
-                -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-                -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
-            };
-        static uint[] postProcessingPlaneIndices = {
-                0, 1, 2, 3, 2, 1
-            };
-
-        public Framebuffer PostProcessFramebuffer, NormalWritingFramebuffer;
-        ShaderProgram NormalWritingShaderProgram;
-        IMaterial PostProcessingDefaultMaterial;
-        Mesh3d PostProcessingMesh;
-
         public VEngineWindowAdapter(string title, int width, int height)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(32, 32, 0, 0), title, GameWindowFlags.Default,
@@ -38,8 +21,8 @@ namespace VDGTech
             GLThread.Resolution = new Vector2(width, height);
 
             PostProcessFramebuffer = new Framebuffer(width, height);
-            NormalWritingFramebuffer = new Framebuffer(width, height);
-            NormalWritingShaderProgram = ShaderProgram.Compile(Media.ReadAllText("WriteNormals.vertex.glsl"), Media.ReadAllText("WriteNormals.fragment.glsl"));
+            //NormalWritingFramebuffer = new Framebuffer(width, height);
+            //NormalWritingShaderProgram = ShaderProgram.Compile(Media.ReadAllText("WriteNormals.vertex.glsl"), Media.ReadAllText("WriteNormals.fragment.glsl"));
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
             PostProcessingDefaultMaterial = new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.fragment.glsl"));
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, PostProcessingDefaultMaterial);
@@ -72,76 +55,48 @@ namespace VDGTech
             CursorVisible = false;
         }
 
+        public bool IsCursorVisible
+        {
+            get
+            {
+                return CursorVisible;
+            }
+            set
+            {
+                CursorVisible = value;
+            }
+        }
+
+        public Framebuffer PostProcessFramebuffer, NormalWritingFramebuffer;
+
+        private static uint[] postProcessingPlaneIndices = {
+                0, 1, 2, 3, 2, 1
+            };
+
+        private static float[] postProcessingPlaneVertices = {
+                -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
+            };
+
+        private ShaderProgram NormalWritingShaderProgram;
+        private IMaterial PostProcessingDefaultMaterial;
+        private Mesh3d PostProcessingMesh;
+
         public void SetCustomPostProcessingMaterial(IMaterial material)
         {
             PostProcessingMesh.Material = material;
         }
+
         public void SetDefaultPostProcessingMaterial()
         {
             PostProcessingMesh.Material = PostProcessingDefaultMaterial;
         }
 
-        void VEngineWindowAdapter_Load(object sender, EventArgs e)
+        public void StartPhysicsThread()
         {
-            GLThread.InvokeOnLoad();
-        }
-
-        void VEngineWindowAdapter_MouseWheel(object sender, OpenTK.Input.MouseWheelEventArgs e)
-        {
-            GLThread.InvokeOnMouseWheel(e);
-        }
-
-        void VEngineWindowAdapter_MouseUp(object sender, OpenTK.Input.MouseButtonEventArgs e)
-        {
-            GLThread.InvokeOnMouseUp(e);
-        }
-
-        void VEngineWindowAdapter_MouseDown(object sender, OpenTK.Input.MouseButtonEventArgs e)
-        {
-            GLThread.InvokeOnMouseDown(e);
-        }
-
-        void VEngineWindowAdapter_KeyUp(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
-        {
-            GLThread.InvokeOnKeyUp(e);
-        }
-
-        void VEngineWindowAdapter_KeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
-        {
-            GLThread.InvokeOnKeyDown(e);
-        }
-
-        void VEngineWindowAdapter_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            GLThread.InvokeOnKeyPress(e);
-        }
-
-        void PhysicsThread()
-        {
-            long time = Stopwatch.GetTimestamp();
-            while(true)
-            {
-                try
-                {
-                    var now = Stopwatch.GetTimestamp();
-                    World.Root.UpdatePhysics((now - time) / (float)Stopwatch.Frequency);
-                    time = now;
-                }
-                catch
-                {
-                }
-            }
-        }
-
-        void Mouse_Move(object sender, OpenTK.Input.MouseMoveEventArgs e)
-        {
-            if (Camera.Current != null)
-            {
-                var p = this.PointToScreen(new System.Drawing.Point(Width / 2, Height / 2));
-                var p2 = this.PointToScreen(new System.Drawing.Point(e.X, e.Y));
-                GLThread.InvokeOnMouseMove(new OpenTK.Input.MouseMoveEventArgs(e.X, e.Y, p2.X - p.X, p2.Y - p.Y));
-                System.Windows.Forms.Cursor.Position = p;
-            }
+            Task.Factory.StartNew(PhysicsThread);
         }
 
         protected override void OnLoad(System.EventArgs e)
@@ -151,17 +106,16 @@ namespace VDGTech
             GL.ClearColor(0.37f, 0.37f, 0.37f, 1.0f);
             var s = GL.GetString(StringName.Version);
             Console.WriteLine(s);
-
         }
 
-        public void StartPhysicsThread()
+        public void DrawAll()
         {
-            Task.Factory.StartNew(PhysicsThread);
+            World.Root.Draw();
+            ParticleSystem.DrawAll();
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            GLThread.InvokeOnBeforeDraw();
             GLThread.InvokeQueue();
 
             LightPool.MapAll();
@@ -170,16 +124,18 @@ namespace VDGTech
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            if (Skybox.Current != null) Skybox.Current.Draw();
+            if(Skybox.Current != null)
+                Skybox.Current.Draw();
 
             LightPool.UseTextures(2);
             World.Root.ShouldUpdatePhysics = true;
-            World.Root.Draw();
-            ParticleSystem.DrawAll();
+            // this is here so you can issue draw calls from there if you want
+            GLThread.InvokeOnBeforeDraw();
+            DrawAll();
+            GLThread.InvokeOnAfterDraw();
             /*NormalWritingFramebuffer.Use();
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);*/
-
             PostProcessFramebuffer.RevertToDefault();
 
             GL.Viewport(0, 0, Width, Height);
@@ -203,7 +159,6 @@ namespace VDGTech
             //LightPool.UseTextures(2);
             PostProcessingMesh.Draw();
 
-            GLThread.InvokeOnAfterDraw();
             GLThread.CheckErrors();
 
             SwapBuffers();
@@ -215,16 +170,87 @@ namespace VDGTech
             GLThread.InvokeOnUpdate();
             MeshLinker.Resolve();
             Debugger.Send("FrameTime", e.Time);
-            Debugger.Send("FPS", 1.0/e.Time);
+            Debugger.Send("FPS", 1.0 / e.Time);
             var keyboard = OpenTK.Input.Keyboard.GetState();
             //if (Camera.Current != null) Camera.Current.ProcessKeyboardState(keyboard);
-            if (keyboard[OpenTK.Input.Key.Escape])
+            if(keyboard[OpenTK.Input.Key.Escape])
             {
                 System.Diagnostics.Process.GetCurrentProcess().Kill();
                 // this disposing causes more errors than normal killing
                 //World.Root.DisposePhysics();
                 //Exit();
             }
+        }
+
+        private void Mouse_Move(object sender, OpenTK.Input.MouseMoveEventArgs e)
+        {
+            if(Camera.Current != null)
+            {
+                if(!CursorVisible)
+                {
+                    var p = this.PointToScreen(new System.Drawing.Point(Width / 2, Height / 2));
+                    var p2 = this.PointToScreen(new System.Drawing.Point(e.X, e.Y));
+                    GLThread.InvokeOnMouseMove(new OpenTK.Input.MouseMoveEventArgs(e.X, e.Y, p2.X - p.X, p2.Y - p.Y));
+                    System.Windows.Forms.Cursor.Position = p;
+                }
+                else
+                {
+                    GLThread.InvokeOnMouseMove(e);
+                }
+            }
+        }
+
+        private void PhysicsThread()
+        {
+            GLThread.SetCurrentThreadCores(3);
+            long time = Stopwatch.GetTimestamp();
+            while(true)
+            {
+                try
+                {
+                    var now = Stopwatch.GetTimestamp();
+                    World.Root.UpdatePhysics((now - time) / (float)Stopwatch.Frequency);
+                    time = now;
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private void VEngineWindowAdapter_KeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
+        {
+            GLThread.InvokeOnKeyDown(e);
+        }
+
+        private void VEngineWindowAdapter_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            GLThread.InvokeOnKeyPress(e);
+        }
+
+        private void VEngineWindowAdapter_KeyUp(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
+        {
+            GLThread.InvokeOnKeyUp(e);
+        }
+
+        private void VEngineWindowAdapter_Load(object sender, EventArgs e)
+        {
+            GLThread.InvokeOnLoad();
+        }
+
+        private void VEngineWindowAdapter_MouseDown(object sender, OpenTK.Input.MouseButtonEventArgs e)
+        {
+            GLThread.InvokeOnMouseDown(e);
+        }
+
+        private void VEngineWindowAdapter_MouseUp(object sender, OpenTK.Input.MouseButtonEventArgs e)
+        {
+            GLThread.InvokeOnMouseUp(e);
+        }
+
+        private void VEngineWindowAdapter_MouseWheel(object sender, OpenTK.Input.MouseWheelEventArgs e)
+        {
+            GLThread.InvokeOnMouseWheel(e);
         }
     }
 }

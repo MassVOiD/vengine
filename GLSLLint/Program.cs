@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using VDGTech;
-using OpenTK.Graphics.OpenGL4;
 using System.Text.RegularExpressions;
+using OpenTK.Graphics.OpenGL4;
+using VDGTech;
 
 namespace GLSLLint
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             string source = null;
             ShaderType type = ShaderType.VertexShader;
@@ -69,7 +65,7 @@ namespace GLSLLint
             string compilationResult = GL.GetShaderInfoLog(shader);
             int status_code;
             GL.GetShader(shader, ShaderParameter.CompileStatus, out status_code);
-            if (status_code != 1)
+            if(status_code != 1)
             {
                 Console.WriteLine("Compilation FAILED");
                 Console.WriteLine(compilationResult.Trim());
@@ -77,7 +73,8 @@ namespace GLSLLint
                 var codes = src.Split('\n');
                 foreach(var line in errors)
                 {
-                    if(line.StartsWith("ERROR")){
+                    if(line.StartsWith("ERROR"))
+                    {
                         //ERROR: 0:169: error(#143) Undeclared identifier: distance1
                         Match match = Regex.Match(line, @"ERROR: [0-9]+\:([0-9]+)\:");
                         if(match.Success)
@@ -87,10 +84,10 @@ namespace GLSLLint
                     }
                 }
             }
-            else Console.WriteLine("OK");
+            else
+                Console.WriteLine("OK");
             window.Close();
             window.Dispose();
-
         }
     }
 }
