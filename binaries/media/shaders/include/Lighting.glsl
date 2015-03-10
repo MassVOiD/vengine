@@ -10,6 +10,7 @@ vec2 LightScreenSpaceFromGeo[MAX_LIGHTS];
 smooth in vec3 positionModelSpace;
 smooth in vec3 positionWorldSpace;
 smooth in vec3 normal;
+smooth in vec3 barycentric;
 flat in int instanceId;
 uniform int UseNormalMap;
 
@@ -172,28 +173,30 @@ vec3 processLighting(vec3 color){
 			{
 				float percent = clamp(getShadowPercent(LightScreenSpaceFromGeo[i], positionWorldSpace, i), 0.0, 1.0);
 				multiplier += (percent);
+				float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
-				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a;
-				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a;
+				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
+				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
 			} 
 		}else {
 			for(uint i = 0; i < LightsCount; i++)
 			{
+				float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
-				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a;
-				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a;
+				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
+				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
 			}
 		}
 		specularComponent = clamp(specularComponent, 0.0, 1.0);
 		diffuseComponent = clamp(diffuseComponent, 0.0, 1.0);
-		vec3 prediffuse = color * diffuseComponent * 0.7;
+		vec3 ambient = color * 0.03; // this is place for global ambient occlusion
 		if(shadow) {
 			multiplier /= lightsIlluminating; 
 			color = (color *multiplier * diffuseComponent + (specularComponent*multiplier)).xyz;
 		}else {
 			color = (color * diffuseComponent + (specularComponent)).xyz;
 		}
-		color = color + prediffuse;
+		color = color + ambient;
 		
 		//color = vec3(diff);
 	}

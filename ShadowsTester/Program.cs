@@ -109,10 +109,10 @@ namespace ShadowsTester
 
             var color = SingleTextureMaterial.FromMedia("gtamap.jpg");*/
             
-            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-1000, -1000), new Vector2(1000, 1000), new Vector2(100, 100), Vector3.UnitY);
+            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-1000, -1000), new Vector2(1000, 1000), new Vector2(1000, 1000), Vector3.UnitY);
 
 
-            var color = SingleTextureMaterial.FromMedia("floor1.png", "floor_normal.jpg");
+            var color = SingleTextureMaterial.FromMedia("158.JPG", "158_norm.JPG");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
@@ -123,9 +123,29 @@ namespace ShadowsTester
             World.Root.Add(water);
             //World.Root.PhysicalWorld.AddCollisionObject(water.CreateRigidBody());
 
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 5000, 5000, MathHelper.PiOver3, 1.0f, 10100.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.PiOver3, 1.0f, 10100.0f);
             redConeLight.LightColor = Color.FromArgb(255, 255, 255, 255);
+            //redConeLight.SetProjection(Matrix4.CreateOrthographic(200, 200, -500, 500));
             LightPool.Add(redConeLight);
+            /*
+            GLThread.OnUpdate += (o, e) =>
+            {
+                var kb = OpenTK.Input.Keyboard.GetState();
+                if(kb.IsKeyDown(OpenTK.Input.Key.Minus))
+                {
+                    redConeLight.camera.ViewMatrix = Matrix4.CreateFromAxisAngle(Vector3.UnitX, 0.01f) * redConeLight.camera.ViewMatrix;
+                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    redConeLight.camera.Transformation.SetPosition(pos.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, 0.01f)));
+                    redConeLight.camera.Transformation.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, 0.01f));
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.Plus))
+                {
+                    redConeLight.camera.ViewMatrix = Matrix4.CreateFromAxisAngle(Vector3.UnitX, -0.01f) * redConeLight.camera.ViewMatrix;
+                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    redConeLight.camera.Transformation.SetPosition(pos.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, -0.01f)));
+                    redConeLight.camera.Transformation.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, -0.01f));
+                }
+            };*/
 
             // ProjectionLight greenConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 4000, 4000, MathHelper.PiOver2, 1.0f, 13000.0f); greenConeLight.LightColor = Color.Green; LightPool.Add(greenConeLight);
 
