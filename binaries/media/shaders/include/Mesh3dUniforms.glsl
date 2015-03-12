@@ -19,6 +19,9 @@ uniform mat4 RotationMatrixes[MAX_INSTANCES];
 
 uniform float RandomSeed;
 uniform vec3 CameraPosition;
+uniform vec3 CameraDirection;
+uniform vec3 CameraTangentUp;
+uniform vec3 CameraTangentLeft;
 uniform float Time;
 
 

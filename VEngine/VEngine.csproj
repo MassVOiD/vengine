@@ -108,6 +108,8 @@
     <Compile Include="ShaderStorageBuffer.cs" />
     <Compile Include="BufferTexture.cs" />
     <Compile Include="TransformationManager.cs" />
+    <Compile Include="UI\AbsUIElement.cs" />
+    <Compile Include="UI\Picture.cs" />
     <Compile Include="UI\Rectangle.cs" />
     <Compile Include="UI\Text.cs" />
     <Compile Include="UI\UIRenderer.cs" />

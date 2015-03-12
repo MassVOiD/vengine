@@ -7,6 +7,7 @@ using System.IO;
 using VDGTech;
 using BulletSharp;
 using VDGTech.Generators;
+using UI = VDGTech.UI;
 using System.Threading;
 
 namespace ShadowsTester
@@ -105,10 +106,11 @@ namespace ShadowsTester
             };
 
             Object3dGenerator.UseCache = false;
-            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2500, -2500), new Vector2(2500, 2500), new Vector2(-1, 1), Vector3.UnitY, 1000, waterGen);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2500, -2500), new Vector2(2500, 2500), new Vector2(-1, 1), Vector3.UnitY, 512, waterGen);
+            */
+          //  var color = SingleTextureMaterial.FromMedia("gtamap.jpg");
 
-            var color = SingleTextureMaterial.FromMedia("gtamap.jpg");*/
-            
+            //Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2500, -2500), new Vector2(2500, 2500), new Vector2(-1, 1), Vector3.UnitY, 512, terrainGen);
             Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-1000, -1000), new Vector2(1000, 1000), new Vector2(1000, 1000), Vector3.UnitY);
 
 
@@ -123,7 +125,7 @@ namespace ShadowsTester
             World.Root.Add(water);
             //World.Root.PhysicalWorld.AddCollisionObject(water.CreateRigidBody());
 
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.PiOver3, 1.0f, 10100.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 5000, 5000, MathHelper.PiOver3, 1.0f, 10000.0f);
             redConeLight.LightColor = Color.FromArgb(255, 255, 255, 255);
             //redConeLight.SetProjection(Matrix4.CreateOrthographic(200, 200, -500, 500));
             LightPool.Add(redConeLight);
@@ -157,11 +159,12 @@ namespace ShadowsTester
             //ParticleSystem.Generators.Add(gen);
 
             //var cubesScene = new ManyCubesScene();
-            //cubesScene.Create();
+            //new ManyCubesScene().Create();
             //var homeScene = new HomeScene();
-            //homeScene.Create();
+           // homeScene.Create();
 
             new SculptScene().Create();
+            //new HallScene().Create();
 
             //MeshLinker.Link(freeCamera.Cam, redConeLight, Vector3.Zero, Quaternion.Identity);
 
@@ -384,15 +387,36 @@ namespace ShadowsTester
                 }
             };
 
+            UI.Text testLabel = new UI.Text(0.85f, 0.95f, "VEngine Test", "Segoe UI", 24, Color.White);
+            World.Root.UI.Elements.Add(testLabel);
 
+          //  UI.Text fpsLabel = new UI.Text(0.85f, 0.85f, " ", "Segoe UI", 24, Color.White);
+          //  World.Root.UI.Elements.Add(fpsLabel);
+
+          //  UI.Rectangle rect = new UI.Rectangle(0.85f, 0.85f, 1.0f, 1.0f, Color.FromArgb(70, Color.Red));
+         //   World.Root.UI.Elements.Add(rect);
+
+            var size = UI.UIRenderer.PixelsToScreenSpace(new Vector2(78, 88));
+            var pos = new Vector2(0.5f) - size / 2.0f;
+            UI.Picture smok = new UI.Picture(pos, size, new Texture(Media.Get("portal_crosshair.png")), 0.5f);
+            World.Root.UI.Elements.Add(smok);
+            
             System.Timers.Timer lensFocusTimer = new System.Timers.Timer();
             lensFocusTimer.Interval = 100;
             lensFocusTimer.Elapsed += (o, e) =>
             {
                 GLThread.Invoke(() =>
-                Camera.Current.CurrentDepthFocus = (Camera.Current.CurrentDepthFocus * 4.0f + window.PostProcessFramebuffer.GetDepth(0.5f, 0.5f)) / 5.0f);
+                Camera.Current.CurrentDepthFocus = (Camera.Current.CurrentDepthFocus * 4.0f + window.PostProcessFramebuffer1.GetDepth(0.5f, 0.5f)) / 5.0f);
             };
             lensFocusTimer.Start();
+
+           /* GLThread.OnBeforeDraw += (o, e) =>
+            {
+                var campos = freeCamera.Cam.Transformation.GetPosition();
+                fpsLabel.Update(1.0f, 0.90f, campos.ToString(), "Segoe UI", 24, Color.White);
+                fpsLabel.Position.X -= fpsLabel.Size.X;
+                rect.Update(fpsLabel.Position.X, fpsLabel.Position.Y, fpsLabel.Size.X, fpsLabel.Size.Y, rect.Color);
+            };*/
 
             Skybox skybox = new Skybox(ManualShaderMaterial.FromName("Skybox"));
             skybox.Use();

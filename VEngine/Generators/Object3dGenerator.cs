@@ -22,7 +22,20 @@ namespace VDGTech.Generators
             uint[] indices = {
                 0, 1, 2, 3, 2, 1
             };
-            return new Object3dInfo(VBO.ToList(), indices.ToList());
+            return new Object3dInfo(VBO, indices);
+        }
+        public static Object3dInfo CreatePlane(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector2 uvScale, Vector3 normal)
+        {
+            float[] VBO = {
+                v1.X, v1.Y, v1.Z, 0, 0, normal.X, normal.Y, normal.Z,
+                v2.X, v2.Y, v1.Z, uvScale.Y, normal.X, normal.Y, normal.Z,
+                v3.X, v3.Y, v1.Z, uvScale.X, 0, normal.X, normal.Y, normal.Z,
+                v4.X, v4.Y, v1.Z, uvScale.X, uvScale.Y, normal.X, normal.Y, normal.Z,
+            };
+            uint[] indices = {
+                0, 1, 2, 3, 2, 1
+            };
+            return new Object3dInfo(VBO, indices);
         }
 
         public static Object3dInfo CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<uint, uint, float> heightGenerator)

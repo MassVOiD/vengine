@@ -2,9 +2,12 @@
 
 in vec2 UV;
 #include Lighting.glsl
+#include LogDepth.glsl
 
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
+layout(binding = 31) uniform sampler2D worldPosTex;
+layout(binding = 32) uniform sampler2D worldPosTexDepth;
 
 uniform float LensBlurAmount;
 uniform float CameraCurrentDepth;
@@ -41,8 +44,8 @@ vec3 ball(vec3 colour, float sizec, float xc, float yc){
 
 #define MATH_E 2.7182818284
 
-float reverseLog(float depth){
-	return pow(MATH_E, depth - 1.0) / LogEnchacer;
+float reverseLog(float dd){
+	return pow(MATH_E, dd - 1.0) / LogEnchacer;
 }
 float getNearDiff(float dist, float limit){
 	float diff = 0.0;
@@ -112,46 +115,6 @@ vec3 blur(float amount){
 	}
 	return outc / (14.0*14.0);
 }
-vec3 blurWhitening(vec3 original){
-	vec3 outc = original;
-	for(float g = 0; g < 14.0; g+=2.0){ 
-		for(float g2 = 0; g2 < 14.0; g2+=2.0){ 
-			vec2 gauss = vec2(getGaussianKernel(int(g)), getGaussianKernel(int(g2))) * 0.2;
-			vec3 color = texture(texColor, UV + gauss).rgb;
-			if(color.x > 0.9 && color.y > 0.9 && color.z > 0.9){
-				outc += 1.0 / (14.0*14.0);
-			}
-		}
-	}
-	return outc;
-}
-
-vec3 lensblur(float amount, float max_radius, float samples){
-	vec3 finalColor = vec3(0.0,0.0,0.0);  
-    float weight = 0.0;//vec4(0.,0.,0.,0.);  
-    float radius = max_radius;  
-	float centerDepth = texture(texDepth, UV).r;
-    for(float x=samples*-1.0;x<samples;x+= 1.0) {  
-        for(float y=samples*-1.0;y<samples;y+= 1.0){  
-			float xc = (x / samples) * ratio;
-			float yc = y / samples;
-			if(length(vec2(xc, yc)) > 1.0) continue;
-            vec2 coord = UV+(vec2(xc, yc) * 0.01 * amount);  
-			coord.x = clamp(abs(coord.x), 0.0, 1.0);
-			coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            if(distance(coord, UV.xy) < max_radius){  
-                float depth = texture(texDepth, coord).r;
-				if(centerDepth - depth < 0.1){
-					vec3 texel = texture(texColor, coord).rgb;
-					float w = length(texel)+0.1;  
-					weight+=w;  
-					finalColor += texel*w;  
-				}
-            }  
-        }  
-    } 
-	return finalColor/weight;	
-}
 /*
 vec3 line(vec2 start, vec2 end, vec3 color){
 	float inter1 = (start.x - position.x) / (start.x - end.x);
@@ -186,17 +149,10 @@ void main()
 	float depth = texture(texDepth, UV).r;
 	
 	//color1 = vec3(edge);
-	if(LensBlurAmount > 0.001){
-		float focus = CameraCurrentDepth;
-		//float adepth = getAveragedDepth();
-		float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);
-		color1 = lensblur(avdepth, 0.01, 8.0);
-	
-	}
+
 	
 	color1 -= vec3(getSSAOAmount(depth)) / 2;
 	
-	color1 = blurWhitening(color1);
 	
 	//FXAA
 	//float edge = getNearDiff(0.0001, reverseLog(depth));
@@ -216,16 +172,33 @@ void main()
 		color1 += line(startSSpace, endSSpace, lineColor);
 	}
 
+	vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;
+	
+	//color1 = normalize(fragmentPosWorld3d);
+	
 	for(int i=0;i<LightsCount;i++){
+	
+		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
+		
+		for(float m = 0.0; m< 1.0;m+= 0.01){
+			vec3 pos = mix(CameraPosition, fragmentPosWorld3d, m);
+			vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
+			if(lightClipSpace.z < 0.0) continue;
+			vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
+			if(lightScreenSpace.x < 0.0 || lightScreenSpace.x > 1.0 || lightScreenSpace.y < 0.0 || lightScreenSpace.y > 1.0)continue;
+			if(toLogDepth(distance(pos, LightsPos[i])) < lookupDepthFromLight(i,lightScreenSpace)) {
+				color1 += LightsColors[i].xyz * LightsColors[i].a / 400.0;
+			}
+		}
+	
 		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(LightsPos[i], 1.0);
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
 		
-		vec4 clipspace2 = (LightsPs[i] * LightsVs[i]) * vec4(CameraPosition, 1.0);
+		vec4 clipspace2 = lightPV * vec4(CameraPosition, 1.0);
 		//if(clipspace2.z < 0.0) continue;
 		vec2 sspace = ((clipspace2.xyz / clipspace2.w).xy + 1.0) / 2.0;
-		float dist = distance(CameraPosition, LightsPos[i]);
-		dist = log(LogEnchacer*dist + 1.0) / log(LogEnchacer*LightsFarPlane[i] + 1.0);
+		float dist = toLogDepth(distance(CameraPosition, LightsPos[i]));
 		float overall = 0.0;
 		for(float gx=-0.001;gx<0.001;gx+=0.0004){
 			for(float gy=-0.001;gy<0.001;gy+=0.0004){
@@ -242,25 +215,13 @@ void main()
 			//color1 += ball(vec3(dist),3.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y);
 			//color1 += ball(vec3(dist),250.0 / distance(CameraPosition, LightsPos[i]), sspace1.x, sspace1.y) * 0.1f;
 		}
-		// now the radial blur goes on
-		/*float pxDistance = distance(UV, sspace1);
-		vec2 direction = (sspace1 - UV) / pxDistance;
-		vec3 colorSum = vec3(0);
-		for(int g=0;g<10;g++){
-			colorSum += texture(texColor, UV + (direction / 200.0) * pxDistance).rgb;
-		}
-		colorSum /= 10.0;
-		//colorSum = colorSum.x + colorSum.y + colorSum.z > 0.9*3 ? (colorSum - 0.9) * 10.0 : vec3(0); // clip to 
-		color1 += colorSum;
-		//color1 = colorSum;
-		*/
+		
+		
 	}
 	
 	//color1 = edge > 0.01 ? vec3(1) : vec3(0);
 
-	if(UV.x > 0.49 && UV.x < 0.51 && abs(UV.y - 0.5) < 0.0003) color1 = vec3(0);
-	if(UV.y > 0.47 && UV.y < 0.53 && abs(UV.x - 0.5) < 0.0009) color1 = vec3(0);
-	
+
 	//color1 *= 1.0 - (pow(distance(UV, vec2(0.5, 0.5)) * 2.0, 2));
 		
 	//if(UV.x > 0.5){
@@ -274,6 +235,6 @@ void main()
                   pow(color1.g, gamma.g),
                   pow(color1.b, gamma.b));
 		
-    outColor = vec4(color1, 1);
-	
+    outColor = vec4(clamp(color1, 0, 1), 1);
+	gl_FragDepth = depth;
 }

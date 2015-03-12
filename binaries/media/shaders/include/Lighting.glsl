@@ -23,7 +23,16 @@ highp float rand(vec2 co)
     highp float sn= mod(dt,3.14);
     return fract(sin(sn) * c);
 }
-
+vec4 quat_from_axis_angle(vec3 axis, float angle)
+{ 
+	vec4 qr;
+	float half_angle = (angle * 0.5) * 3.14159 / 180.0;
+	qr.x = axis.x * sin(half_angle);
+	qr.y = axis.y * sin(half_angle);
+	qr.z = axis.z * sin(half_angle);
+	qr.w = cos(half_angle);
+	return qr;
+}
 vec3 rotate_vector_by_quat( vec4 quat, vec3 vec )
 {
 	return vec + 2.0 * cross( cross( vec, quat.xyz ) + quat.w * vec, quat.xyz );
@@ -32,9 +41,9 @@ vec3 rotate_vector_by_quat( vec4 quat, vec3 vec )
 vec3 rotate_vector_by_vector( vec3 vec_first, vec3 vec_sec )
 {
 	vec3 zeros = vec3(0.0, 1.0, 0.0);
-	vec3 cr = cross(zeros, vec_sec);
-	float angle = dot(normalize(cr), normalize(vec_sec));
-	return rotate_vector_by_quat(vec4(cr, angle), vec_first);
+	vec3 cr = normalize(cross(vec_first, vec_sec));
+	float angle = dot(zeros, normalize(vec_sec));
+	return rotate_vector_by_quat(quat_from_axis_angle(cr, angle), vec_first);
 }
 
 float specular(vec3 normalin, uint index){
@@ -103,7 +112,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float distance1 = 0.0;
 	vec2 fakeUV = vec2(0.0);
 	vec2 offsetDistance = vec2(0.0);
-	float badass_depth = log(LogEnchacer*distance2 + 1.0) / log(LogEnchacer*LightsFarPlane[i] + 1.0);
+	float badass_depth = log(LogEnchacer*distance2 + 1.0) / log(LogEnchacer*FarPlane + 1.0f);
 	//float centerDiff = abs(badass_depth - lookupDepthFromLight(i, uv)) * 10000.0;
 	
 	//float blurAmount = getBlurAmount(uv, i);
@@ -157,7 +166,7 @@ vec3 processLighting(vec3 color){
 	vec3 normalNew  = normal;
 	if(UseNormalMap == 1){
 		vec3 nmap = texture(normalMap, UV).rbg * 2.0 - 1.0;
-		nmap /= 1.5f; // to be sure
+		//nmap /= 1.5f; // to be sure
 
 		normalNew = (vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1)).xyz;
 

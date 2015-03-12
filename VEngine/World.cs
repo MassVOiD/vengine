@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using BulletSharp;
 using OpenTK;
+using VDGTech.UI;
 
 namespace VDGTech
 {
@@ -19,6 +20,7 @@ namespace VDGTech
             PhysicalWorld.SolverInfo.SolverMode = SolverModes.InterleaveContactAndFrictionConstraints;
             PhysicalWorld.SolverInfo.Restitution = 0;
             CollisionObjects = new Dictionary<IRenderable, CollisionObject>();
+            UI = new UIRenderer();
             if(Root == null)
                 Root = this;
         }
@@ -26,6 +28,7 @@ namespace VDGTech
         public static World Root;
         public volatile bool Disposed;
         public Line2dPool LinesPool;
+        public UIRenderer UI;
         public Quaternion Orientation = Quaternion.Identity;
         public DiscreteDynamicsWorld PhysicalWorld;
         public Vector3 Position = new Vector3(0, 0, 0);
@@ -153,6 +156,9 @@ namespace VDGTech
         public virtual void UpdatePhysics(float time)
         {
             PhysicalWorld.StepSimulation(time * SimulationSpeed);
+            if(!World.Root.ShouldUpdatePhysics)
+                return;
+            World.Root.ShouldUpdatePhysics = false;
             int len = PhysicalWorld.CollisionObjectArray.Count;
             Mesh3d mesh;
             CollisionObject body;

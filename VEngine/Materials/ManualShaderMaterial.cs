@@ -9,10 +9,17 @@ namespace VDGTech
         {
             Program = ShaderProgram.Compile(vertex, fragment, geometry, tesscontrol, tesseval);
         }
+        public static ManualShaderMaterial FromMedia(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
+        {
+            return new ManualShaderMaterial(
+                Media.ReadAllText(vertex),
+                Media.ReadAllText(fragment),
+                geometry != null ? Media.ReadAllText(geometry) : null,
+                tesscontrol != null ? Media.ReadAllText(tesscontrol) : null,
+                tesseval != null ? Media.ReadAllText(tesseval) : null);
+        }
 
-        protected Color Color;
         protected ShaderProgram Program;
-        protected Texture Tex = null;
 
         public static ManualShaderMaterial FromName(string name)
         {
@@ -24,28 +31,10 @@ namespace VDGTech
             return Program;
         }
 
-        public void SetColor(Color color)
-        {
-            Color = color;
-        }
-
-        public void SetTexture(Texture tex)
-        {
-            Tex = tex;
-        }
 
         public virtual bool Use()
         {
             bool res = Program.Use();
-            if(Tex != null)
-            {
-                Program.SetUniform("UseNormalMap", 0);
-                Tex.Use(TextureUnit.Texture0);
-            }
-            if(Color != null)
-            {
-                Program.SetUniform("input_Color", Color);
-            }
             return res;
         }
     }

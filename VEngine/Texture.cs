@@ -85,6 +85,15 @@ namespace VDGTech
             Update(bmp);
         }
 
+        public static SizeF MeasureText(string text, string font, float size)
+        {
+            Bitmap bmp = new Bitmap(1, 1);
+            var textSize = Graphics.FromImage(bmp).MeasureString(text, new Font(font, size), new PointF(0, 0), StringFormat.GenericDefault);
+            bmp = new Bitmap((int)textSize.Width, (int)textSize.Height);
+
+            return textSize;
+        }
+
         public void Use(TextureUnit unit)
         {
             if(!Generated)

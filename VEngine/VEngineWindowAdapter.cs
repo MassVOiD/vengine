@@ -20,12 +20,14 @@ namespace VDGTech
             GLThread.StartTime = DateTime.Now;
             GLThread.Resolution = new Vector2(width, height);
 
-            PostProcessFramebuffer = new Framebuffer(width, height);
-            //NormalWritingFramebuffer = new Framebuffer(width, height);
-            //NormalWritingShaderProgram = ShaderProgram.Compile(Media.ReadAllText("WriteNormals.vertex.glsl"), Media.ReadAllText("WriteNormals.fragment.glsl"));
+            PostProcessFramebuffer1 = new Framebuffer(width, height);
+            PostProcessFramebuffer2 = new Framebuffer(width, height);
+            WorldPosFramebuffer = new Framebuffer(width, height);
+            WorldPosWriteMaterial = ManualShaderMaterial.FromMedia("Generic.vertex.glsl", "WriteWorldPosition.fragment.glsl");
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
-            PostProcessingDefaultMaterial = new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.fragment.glsl"));
-            PostProcessingMesh = new Mesh3d(postPlane3dInfo, PostProcessingDefaultMaterial);
+            PostProcessingDefaultMaterialStage1 = new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.pass1.fragment.glsl"));
+            PostProcessingDefaultMaterialStage2 = new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.pass2.fragment.glsl"));
+            PostProcessingMesh = new Mesh3d(postPlane3dInfo, PostProcessingDefaultMaterialStage1);
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
@@ -67,7 +69,7 @@ namespace VDGTech
             }
         }
 
-        public Framebuffer PostProcessFramebuffer, NormalWritingFramebuffer;
+        public Framebuffer PostProcessFramebuffer1, PostProcessFramebuffer2, WorldPosFramebuffer;
 
         private static uint[] postProcessingPlaneIndices = {
                 0, 1, 2, 3, 2, 1
@@ -80,8 +82,7 @@ namespace VDGTech
                 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
             };
 
-        private ShaderProgram NormalWritingShaderProgram;
-        private IMaterial PostProcessingDefaultMaterial;
+        private IMaterial PostProcessingDefaultMaterialStage1, PostProcessingDefaultMaterialStage2, WorldPosWriteMaterial;
         private Mesh3d PostProcessingMesh;
 
         public void SetCustomPostProcessingMaterial(IMaterial material)
@@ -91,7 +92,7 @@ namespace VDGTech
 
         public void SetDefaultPostProcessingMaterial()
         {
-            PostProcessingMesh.Material = PostProcessingDefaultMaterial;
+            PostProcessingMesh.Material = PostProcessingDefaultMaterialStage1;
         }
 
         public void StartPhysicsThread()
@@ -120,7 +121,15 @@ namespace VDGTech
 
             LightPool.MapAll();
 
-            PostProcessFramebuffer.Use();
+            WorldPosFramebuffer.Use();
+            GL.Viewport(0, 0, Width, Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            WorldPosWriteMaterial.Use();
+            ShaderProgram.Lock = true;
+            DrawAll();
+            ShaderProgram.Lock = false;
+
+            PostProcessFramebuffer1.Use();
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -136,19 +145,19 @@ namespace VDGTech
             /*NormalWritingFramebuffer.Use();
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);*/
-            PostProcessFramebuffer.RevertToDefault();
+
+            // Now we have image in pp fbo1
+            // lets set up drawing to fbo2
+
+            PostProcessFramebuffer2.Use();
 
             GL.Viewport(0, 0, Width, Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            PostProcessFramebuffer.UseTexture(0);
+            PostProcessFramebuffer1.UseTexture(0);
+            WorldPosFramebuffer.UseTexture(31);
             var ppProgram = PostProcessingMesh.Material.GetShaderProgram();
             ppProgram.Use();
-            if(Camera.Current != null)
-            {
-                ppProgram.SetUniform("CameraCurrentDepth", Camera.Current.CurrentDepthFocus);
-                ppProgram.SetUniform("LensBlurAmount", Camera.Current.LensBlurAmount);
-            }
             var linesStarts = World.Root.LinesPool.GetStartsVectors();
             var linesEnds = World.Root.LinesPool.GetEndsVectors();
             var linesColors = World.Root.LinesPool.GetColors();
@@ -157,7 +166,27 @@ namespace VDGTech
             ppProgram.SetUniformArray("Lines2dEnds", linesEnds);
             ppProgram.SetUniformArray("Lines2dColors", linesColors);
             //LightPool.UseTextures(2);
+
+            ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
+            ShaderProgram.Lock = false;
+
+
+            PostProcessFramebuffer2.RevertToDefault();
+            GL.Viewport(0, 0, Width, Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            PostProcessFramebuffer2.UseTexture(0);
+            PostProcessingDefaultMaterialStage2.Use();
+            if(Camera.Current != null)
+            {
+                ppProgram.SetUniform("CameraCurrentDepth", Camera.Current.CurrentDepthFocus);
+                ppProgram.SetUniform("LensBlurAmount", Camera.Current.LensBlurAmount);
+            }
+            ShaderProgram.Lock = true;
+            PostProcessingMesh.Draw();
+            ShaderProgram.Lock = false;
+
+            World.Root.UI.DrawAll();
 
             GLThread.CheckErrors();
 
@@ -169,8 +198,8 @@ namespace VDGTech
             //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f));
             GLThread.InvokeOnUpdate();
             MeshLinker.Resolve();
-            Debugger.Send("FrameTime", e.Time);
-            Debugger.Send("FPS", 1.0 / e.Time);
+            //Debugger.Send("FrameTime", e.Time);
+            //Debugger.Send("FPS", 1.0 / e.Time);
             var keyboard = OpenTK.Input.Keyboard.GetState();
             //if (Camera.Current != null) Camera.Current.ProcessKeyboardState(keyboard);
             if(keyboard[OpenTK.Input.Key.Escape])

@@ -105,6 +105,9 @@ namespace VDGTech
                 shader.SetUniform("LightsCount", LightPool.GetPositions().Length);
 
                 shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+                shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+                shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+                shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
                 shader.SetUniform("FarPlane", Camera.Current.Far);
                 shader.SetUniform("resolution", GLThread.Resolution);
             }

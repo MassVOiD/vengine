@@ -35,11 +35,11 @@ namespace ShadowsTester
             int allCount = 0;
             var meshes = new List<Mesh3d>();
             Mesh3d lastmesh = null;
-            for(int x = 0; x < 5; x++)
+            for(int x = 0; x < 2; x++)
             {
-                for(int y = 0; y < 100; y++)
+                for(int y = 0; y < 500; y++)
                 {
-                    for(int z = 0; z < 5; z++)
+                    for(int z = 0; z < 2; z++)
                     {
                         Mesh3d mesh = new Mesh3d(icosphere, material);
                         mesh.Transformation.SetPosition(new Vector3(x, y + 10.0f, z ) - new Vector3(4, 0, 4));
