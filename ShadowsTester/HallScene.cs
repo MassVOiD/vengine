@@ -15,7 +15,7 @@ namespace ShadowsTester
         public HallScene()
         {
             var testroom = Object3dInfo.LoadSceneFromObj(Media.Get("hall.obj"), Media.Get("hall.mtl"), 1.0f);
-            //var instances = InstancedMesh3d.FromMesh3dList(testroom);
+           // var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in testroom)
                 this.Add(ob);
         }

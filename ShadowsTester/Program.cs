@@ -163,8 +163,8 @@ namespace ShadowsTester
             //var homeScene = new HomeScene();
            // homeScene.Create();
 
-            new SculptScene().Create();
-            //new HallScene().Create();
+            //new SculptScene().Create();
+            new HallScene().Create();
 
             //MeshLinker.Link(freeCamera.Cam, redConeLight, Vector3.Zero, Quaternion.Identity);
 

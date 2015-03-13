@@ -269,22 +269,43 @@ namespace VDGTech
             var objs = ParseOBJString(lines);
             var mtllib = LoadMaterialsFromMtl(mtlfile);
             List<Mesh3d> meshes = new List<Mesh3d>();
+            Dictionary<string, IMaterial> texCache = new Dictionary<string, IMaterial>();
+            Dictionary<Color, IMaterial> colorCache = new Dictionary<Color, IMaterial>();
+            Dictionary<IMaterial, List<Object3dInfo>> linkCache = new Dictionary<IMaterial, List<Object3dInfo>>();
+            var colorPink = new SolidColorMaterial(Color.Pink);
+
             foreach(var obj in objs)
             {
                 var mat = mtllib.ContainsKey(obj.MaterialName) ? mtllib[obj.MaterialName] : null;
                 IMaterial material = null;
                 if(mat != null && mat.TextureName.Length > 0)
                 {
-                    material = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName));
+                    if(texCache.ContainsKey(mat.TextureName))
+                    {
+                        material = texCache[mat.TextureName];
+                    }
+                    else
+                    {
+                        material = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName));
+                        texCache.Add(mat.TextureName, material);
+                    }
                     //material = new SolidColorMaterial(Color.Pink);
                 }
                 else if(mat != null)
                 {
-                    material = new SolidColorMaterial(mat.DiffuseColor);
+                    if(colorCache.ContainsKey(mat.DiffuseColor))
+                    {
+                        material = colorCache[mat.DiffuseColor];
+                    }
+                    else
+                    {
+                        material = new SolidColorMaterial(mat.DiffuseColor);
+                        colorCache.Add(mat.DiffuseColor, material);
+                    }
                 }
                 else
                 {
-                    material = new SolidColorMaterial(Color.Pink);
+                    material = colorPink;
                 }
 
 
@@ -295,11 +316,24 @@ namespace VDGTech
                     obj.VBO[i + 2] *= scale;
                 }
                 var o3di = new Object3dInfo(obj.VBO, obj.Indices);
+                if(!linkCache.ContainsKey(material))
+                    linkCache.Add(material, new List<Object3dInfo> { o3di });
+                else
+                    linkCache[material].Add(o3di);
+            }
+            foreach(var kv in linkCache)
+            {
+                Object3dInfo o3di = kv.Value[0];
+                if(kv.Value.Count > 1)
+                {
+                    foreach(var e in kv.Value.Skip(1))
+                        o3di.Append(e);
+                }
                 var trans = o3di.GetAverageTranslationFromZero();
                 o3di.OriginToCenter();
                 // o3di.CorrectFacesByNormals();
-                Mesh3d mesh = new Mesh3d(o3di, material);
-                mesh.SpecularComponent = mat.SpecularStrength;
+                Mesh3d mesh = new Mesh3d(o3di, kv.Key);
+               // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 mesh.Transformation.Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(), 1.0f, 1.0f));
                 meshes.Add(mesh);
