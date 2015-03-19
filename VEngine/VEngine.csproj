@@ -56,6 +56,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dependencies\BulletSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Noesis.Javascript" Condition="'$(PlatformTarget)' == 'x86'">
+      <HintPath>..\packages\Noesis.Javascript.0.7.1.0\lib\net40\x86\Noesis.Javascript.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Desktop\opentk-develop\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
@@ -77,6 +80,9 @@
     </Content>
     <Compile Include="ComputeShader.cs" />
     <Compile Include="Debugger.cs" />
+    <Compile Include="Fog\FogDensitySphere.cs" />
+    <Compile Include="Fog\FogPool.cs" />
+    <Compile Include="IntHashGenerator.cs" />
     <Compile Include="Lights\PointLight.cs" />
     <Compile Include="Lights\ProjectionLight.cs" />
     <Compile Include="Framebuffer.cs" />
@@ -123,7 +129,17 @@
     <Compile Include="VEngineWindowAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    if not exist "$(TargetDir)x86" md "$(TargetDir)x86"
+    xcopy /s /y "$(SolutionDir)packages\Noesis.Javascript.0.7.1.0\NativeBinaries\net40\x86\*.*" "$(TargetDir)x86"
+    if not exist "$(TargetDir)amd64" md "$(TargetDir)amd64"
+    xcopy /s /y "$(SolutionDir)packages\Noesis.Javascript.0.7.1.0\NativeBinaries\net40\amd64\*.*" "$(TargetDir)amd64"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

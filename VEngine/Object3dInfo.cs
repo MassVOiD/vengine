@@ -131,9 +131,7 @@ namespace VDGTech
 
                 inStream.Read(buf, 0, 8);
                 int vcount = BitConverter.ToInt32(buf, 0);
-                Console.WriteLine(vcount);
                 int icount = BitConverter.ToInt32(buf, 4);
-                Console.WriteLine(icount);
 
                 List<float> vertices = new List<float>();
                 List<uint> indices = new List<uint>();
@@ -288,6 +286,7 @@ namespace VDGTech
                     {
                         material = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName));
                         texCache.Add(mat.TextureName, material);
+                       // material = colorPink;
                     }
                     //material = new SolidColorMaterial(Color.Pink);
                 }

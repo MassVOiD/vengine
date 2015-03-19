@@ -8,6 +8,7 @@ layout(binding = 1) uniform sampler2D texDepth;
 
 uniform float LensBlurAmount;
 uniform float CameraCurrentDepth;
+uniform float Brightness;
 
 out vec4 outColor;
 
@@ -27,26 +28,44 @@ float reverseLog(float depth){
 	return pow(MATH_E, depth - 1.0) / LogEnchacer;
 }
 
-vec3 blurWhitening(vec3 original){
-	vec3 outc = original;
-	for(float g = 0; g < 14.0; g+=2.0){ 
-		for(float g2 = 0; g2 < 14.0; g2+=2.0){ 
-			vec2 gauss = vec2(getGaussianKernel(int(g)), getGaussianKernel(int(g2))) * 0.2;
-			vec3 color = texture(texColor, UV + gauss).rgb;
-			if(color.x > 0.9 && color.y > 0.9 && color.z > 0.9){
-				outc += 1.0 / (14.0*14.0);
-			}
-		}
-	}
-	return outc;
-}
 
 float centerDepth;
 
+#define mPI (3.14159265)
+#define mPI2 (2*3.14159265)
 vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 	vec3 finalColor = vec3(0.0,0.0,0.0);  
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
     float radius = max_radius;  
+	float centerDepthDistance = abs(reverseLog(centerDepth) - reverseLog(depthfocus));
+	//float centerDepth = texture(texDepth, UV).r;
+    for(float x = 0; x < mPI2; x+=0.1){ 
+        for(float y=0;y<samples;y+= 1.0){  
+			vec2 crd = vec2(sin(x) * ratio, cos(x)) * (y * 0.25);
+			if(length(crd) > 1.0) continue;
+            vec2 coord = UV+crd * 0.01 * amount;  
+			//coord.x = clamp(abs(coord.x), 0.0, 1.0);
+			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
+            if(distance(coord, UV.xy) < max_radius){  
+                float depth = texture(texDepth, coord).r;
+				if(centerDepth - depth < 0.05 || centerDepthDistance > 0.4 || depth > 0.99 || centerDepth > 0.99){
+					vec3 texel = texture(texColor, coord).rgb;
+					float w = length(texel)+0.1;
+					weight+=w;
+					finalColor += texel*w;
+				}
+            }
+        }
+    }
+	return finalColor/weight;
+}
+
+/*
+vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
+	vec3 finalColor = vec3(0.0,0.0,0.0);  
+    float weight = 0.0;//vec4(0.,0.,0.,0.);  
+    float radius = max_radius;  
+	float centerDepthDistance = abs(reverseLog(centerDepth) - reverseLog(depthfocus));
 	//float centerDepth = texture(texDepth, UV).r;
     for(float x=samples*-1.0;x<samples;x+= 1.0) {  
         for(float y=samples*-1.0;y<samples;y+= 1.0){  
@@ -58,7 +77,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
             if(distance(coord, UV.xy) < max_radius){  
                 float depth = texture(texDepth, coord).r;
-				if(centerDepth - depth < 0.05){
+				if(centerDepth - depth < 0.05 || centerDepthDistance > 0.4 || depth > 0.99 || centerDepth > 0.99){
 					vec3 texel = texture(texColor, coord).rgb;
 					float w = length(texel)+0.1;
 					weight+=w;
@@ -68,7 +87,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
         }
     }
 	return finalColor/weight;
-}
+}*/
 void main()
 {
 
@@ -78,11 +97,15 @@ void main()
 	if(LensBlurAmount > 0.001){
 		float focus = CameraCurrentDepth;
 		float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);
-		color1 = lensblur(avdepth, focus, 0.03, 4.0);
+		color1 = lensblur(avdepth, focus, 0.03, 7.0);
 	
 	}
-	//color1 = blurWhitening(color1);
 	
+	vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
+	color1 = vec3(pow(color1.r, gamma.r),
+                  pow(color1.g, gamma.g),
+                  pow(color1.b, gamma.b));
+				  
     outColor = vec4(color1, 1.0);
 	
 }

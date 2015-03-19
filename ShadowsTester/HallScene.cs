@@ -14,10 +14,22 @@ namespace ShadowsTester
     {
         public HallScene()
         {
-            var testroom = Object3dInfo.LoadSceneFromObj(Media.Get("hall.obj"), Media.Get("hall.mtl"), 1.0f);
+            var testroom = Object3dInfo.LoadSceneFromObj(Media.Get("hall.obj"), Media.Get("hall.mtl"), 2.0f);
            // var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in testroom)
+            {
+               /* if(ob.ObjectInfo.GetAxisAlignedBox().Length > 20.0f)
+                {
+                    ob.SetMass(0);
+                    ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
+                }
+                else
+                {
+                    ob.SetMass(3.0f);
+                    ob.SetCollisionShape(ob.ObjectInfo.GetConvexHull());
+                }*/
                 this.Add(ob);
+            }
         }
 
     }

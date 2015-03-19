@@ -10,7 +10,7 @@ namespace ShadowsTester
         public FreeCamera(float aspectRatio, float fov)
         {
             Cam = new Camera(new Vector3(20, 20, 20), new Vector3(0, 2, 0), aspectRatio, fov, 1.0f, 10000.0f);
-            collisionShape = new SphereShape(0.01f);
+            collisionShape = new SphereShape(0.8f);
             //collisionShape.LinearDamping = 0.5f;
             rigidBody = World.Root.CreateRigidBody(0.01f, Matrix4.CreateTranslation(Cam.Transformation.GetPosition()), collisionShape, null);
             rigidBody.SetSleepingThresholds(0, 0);

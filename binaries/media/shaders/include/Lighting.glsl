@@ -121,26 +121,26 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 		//float gaussKernel[14] = float[14](-0.028, -0.024,-0.020,-0.016,-0.012,-0.008,-0.004,.004,.008,.012,0.016,0.020,0.024,0.028); 
 		
 		
-		for(int g = 0; g < 14; g++){ 
+		for(int g = 0; g < 14; g+=2){ 
 			vec2 gauss = vec2(0, gaussKernel[g]);
 			offsetDistance = gauss * (distance2 / LightsFarPlane[i] /15.0 + 0.03f);
 			fakeUV = uv + offsetDistance;
 			distance1 = lookupDepthFromLight(i, fakeUV);
 			float diff = abs(distance1 -  badass_depth);
-			if(diff > 0.0001) accum -= 1.0/28.0;
+			if(diff > 0.0003) accum -= 1.0/14.0;
 		}
-		for(int g = 0; g < 14; g++){ 
+		for(int g = 0; g < 14; g+=2){ 
 			vec2 gauss = vec2(gaussKernel[g], 0);
 			offsetDistance = gauss * (distance2 / LightsFarPlane[i] / 15.0 + 0.03f);
 			fakeUV = uv + offsetDistance;
 			distance1 = lookupDepthFromLight(i, fakeUV);
 			float diff = abs(distance1 -  badass_depth);
-			if(diff > 0.0001) accum -= 1.0/28.0;
+			if(diff > 0.0003) accum -= 1.0/14.0;
 		}
 	} else {
 		distance1 = lookupDepthFromLight(i, uv);
 		float diff = abs(distance1 -  badass_depth);
-		if(diff > 0.0001) accum -= 1.0;
+		if(diff > 0.0003) accum -= 1.0;
 	}
 	return accum;
 }
@@ -166,7 +166,7 @@ vec3 processLighting(vec3 color){
 	vec3 normalNew  = normal;
 	if(UseNormalMap == 1){
 		vec3 nmap = texture(normalMap, UV).rbg * 2.0 - 1.0;
-		//nmap /= 1.5f; // to be sure
+		nmap *= 1.5f; // to be sure
 
 		normalNew = (vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1)).xyz;
 
@@ -188,19 +188,19 @@ vec3 processLighting(vec3 color){
 				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
 			} 
 		}else {
-			for(uint i = 0; i < LightsCount; i++)
+			/*for(uint i = 0; i < LightsCount; i++)
 			{
 				float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
 				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
 				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
-			}
+			}*/
 		}
 		specularComponent = clamp(specularComponent, 0.0, 1.0);
 		diffuseComponent = clamp(diffuseComponent, 0.0, 1.0);
 		vec3 ambient = color * 0.03; // this is place for global ambient occlusion
 		if(shadow) {
-			multiplier /= lightsIlluminating; 
+			//multiplier /= lightsIlluminating; 
 			color = (color *multiplier * diffuseComponent + (specularComponent*multiplier)).xyz;
 		}else {
 			color = (color * diffuseComponent + (specularComponent)).xyz;

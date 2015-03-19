@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -34,6 +36,20 @@ namespace VDGTech
         private bool Compiled;
         private Dictionary<string, int> UniformLocationsCache;
         private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
+        private static Dictionary<string, string> Globals = new Dictionary<string,string>();
+
+        public static void SetGlobal(string key, string value)
+        {
+            if(Globals.ContainsKey(key))
+                Globals[key] = value;
+            else
+                Globals.Add(key, value);
+        }
+        public static void RemoveGlobal(string key)
+        {
+            if(Globals.ContainsKey(key))
+                Globals.Remove(key);
+        }
 
         public static ShaderProgram Compile(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
         {
@@ -254,7 +270,15 @@ namespace VDGTech
         {
             int shader = GL.CreateShader(type);
 
-            GL.ShaderSource(shader, source);
+            StringBuilder globalsString = new StringBuilder();
+            foreach(var g in Globals)
+            {
+                globalsString.AppendLine("#define " + g.Key + " " + g.Value);
+            }
+
+            string fullsrc = Regex.Replace(source, @"\#version (.+)\r\n", "#version $1\r\n" + globalsString);
+
+            GL.ShaderSource(shader, fullsrc);
 
             GL.CompileShader(shader);
 

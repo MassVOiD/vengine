@@ -17,4 +17,6 @@ void main( void ) {
 	vec3 sky = mix(top, bottom, 1.0 - p.y);
 	
 	outColor = vec4(sky, 1.0);
+	//outColor = vec4(0, 0, 0, 1);
+	gl_FragDepth = 1.0;
 }

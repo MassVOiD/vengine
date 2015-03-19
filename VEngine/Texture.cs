@@ -53,6 +53,8 @@ namespace VDGTech
             }
             Size = bitmap.Size;
             Bitmap = BitmapToByteArray(bitmap);
+            bitmap.Dispose();
+            GC.Collect();
         }
 
         public void Update(Bitmap bitmap)
@@ -64,6 +66,8 @@ namespace VDGTech
             }
             Size = bitmap.Size;
             Bitmap = BitmapToByteArray(bitmap);
+            bitmap.Dispose();
+            GC.Collect();
         }
 
         public void UpdateFromText(string text, string font, float size, Color textColor, Color background)
@@ -83,14 +87,18 @@ namespace VDGTech
 
             g.Flush();
             Update(bmp);
+            bmp.Dispose();
+            GC.Collect();
         }
 
         public static SizeF MeasureText(string text, string font, float size)
         {
             Bitmap bmp = new Bitmap(1, 1);
             var textSize = Graphics.FromImage(bmp).MeasureString(text, new Font(font, size), new PointF(0, 0), StringFormat.GenericDefault);
-            bmp = new Bitmap((int)textSize.Width, (int)textSize.Height);
+            
 
+            bmp.Dispose();
+            GC.Collect();
             return textSize;
         }
 

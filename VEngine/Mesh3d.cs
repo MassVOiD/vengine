@@ -146,7 +146,7 @@ namespace VDGTech
         private void UpdateMatrix()
         {
             RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
-            Matrix = RotationMatrix * Matrix4.CreateScale(Transformation.GetScale()) * Matrix4.CreateTranslation(Transformation.GetPosition());
+            Matrix =  Matrix4.CreateScale(Transformation.GetScale()) * RotationMatrix * Matrix4.CreateTranslation(Transformation.GetPosition());
         }
     }
 }

@@ -45,7 +45,6 @@ namespace VDGTech
             Vector4 direction = Vector4.UnitZ;
             direction = Vector4.Transform(direction, rotationY);
             direction = Vector4.Transform(direction, rotationX);
-            System.Console.WriteLine(direction.ToString());
             return -direction.Xyz;
         }
 

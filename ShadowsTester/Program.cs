@@ -40,7 +40,7 @@ namespace ShadowsTester
             // System.Threading.Thread.Sleep(1000);
 
             float aspect = Config.Height > Config.Width ? Config.Height / Config.Width : Config.Width / Config.Height;
-            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver3);
+            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver2);
             FreeCam = freeCamera;
 
             Object3dInfo infocube = Object3dInfo.LoadFromObjSingle(Media.Get("cube.obj"));
@@ -76,8 +76,10 @@ namespace ShadowsTester
                     (SimplexNoise.Noise.Generate((float)x / 24, (float)y / 23) * 31) +
                     (SimplexNoise.Noise.Generate((float)x / 35, (float)y / 66) * 80) +
                     (SimplexNoise.Noise.Generate((float)x / 99, (float)y / 111) * 122);
-                return h;
+                float dist = ((new Vector2(150, 150) - new Vector2(x, y)).Length) / 150.0f;
+                return h * dist * 5.0f;
             };
+            Object3dGenerator.UseCache = false;
             /*
             short[,] hmap = new short[6001, 6001];
             FileStream hmapfile = File.OpenRead(Media.Get("SAfull.hmap"));
@@ -110,11 +112,12 @@ namespace ShadowsTester
             */
           //  var color = SingleTextureMaterial.FromMedia("gtamap.jpg");
 
-            //Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2500, -2500), new Vector2(2500, 2500), new Vector2(-1, 1), Vector3.UnitY, 512, terrainGen);
-            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-1000, -1000), new Vector2(1000, 1000), new Vector2(1000, 1000), Vector3.UnitY);
+            //Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2500, -2500), new Vector2(2500, 2500), new Vector2(1000, 1000), Vector3.UnitY, 300, terrainGen);
+            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
 
 
-            var color = SingleTextureMaterial.FromMedia("158.JPG", "158_norm.JPG");
+            //var color = SingleTextureMaterial.FromMedia("158.JPG", "158_norm.JPG");
+            var color = new SolidColorMaterial(Color.White);
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
@@ -125,29 +128,91 @@ namespace ShadowsTester
             World.Root.Add(water);
             //World.Root.PhysicalWorld.AddCollisionObject(water.CreateRigidBody());
 
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 5000, 5000, MathHelper.PiOver3, 1.0f, 10000.0f);
-            redConeLight.LightColor = Color.FromArgb(255, 255, 255, 255);
+            bool currentlySettingHDR = false;
+            GLThread.CreateTimer(() =>
+            {
+                if(currentlySettingHDR)
+                    return;
+                currentlySettingHDR = true;
+                GLThread.Invoke(() =>
+                {
+                    var pixels = window.PostProcessFramebuffer2.GetColorBuffer();
+                    GLThread.RunAsync(() =>
+                    {
+                        float average = 0.0f;
+                        for(int i = 0; i < pixels.Length; i += 4)
+                        {
+                            var l = pixels[i].ToVector3().LengthFast;
+                            average += l / pixels.Length;
+                        }
+                        window.Brightness = (window.Brightness * 7.0f + (1.5f - average * 3.5f)) / 8.0f;
+                        currentlySettingHDR = false;
+                    });
+                });
+            }, 30).Start();
+
+
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver3, 1.0f, 10000.0f);
+            redConeLight.LightColor = Color.FromArgb(255, 255, 230, 210);
+
+
             //redConeLight.SetProjection(Matrix4.CreateOrthographic(200, 200, -500, 500));
             LightPool.Add(redConeLight);
-            /*
+            
             GLThread.OnUpdate += (o, e) =>
             {
                 var kb = OpenTK.Input.Keyboard.GetState();
-                if(kb.IsKeyDown(OpenTK.Input.Key.Minus))
+                if(kb.IsKeyDown(OpenTK.Input.Key.Left))
                 {
-                    redConeLight.camera.ViewMatrix = Matrix4.CreateFromAxisAngle(Vector3.UnitX, 0.01f) * redConeLight.camera.ViewMatrix;
                     var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, 0.01f)));
-                    redConeLight.camera.Transformation.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, 0.01f));
+                    redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitX / 12.0f);
                 }
-                if(kb.IsKeyDown(OpenTK.Input.Key.Plus))
+                if(kb.IsKeyDown(OpenTK.Input.Key.Right))
                 {
-                    redConeLight.camera.ViewMatrix = Matrix4.CreateFromAxisAngle(Vector3.UnitX, -0.01f) * redConeLight.camera.ViewMatrix;
                     var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, -0.01f)));
-                    redConeLight.camera.Transformation.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, -0.01f));
+                    redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitX / 12.0f);
                 }
-            };*/
+                if(kb.IsKeyDown(OpenTK.Input.Key.Up))
+                {
+                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitZ / 12.0f);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.Down))
+                {
+                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitZ / 12.0f);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.PageUp))
+                {
+                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitY / 12.0f);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.PageDown))
+                {
+                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitY / 12.0f);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.U))
+                {
+                    var quat = Quaternion.FromAxisAngle(redConeLight.camera.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
+                    redConeLight.camera.Transformation.Rotate(quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.J))
+                {
+                    var quat = Quaternion.FromAxisAngle(redConeLight.camera.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
+                    redConeLight.camera.Transformation.Rotate(quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.H))
+                {
+                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
+                    redConeLight.camera.Transformation.Rotate(quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.K))
+                {
+                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
+                    redConeLight.camera.Transformation.Rotate(quat);
+                }
+            };
 
             // ProjectionLight greenConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 4000, 4000, MathHelper.PiOver2, 1.0f, 13000.0f); greenConeLight.LightColor = Color.Green; LightPool.Add(greenConeLight);
 
@@ -165,14 +230,15 @@ namespace ShadowsTester
 
             //new SculptScene().Create();
             new HallScene().Create();
+            //new CarScene().Create();
 
             //MeshLinker.Link(freeCamera.Cam, redConeLight, Vector3.Zero, Quaternion.Identity);
 
-            Object3dInfo portalgunInfo = Object3dInfo.LoadFromObjSingle(Media.Get("portalgun.obj"));
+            /*Object3dInfo portalgunInfo = Object3dInfo.LoadFromObjSingle(Media.Get("portalgun.obj"));
             Mesh3d portalgun = new Mesh3d(portalgunInfo, SingleTextureMaterial.FromMedia("portalgun_col.jpg", "portalgun_nor.jpg"));
             portalgun.Transformation.SetScale(0.1f);
             World.Root.Add(portalgun);
-            MeshLinker.Link(freeCamera.Cam, portalgun, new Vector3(0.1f, -0.07f, -0.1f), Quaternion.Identity);
+            MeshLinker.Link(freeCamera.Cam, portalgun, new Vector3(0.1f, -0.07f, -0.1f), Quaternion.Identity);*/
             /*
             Object3dInfo carInfo = Object3dInfo.LoadFromObjSingle(Media.Get("aston.obj"));
             carInfo.OriginToCenter();
@@ -396,9 +462,9 @@ namespace ShadowsTester
           //  UI.Rectangle rect = new UI.Rectangle(0.85f, 0.85f, 1.0f, 1.0f, Color.FromArgb(70, Color.Red));
          //   World.Root.UI.Elements.Add(rect);
 
-            var size = UI.UIRenderer.PixelsToScreenSpace(new Vector2(78, 88));
-            var pos = new Vector2(0.5f) - size / 2.0f;
-            UI.Picture smok = new UI.Picture(pos, size, new Texture(Media.Get("portal_crosshair.png")), 0.5f);
+            var size = UI.UIRenderer.PixelsToScreenSpace(new Vector2(48, 48));
+            var posa = new Vector2(0.5f) - size / 2.0f;
+            UI.Picture smok = new UI.Picture(posa, size, new Texture(Media.Get("portal_crosshair.png")), 0.5f);
             World.Root.UI.Elements.Add(smok);
             
             System.Timers.Timer lensFocusTimer = new System.Timers.Timer();
@@ -406,7 +472,7 @@ namespace ShadowsTester
             lensFocusTimer.Elapsed += (o, e) =>
             {
                 GLThread.Invoke(() =>
-                Camera.Current.CurrentDepthFocus = (Camera.Current.CurrentDepthFocus * 4.0f + window.PostProcessFramebuffer1.GetDepth(0.5f, 0.5f)) / 5.0f);
+                Camera.Current.CurrentDepthFocus = (Camera.Current.CurrentDepthFocus * 4.0f + window.PostProcessFramebuffer2.GetDepth(0.5f, 0.5f)) / 5.0f);
             };
             lensFocusTimer.Start();
 
@@ -418,8 +484,14 @@ namespace ShadowsTester
                 rect.Update(fpsLabel.Position.X, fpsLabel.Position.Y, fpsLabel.Size.X, fpsLabel.Size.Y, rect.Color);
             };*/
 
-            Skybox skybox = new Skybox(ManualShaderMaterial.FromName("Skybox"));
-            skybox.Use();
+            //Skybox skybox = new Skybox(ManualShaderMaterial.FromMedia("Skybox.vertex.glsl", "NightSky.fragment.glsl"));
+            //skybox.Use();
+
+            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("skydome.obj"));
+            var skydomeMaterial = ManualShaderMaterial.FromMedia("Generic.vertex.glsl", "NightSky.fragment.glsl");
+            var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
+            skydome.Transformation.Scale(100);
+            World.Root.Add(skydome);
 
             GLThread.OnMouseWheel += (o, e) =>
             {
@@ -427,7 +499,7 @@ namespace ShadowsTester
                     Camera.Current.LensBlurAmount -= e.Delta / 20.0f;
             };
 
-            World.Root.SimulationSpeed = 8.0f;
+            World.Root.SimulationSpeed = 1.0f;
 
             GLThread.OnKeyDown += (o, e) =>
             {
@@ -445,11 +517,11 @@ namespace ShadowsTester
             {
                 if(e.Key == OpenTK.Input.Key.T)
                 {
-                    World.Root.SimulationSpeed = 8.0f;
+                    World.Root.SimulationSpeed = 1.0f;
                 }
                 if(e.Key == OpenTK.Input.Key.Y)
                 {
-                    World.Root.SimulationSpeed = 8.0f;
+                    World.Root.SimulationSpeed = 1.0f;
                 }
                 if(e.Key == OpenTK.Input.Key.Number1)
                 {
@@ -459,11 +531,13 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Number2)
                 {
-                    // greenConeLight.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position + freeCamera.Cam.Orientation.ToDirection());
+                   // greenConeLight.GetTransformationManager().SetPosition(freeCamera.Cam.Transformation.GetPosition());
+                   // greenConeLight.GetTransformationManager().SetOrientation(freeCamera.Cam.Transformation.GetOrientation().Inverted());
                 }
                 if(e.Key == OpenTK.Input.Key.Number3)
                 {
-                    // blueConeLight.SetPosition(freeCamera.Cam.Position, freeCamera.Cam.Position + freeCamera.Cam.Orientation.ToDirection());
+                   // blueConeLight.GetTransformationManager().SetPosition(freeCamera.Cam.Transformation.GetPosition());
+                   // blueConeLight.GetTransformationManager().SetOrientation(freeCamera.Cam.Transformation.GetOrientation().Inverted());
                 }
             };
 

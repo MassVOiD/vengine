@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 
 using System.Diagnostics;
 using System.Threading;
+using System.Timers;
 namespace VDGTech
 {
     public class GLThread
@@ -35,9 +36,20 @@ namespace VDGTech
             }
         }
 
+        static public System.Timers.Timer CreateTimer(Action func, int interval)
+        {
+            var t = new System.Timers.Timer(interval);
+            t.Elapsed += (o, e) => func.Invoke();
+            return t;
+        }
+
         static public void Invoke(Action action)
         {
             ActionQueue.Enqueue(action);
+        }
+        static public System.Threading.Tasks.Task RunAsync(Action action)
+        {
+            return System.Threading.Tasks.Task.Run(action);
         }
 
         static public void InvokeOnAfterDraw()
@@ -110,7 +122,10 @@ namespace VDGTech
         {
             int count = 5; // 5 actions per frame
             while(ActionQueue.Count > 0 && count-- > 0)
-                ActionQueue.Dequeue().Invoke();
+            {
+                var obj = ActionQueue.Dequeue();
+                if(obj != null) obj.Invoke();
+            }
         }
 
         [DllImport("kernel32")]

@@ -76,6 +76,8 @@ namespace VDGTech
             Shader.GetShaderProgram().SetUniform("FarPlane", camera.Far);
             Shader.GetShaderProgram().SetUniform("LogEnchacer", 0.01f);
             World.Root.Draw();
+            if(Skybox.Current != null)
+                Skybox.Current.Draw();
             ShaderProgram.Lock = false;
             //ParticleSystem.DrawAll(true);
             Camera.Current = last;

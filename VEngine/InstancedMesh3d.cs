@@ -111,7 +111,7 @@ namespace VDGTech
             for(int i = 0; i < Instances; i++)
             {
                 RotationMatrix.Add(Matrix4.CreateFromQuaternion(Transformations[i].GetOrientation()));
-                Matrix.Add(RotationMatrix[i] * Matrix4.CreateScale(Transformations[i].GetScale()) * Matrix4.CreateTranslation(Transformations[i].GetPosition()));
+                Matrix.Add( Matrix4.CreateScale(Transformations[i].GetScale()) * RotationMatrix[i] * Matrix4.CreateTranslation(Transformations[i].GetPosition()));
             }
         }
 
