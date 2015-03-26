@@ -28,3 +28,5 @@ uniform float Time;
 uniform float DiffuseComponent;
 uniform float SpecularComponent;
 uniform float SpecularSize;
+uniform vec2 resolution;
+float ratio = resolution.y/resolution.x;

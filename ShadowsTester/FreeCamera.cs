@@ -43,6 +43,7 @@ namespace ShadowsTester
             //Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
 
             Cam.UpdateFromRollPitch();
+            Cam.Transformation.BeenModified = false;
         }
 
         private void UpdateSterring(object o, EventArgs e)

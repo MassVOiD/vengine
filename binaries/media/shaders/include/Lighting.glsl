@@ -99,50 +99,56 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	else if(i==28)distance1 = texture(lightDepth28, uv).r;
 	return distance1;
 }
+#define MATH_E 2.7182818284
+float reverseLog(float dd){
+	return pow(MATH_E, dd - 1.0) / LogEnchacer;
+}
+
+#define mPI (3.14159265)
+#define mPI2 (2*3.14159265)
+#define GOLDEN_RATIO (1.6180339)
 
 float getBlurAmount(vec2 uv, uint i){
-	float distance1 = lookupDepthFromLight(i, uv + vec2(0.004, 0.004)) + lookupDepthFromLight(i, uv + vec2(0.004, -0.004)) 
-	+ lookupDepthFromLight(i, uv + vec2(-0.004, 0.004)) + lookupDepthFromLight(i, uv + vec2(-0.004, -0.004));
-	return abs(distance1/4.0 - lookupDepthFromLight(i, uv) );
+	float distanceCenter = reverseLog(lookupDepthFromLight(i, uv));
+	float average = 0.0;
+	vec2 fakeUV;
+	int counter = 0;
+    for(float x = 0; x < mPI2 * 2; x+=GOLDEN_RATIO){ 
+        for(float y=0;y<8;y+= 1.0){  
+			vec2 crd = vec2(sin(x), cos(x)) * (y * 0.002);
+			fakeUV = uv + crd;
+			average += reverseLog(lookupDepthFromLight(i, fakeUV));
+			counter++;
+		}
+	}
+	return abs((average / counter) - distanceCenter);
 }
+
+
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 1.0;
 	float distance2 = distance(pos, LightsPos[i]);
 	//float distanceCam = distance(positionWorldSpace.xyz, CameraPosition);
 	float distance1 = 0.0;
 	vec2 fakeUV = vec2(0.0);
-	vec2 offsetDistance = vec2(0.0);
 	float badass_depth = log(LogEnchacer*distance2 + 1.0) / log(LogEnchacer*FarPlane + 1.0f);
 	//float centerDiff = abs(badass_depth - lookupDepthFromLight(i, uv)) * 10000.0;
-	
-	//float blurAmount = getBlurAmount(uv, i);
-	float blurAmount = 1;
-	if(blurAmount > 0.0001){
-		//float gaussKernel[14] = float[14](-0.028, -0.024,-0.020,-0.016,-0.012,-0.008,-0.004,.004,.008,.012,0.016,0.020,0.024,0.028); 
 		
-		
-		for(int g = 0; g < 14; g+=2){ 
-			vec2 gauss = vec2(0, gaussKernel[g]);
-			offsetDistance = gauss * (distance2 / LightsFarPlane[i] /15.0 + 0.03f);
-			fakeUV = uv + offsetDistance;
+	int counter = 0;
+	//distance1 = lookupDepthFromLight(i, uv);
+	float pssblur = getBlurAmount(uv, i) + 0.1;
+	//float pssblur = 0.2;
+    for(float x = 0; x < mPI2 * 3; x+=GOLDEN_RATIO){ 
+        for(float y=0;y<16;y+= 1.0){  
+			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 0.001;
+			fakeUV = uv + crd;
 			distance1 = lookupDepthFromLight(i, fakeUV);
 			float diff = abs(distance1 -  badass_depth);
-			if(diff > 0.0003) accum -= 1.0/14.0;
+			if(diff > 0.0003) accum += 1.0;
+			counter++;
 		}
-		for(int g = 0; g < 14; g+=2){ 
-			vec2 gauss = vec2(gaussKernel[g], 0);
-			offsetDistance = gauss * (distance2 / LightsFarPlane[i] / 15.0 + 0.03f);
-			fakeUV = uv + offsetDistance;
-			distance1 = lookupDepthFromLight(i, fakeUV);
-			float diff = abs(distance1 -  badass_depth);
-			if(diff > 0.0003) accum -= 1.0/14.0;
-		}
-	} else {
-		distance1 = lookupDepthFromLight(i, uv);
-		float diff = abs(distance1 -  badass_depth);
-		if(diff > 0.0003) accum -= 1.0;
 	}
-	return accum;
+	return 1.0 - (accum / counter);
 }
 
 vec3 processLighting(vec3 color){

@@ -35,9 +35,9 @@ namespace VDGTech
                 int i = VBO.Count;
                 i ^= VBO.Count;
                 foreach(var v in VBO)
-                    i += v.GetHashCode();
+                    i ^= v.GetHashCode();
                 foreach(var v in Indices)
-                    i -= v.GetHashCode()*123547;
+                    i ^= v.GetHashCode();
                 CachedHash = i;
             }
             return CachedHash;
@@ -161,6 +161,16 @@ namespace VDGTech
 
                 return new Object3dInfo(vertices, indices);
             }
+        }
+
+        public static List<Object3dInfo> LoadOBJList(List<string> files)
+        {
+            var outObjects = new List<Object3dInfo>();
+            foreach(var f in files)
+            {
+                outObjects.Add(LoadFromObjSingle(f));
+            }
+            return outObjects;
         }
 
         public static Object3dInfo[] LoadFromObj(string infile)

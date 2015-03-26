@@ -83,6 +83,7 @@
     <Compile Include="Fog\FogDensitySphere.cs" />
     <Compile Include="Fog\FogPool.cs" />
     <Compile Include="IntHashGenerator.cs" />
+    <Compile Include="KeyframeAnimatedMesh3d.cs" />
     <Compile Include="Lights\PointLight.cs" />
     <Compile Include="Lights\ProjectionLight.cs" />
     <Compile Include="Framebuffer.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="MeshLinker.cs" />
     <Compile Include="Particles\ParticleGenerator.cs" />
     <Compile Include="Particles\ParticleSystem.cs" />
+    <Compile Include="PostProcessing.cs" />
     <Compile Include="RenderableInterfaces.cs" />
     <Compile Include="Media.cs" />
     <Compile Include="Mesh3d.cs" />

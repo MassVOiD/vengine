@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Text;
 using System.IO;
 
 namespace VDGTech
@@ -15,6 +17,25 @@ namespace VDGTech
             if(!Map.ContainsKey(name))
                 throw new KeyNotFoundException(name);
             return Map[name];
+        }
+        public static List<string> QueryRegex(string query)
+        {
+            if(Map == null)
+                LoadFileMap();
+            List<string> outFiles = new List<string>();
+            Regex regex = new Regex(query);
+            foreach(var e in Map)
+            {
+                if(regex.IsMatch(e.Key))
+                {
+                    outFiles.Add(e.Value);
+                }
+            }
+            if(outFiles.Count == 0)
+            {
+                throw new KeyNotFoundException(query);
+            }
+            return outFiles;
         }
 
         public static string ReadAllText(string name)

@@ -31,10 +31,10 @@ namespace ShadowsTester
                 window.Run(60);
                 GLThread.SetCurrentThreadCores(2);
             });
-            GLThread.Invoke(() =>
+            /*GLThread.Invoke(() =>
             {
                 window.SetCustomPostProcessingMaterial(new PostProcessLoadingMaterial());
-            });
+            });*/
             World.Root = new World();
 
             // System.Threading.Thread.Sleep(1000);
@@ -68,7 +68,7 @@ namespace ShadowsTester
                 Camera.Current.ViewMatrix = oldm;
             };*/
 
-            Func<uint, uint, float> terrainGen = (x, y) =>
+           /* Func<uint, uint, float> terrainGen = (x, y) =>
             {
                 float h =
                     (SimplexNoise.Noise.Generate((float)x, (float)y)) +
@@ -79,7 +79,7 @@ namespace ShadowsTester
                 float dist = ((new Vector2(150, 150) - new Vector2(x, y)).Length) / 150.0f;
                 return h * dist * 5.0f;
             };
-            Object3dGenerator.UseCache = false;
+            Object3dGenerator.UseCache = false;*/
             /*
             short[,] hmap = new short[6001, 6001];
             FileStream hmapfile = File.OpenRead(Media.Get("SAfull.hmap"));
@@ -128,6 +128,7 @@ namespace ShadowsTester
             World.Root.Add(water);
             //World.Root.PhysicalWorld.AddCollisionObject(water.CreateRigidBody());
 
+            /*
             bool currentlySettingHDR = false;
             GLThread.CreateTimer(() =>
             {
@@ -149,7 +150,7 @@ namespace ShadowsTester
                         currentlySettingHDR = false;
                     });
                 });
-            }, 30).Start();
+            }, 30).Start();*/
 
 
             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver3, 1.0f, 10000.0f);
@@ -226,10 +227,29 @@ namespace ShadowsTester
             //var cubesScene = new ManyCubesScene();
             //new ManyCubesScene().Create();
             //var homeScene = new HomeScene();
-           // homeScene.Create();
+            new HomeScene().Create();
+            /*
+            var fleurInfos = Object3dInfo.LoadOBJList(Media.QueryRegex(@"fleur_walking_keyframes_([0-9]+)\.obj"));
+            var fleur = new KeyframeAnimatedMesh3d(fleurInfos, SingleTextureMaterial.FromMedia("fleur.png"));
+            bool animBackward = false;
+            GLThread.CreateTimer(() =>
+            {
+                if(animBackward)
+                {
+                    fleur.PreviousFrame();
+                }
+                else
+                {
+                    fleur.NextFrame();
+                }
+                if(fleur.CurrentFrame == 0)
+                    animBackward = !animBackward;
+            }, 16).Start();
+
+            World.Root.Add(fleur);*/
 
             //new SculptScene().Create();
-            new HallScene().Create();
+            //new HallScene().Create();
             //new CarScene().Create();
 
             //MeshLinker.Link(freeCamera.Cam, redConeLight, Vector3.Zero, Quaternion.Identity);
@@ -466,7 +486,7 @@ namespace ShadowsTester
             var posa = new Vector2(0.5f) - size / 2.0f;
             UI.Picture smok = new UI.Picture(posa, size, new Texture(Media.Get("portal_crosshair.png")), 0.5f);
             World.Root.UI.Elements.Add(smok);
-            
+            /*
             System.Timers.Timer lensFocusTimer = new System.Timers.Timer();
             lensFocusTimer.Interval = 100;
             lensFocusTimer.Elapsed += (o, e) =>
@@ -474,7 +494,7 @@ namespace ShadowsTester
                 GLThread.Invoke(() =>
                 Camera.Current.CurrentDepthFocus = (Camera.Current.CurrentDepthFocus * 4.0f + window.PostProcessFramebuffer2.GetDepth(0.5f, 0.5f)) / 5.0f);
             };
-            lensFocusTimer.Start();
+            lensFocusTimer.Start();*/
 
            /* GLThread.OnBeforeDraw += (o, e) =>
             {
@@ -544,7 +564,7 @@ namespace ShadowsTester
             World.Root.SortByObject3d();
 
             GLThread.Invoke(() => window.StartPhysicsThread());
-            GLThread.Invoke(() => window.SetDefaultPostProcessingMaterial());
+            //GLThread.Invoke(() => window.SetDefaultPostProcessingMaterial());
             renderThread.Wait();
         }
     }

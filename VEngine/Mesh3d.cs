@@ -62,7 +62,7 @@ namespace VDGTech
             if(Camera.Current == null)
                 return;
 
-            SetUniforms(Material);
+            SetUniforms();
             Material.GetShaderProgram().SetUniformArray("ModelMatrixes", new Matrix4[] { Matrix });
             Material.GetShaderProgram().SetUniformArray("RotationMatrixes", new Matrix4[] { RotationMatrix });
            
@@ -75,9 +75,9 @@ namespace VDGTech
             GLThread.CheckErrors();
         }
 
-        public void SetUniforms(IMaterial material)
+        public void SetUniforms()
         {
-            ShaderProgram shader = material.GetShaderProgram();
+            ShaderProgram shader = ShaderProgram.Current;
             bool shaderSwitchResult = Material.Use();
 
             // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
@@ -87,10 +87,10 @@ namespace VDGTech
             shader.SetUniform("SpecularSize", SpecularSize);
             shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-            if(LastMaterialHash == 0)
+            /*if(LastMaterialHash == 0)
                 LastMaterialHash = Material.GetShaderProgram().GetHashCode();
             if(LastMaterialHash != Material.GetShaderProgram().GetHashCode())
-            {
+            {*/
                 LastMaterialHash = Material.GetShaderProgram().GetHashCode();
                 // per world
                 shader.SetUniform("Instances", 1);
@@ -110,7 +110,7 @@ namespace VDGTech
                 shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
                 shader.SetUniform("FarPlane", Camera.Current.Far);
                 shader.SetUniform("resolution", GLThread.Resolution);
-            }
+           // }
         }
 
         public CollisionShape GetCollisionShape()

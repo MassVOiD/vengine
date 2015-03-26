@@ -11,6 +11,7 @@ namespace VDGTech
 {
     public class VEngineWindowAdapter : GameWindow, IVEngineDisplayAdapter
     {
+        private PostProcessing PostProcessor;
         public VEngineWindowAdapter(string title, int width, int height)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(8, 0, 0, 0), title, GameWindowFlags.Default,
@@ -20,15 +21,7 @@ namespace VDGTech
             GLThread.StartTime = DateTime.Now;
             GLThread.Resolution = new Vector2(width, height);
 
-            PostProcessFramebuffer1 = new Framebuffer(width, height);
-            PostProcessFramebuffer1.SetMultiSample(true);
-            PostProcessFramebuffer2 = new Framebuffer(width, height);
-            WorldPosFramebuffer = new Framebuffer(width, height);
-            WorldPosWriteMaterial = ManualShaderMaterial.FromMedia("Generic.vertex.glsl", "WriteWorldPosition.fragment.glsl");
-            Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices.ToList(), postProcessingPlaneIndices.ToList());
-            PostProcessingDefaultMaterialStage1 = new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.pass1.fragment.glsl"));
-            PostProcessingDefaultMaterialStage2 = new ManualShaderMaterial(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("PostProcess.pass2.fragment.glsl"));
-            PostProcessingMesh = new Mesh3d(postPlane3dInfo, PostProcessingDefaultMaterialStage1);
+            PostProcessor = new PostProcessing(width, height);
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
@@ -70,34 +63,6 @@ namespace VDGTech
             }
         }
 
-        public Framebuffer PostProcessFramebuffer1, PostProcessFramebuffer2, WorldPosFramebuffer;
-
-        public float Brightness = 1.0f;
-
-        private static uint[] postProcessingPlaneIndices = {
-                0, 1, 2, 3, 2, 1
-            };
-
-        private static float[] postProcessingPlaneVertices = {
-                -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-                -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
-            };
-
-        private IMaterial PostProcessingDefaultMaterialStage1, PostProcessingDefaultMaterialStage2, WorldPosWriteMaterial;
-        private Mesh3d PostProcessingMesh;
-
-        public void SetCustomPostProcessingMaterial(IMaterial material)
-        {
-            PostProcessingMesh.Material = material;
-        }
-
-        public void SetDefaultPostProcessingMaterial()
-        {
-            PostProcessingMesh.Material = PostProcessingDefaultMaterialStage1;
-        }
-
         public void StartPhysicsThread()
         {
             Task.Factory.StartNew(PhysicsThread);
@@ -112,107 +77,22 @@ namespace VDGTech
             Console.WriteLine(s);
         }
 
-        public void DrawAll()
-        {
-            World.Root.Draw();
-            ParticleSystem.DrawAll();
-        }
-
-        void DrawToFrameBuffer(Framebuffer buffer, ShaderProgram program)
-        {
-            buffer.Use();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            program.Use();
-            ShaderProgram.Lock = true;
-            DrawAll();
-            if(Skybox.Current != null)
-                Skybox.Current.Draw();
-            ShaderProgram.Lock = false;
-        }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             GLThread.InvokeQueue();
 
             LightPool.MapAll();
-
-            GLThread.CheckErrors();
-
-            PostProcessFramebuffer1.Use();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GLThread.CheckErrors();
-
             LightPool.UseTextures(2);
+
+            //LightPool.UseTextures(2);
             World.Root.ShouldUpdatePhysics = true;
             // this is here so you can issue draw calls from there if you want
             GLThread.InvokeOnBeforeDraw();
-            DrawAll();
-            GLThread.CheckErrors();
-            if(Skybox.Current != null)
-                Skybox.Current.Draw();
-            GLThread.CheckErrors();
+            PostProcessor.ExecutePostProcessing();
+            //DrawAll();
             GLThread.InvokeOnAfterDraw();
-            /*NormalWritingFramebuffer.Use();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);*/
-
-            // Now we have image in pp fbo1
-            // lets set up drawing to fbo2
-
-            GLThread.CheckErrors();
-            DrawToFrameBuffer(WorldPosFramebuffer, WorldPosWriteMaterial.GetShaderProgram());
-
-            PostProcessFramebuffer2.Use();
-
-            GLThread.CheckErrors();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            GLThread.CheckErrors();
-            PostProcessFramebuffer1.UseTexture(0);
-            WorldPosFramebuffer.UseTexture(31);
-            var ppProgram = PostProcessingMesh.Material.GetShaderProgram();
-            ppProgram.Use();
-            var linesStarts = World.Root.LinesPool.GetStartsVectors();
-            var linesEnds = World.Root.LinesPool.GetEndsVectors();
-            var linesColors = World.Root.LinesPool.GetColors();
-            ppProgram.SetUniform("Lines2dCount", linesStarts.Length);
-            ppProgram.SetUniformArray("Lines2dStarts", linesStarts);
-            ppProgram.SetUniformArray("Lines2dEnds", linesEnds);
-            ppProgram.SetUniformArray("Lines2dColors", linesColors);
-            ppProgram.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-            //LightPool.UseTextures(2);
-
-            GLThread.CheckErrors();
-            ShaderProgram.Lock = true;
-            PostProcessingMesh.Draw();
-            ShaderProgram.Lock = false;
-
-            GLThread.CheckErrors();
-
-            PostProcessFramebuffer2.RevertToDefault();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            PostProcessFramebuffer2.UseTexture(0);
-            PostProcessingDefaultMaterialStage2.Use();
-            var sp = PostProcessingDefaultMaterialStage2.GetShaderProgram();
-            if(Camera.Current != null)
-            {
-
-                sp.SetUniform("CameraCurrentDepth", Camera.Current.CurrentDepthFocus);
-                sp.SetUniform("LensBlurAmount", Camera.Current.LensBlurAmount);
-            }
-            GLThread.CheckErrors();
-            sp.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-            sp.SetUniform("Brightness", Brightness);
-            ShaderProgram.Lock = true;
-            PostProcessingMesh.Draw();
-            ShaderProgram.Lock = false;
-
-            GLThread.CheckErrors();
+            
             World.Root.UI.DrawAll();
 
             GLThread.CheckErrors();
