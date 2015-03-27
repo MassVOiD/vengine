@@ -27,4 +27,3 @@ layout(binding = 26) uniform sampler2D lightDepth24;
 layout(binding = 27) uniform sampler2D lightDepth25;
 layout(binding = 28) uniform sampler2D lightDepth26;
 layout(binding = 29) uniform sampler2D lightDepth27;
-layout(binding = 30) uniform sampler2D lightDepth28;

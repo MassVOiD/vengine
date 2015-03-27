@@ -17,7 +17,11 @@ namespace ShadowsTester
             var testroom = Object3dInfo.LoadSceneFromObj(Media.Get("testroom.obj"), Media.Get("testroom.mtl"), 1.0f);
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in testroom)
+            {
+                ob.SetMass(0);
+                ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
                 this.Add(ob);
+            }
         }
 
     }

@@ -3,7 +3,7 @@ uniform mat4 ProjectionMatrix;
 uniform float LogEnchacer;
 uniform float FarPlane;
 
-const int MAX_LIGHTS = 28;
+const int MAX_LIGHTS = 27;
 uniform int LightsCount;
 uniform mat4 LightsPs[MAX_LIGHTS];
 uniform mat4 LightsVs[MAX_LIGHTS];

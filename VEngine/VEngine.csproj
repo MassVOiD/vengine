@@ -90,6 +90,7 @@
     <Compile Include="Generators\MeshGenerator.cs" />
     <Compile Include="Generators\Object3dGenerator.cs" />
     <Compile Include="GLThread.cs" />
+    <Compile Include="Lights\SimplePointLight.cs" />
     <Compile Include="Line2d.cs" />
     <Compile Include="Line2dPool.cs" />
     <Compile Include="Materials\IMaterial.cs" />

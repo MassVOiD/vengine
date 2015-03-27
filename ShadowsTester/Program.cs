@@ -116,8 +116,8 @@ namespace ShadowsTester
             Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
 
 
-            //var color = SingleTextureMaterial.FromMedia("158.JPG", "158_norm.JPG");
-            var color = new SolidColorMaterial(Color.White);
+            var color = SingleTextureMaterial.FromMedia("177.JPG", "177_norm.JPG");
+            //var color = new SolidColorMaterial(Color.White);
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
@@ -154,7 +154,7 @@ namespace ShadowsTester
 
 
             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver3, 1.0f, 10000.0f);
-            redConeLight.LightColor = Color.FromArgb(255, 255, 230, 210);
+            redConeLight.LightColor = Color.FromArgb(255, 255, 255, 255);
 
 
             //redConeLight.SetProjection(Matrix4.CreateOrthographic(200, 200, -500, 500));
@@ -227,7 +227,7 @@ namespace ShadowsTester
             //var cubesScene = new ManyCubesScene();
             //new ManyCubesScene().Create();
             //var homeScene = new HomeScene();
-            new HomeScene().Create();
+            //new HomeScene().Create();
             /*
             var fleurInfos = Object3dInfo.LoadOBJList(Media.QueryRegex(@"fleur_walking_keyframes_([0-9]+)\.obj"));
             var fleur = new KeyframeAnimatedMesh3d(fleurInfos, SingleTextureMaterial.FromMedia("fleur.png"));
@@ -249,7 +249,7 @@ namespace ShadowsTester
             World.Root.Add(fleur);*/
 
             //new SculptScene().Create();
-            //new HallScene().Create();
+            new HallScene().Create();
             //new CarScene().Create();
 
             //MeshLinker.Link(freeCamera.Cam, redConeLight, Vector3.Zero, Quaternion.Identity);
@@ -418,21 +418,19 @@ namespace ShadowsTester
                 }
                 if(e.Button == OpenTK.Input.MouseButton.Left)
                 {
-                    var sphere = new BulletSharp.SphereShape(1.1f);
+                    var sphere = new BulletSharp.SphereShape(0.3f);
                     Mesh3d m = new Mesh3d(icosphere, new SolidColorMaterial(Color.Black));
                     m.Transformation.SetPosition(freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 2.0f);
                     m.SetMass(11.0f);
                     m.SetCollisionShape(sphere);
+                    var sl = new SimplePointLight(m.Transformation.GetPosition(), 
+                        Color.FromArgb(
+                        rand.Next(33, 255), rand.Next(33, 255), rand.Next(33, 255)));
+                    LightPool.Add(sl);
                     World.Root.Add(m);
-                    m.PhysicalBody.LinearVelocity = freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 101.0f;
-                    World.Root.MeshCollide += (m1, m2, v, n) =>
-                    {
-                        if(m1 == m || m2 == m)
-                        {
-                            World.Root.Explode(m1.Transformation.GetPosition(), 10.0f);
-                            World.Root.Remove(m);
-                        }
-                    };
+                    MeshLinker.Link(m, sl, Vector3.Zero, Quaternion.Identity);
+                    m.PhysicalBody.LinearVelocity = freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 10.0f;
+        
                 }
             };
 

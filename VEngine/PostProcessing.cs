@@ -17,7 +17,7 @@ namespace VDGTech
     class PostProcessing
     {
         private int Width, Height;
-        private ShaderProgram BloomShader, MSAAShader, SSAOShader, FogShader, LightPointsShader, LensBlurShader, HDRShader, WorldPosWriterShader, NormalsWriterShader, BlitShader;
+        private ShaderProgram BloomShader, MSAAShader, SSAOShader, FogShader, LightPointsShader, LensBlurShader, HDRShader, WorldPosWriterShader, NormalsWriterShader, BlitShader, DeferredShader;
         private Framebuffer MSAAResolvingFrameBuffer, Pass1FrameBuffer, Pass2FrameBuffer, WorldPositionFrameBuffer, NormalsFrameBuffer;
         private Mesh3d PostProcessingMesh;
 
@@ -55,6 +55,7 @@ namespace VDGTech
             LensBlurShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("LensBlur.fragment.glsl"));
             HDRShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("HDR.fragment.glsl"));
             BlitShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Blit.fragment.glsl"));
+            DeferredShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Deferred.fragment.glsl"));
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new SolidColorMaterial(Color.Pink));
@@ -111,6 +112,7 @@ namespace VDGTech
         private void LightsPoints()
         {
             LightPointsShader.Use();
+            LightPool.MapSimpleLightsToShader(LightPointsShader);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -119,6 +121,18 @@ namespace VDGTech
         private void SSAO()
         {
             SSAOShader.Use();
+            WorldPositionFrameBuffer.UseTexture(30);
+            NormalsFrameBuffer.UseTexture(31);
+            ShaderProgram.Lock = true;
+            PostProcessingMesh.Draw();
+            ShaderProgram.Lock = false;
+        }
+        private void Deferred()
+        {
+            DeferredShader.Use();
+            WorldPositionFrameBuffer.UseTexture(30);
+            NormalsFrameBuffer.UseTexture(31);
+            LightPool.MapSimpleLightsToShader(LightPointsShader);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -127,7 +141,7 @@ namespace VDGTech
         private void Fog()
         {
             FogShader.Use();
-            WorldPositionFrameBuffer.UseTexture(31);
+            WorldPositionFrameBuffer.UseTexture(30);
             FogShader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
@@ -208,11 +222,14 @@ namespace VDGTech
             
             SwitchToFB1();
             LightsPoints();
-            
+
             SwitchToFB2();
-            Fog();
+            Deferred();
 
             SwitchToFB1();
+            Fog();
+
+            SwitchToFB2();
             LensBlur();
                 
             SwitchToFB0();

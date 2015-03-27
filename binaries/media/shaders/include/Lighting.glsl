@@ -96,7 +96,6 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	else if(i==25)distance1 = texture(lightDepth25, uv).r;
 	else if(i==26)distance1 = texture(lightDepth26, uv).r;
 	else if(i==27)distance1 = texture(lightDepth27, uv).r;
-	else if(i==28)distance1 = texture(lightDepth28, uv).r;
 	return distance1;
 }
 #define MATH_E 2.7182818284
@@ -114,7 +113,7 @@ float getBlurAmount(vec2 uv, uint i){
 	vec2 fakeUV;
 	int counter = 0;
     for(float x = 0; x < mPI2 * 2; x+=GOLDEN_RATIO){ 
-        for(float y=0;y<8;y+= 1.0){  
+        for(float y=0;y<6;y+= 1.0){  
 			vec2 crd = vec2(sin(x), cos(x)) * (y * 0.002);
 			fakeUV = uv + crd;
 			average += reverseLog(lookupDepthFromLight(i, fakeUV));
@@ -139,7 +138,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float pssblur = getBlurAmount(uv, i) + 0.1;
 	//float pssblur = 0.2;
     for(float x = 0; x < mPI2 * 3; x+=GOLDEN_RATIO){ 
-        for(float y=0;y<16;y+= 1.0){  
+        for(float y=0;y<7;y+= 1.0){  
 			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 0.001;
 			fakeUV = uv + crd;
 			distance1 = lookupDepthFromLight(i, fakeUV);
