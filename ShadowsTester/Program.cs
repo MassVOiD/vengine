@@ -40,7 +40,7 @@ namespace ShadowsTester
             // System.Threading.Thread.Sleep(1000);
 
             float aspect = Config.Height > Config.Width ? Config.Height / Config.Width : Config.Width / Config.Height;
-            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver2);
+            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver3);
             FreeCam = freeCamera;
 
             Object3dInfo infocube = Object3dInfo.LoadFromObjSingle(Media.Get("cube.obj"));
@@ -128,32 +128,16 @@ namespace ShadowsTester
             World.Root.Add(water);
             //World.Root.PhysicalWorld.AddCollisionObject(water.CreateRigidBody());
 
-            /*
-            bool currentlySettingHDR = false;
-            GLThread.CreateTimer(() =>
+            GLThread.Invoke(() =>
             {
-                if(currentlySettingHDR)
-                    return;
-                currentlySettingHDR = true;
-                GLThread.Invoke(() =>
+                GLThread.CreateTimer(() =>
                 {
-                    var pixels = window.PostProcessFramebuffer2.GetColorBuffer();
-                    GLThread.RunAsync(() =>
-                    {
-                        float average = 0.0f;
-                        for(int i = 0; i < pixels.Length; i += 4)
-                        {
-                            var l = pixels[i].ToVector3().LengthFast;
-                            average += l / pixels.Length;
-                        }
-                        window.Brightness = (window.Brightness * 7.0f + (1.5f - average * 3.5f)) / 8.0f;
-                        currentlySettingHDR = false;
-                    });
-                });
-            }, 30).Start();*/
+                    window.PostProcessor.UpdateCameraBrightness(freeCamera.Cam);
+                }, 30).Start();
+            });
 
 
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver3, 1.0f, 10000.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver2, 1.0f, 10000.0f);
             redConeLight.LightColor = Color.FromArgb(255, 255, 255, 255);
 
 
@@ -249,7 +233,9 @@ namespace ShadowsTester
             World.Root.Add(fleur);*/
 
             //new SculptScene().Create();
-            new HallScene().Create();
+            //new SponzaScene().Create();
+            new OldCityScene().Create();
+            //new HallScene().Create();
             //new CarScene().Create();
 
             //MeshLinker.Link(freeCamera.Cam, redConeLight, Vector3.Zero, Quaternion.Identity);
@@ -484,15 +470,14 @@ namespace ShadowsTester
             var posa = new Vector2(0.5f) - size / 2.0f;
             UI.Picture smok = new UI.Picture(posa, size, new Texture(Media.Get("portal_crosshair.png")), 0.5f);
             World.Root.UI.Elements.Add(smok);
-            /*
+            
             System.Timers.Timer lensFocusTimer = new System.Timers.Timer();
             lensFocusTimer.Interval = 100;
             lensFocusTimer.Elapsed += (o, e) =>
             {
-                GLThread.Invoke(() =>
-                Camera.Current.CurrentDepthFocus = (Camera.Current.CurrentDepthFocus * 4.0f + window.PostProcessFramebuffer2.GetDepth(0.5f, 0.5f)) / 5.0f);
+                window.PostProcessor.UpdateCameraFocus(freeCamera.Cam);
             };
-            lensFocusTimer.Start();*/
+            lensFocusTimer.Start();
 
            /* GLThread.OnBeforeDraw += (o, e) =>
             {

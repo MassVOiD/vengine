@@ -11,7 +11,7 @@ namespace VDGTech
 {
     public class VEngineWindowAdapter : GameWindow, IVEngineDisplayAdapter
     {
-        private PostProcessing PostProcessor;
+        public PostProcessing PostProcessor;
         public VEngineWindowAdapter(string title, int width, int height)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(8, 0, 0, 0), title, GameWindowFlags.Default,

@@ -27,6 +27,14 @@ namespace VDGTech
             AreBuffersGenerated = false;
         }
 
+        public static Object3dInfo Empty
+        {
+            get
+            {
+                return new Object3dInfo(new float[0], new uint[0]);
+            }
+        }
+
         private int CachedHash = -123;
         public int GetHash()
         {
@@ -161,6 +169,19 @@ namespace VDGTech
 
                 return new Object3dInfo(vertices, indices);
             }
+        }
+        public static Object3dInfo LoadFromRaw(string vboFile, string indicesFile)
+        {
+            var vboBytes = File.ReadAllBytes(vboFile);
+            var indicesBytes = File.ReadAllBytes(indicesFile);
+            
+            var vboFloats = new float[vboBytes.Length / 4];
+            Buffer.BlockCopy(vboBytes, 0, vboFloats, 0, vboBytes.Length);
+
+            var indicesUints = new uint[indicesBytes.Length / 4];
+            Buffer.BlockCopy(indicesBytes, 0, indicesUints, 0, indicesBytes.Length);
+
+            return new Object3dInfo(vboFloats, indicesUints);
         }
 
         public static List<Object3dInfo> LoadOBJList(List<string> files)
@@ -663,7 +684,7 @@ namespace VDGTech
                             Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                             Vector2 uv = temp_uvs[int.Parse(match.Groups[i++].Value) - 1];
                             Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
-
+                           
                             out_vertex_buffer.AddRange(new float[] { vertex.X, vertex.Y, vertex.Z, uv.X, uv.Y, normal.X, normal.Y, normal.Z });
                             index_buffer.Add(vcount++);
                             if(i >= 9)

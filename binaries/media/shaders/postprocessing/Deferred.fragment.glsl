@@ -24,8 +24,7 @@ void main()
 
 	vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;
 	vec3 normal = texture(normalsTex, UV).xyz;
-	
-	
+		
 	for(int i=0;i<LightsCount;i++){
 		float distanceToLight = distance(fragmentPosWorld3d, LightsPos[i]);
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
@@ -42,7 +41,7 @@ void main()
 		float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal));
 		float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
 		
-		
+		int counter = 0;
 
 		// do shadows
 		vec4 lightClipSpace = lightPV * vec4(fragmentPosWorld3d, 1.0);
@@ -52,8 +51,7 @@ void main()
 				float percent = clamp(getShadowPercent(lightScreenSpace, fragmentPosWorld3d, i), 0.0, 1.0);
 
 				float culler = clamp((1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0), 0.0, 1.0);
-				//color1 = colorOriginal * culler / (distanceToLight / 10.0);
-				
+
 				color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
 				+ (LightsColors[i].rgb * specularComponent)) * LightsColors[i].a 
 				* culler / (distanceToLight / 10.0) * percent;

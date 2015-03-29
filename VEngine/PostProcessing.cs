@@ -14,11 +14,11 @@ using System.Drawing;
 
 namespace VDGTech
 {
-    class PostProcessing
+    public class PostProcessing
     {
         private int Width, Height;
-        private ShaderProgram BloomShader, MSAAShader, SSAOShader, FogShader, LightPointsShader, LensBlurShader, HDRShader, WorldPosWriterShader, NormalsWriterShader, BlitShader, DeferredShader;
-        private Framebuffer MSAAResolvingFrameBuffer, Pass1FrameBuffer, Pass2FrameBuffer, WorldPositionFrameBuffer, NormalsFrameBuffer;
+        private ShaderProgram BloomShader, MSAAShader, SSAOShader, FogShader, LightPointsShader, LensBlurShader, HDRShader, WorldPosWriterShader, NormalsWriterShader, BlitShader, DeferredShader, CombinerShader;
+        private Framebuffer MSAAResolvingFrameBuffer, Pass1FrameBuffer, Pass2FrameBuffer, LightPointsFrameBuffer, BloomFrameBuffer, FogFramebuffer, WorldPositionFrameBuffer, NormalsFrameBuffer, SmallFrameBuffer;
         private Mesh3d PostProcessingMesh;
 
         private static uint[] postProcessingPlaneIndices = {
@@ -44,6 +44,11 @@ namespace VDGTech
             WorldPositionFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             NormalsFrameBuffer = new Framebuffer(initialWidth, initialHeight);
 
+            LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
+            BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 3);
+            FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
+
             WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
             NormalsWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("NormalsWriter.fragment.glsl"));
 
@@ -56,6 +61,7 @@ namespace VDGTech
             HDRShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("HDR.fragment.glsl"));
             BlitShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Blit.fragment.glsl"));
             DeferredShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Deferred.fragment.glsl"));
+            CombinerShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Combiner.fragment.glsl"));
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new SolidColorMaterial(Color.Pink));
@@ -73,18 +79,21 @@ namespace VDGTech
         private void SwitchToFB1()
         {
             Pass1FrameBuffer.Use();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             LastFrameBuffer.UseTexture(0);
             LastFrameBuffer = Pass1FrameBuffer;
         }
         private void SwitchToFB2()
         {
             Pass2FrameBuffer.Use();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             LastFrameBuffer.UseTexture(0);
             LastFrameBuffer = Pass2FrameBuffer;
+        }
+
+        private void SwitchToFB(Framebuffer buffer)
+        {
+            buffer.Use();
+            //LastFrameBuffer.UseTexture(0);
+            //LastFrameBuffer = buffer;
         }
 
         private void EnableFullBlend()
@@ -150,7 +159,7 @@ namespace VDGTech
         private void HDR()
         {
             HDRShader.Use();
-            HDRShader.SetUniform("Brightness", 1.0f);
+            HDRShader.SetUniform("Brightness", Camera.Current.Brightness);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -175,13 +184,25 @@ namespace VDGTech
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
         }
+        private void Combine()
+        {
+            CombinerShader.Use();
+            ShaderProgram.Lock = true;
+            PostProcessingMesh.Draw();
+            ShaderProgram.Lock = false;
+        }
 
+        private void SwitchBetweenFB()
+        {
+            if(LastFrameBuffer == Pass1FrameBuffer)
+                SwitchToFB2();
+            else
+                SwitchToFB1();
+        }
 
         public void ExecutePostProcessing()
         {
             MSAAResolvingFrameBuffer.Use();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             // and then draw the scene
             World.Root.Draw();
             ParticleSystem.DrawAll();
@@ -191,16 +212,12 @@ namespace VDGTech
             WorldPosWriterShader.Use();
             ShaderProgram.Lock = true;
             WorldPositionFrameBuffer.Use();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             World.Root.Draw();
             ShaderProgram.Lock = false;
 
             NormalsWriterShader.Use();
             ShaderProgram.Lock = true;
             NormalsFrameBuffer.Use();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             World.Root.Draw();
             ShaderProgram.Lock = false;
             LastFrameBuffer = MSAAResolvingFrameBuffer;
@@ -216,24 +233,75 @@ namespace VDGTech
 
             // now we have MSAA filetered img
 
-            
-            SwitchToFB2();
-            SSAO();
-            
-            SwitchToFB1();
+
+
+            SwitchToFB(LightPointsFrameBuffer);
+            LastFrameBuffer.UseTexture(0);
             LightsPoints();
 
-            SwitchToFB2();
-            Deferred();
-
-            SwitchToFB1();
+            SwitchToFB(FogFramebuffer);
+            LastFrameBuffer.UseTexture(0);
             Fog();
 
-            SwitchToFB2();
+            SwitchBetweenFB();
+            SSAO();
+
+            SwitchBetweenFB();
+            Deferred();
+
+
+
+            SwitchToFB(BloomFrameBuffer);
+            LastFrameBuffer.UseTexture(0);
+            Bloom();
+
+            SwitchBetweenFB();
+
+            FogFramebuffer.UseTexture(2);
+            LightPointsFrameBuffer.UseTexture(3);
+            BloomFrameBuffer.UseTexture(4);
+
+            Combine();
+
+
+            SwitchToFB(SmallFrameBuffer);
+            LastFrameBuffer.UseTexture(0);
+            Blit();
+
+            SwitchBetweenFB();
             LensBlur();
-                
+
             SwitchToFB0();
             HDR();
+        }
+
+        public void UpdateCameraFocus(Camera camera)
+        {
+            GLThread.Invoke(() => camera.CurrentDepthFocus = (camera.CurrentDepthFocus * 4.0f + SmallFrameBuffer.GetDepth(0.5f, 0.5f)) / 5.0f);
+        }
+
+        public void UpdateCameraBrightness(Camera camera)
+        {
+            if(!SmallFrameBuffer.Generated)
+                return;
+            GLThread.Invoke(() =>
+            {
+                var pixels = SmallFrameBuffer.GetColorBuffer();
+                GLThread.RunAsync(() =>
+                {
+                    float average = 0.0f;
+                    for(int i = 0; i < pixels.Length; i += 4)
+                    {
+                        var l = pixels[i].ToVector3().LengthFast;
+                        average += l / pixels.Length;
+                    }
+                    camera.Brightness = (camera.Brightness * 7.0f + (1.5f - average * 8.0f)) / 8.0f;
+                    if(camera.Brightness < 0.6f)
+                        camera.Brightness = 0.6f;
+                    if(camera.Brightness > 1.0f)
+                        camera.Brightness = 1.0f;
+                });
+            });
         }
     }
 }

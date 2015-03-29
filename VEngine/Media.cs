@@ -14,9 +14,9 @@ namespace VDGTech
         {
             if(Map == null)
                 LoadFileMap();
-            if(!Map.ContainsKey(name))
+            if(!Map.ContainsKey(name.ToLower()))
                 throw new KeyNotFoundException(name);
-            return Map[name];
+            return Map[name.ToLower()];
         }
         public static List<string> QueryRegex(string query)
         {
@@ -42,9 +42,9 @@ namespace VDGTech
         {
             if(Map == null)
                 LoadFileMap();
-            if(!Map.ContainsKey(name))
+            if(!Map.ContainsKey(name.ToLower()))
                 throw new KeyNotFoundException(name);
-            return File.ReadAllText(Map[name]);
+            return File.ReadAllText(Map[name.ToLower()]);
         }
 
         private static void LoadFileMap(string path = null)
@@ -54,8 +54,8 @@ namespace VDGTech
                 Map = new Dictionary<string, string>();
             string[] files = Directory.GetFiles(path);
             string[] dirs = Directory.GetDirectories(path);
-            foreach(string file in files) if(!Map.ContainsKey(Path.GetFileName(file)))
-                    Map.Add(Path.GetFileName(file), Path.GetFullPath(file));
+            foreach(string file in files) if(!Map.ContainsKey(Path.GetFileName(file).ToLower()))
+                    Map.Add(Path.GetFileName(file).ToLower(), Path.GetFullPath(file));
             foreach(string dir in dirs)
                 LoadFileMap(dir);
         }

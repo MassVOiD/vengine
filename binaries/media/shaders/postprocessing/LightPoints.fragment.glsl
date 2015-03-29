@@ -24,9 +24,7 @@ uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
 
 void main()
 {
-	vec3 color = texture(texColor, UV).rgb;
-	gl_FragDepth = texture(texDepth, UV).r;
-
+	vec3 color = vec3(0);
 	for(int i=0;i<LightsCount;i++){
 	
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);

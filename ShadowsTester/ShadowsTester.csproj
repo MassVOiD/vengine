@@ -53,6 +53,8 @@
   <ItemGroup>
     <Compile Include="HallScene.cs" />
     <Compile Include="CarScene.cs" />
+    <Compile Include="OldCityScene.cs" />
+    <Compile Include="SponzaScene.cs" />
     <Compile Include="SculptScene.cs" />
     <Compile Include="KeyboardHandler.cs" />
     <Compile Include="FreeCamera.cs" />

@@ -34,6 +34,7 @@ namespace VDGTech
         static public Camera Current;
         public float CurrentDepthFocus = 0.06f;
         public float LensBlurAmount = 0.0f;
+        public float Brightness = 1.0f;
         public float Pitch, Roll, Far;
         public TransformationManager Transformation;
         public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
