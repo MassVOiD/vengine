@@ -60,7 +60,9 @@ void main()
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
 		float dist = distance(CameraPosition, SimpleLightsPos[i]);
-		//color += ball(vec3(SimpleLightsColors[i]*2.0 * SimpleLightsColors[i].a),2.1/ dist, sspace1.x, sspace1.y);
+		float revlog = reverseLog(texture(texDepth, UV).r);
+		if(dist < revlog)continue;
+		color += ball(vec3(SimpleLightsColors[i]*2.0 * SimpleLightsColors[i].a),0.1/ dist, sspace1.x, sspace1.y);
 
 	
 	}

@@ -30,3 +30,5 @@ uniform float SpecularComponent;
 uniform float SpecularSize;
 uniform vec2 resolution;
 float ratio = resolution.y/resolution.x;
+
+uniform int IgnoreLighting;

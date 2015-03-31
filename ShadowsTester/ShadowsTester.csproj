@@ -51,8 +51,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LucyScene.cs" />
     <Compile Include="HallScene.cs" />
     <Compile Include="CarScene.cs" />
+    <Compile Include="DragonScene.cs" />
     <Compile Include="OldCityScene.cs" />
     <Compile Include="SponzaScene.cs" />
     <Compile Include="SculptScene.cs" />

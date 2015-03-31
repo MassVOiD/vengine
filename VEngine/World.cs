@@ -40,6 +40,7 @@ namespace VDGTech
         private Dictionary<IRenderable, CollisionObject> CollisionObjects;
         private CollisionDispatcher Dispatcher;
         private Matrix4 Matrix;
+        public  Mesh3d SkyDome;
 
         public void Add(IRenderable renderable)
         {
@@ -72,6 +73,11 @@ namespace VDGTech
                     physicalObject.GetRigidBody().CcdMotionThreshold = 0;
                 }
             }
+        }
+
+        public void SetSkyDome(Mesh3d dome)
+        {
+
         }
 
         public RigidBody CreateRigidBody(float mass, Matrix4 startTransform, CollisionShape shape, Mesh3d reference)

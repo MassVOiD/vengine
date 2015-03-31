@@ -74,6 +74,12 @@ namespace VDGTech
             if(location >= 0)
                 GL.UniformMatrix4(location, false, ref data);
         }
+        public void SetUniform(string name, bool data)
+        {
+            int location = GetUniformLocation(name);
+            if(location >= 0)
+                GL.Uniform1(location, data ? 1 : 0);
+        }
 
         public void SetUniform(string name, float data)
         {

@@ -23,6 +23,12 @@ namespace VDGTech
         private ManualShaderMaterial Shader;
         private Size ViewPort;
 
+        public float CullerMultiplier = 1.0f;
+        public float Attenuation = 1.0f;
+
+        public bool IsStatic = false;
+        public bool NeedsRefreshing = true;
+
         public void BuildOrthographicProjection(float width, float height, float near, float far)
         {
             camera.ProjectionMatrix = Matrix4.CreateOrthographic(width, height, near, far);
@@ -60,6 +66,8 @@ namespace VDGTech
 
         public void Map()
         {
+            if(IsStatic && !NeedsRefreshing)
+                return;
             FBO.Use();
             if(camera.Transformation.BeenModified)
             {
@@ -81,6 +89,7 @@ namespace VDGTech
             ShaderProgram.Lock = false;
             //ParticleSystem.DrawAll(true);
             Camera.Current = last;
+            NeedsRefreshing = false;
         }
 
         public void SetPosition(Vector3 position, Vector3 lookat)

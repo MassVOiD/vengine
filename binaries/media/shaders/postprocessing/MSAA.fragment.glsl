@@ -5,7 +5,7 @@ in vec2 UV;
 layout(binding = 0) uniform sampler2DMS texColor;
 layout(binding = 1) uniform sampler2DMS texDepth;
 
-const int samples = 8;
+const int samples = 4;
 float samplesInverted = 1.0 / samples;
 
 out vec4 outColor;

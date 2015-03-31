@@ -2,6 +2,6 @@
 #include Fragment.glsl
 void main()
 {
-	outColor = vec4(positionWorldSpace.xyz, 1.0);
+	outColor = vec4(positionWorldSpace.xyz, SpecularComponent);
 	updateDepth();
 }

@@ -12,6 +12,7 @@ namespace VDGTech
     {
         public TransformationManager Transformation;
         public Color Color;
+        public float Attenuation = 1.0f;
         public SimplePointLight(Vector3 position, Color color)
         {
             Transformation = new TransformationManager(position);

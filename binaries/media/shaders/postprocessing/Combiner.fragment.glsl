@@ -29,6 +29,9 @@ vec3 lookupFog(){
 	}
 	return outc / counter;
 }
+vec3 lookupFogSimple(){
+	return texture(fog, UV).rgb;
+}
 
 void main()
 {

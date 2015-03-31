@@ -112,7 +112,7 @@ namespace ShadowsTester
             */
           //  var color = SingleTextureMaterial.FromMedia("gtamap.jpg");
 
-            //Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2500, -2500), new Vector2(2500, 2500), new Vector2(1000, 1000), Vector3.UnitY, 300, terrainGen);
+            //bject3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2500, -2500), new Vector2(2500, 2500), new Vector2(1000, 1000), Vector3.UnitY, 300, terrainGen);
             Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
 
 
@@ -133,7 +133,7 @@ namespace ShadowsTester
                 GLThread.CreateTimer(() =>
                 {
                     window.PostProcessor.UpdateCameraBrightness(freeCamera.Cam);
-                }, 30).Start();
+                }, 100).Start();
             });
 
 
@@ -233,8 +233,11 @@ namespace ShadowsTester
             World.Root.Add(fleur);*/
 
             //new SculptScene().Create();
-            //new SponzaScene().Create();
-            new OldCityScene().Create();
+            new SponzaScene().Create();
+            //new OldCityScene().Create();
+            //new DragonScene().Create();
+            //new LucyScene().Create();
+
             //new HallScene().Create();
             //new CarScene().Create();
 
@@ -405,7 +408,7 @@ namespace ShadowsTester
                 if(e.Button == OpenTK.Input.MouseButton.Left)
                 {
                     var sphere = new BulletSharp.SphereShape(0.3f);
-                    Mesh3d m = new Mesh3d(icosphere, new SolidColorMaterial(Color.Black));
+                    Mesh3d m = new Mesh3d(Object3dInfo.Empty, new SolidColorMaterial(Color.White));
                     m.Transformation.SetPosition(freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 2.0f);
                     m.SetMass(11.0f);
                     m.SetCollisionShape(sphere);
@@ -491,9 +494,10 @@ namespace ShadowsTester
             //skybox.Use();
 
             Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("skydome.obj"));
-            var skydomeMaterial = ManualShaderMaterial.FromMedia("Generic.vertex.glsl", "NightSky.fragment.glsl");
+            var skydomeMaterial = SingleTextureMaterial.FromMedia("sky_povray.jpg");
             var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
-            skydome.Transformation.Scale(100);
+            skydome.Transformation.Scale(1000);
+            skydome.IgnoreLighting = true;
             World.Root.Add(skydome);
 
             GLThread.OnMouseWheel += (o, e) =>

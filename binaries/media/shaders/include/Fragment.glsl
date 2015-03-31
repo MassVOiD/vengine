@@ -5,6 +5,6 @@ out vec4 outColor;
 #include LogDepth.glsl
 
 void finishFragment(vec4 color){
-	outColor = vec4((color.xyz), color.a);
+	outColor = vec4((color.xyz) * DiffuseComponent, color.a);
 	updateDepth();
 }

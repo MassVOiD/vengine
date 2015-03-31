@@ -46,7 +46,7 @@ namespace VDGTech
 
             LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
             BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 3);
-            FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            FogFramebuffer = new Framebuffer(initialWidth, initialHeight);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
             WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
@@ -122,6 +122,7 @@ namespace VDGTech
         {
             LightPointsShader.Use();
             LightPool.MapSimpleLightsToShader(LightPointsShader);
+            SetLightingUniforms(LightPointsShader);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -141,7 +142,8 @@ namespace VDGTech
             DeferredShader.Use();
             WorldPositionFrameBuffer.UseTexture(30);
             NormalsFrameBuffer.UseTexture(31);
-            LightPool.MapSimpleLightsToShader(LightPointsShader);
+            LightPool.MapSimpleLightsToShader(DeferredShader);
+            SetLightingUniforms(DeferredShader);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -152,6 +154,7 @@ namespace VDGTech
             FogShader.Use();
             WorldPositionFrameBuffer.UseTexture(30);
             FogShader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+            SetLightingUniforms(FogShader);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -269,10 +272,21 @@ namespace VDGTech
             Blit();
 
             SwitchBetweenFB();
+            if(World.Root.SkyDome != null) World.Root.SkyDome.Draw();
             LensBlur();
 
             SwitchToFB0();
             HDR();
+        }
+
+        private void SetLightingUniforms(ShaderProgram shader)
+        {
+            shader.SetUniformArray("LightsPs", LightPool.GetPMatrices());
+            shader.SetUniformArray("LightsVs", LightPool.GetVMatrices());
+            shader.SetUniformArray("LightsPos", LightPool.GetPositions());
+            shader.SetUniformArray("LightsFarPlane", LightPool.GetFarPlanes());
+            shader.SetUniformArray("LightsColors", LightPool.GetColors());
+            shader.SetUniform("LightsCount", LightPool.GetPositions().Length);
         }
 
         public void UpdateCameraFocus(Camera camera)

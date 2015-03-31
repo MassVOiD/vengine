@@ -78,6 +78,7 @@
     <Content Include="Config.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Compile Include="ColladaScene.cs" />
     <Compile Include="ComputeShader.cs" />
     <Compile Include="Debugger.cs" />
     <Compile Include="Fog\FogDensitySphere.cs" />

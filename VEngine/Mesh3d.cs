@@ -31,6 +31,10 @@ namespace VDGTech
         private CollisionShape PhysicalShape;
         private Random Randomizer;
 
+        public bool CastShadows = true;
+        public bool ReceiveShadows = true;
+        public bool IgnoreLighting = false;
+
 
         public RigidBody CreateRigidBody()
         {
@@ -85,6 +89,7 @@ namespace VDGTech
             shader.SetUniform("SpecularComponent", SpecularComponent);
             shader.SetUniform("DiffuseComponent", DiffuseComponent);
             shader.SetUniform("SpecularSize", SpecularSize);
+            shader.SetUniform("IgnoreLighting", IgnoreLighting);
             shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             /*if(LastMaterialHash == 0)
@@ -97,12 +102,6 @@ namespace VDGTech
                 shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
                 shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
                 shader.SetUniform("LogEnchacer", 0.01f);
-                shader.SetUniformArray("LightsPs", LightPool.GetPMatrices());
-                shader.SetUniformArray("LightsVs", LightPool.GetVMatrices());
-                shader.SetUniformArray("LightsPos", LightPool.GetPositions());
-                shader.SetUniformArray("LightsFarPlane", LightPool.GetFarPlanes());
-                shader.SetUniformArray("LightsColors", LightPool.GetColors());
-                shader.SetUniform("LightsCount", LightPool.GetPositions().Length);
 
                 shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
                 shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());

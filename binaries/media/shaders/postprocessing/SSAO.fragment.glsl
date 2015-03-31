@@ -19,9 +19,9 @@ float getSSAOAmount(){
 	float ssao = 0.0;
 	int counter = 0;
 	// pass 1 - normals
-	for(float size = 6.0; size < 20.0; size += 3.0){
+	for(float size = 6.0; size < 20.0; size += 4.5){
 		for(float x = 0; x < mPI2 * 2; x+=GOLDEN_RATIO){ 
-			for(float y=0;y<6;y+= 1.0){  
+			for(float y=0;y<4;y+= 1.0){  
 				vec2 crd = vec2(sin(x), cos(x)) * (y * 0.0176 * size / (distanceToCamera + 1.0));
 				vec3 normalThere = texture(normalsTex, UV + crd).rgb;
 				vec3 positionThere = texture(worldPosTex, UV + crd).rgb;
@@ -57,4 +57,5 @@ void main()
 	float ssao = getSSAOAmount();
 	//float ssao = 0.0;
     outColor = vec4(clamp(color1 - ssao, 0.0, 1.0), 1);
+	//outColor = vec4(clamp(vec3(1) - ssao, 0.0, 1.0), 1);
 }

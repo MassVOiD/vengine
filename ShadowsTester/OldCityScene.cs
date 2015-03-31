@@ -20,6 +20,7 @@ namespace ShadowsTester
             {
                 //ob.SetMass(0);
                // ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
+
                 this.Add(ob);
             }
         }
