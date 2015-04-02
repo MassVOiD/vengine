@@ -24,6 +24,7 @@ uniform vec3 CameraTangentUp;
 uniform vec3 CameraTangentLeft;
 uniform float Time;
 
+uniform vec3 ColoredID;
 
 uniform float DiffuseComponent;
 uniform float SpecularComponent;

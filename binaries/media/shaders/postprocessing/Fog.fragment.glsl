@@ -34,18 +34,18 @@ void main()
 		
 		
 		float fogDensity = 0.0;
-		float fogMultiplier = 3.5;
+		float fogMultiplier = 0.5;
 		
 		for(float m = 0.0; m< 1.0;m+= 0.02){
 			vec3 pos = mix(CameraPosition, fragmentPosWorld3d, m);
 			vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
 			#ifdef ENABLE_FOG_NOISE
 			//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
-			float fogNoise = (cnoise(vec4(pos * 40, Time)) + 1.0) / 2.0;
+			float fogNoise = (cnoise(vec4(pos * 4, Time)) + 1.0) / 2.0;
 			#else
 			float fogNoise = 1.0;
 			#endif
-			//float idle = 1.0 / 2500.0 * fogNoise * fogMultiplier;
+			//float idle = 1.0 / 250.0 * fogNoise * fogMultiplier;
 			float idle = 0.0;
 			if(lightClipSpace.z < 0.0){ 
 				fogDensity += idle;

@@ -8,7 +8,7 @@ namespace VDGTech
 
         public static void CacheShaderProgram(string allnames, ShaderProgram compiled)
         {
-            Cache.Add(allnames.GetHashCode(), compiled);
+           // Cache.Add(allnames.GetHashCode() + compiled.Handle, compiled);
         }
 
         public static ShaderProgram GetShaderProgramOrNull(string allnames)

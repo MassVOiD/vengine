@@ -14,7 +14,7 @@ namespace VDGTech
         }
 
         protected static ShaderProgram Program;
-        private Texture Tex, NormalMap;
+        private Texture Tex, NormalMap, BumpMap;
 
         public static SingleTextureMaterial FromMedia(string key)
         {
@@ -24,6 +24,11 @@ namespace VDGTech
         public static SingleTextureMaterial FromMedia(string key, string normalmap_key)
         {
             return new SingleTextureMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)));
+        }
+
+        public void SetBumpMapFromMedia(string bumpmapKey)
+        {
+            BumpMap = new Texture(Media.Get(bumpmapKey));
         }
 
         public ShaderProgram GetShaderProgram()
@@ -42,6 +47,14 @@ namespace VDGTech
             }
             else
                 Program.SetUniform("UseNormalMap", 0);
+
+            if(BumpMap != null)
+            {
+                Program.SetUniform("UseBumpMap", 1);
+                BumpMap.Use(TextureUnit.Texture2);
+            }
+            else
+                Program.SetUniform("UseBumpMap", 0);
             return res;
         }
     }

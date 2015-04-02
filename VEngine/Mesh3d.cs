@@ -9,12 +9,12 @@ namespace VDGTech
         public Mesh3d(Object3dInfo objectInfo, IMaterial material)
         {
             DisableDepthWrite = false;
-            Randomizer = new Random();
             Instances = 1;
             ObjectInfo = objectInfo;
             Material = material;
             Transformation = new TransformationManager(Vector3.Zero, Quaternion.Identity, 1.0f);
             UpdateMatrix();
+            MeshColoredID = new Vector3((float)Randomizer.NextDouble(), (float)Randomizer.NextDouble(), (float)Randomizer.NextDouble());
         }
 
         public int Instances;
@@ -29,7 +29,8 @@ namespace VDGTech
         private float Mass = 1.0f;
         public Object3dInfo ObjectInfo;
         private CollisionShape PhysicalShape;
-        private Random Randomizer;
+        private static Random Randomizer = new Random();
+        private Vector3 MeshColoredID;
 
         public bool CastShadows = true;
         public bool ReceiveShadows = true;
@@ -91,12 +92,13 @@ namespace VDGTech
             shader.SetUniform("SpecularSize", SpecularSize);
             shader.SetUniform("IgnoreLighting", IgnoreLighting);
             shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
+            shader.SetUniform("ColoredID", MeshColoredID); //magic
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             /*if(LastMaterialHash == 0)
                 LastMaterialHash = Material.GetShaderProgram().GetHashCode();
             if(LastMaterialHash != Material.GetShaderProgram().GetHashCode())
             {*/
-                LastMaterialHash = Material.GetShaderProgram().GetHashCode();
+                //LastMaterialHash = Material.GetShaderProgram().GetHashCode();
                 // per world
                 shader.SetUniform("Instances", 1);
                 shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);

@@ -37,13 +37,13 @@ void main()
 			vec3 R = reflect(lightRelativeToVPos, normal.xyz);
 			float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
 			float specularComponent = clamp(pow(cosAlpha, 80.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
-			
+
 
 			lightRelativeToVPos = LightsPos[i] - fragmentPosWorld3d.xyz;
 			float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal.xyz));
 			float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
 			
-			int counter = 0;
+			//int counter = 0;
 
 			// do shadows
 			vec4 lightClipSpace = lightPV * vec4(fragmentPosWorld3d.xyz, 1.0);

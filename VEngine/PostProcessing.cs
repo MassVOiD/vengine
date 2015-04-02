@@ -17,8 +17,34 @@ namespace VDGTech
     public class PostProcessing
     {
         private int Width, Height;
-        private ShaderProgram BloomShader, MSAAShader, SSAOShader, FogShader, LightPointsShader, LensBlurShader, HDRShader, WorldPosWriterShader, NormalsWriterShader, BlitShader, DeferredShader, CombinerShader;
-        private Framebuffer MSAAResolvingFrameBuffer, Pass1FrameBuffer, Pass2FrameBuffer, LightPointsFrameBuffer, BloomFrameBuffer, FogFramebuffer, WorldPositionFrameBuffer, NormalsFrameBuffer, SmallFrameBuffer;
+
+        private ShaderProgram 
+            BloomShader, 
+            MSAAShader, 
+            SSAOShader, 
+            FogShader, 
+            LightPointsShader, 
+            LensBlurShader, 
+            HDRShader,
+            WorldPosWriterShader,
+            NormalsWriterShader,
+            GlobalIlluminationShader, 
+            BlitShader, 
+            DeferredShader, 
+            CombinerShader;
+
+        private Framebuffer 
+            MSAAResolvingFrameBuffer, 
+            Pass1FrameBuffer, 
+            Pass2FrameBuffer, 
+            LightPointsFrameBuffer, 
+            BloomFrameBuffer, 
+            FogFramebuffer, 
+            WorldPositionFrameBuffer, 
+            NormalsFrameBuffer, 
+            SmallFrameBuffer, 
+            GlobalIlluminationFrameBuffer;
+
         private Mesh3d PostProcessingMesh;
 
         private static uint[] postProcessingPlaneIndices = {
@@ -46,8 +72,10 @@ namespace VDGTech
 
             LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
             BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 3);
-            FogFramebuffer = new Framebuffer(initialWidth, initialHeight);
+            FogFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
+
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth, initialHeight);
 
             WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
             NormalsWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("NormalsWriter.fragment.glsl"));
@@ -62,6 +90,7 @@ namespace VDGTech
             BlitShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Blit.fragment.glsl"));
             DeferredShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Deferred.fragment.glsl"));
             CombinerShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Combiner.fragment.glsl"));
+            GlobalIlluminationShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("GlobalIllumination.fragment.glsl"));
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new SolidColorMaterial(Color.Pink));
@@ -99,20 +128,25 @@ namespace VDGTech
         private void EnableFullBlend()
         {
             GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
 
-        private void DisableFullBlend()
+        private void DisableBlending()
         {
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.BlendEquation(BlendEquationMode.FuncAdd);
+            GL.Disable(EnableCap.Blend);
         }
 
         private void Bloom()
         {
             BloomShader.Use();
+            ShaderProgram.Lock = true;
+            PostProcessingMesh.Draw();
+            ShaderProgram.Lock = false;
+        }
+        private void GlobalIllumination()
+        {
+            GlobalIlluminationShader.Use();
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -205,12 +239,15 @@ namespace VDGTech
 
         public void ExecutePostProcessing()
         {
+            EnableFullBlend();
             MSAAResolvingFrameBuffer.Use();
             // and then draw the scene
             World.Root.Draw();
-            ParticleSystem.DrawAll();
+            //ParticleSystem.DrawAll();
             if(Skybox.Current != null)
                 Skybox.Current.Draw();
+
+            DisableBlending();
             // we dont need particles in normals and world pos passes so
             WorldPosWriterShader.Use();
             ShaderProgram.Lock = true;
@@ -224,6 +261,9 @@ namespace VDGTech
             World.Root.Draw();
             ShaderProgram.Lock = false;
             LastFrameBuffer = MSAAResolvingFrameBuffer;
+
+            EnableFullBlend();
+            LightPool.UseTextures(2);
 
             // we are into the game! We have world pos and normals, and MSAA scene
             // Scene is already drawn into MSAA framebuffer so need to resolve it
@@ -258,11 +298,18 @@ namespace VDGTech
             LastFrameBuffer.UseTexture(0);
             Bloom();
 
+            SwitchToFB(GlobalIlluminationFrameBuffer);
+            LastFrameBuffer.UseTexture(0);
+            WorldPositionFrameBuffer.UseTexture(2);
+            NormalsFrameBuffer.UseTexture(3);
+            GlobalIllumination();
+
             SwitchBetweenFB();
 
             FogFramebuffer.UseTexture(2);
             LightPointsFrameBuffer.UseTexture(3);
             BloomFrameBuffer.UseTexture(4);
+            GlobalIlluminationFrameBuffer.UseTexture(5);
 
             Combine();
 

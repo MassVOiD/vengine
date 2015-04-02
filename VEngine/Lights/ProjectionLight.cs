@@ -18,7 +18,7 @@ namespace VDGTech
 
         public Camera camera;
         public Framebuffer FBO;
-        public Color LightColor = Color.White;
+        public Vector4 LightColor = new Vector4(1, 1, 1, 1);
         private float FarPlane;
         private ManualShaderMaterial Shader;
         private Size ViewPort;
@@ -36,7 +36,7 @@ namespace VDGTech
 
         public Vector4 GetColor()
         {
-            return new Vector4(LightColor.R / 255.0f, LightColor.G / 255.0f, LightColor.B / 255.0f, LightColor.A / 255.0f);
+            return LightColor;
         }
 
         public float GetFarPlane()

@@ -1,7 +1,7 @@
 #include LightingSamplers.glsl
 #include Mesh3dUniforms.glsl
 /*
-Instane lighting
+Insane lighting
 Part of: https://github.com/achlubek/vengine
 @author Adrian Chlubek
 */
@@ -13,6 +13,7 @@ smooth in vec3 normal;
 smooth in vec3 barycentric;
 flat in int instanceId;
 uniform int UseNormalMap;
+uniform int UseBumpMap;
 
 highp float rand(vec2 co)
 {
@@ -113,14 +114,14 @@ float getBlurAmount(vec2 uv, uint i){
 	vec2 fakeUV;
 	int counter = 0;
     for(float x = 0; x < mPI2 * 2; x+=GOLDEN_RATIO){ 
-        for(float y=0;y<3;y+= 1.0){  
+        for(float y=0;y<4;y+= 1.0){  
 			vec2 crd = vec2(sin(x), cos(x)) * (y * 0.002);
 			fakeUV = uv + crd;
 			average += reverseLog(lookupDepthFromLight(i, fakeUV));
 			counter++;
 		}
 	}
-	return abs((average / counter) - distanceCenter);
+	return abs((average / counter) - distanceCenter) * 4;
 }
 
 
@@ -138,7 +139,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float pssblur = getBlurAmount(uv, i) + 0.1;
 	//float pssblur = 0.2;
     for(float x = 0; x < mPI2 * 2; x+=GOLDEN_RATIO){ 
-        for(float y=0;y<3;y+= 1.0){  
+        for(float y=0;y<4;y+= 1.0){  
 			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 0.001;
 			fakeUV = uv + crd;
 			distance1 = lookupDepthFromLight(i, fakeUV);

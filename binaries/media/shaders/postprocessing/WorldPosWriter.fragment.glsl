@@ -3,5 +3,6 @@
 void main()
 {
 	outColor = vec4(positionWorldSpace.xyz, SpecularComponent);
+	
 	updateDepth();
 }

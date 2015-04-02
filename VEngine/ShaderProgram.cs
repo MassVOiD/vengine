@@ -220,14 +220,14 @@ namespace VDGTech
         {
             if(Current.Handle == -1)
                 return -1;
-            if(Current.UniformLocationsCache.ContainsKey(name) && !Lock)
-                return Current.UniformLocationsCache[name];
+            //if(UniformLocationsCache.ContainsKey(name) && !Lock)
+            //    return UniformLocationsCache[name];
             int location = GL.GetUniformLocation(Current.Handle, name);
             GLThread.CheckErrors();
-            if(!Lock)
-                Current.UniformLocationsCache.Add(name, location);
-            if(Lock && name == "Time")
-                return -1;
+            //if(!Lock)
+            //    UniformLocationsCache.Add(name, location);
+            //if(Lock && name == "Time")
+            //    return -1;
             return location;
         }
 

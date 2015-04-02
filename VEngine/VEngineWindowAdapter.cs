@@ -83,7 +83,6 @@ namespace VDGTech
             GLThread.InvokeQueue();
 
             LightPool.MapAll();
-            LightPool.UseTextures(2);
 
             //LightPool.UseTextures(2);
             World.Root.ShouldUpdatePhysics = true;

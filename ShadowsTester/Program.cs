@@ -40,7 +40,7 @@ namespace ShadowsTester
             // System.Threading.Thread.Sleep(1000);
 
             float aspect = Config.Height > Config.Width ? Config.Height / Config.Width : Config.Width / Config.Height;
-            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver3);
+            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver2 * 0.7f);
             FreeCam = freeCamera;
 
             Object3dInfo infocube = Object3dInfo.LoadFromObjSingle(Media.Get("cube.obj"));
@@ -138,7 +138,7 @@ namespace ShadowsTester
 
 
             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver2, 1.0f, 10000.0f);
-            redConeLight.LightColor = Color.FromArgb(255, 255, 255, 255);
+            redConeLight.LightColor = new Vector4(1, 1, 1, 1);
 
 
             //redConeLight.SetProjection(Matrix4.CreateOrthographic(200, 200, -500, 500));
@@ -233,10 +233,12 @@ namespace ShadowsTester
             World.Root.Add(fleur);*/
 
             //new SculptScene().Create();
-            new SponzaScene().Create();
-            //new OldCityScene().Create();
+            //new SponzaScene().Create();
+            new OldCityScene().Create();
+            //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new LucyScene().Create();
+            //new BoxesScene().Create();
 
             //new HallScene().Create();
             //new CarScene().Create();
@@ -414,7 +416,7 @@ namespace ShadowsTester
                     m.SetCollisionShape(sphere);
                     var sl = new SimplePointLight(m.Transformation.GetPosition(), 
                         Color.FromArgb(
-                        rand.Next(33, 255), rand.Next(33, 255), rand.Next(33, 255)));
+                        rand.Next(33, 66), rand.Next(33, 66), rand.Next(33, 66)));
                     LightPool.Add(sl);
                     World.Root.Add(m);
                     MeshLinker.Link(m, sl, Vector3.Zero, Quaternion.Identity);
@@ -460,7 +462,7 @@ namespace ShadowsTester
                 }
             };
 
-            UI.Text testLabel = new UI.Text(0.85f, 0.95f, "VEngine Test", "Segoe UI", 24, Color.White);
+            UI.Text testLabel = new UI.Text(0.85f, 0.95f, "VEngine Test", "Segoe UI", 13, Color.White);
             World.Root.UI.Elements.Add(testLabel);
 
           //  UI.Text fpsLabel = new UI.Text(0.85f, 0.85f, " ", "Segoe UI", 24, Color.White);
