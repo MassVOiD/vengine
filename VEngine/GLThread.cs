@@ -120,8 +120,8 @@ namespace VDGTech
 
         static public void InvokeQueue()
         {
-            int count = 5; // 5 actions per frame
-            while(ActionQueue.Count > 0 && count-- > 0)
+            //int count = 5; // 5 actions per frame
+            while(ActionQueue.Count > 0)
             {
                 var obj = ActionQueue.Dequeue();
                 if(obj != null) obj.Invoke();

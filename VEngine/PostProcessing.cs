@@ -75,7 +75,7 @@ namespace VDGTech
             FogFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth, initialHeight);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
 
             WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
             NormalsWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("NormalsWriter.fragment.glsl"));

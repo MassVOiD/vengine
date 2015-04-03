@@ -54,8 +54,8 @@ void main()
 	vec3 color1 = texture(texColor, UV).rgb;
 	float depth = texture(texDepth, UV).r;
 	gl_FragDepth = depth;
-	float ssao = getSSAOAmount();
-	//float ssao = 0.0;
+	//float ssao = getSSAOAmount();
+	float ssao = 0.0;
     outColor = vec4(clamp(color1 - ssao, 0.0, 1.0), 1);
 	//outColor = vec4(clamp(vec3(1) - ssao, 0.0, 1.0), 1);
 }

@@ -14,6 +14,7 @@ layout(binding = 2) uniform sampler2D fog;
 layout(binding = 3) uniform sampler2D lightpoints;
 layout(binding = 4) uniform sampler2D bloom;
 layout(binding = 5) uniform sampler2D globalIllumination;
+layout(binding = 6) uniform sampler2D globalIlluminationDepth;
 
 vec3 lookupFog(){
 	vec3 outc = vec3(0);
@@ -35,20 +36,23 @@ vec3 lookupFogSimple(){
 	return texture(fog, UV).rgb;
 }
 
+float centerDepth;
+
+vec3 lookupGIBilinearDepthNearest(vec2 giuv){
+    ivec2 texSize = textureSize(globalIllumination,0);
+	float lookupLengthX = 1.0 / texSize.x;
+	float lookupLengthY = 1.0 / texSize.y;
+	return (texture(globalIllumination, giuv + vec2(-lookupLengthX, -lookupLengthY)).rgb
+	+ texture(globalIllumination, giuv + vec2(lookupLengthX, -lookupLengthY)).rgb
+	+ texture(globalIllumination, giuv + vec2(-lookupLengthX, lookupLengthY)).rgb
+	+ texture(globalIllumination, giuv + vec2(lookupLengthX, lookupLengthY)).rgb) / 16;
+}
+
 vec3 lookupGI(){
-	vec3 outc = vec3(0);
-	int counter = 0;
-	for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
-	{ 
-		for(float g2 = 0; g2 < 3.0; g2+=1.0)
-		{ 
-			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.005);
-			vec3 color = texture(globalIllumination, UV + gauss).rgb;
-			outc += color;
-			counter++;
-		}
-	}
-	return outc / counter * 3;
+	return lookupGIBilinearDepthNearest(UV);
+}
+vec3 lookupGISimple(){
+	return texture(globalIllumination, UV ).rgb;
 }
 
 void main()
@@ -56,11 +60,12 @@ void main()
 	vec3 color1 = texture(color, UV).rgb;
 	color1 += lookupFog();
 	color1 += texture(lightpoints, UV).rgb;
-	color1 += texture(bloom, UV).rgb;
+	//color1 += texture(bloom, UV).rgb;
+	centerDepth = texture(depth, UV).r;
 	color1 += lookupGI();
 	
 	
-	gl_FragDepth = texture(depth, UV).r;
+	gl_FragDepth = centerDepth;
 	
 	
     outColor = vec4(color1, 1);
