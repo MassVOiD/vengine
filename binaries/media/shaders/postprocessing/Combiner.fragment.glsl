@@ -14,7 +14,7 @@ layout(binding = 2) uniform sampler2D fog;
 layout(binding = 3) uniform sampler2D lightpoints;
 layout(binding = 4) uniform sampler2D bloom;
 layout(binding = 5) uniform sampler2D globalIllumination;
-layout(binding = 6) uniform sampler2D globalIlluminationDepth;
+layout(binding = 6) uniform sampler2D backDepth;
 
 vec3 lookupFog(){
 	vec3 outc = vec3(0);
@@ -45,24 +45,36 @@ vec3 lookupGIBilinearDepthNearest(vec2 giuv){
 	return (texture(globalIllumination, giuv + vec2(-lookupLengthX, -lookupLengthY)).rgb
 	+ texture(globalIllumination, giuv + vec2(lookupLengthX, -lookupLengthY)).rgb
 	+ texture(globalIllumination, giuv + vec2(-lookupLengthX, lookupLengthY)).rgb
-	+ texture(globalIllumination, giuv + vec2(lookupLengthX, lookupLengthY)).rgb) / 16;
+	+ texture(globalIllumination, giuv + vec2(lookupLengthX, lookupLengthY)).rgb) / 4;
 }
 
 vec3 lookupGI(){
 	return lookupGIBilinearDepthNearest(UV);
 }
-vec3 lookupGISimple(){
-	return texture(globalIllumination, UV ).rgb;
+vec3 lookupGISimple(vec2 giuv){
+	return texture(globalIllumination, giuv ).rgb;
+}
+
+vec3 subsurfaceScatteringExperiment(){
+	float frontDistance = reverseLog(texture(depth, UV).r);
+	float backDistance = reverseLog(texture(backDepth, UV).r);
+	float deepness =  backDistance - frontDistance;
+	return vec3(
+		1.0 - deepness * 15
+	);
 }
 
 void main()
 {
 	vec3 color1 = texture(color, UV).rgb;
 	color1 += lookupFog();
-	color1 += texture(lightpoints, UV).rgb;
+	//color1 += texture(lightpoints, UV).rgb;
 	//color1 += texture(bloom, UV).rgb;
 	centerDepth = texture(depth, UV).r;
-	color1 += lookupGI();
+	//color1 += lookupGI();
+	vec3 gi = color1 + lookupGI();
+	color1 = gi;
+	//vec3 color1 = subsurfaceScatteringExperiment();
 	
 	
 	gl_FragDepth = centerDepth;

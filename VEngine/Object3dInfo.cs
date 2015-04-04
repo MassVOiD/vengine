@@ -577,6 +577,14 @@ namespace VDGTech
             var convex = new ConvexHullShape(vectors.ToArray());
             return convex;
         }
+        public void ScaleUV(float scale)
+        {
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                VBO[i + 3] *= scale;
+                VBO[i + 4] *= scale;
+            }
+        }
 
         public void Normalize()
         {

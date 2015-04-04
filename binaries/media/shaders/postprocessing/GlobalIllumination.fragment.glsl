@@ -10,8 +10,10 @@ out vec4 outColor;
 
 layout(binding = 0) uniform sampler2D color;
 layout(binding = 1) uniform sampler2D depth;
-layout(binding = 2) uniform sampler2D worldPos;
-layout(binding = 3) uniform sampler2D normals;
+layout(binding = 2) uniform sampler2D diffuseColor;
+layout(binding = 3) uniform sampler2D worldPos;
+layout(binding = 4) uniform sampler2D normals;
+layout(binding = 5) uniform sampler2D lastGi;
 
 
 bool testVisibility(vec2 uv1, vec2 uv2){
@@ -47,15 +49,13 @@ float visibilityValue(vec2 uv1, vec2 uv2){
 	//vec3 wpos2 = texture(worldPos, uv2).rgb;
 	float d3d1 = texture(depth, uv1).r;
 	float d3d2 = texture(depth, uv2).r;
-	float distanceStep = distance(uv1, uv2) / 3;
 	float visible = 1.0;
 	// raymarch thru
-	for(float i=0;i<1.0;i+= distanceStep){ 
+	for(float i=0;i<1.0;i+= 0.1){ 
 		vec2 ruv = mix(uv1, uv2, i);
 		float rd3d = texture(depth, ruv).r;
 		if(rd3d < mix(d3d1, d3d2, i)){
-			visible -= distanceStep * 2; 
-			if(visible < 0) return 0;
+			visible -= 0.1; 
 		}
 	}
 	return visible;
@@ -75,8 +75,8 @@ mediump float rand(vec2 co)
     return fract(sin(sn) * c);
 }
 
-vec3 circleLookupGIBounce2(vec2 centerUV){
-	vec3 original = texture(color, centerUV).rgb;
+vec3 circleLookupGIBounce2(vec2 centerUV, vec3 ocolor){
+	vec3 original = ocolor;
 	//if(length(original) < 0.02) return vec3(0); //  it wont affect any GI so ignore
 	vec3 normalCenter = texture(normals, centerUV).rgb;
 	vec3 positionCenter = texture(worldPos, centerUV).rgb;	
@@ -86,12 +86,12 @@ vec3 circleLookupGIBounce2(vec2 centerUV){
 	int counter = 0;
 	// 2 pi is about 6.28
 			
-	for(float g = 0; g < mPI2; g+=GOLDEN_RATIO)
+	for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
 	{ 
 		for(float g2 = 1.0; g2 < 6.0; g2+=1.0)
 		{ 
 			counter++;
-			vec2 coord = centerUV + (vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.176)) / (distanceToCamera + 1.0);
+			vec2 coord = centerUV + (vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.076)) / (distanceToCamera + 1.0);
 			if(coord.x < -0.2 || coord.x > 1.2 || coord.y < -0.2 || coord.y > 1.2) break;
 			if(testVisibilityLowRes(coord, centerUV)) {
 				outc += texture(color, coord).rgb;
@@ -116,23 +116,25 @@ vec3 circleLookupGIBounce1(vec2 centerUV){
 	int counter = 0;
 	// 2 pi is about 6.28
 			
-	for(float g = 0; g < mPI2 * 3; g+=GOLDEN_RATIO)
+	for(float g = 0; g < mPI2 * 4; g+=GOLDEN_RATIO)
 	{ 
 		for(float g2 = 2.0; g2 < 21.0; g2+=1.0)
 		{ 
 			counter++;
-			vec2 coord = centerUV + (vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.276)) / (distanceToCamera + 1.0);
+			vec2 coord = centerUV + (vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.116)) / (distanceToCamera + 1.0);
 			if(coord.x < -0.2 || coord.x > 1.2 || coord.y < -0.2 || coord.y > 1.2) break;
 			vec3 wpos = texture(worldPos, coord).rgb;
 			float worldDistance = distance(positionCenter, wpos);
 			if(worldDistance > 15.0) continue;
+			if(worldDistance < 0.001) continue;
 			if(testVisibility(coord, centerUV)) {
 				vec3 normalThere = texture(normals, coord).rgb;			
 				float dotdiffuse = dot(normalCenter, normalThere);
 				float diffuseComponent = 1.0 - clamp(dotdiffuse, 0.0, 1.0);
 				if(diffuseComponent > 0.0 && worldDistance < 5.0){
-					outc += texture(color, coord).rgb * 15 / worldDistance * diffuseComponent;
-					outc += circleLookupGIBounce2(coord);
+					vec3 c = texture(color, coord).rgb * 15 / worldDistance * diffuseComponent;
+					//outc += circleLookupGIBounce2(coord, c);
+					outc += c;
 				}
 				//outc += 1.0;
 			}
@@ -162,31 +164,185 @@ vec3 circleLookupGIPrecentage(){
 			counter++;
 		}
 	}
+	if(counter == 0) return vec3(0);
 	vec3 result = outc / counter * 5;
 	return result ;
 }
 
-
-vec3 bruteForceGI(){
+vec3 bruteForceGIBounce3(vec2 centerUV, vec3 orgColor){
+	float lumens = length(orgColor) + 1.0;
+	if(lumens < 1.01) return vec3(0);
+	//lumens *= 8.0;
+	vec3 original = orgColor;
 	vec3 outc = vec3(0);
+	vec3 positionCenter = texture(worldPos, centerUV).rgb;	
+	float distanceToCamera = distance(CameraPosition, positionCenter);
+	if(distanceToCamera < 0.2) return vec3(0);
 	int counter = 0;
-	for(float g = 0; g < 1; g += 0.05)
+	for(float g = 0; g < 1; g += 0.5 / lumens)
 	{ 
-		for(float g2 = 0; g2 < 1; g2 += 0.05)
+		for(float g2 = 0; g2 < 1; g2 += 0.5 / lumens)
 		{ 
-			vec2 coord = vec2(g, g2);
-			outc += texture(color, coord).rgb * visibilityValue(UV, coord);
 			counter++;
+			vec2 coord = vec2(g, g2);
+			vec3 wpos = texture(worldPos, coord).rgb;
+			float worldDistance = distance(positionCenter, wpos);
+			if(testVisibility(coord, centerUV)) {
+				vec3 c = texture(color, coord).rgb / worldDistance;
+				outc += c;
+			}
 		}
 	}
-	return outc / counter * 5;
+	if(counter == 0) return vec3(0);
+	vec3 result = outc / counter;
+	return result ;
 }
 
+vec3 bruteForceGIBounce2(vec2 centerUV, vec3 orgColor){
+	float lumens = length(orgColor) + 1.0;
+	if(lumens < 1.08) return vec3(0);
+	lumens = 1.0 + lumens * 0.20;
+	vec3 original = orgColor;
+	vec3 atCenter = texture(color, centerUV).rgb;
+	if(length(atCenter) < 0.07) return vec3(0); //  it wont affect any GI so ignore
+	vec3 outc = vec3(0);
+	vec3 positionCenter = texture(worldPos, centerUV).rgb;	
+	float distanceToCamera = distance(CameraPosition, positionCenter);
+	if(distanceToCamera < 0.2) return vec3(0);
+	int counter = 0;
+	for(float g = 0; g < 1; g += 0.2709 / lumens)
+	{ 
+		for(float g2 = 0; g2 < 1; g2 += 0.2187 / lumens)
+		{ 
+			counter++;
+			vec2 coord = vec2(g, g2);
+			vec3 wpos = texture(worldPos, coord).rgb;
+			float worldDistance = distance(positionCenter, wpos);
+			if(worldDistance > 5.0) continue;
+			if(testVisibility(coord, centerUV)) {
+				vec3 c = (texture(color, coord).rgb * 150) / worldDistance;
+				outc += c;
+				//outc += bruteForceGIBounce3(coord, c);
+			}
+		}
+	}
+	if(counter == 0) return vec3(0);
+	vec3 result = (outc / counter);
+	return atCenter * result ;
+}
+
+
+vec3 bruteForceGIBounce1(vec2 centerUV){
+	vec4 normalCenter4 = texture(normals, centerUV).rgba;
+	if(normalCenter4.a == 0) return vec3(0);
+	vec3 original = texture(color, centerUV).rgb + texture(diffuseColor, centerUV).rgb * 0.2;
+	if(length(original) < 0.07) return vec3(0); //  it wont affect any GI so ignore
+	vec3 normalCenter = normalCenter4.rgb;
+	vec3 positionCenter = texture(worldPos, centerUV).rgb;	
+	float distanceToCamera = distance(CameraPosition, positionCenter);
+	if(distanceToCamera < 0.2) return vec3(0);
+	vec3 outc = vec3(0);
+	int counter = 0;
+	for(float g = 0; g < 1; g += 0.0777)
+	{ 
+		for(float g2 = 0; g2 < 1; g2 += 0.0819)
+		{ 
+			counter++;
+			vec2 coord = vec2(g, g2);
+			vec3 wpos = texture(worldPos, coord).rgb;
+			float worldDistance = distance(positionCenter, wpos);
+			if(worldDistance < 0.01) continue;
+			//if(worldDistance > 5.0) continue;
+			if(testVisibility(coord, centerUV)) {
+				vec3 normalThere = texture(normals, coord).rgb;			
+				float dotdiffuse = dot(normalCenter, normalThere);
+				float diffuseComponent = 1.0 - clamp(dotdiffuse, 0.0, 1.0);
+				if(diffuseComponent > 0.0){
+					vec3 c = (texture(color, coord).rgb  * 350) / worldDistance * diffuseComponent;
+					outc += c;
+					//outc += (c + bruteForceGIBounce2(coord, c));
+				}
+				//outc += 1.0;
+			}
+		}
+	}
+	if(counter == 0) return vec3(0);
+	vec3 result = (outc / counter);
+	return original * (result / (distanceToCamera)) * 15;
+}
+
+vec3 closeRadiosity(vec2 centerUV){
+	vec3 original = texture(diffuseColor, centerUV).rgb;
+	//if(length(original) < 0.02) return vec3(0); //  it wont affect any GI so ignore
+	vec3 normalCenter = texture(normals, centerUV).rgb;
+	vec3 positionCenter = texture(worldPos, centerUV).rgb;	
+	float distanceToCamera = distance(CameraPosition, positionCenter);
+	if(distanceToCamera < 0.2) return vec3(0);
+	vec3 outc = vec3(0);
+	int counter = 0;
+	for(float g = -1; g < 1; g += 0.05)
+	{ 
+		for(float g2 = -1; g2 < 1; g2 += 0.05)
+		{ 
+			counter++;
+			vec2 coord = centerUV + (vec2(g, g2) * 3) / (distanceToCamera + 1.0);
+			vec3 wpos = texture(worldPos, coord).rgb;
+			float worldDistance = distance(positionCenter, wpos);
+			if(worldDistance < 0.01) continue;
+			if(worldDistance > 9.0) continue;
+			if(testVisibility(coord, centerUV)) {
+				vec3 normalThere = texture(normals, coord).rgb;			
+				float dotdiffuse = dot(normalCenter, normalThere);
+				float diffuseComponent = 1.0 - clamp(dotdiffuse, 0.0, 1.0);
+				if(diffuseComponent > 0.0){
+					vec3 c = texture(diffuseColor, coord).rgb * 5 / worldDistance * diffuseComponent;
+					outc += c;
+					if(length(outc) > 0.01)break;
+				}
+				//outc += 1.0;
+			}
+			if(length(outc) > 0.01)break;
+		}
+	}
+	if(counter == 0) return vec3(0);
+	vec3 result = outc / counter;
+	return original * result;
+}
+
+vec3 radiosityAmbient(vec2 centerUV){
+	
+	//if(length(original) < 0.02) return vec3(0); //  it wont affect any GI so ignore
+	vec4 normalCenter = texture(normals, centerUV).rgba;
+	if(normalCenter.a == 0) return vec3(0);
+	vec3 positionCenter = texture(worldPos, centerUV).rgb;	
+	float distanceToCamera = distance(CameraPosition, positionCenter);
+	if(distanceToCamera < 0.2) return vec3(0);
+	vec3 outc = vec3(0);
+	int counter = 0;
+	for(float g = -1; g < 1; g += 0.07)
+	{ 
+		for(float g2 = -1; g2 < 1; g2 += 0.07)
+		{ 
+			counter++;
+			vec2 coord = centerUV + (vec2(g, g2)) / (distanceToCamera + 1.0);
+			vec3 wpos = texture(worldPos, coord).rgb;
+			float worldDistance = distance(positionCenter, wpos);
+			if(worldDistance < 0.01) continue;
+			if(worldDistance > 3.0) continue;
+
+			outc += testVisibility(coord, centerUV) ? 1:0;
+
+		}
+	}
+	if(counter == 0) return vec3(0);
+	vec3 result = outc / counter;
+	return result;
+}
 
 void main()
 {
 
-	vec3 color1 = vec3(circleLookupGIBounce1(UV));
+	vec3 color1 = (texture(lastGi, UV).rgb + vec3(bruteForceGIBounce1(UV)) * 4.0) / 5.0;
 	//vec3 color1 = vec3(0);
 	
 	gl_FragDepth = texture(depth, UV).r;

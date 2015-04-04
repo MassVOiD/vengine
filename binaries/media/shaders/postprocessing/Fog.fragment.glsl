@@ -18,9 +18,9 @@ uniform vec4 FogPositionsAndSizes[MAX_FOG_SPACES]; //w: Size
 uniform vec4 FogVelocitiesAndBlur[MAX_FOG_SPACES]; //w: Blur
 uniform vec4 FogColors[MAX_FOG_SPACES];
 
-#include classicnoise4D.glsl
+#include noise4D.glsl
 
-//#define ENABLE_FOG_NOISE
+#define ENABLE_FOG_NOISE
 
 void main()
 {
@@ -41,7 +41,7 @@ void main()
 			vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
 			#ifdef ENABLE_FOG_NOISE
 			//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
-			float fogNoise = (cnoise(vec4(pos * 4, Time)) + 1.0) / 2.0;
+			float fogNoise = (snoise(vec4(pos * 4, Time)) + 1.0) / 2.0;
 			#else
 			float fogNoise = 1.0;
 			#endif

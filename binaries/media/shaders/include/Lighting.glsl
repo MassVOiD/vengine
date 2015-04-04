@@ -15,28 +15,6 @@ flat in int instanceId;
 uniform int UseNormalMap;
 uniform int UseBumpMap;
 
-vec4 quat_from_axis_angle(vec3 axis, float angle)
-{ 
-	vec4 qr;
-	float half_angle = (angle * 0.5) * 3.14159 / 180.0;
-	qr.x = axis.x * sin(half_angle);
-	qr.y = axis.y * sin(half_angle);
-	qr.z = axis.z * sin(half_angle);
-	qr.w = cos(half_angle);
-	return qr;
-}
-vec3 rotate_vector_by_quat( vec4 quat, vec3 vec )
-{
-	return vec + 2.0 * cross( cross( vec, quat.xyz ) + quat.w * vec, quat.xyz );
-}
-
-vec3 rotate_vector_by_vector( vec3 vec_first, vec3 vec_sec )
-{
-	vec3 zeros = vec3(0.0, 1.0, 0.0);
-	vec3 cr = normalize(cross(vec_first, vec_sec));
-	float angle = dot(zeros, normalize(vec_sec));
-	return rotate_vector_by_quat(quat_from_axis_angle(cr, angle), vec_first);
-}
 
 float specular(vec3 normalin, uint index){
 	vec3 lightRelativeToVPos = LightsPos[index] - positionWorldSpace.xyz;
@@ -140,72 +118,4 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 		}
 	}
 	return 1.0 - (accum / counter);
-}
-
-vec3 processLighting(vec3 color){
-	for(uint x = 0; x < LightsCount; x++){
-		vec4 clipspace = vec4(0);
-		clipspace = ((LightsPs[x] * LightsVs[x] * ModelMatrixes[instanceId]) * vec4(positionModelSpace, 1.0));
-
-		vec3 tmp = clipspace.xyz / clipspace.w;
-		LightScreenSpaceFromGeo[x] = clipspace.z > 0 ? (tmp.xy + 1.0) / 2.0 : vec2(10, 10);
-	}
-	bool shadow = false;
-	int lightsIlluminating = 0;
-	for(uint i = 0; i < LightsCount; i++){
-		if(LightScreenSpaceFromGeo[i].x > 0.0 && LightScreenSpaceFromGeo[i].x < 1.0 &&
-		LightScreenSpaceFromGeo[i].y > 0.0 && LightScreenSpaceFromGeo[i].y < 1.0) {
-			shadow = true;
-			lightsIlluminating++;
-		}
-	}
-	
-	vec3 normalNew  = normal;
-	if(UseNormalMap == 1){
-		vec3 nmap = texture(normalMap, UV).rbg * 2.0 - 1.0;
-		nmap *= 1.5f; // to be sure
-
-		normalNew = (vec4(normalize(rotate_vector_by_vector(normal, nmap)), 1)).xyz;
-
-		//normalNew = nmap;
-	}
-	
-	float multiplier = 0.0;
-	if(DiffuseComponent < 100.0){
-		vec3 specularComponent = vec3(0.0);
-		vec3 diffuseComponent = vec3(0.0);
-		if(shadow) {
-			for(uint i = 0; i < LightsCount; i++)
-			{
-				float percent = clamp(getShadowPercent(LightScreenSpaceFromGeo[i], positionWorldSpace, i), 0.0, 1.0);
-				multiplier += (percent);
-				float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
-				//float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
-				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
-				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
-			} 
-		}else {
-			/*for(uint i = 0; i < LightsCount; i++)
-			{
-				float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
-				//float culler = clamp(1.0 - distance(LightScreenSpaceFromGeo[i], vec2(0.5)) * 2.0, 0.0, 1.0);
-				specularComponent += specular(normalNew, i) * SpecularComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
-				diffuseComponent += diffuse(normalNew, i) * DiffuseComponent * LightsColors[i].xyz * LightsColors[i].a * culler;
-			}*/
-		}
-		specularComponent = clamp(specularComponent, 0.0, 1.0);
-		diffuseComponent = clamp(diffuseComponent, 0.0, 1.0);
-		vec3 ambient = color * 0.03; // this is place for global ambient occlusion
-		if(shadow) {
-			//multiplier /= lightsIlluminating; 
-			color = (color *multiplier * diffuseComponent + (specularComponent*multiplier)).xyz;
-		}else {
-			color = (color * diffuseComponent + (specularComponent)).xyz;
-		}
-		color = color + ambient;
-		
-		//color = vec3(diff);
-	}
-	//float diffuse = 1.0;
-	return color.xyz;
 }

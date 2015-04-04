@@ -19,7 +19,7 @@ out vec4 outColor;
 void main()
 {
 	vec3 colorOriginal = texture(texColor, UV).rgb;
-	vec3 color1 = colorOriginal * 0.005;
+	vec3 color1 = colorOriginal * 0.02;
 	gl_FragDepth = texture(texDepth, UV).r;
 	vec4 fragmentPosWorld3d = texture(worldPosTex, UV);
 	vec4 normal = texture(normalsTex, UV);
@@ -68,8 +68,6 @@ void main()
 		
 			float dist = distance(CameraPosition, SimpleLightsPos[i]);
 			float revlog = reverseLog(texture(texDepth, UV).r);
-			//if(dist > revlog)continue;
-			
 			
 			float distanceToLight = distance(fragmentPosWorld3d.xyz, SimpleLightsPos[i]);
 			
@@ -84,7 +82,6 @@ void main()
 			color1 += ((colorOriginal * (diffuseComponent * SimpleLightsColors[i].rgb)) 
 					+ (SimpleLightsColors[i].rgb * specularComponent))
 					/ (distanceToLight / 10.0);
-			
 		}	
 	}
     outColor = vec4(color1, 1);
