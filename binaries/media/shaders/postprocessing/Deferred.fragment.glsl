@@ -19,7 +19,7 @@ out vec4 outColor;
 void main()
 {
 	vec3 colorOriginal = texture(texColor, UV).rgb;
-	vec3 color1 = colorOriginal * 0.01;
+	vec3 color1 = colorOriginal * 0.03;
 	gl_FragDepth = texture(texDepth, UV).r;
 	vec4 fragmentPosWorld3d = texture(worldPosTex, UV);
 	vec4 normal = texture(normalsTex, UV);
@@ -30,6 +30,8 @@ void main()
 		vec3 cameraRelativeToVPos = CameraPosition - fragmentPosWorld3d.xyz;
 		for(int i=0;i<LightsCount;i++){
 			float distanceToLight = distance(fragmentPosWorld3d.xyz, LightsPos[i]);
+            //if(worldDistance < 0.0002) continue;
+			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * 390.0;
 			mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 			
 			
@@ -57,7 +59,7 @@ void main()
 
 					color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
 					+ (LightsColors[i].rgb * specularComponent)) * LightsColors[i].a 
-					* culler / (distanceToLight / 10.0) * percent;
+					* culler * att * percent;
 					
 				}
 			}
@@ -68,9 +70,8 @@ void main()
 		for(int i=0;i<SimpleLightsCount;i++){
 		
 			float dist = distance(CameraPosition, SimpleLightsPos[i]);
+			float att = 1.0 / pow(((dist/1.0) + 1.0), 2.0) * 40.0;
 			float revlog = reverseLog(texture(texDepth, UV).r);
-			
-			float distanceToLight = distance(fragmentPosWorld3d.xyz, SimpleLightsPos[i]);
 			
 			vec3 lightRelativeToVPos = SimpleLightsPos[i] - fragmentPosWorld3d.xyz;
 			vec3 R = reflect(lightRelativeToVPos, normal.xyz);
@@ -82,7 +83,7 @@ void main()
 			float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
 			color1 += ((colorOriginal * (diffuseComponent * SimpleLightsColors[i].rgb)) 
 					+ (SimpleLightsColors[i].rgb * specularComponent))
-					/ (distanceToLight / 10.0);
+					*att;
 		}	
 	}
     outColor = vec4(color1, 1);

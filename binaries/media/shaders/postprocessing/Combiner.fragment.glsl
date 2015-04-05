@@ -14,7 +14,7 @@ layout(binding = 2) uniform sampler2D fog;
 layout(binding = 3) uniform sampler2D lightpoints;
 layout(binding = 4) uniform sampler2D bloom;
 layout(binding = 5) uniform sampler2D globalIllumination;
-layout(binding = 6) uniform sampler2D backDepth;
+layout(binding = 6) uniform sampler2D diffuseColor;
 
 vec3 lookupFog(){
 	vec3 outc = vec3(0);
@@ -39,15 +39,13 @@ vec3 lookupFogSimple(){
 float centerDepth;
 
 vec3 lookupGIBilinearDepthNearest(vec2 giuv){
-    ivec2 texSize = textureSize(globalIllumination,0);
-	float lookupLengthX = 1.0 / texSize.x;
-	float lookupLengthY = 1.0 / texSize.y;
-	lookupLengthX = clamp(lookupLengthX, 0, 1);
-	lookupLengthY = clamp(lookupLengthY, 0, 1);
-	return (texture(globalIllumination, giuv + vec2(-lookupLengthX, -lookupLengthY)).rgb
-	+ texture(globalIllumination, giuv + vec2(lookupLengthX, -lookupLengthY)).rgb
-	+ texture(globalIllumination, giuv + vec2(-lookupLengthX, lookupLengthY)).rgb
-	+ texture(globalIllumination, giuv + vec2(lookupLengthX, lookupLengthY)).rgb) / 4;
+    //ivec2 texSize = textureSize(globalIllumination,0);
+	//float lookupLengthX = 1.7 / texSize.x;
+	//float lookupLengthY = 1.7 / texSize.y;
+	//lookupLengthX = clamp(lookupLengthX, 0, 1);
+	//lookupLengthY = clamp(lookupLengthY, 0, 1);
+	vec3 gi =  (texture(globalIllumination, giuv ).rgb);
+	return length(texture(diffuseColor, giuv).rgb) * gi	* 1.1 + length(texture(color, giuv).rgb) * gi	* 1.1;
 }
 
 vec3 lookupGI(){
@@ -56,7 +54,7 @@ vec3 lookupGI(){
 vec3 lookupGISimple(vec2 giuv){
 	return texture(globalIllumination, giuv ).rgb;
 }
-
+/*
 vec3 subsurfaceScatteringExperiment(){
 	float frontDistance = reverseLog(texture(depth, UV).r);
 	float backDistance = reverseLog(texture(backDepth, UV).r);
@@ -64,22 +62,29 @@ vec3 subsurfaceScatteringExperiment(){
 	return vec3(
 		1.0 - deepness * 15
 	);
-}
+}*/
+
+uniform int UseSimpleGI;
+uniform int UseFog;
+uniform int UseLightPoints;
+uniform int UseDepth;
+uniform int UseBloom;
+uniform int UseDeferred;
+uniform int UseBilinearGI;
 
 void main()
 {
-	vec3 color1 = texture(color, UV).rgb;
-	color1 += lookupFog();
-	color1 += texture(lightpoints, UV).rgb;
-	color1 += texture(bloom, UV).rgb;
+	vec3 color1 = vec3(0);
+	if(UseDeferred == 1) color1 += texture(color, UV).rgb;
+	if(UseFog == 1) color1 += lookupFog();
+	if(UseLightPoints == 1) color1 += texture(lightpoints, UV).rgb;
+	if(UseBloom == 1) color1 += texture(bloom, UV).rgb;
+	if(UseDepth == 1) color1 += texture(depth, UV).rrr;
+	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(UV);
+	if(UseSimpleGI == 1) color1 += lookupGISimple(UV);
 	centerDepth = texture(depth, UV).r;
-	//color1 += lookupGI();
-	vec3 gi = color1 + lookupGISimple(UV);
-	color1 = gi;
-	
 	
 	gl_FragDepth = centerDepth;
-	
 	
     outColor = vec4(color1, 1);
 }

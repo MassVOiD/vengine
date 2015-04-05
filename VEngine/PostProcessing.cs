@@ -49,7 +49,8 @@ namespace VDGTech
             SmallFrameBuffer, 
             GlobalIlluminationFrameBuffer,
             DiffuseColorFrameBuffer,
-            BackDepthFrameBuffer;
+            BackDiffuseFrameBuffer,
+            BackNormalsFrameBuffer;
 
         private Mesh3d PostProcessingMesh;
 
@@ -77,7 +78,7 @@ namespace VDGTech
             Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
             WorldPositionFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             NormalsFrameBuffer = new Framebuffer(initialWidth, initialHeight);
-            ScreenSpaceNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            ScreenSpaceNormalsFrameBuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
 
             LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
             BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 3);
@@ -85,7 +86,8 @@ namespace VDGTech
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
             GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
-            //BackDepthFrameBuffer = new Framebuffer(initialWidth, initialHeight, true); // depth only
+            //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 
             WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
             NormalsWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("NormalsWriter.fragment.glsl"));
@@ -239,19 +241,23 @@ namespace VDGTech
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
         }
-        private void WriteBackDepth()
+        private void WriteBackFaces()
         {
-            BackDepthWriterShader.Use();
-            ShaderProgram.Lock = true;
             GL.CullFace(CullFaceMode.Front);
-            BackDepthFrameBuffer.Use();
+            BackDiffuseFrameBuffer.Use();
             World.Root.Draw();
             GL.CullFace(CullFaceMode.Back);
-            ShaderProgram.Lock = false;
         }
         private void Combine()
         {
             CombinerShader.Use();
+            CombinerShader.SetUniform("UseSimpleGI", UseSimpleGI);
+            CombinerShader.SetUniform("UseFog", UseFog);
+            CombinerShader.SetUniform("UseLightPoints", UseLightPoints);
+            CombinerShader.SetUniform("UseDepth", UseDepth);
+            CombinerShader.SetUniform("UseBloom", UseBloom);
+            CombinerShader.SetUniform("UseDeferred", UseDeferred);
+            CombinerShader.SetUniform("UseBilinearGI", UseBilinearGI);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -265,19 +271,21 @@ namespace VDGTech
                 return SwitchToFB1();
         }
 
+        public bool UseSimpleGI = true;
+        public bool UseFog = true;
+        public bool UseLightPoints = true;
+        public bool UseDepth = false;
+        public bool UseBloom = true;
+        public bool UseDeferred = true;
+        public bool UseBilinearGI = false;
+
         public void ExecutePostProcessing()
         {
-            EnableFullBlend();
-            MSAAResolvingFrameBuffer.Use();
-            // and then draw the scene
-            World.Root.Draw();
-            //ParticleSystem.DrawAll();
-            if(Skybox.Current != null)
-                Skybox.Current.Draw();
-
-            DisableBlending();
+            
 
             //WriteBackDepth();
+
+            DisableBlending();
 
             // we dont need particles in normals and world pos passes so
             WorldPosWriterShader.Use();
@@ -286,10 +294,25 @@ namespace VDGTech
             World.Root.Draw();
             ShaderProgram.Lock = false;
 
+            EnableFullBlend();
+            MSAAResolvingFrameBuffer.Use();
+            WorldPositionFrameBuffer.UseTexture(2);
+            // and then draw the scene
+            World.Root.Draw();
+            //ParticleSystem.DrawAll();
+            if(Skybox.Current != null)
+                Skybox.Current.Draw();
+
+            DisableBlending();
+
             NormalsWriterShader.Use();
             ShaderProgram.Lock = true;
             NormalsFrameBuffer.Use();
             World.Root.Draw();
+            //BackNormalsFrameBuffer.Use();
+           // GL.CullFace(CullFaceMode.Front);
+            //World.Root.Draw();
+            //GL.CullFace(CullFaceMode.Back);
             ShaderProgram.Lock = false;
             
             ScreenSpaceNormalsWriterShader.Use();
@@ -298,6 +321,7 @@ namespace VDGTech
             World.Root.Draw();
             ShaderProgram.Lock = false;
 
+            //WriteBackFaces();
 
             LastFrameBuffer = MSAAResolvingFrameBuffer;
 
@@ -320,39 +344,54 @@ namespace VDGTech
             LastFrameBuffer.UseTexture(0);
             Blit();
 
-            SwitchToFB(LightPointsFrameBuffer);
-            LastFrameBuffer.UseTexture(0);
-            LightsPoints();
+            if(UseLightPoints)
+            {
+                SwitchToFB(LightPointsFrameBuffer);
+                LastFrameBuffer.UseTexture(0);
+                LightsPoints();
+            }
 
-            SwitchToFB(FogFramebuffer);
-            LastFrameBuffer.UseTexture(0);
-            Fog();
+            if(UseFog)
+            {
+                SwitchToFB(FogFramebuffer);
+                LastFrameBuffer.UseTexture(0);
+                Fog();
+            }
 
             //SwitchBetweenFB();
             //SSAO();
 
-            SwitchBetweenFB();
-            Deferred();
+            if(UseDeferred)
+            {
+                SwitchBetweenFB();
+                Deferred();
+            }
 
+            if(UseBloom)
+            {
+                SwitchToFB(BloomFrameBuffer);
+                LastFrameBuffer.UseTexture(0);
+                Bloom();
+            }
 
-
-            SwitchToFB(BloomFrameBuffer);
-            LastFrameBuffer.UseTexture(0);
-            Bloom();
-            //Blit();
             var oddfb = SwitchBetweenFB();
             var evenfb = oddfb == Pass1FrameBuffer ? Pass2FrameBuffer : Pass1FrameBuffer;
-            GlobalIlluminationFrameBuffer.UseTexture(0);
-            Blit();
+            if(UseBilinearGI || UseSimpleGI)
+            {
+                GlobalIlluminationFrameBuffer.UseTexture(0);
+                Blit();
 
-            SwitchToFB(GlobalIlluminationFrameBuffer);
-            evenfb.UseTexture(0);
-            DiffuseColorFrameBuffer.UseTexture(2);
-            WorldPositionFrameBuffer.UseTexture(3);
-            NormalsFrameBuffer.UseTexture(4);
-            oddfb.UseTexture(5);
-            ScreenSpaceNormalsFrameBuffer.UseTexture(6);
-            GlobalIllumination();
+                SwitchToFB(GlobalIlluminationFrameBuffer);
+                evenfb.UseTexture(0);
+                DiffuseColorFrameBuffer.UseTexture(2);
+                WorldPositionFrameBuffer.UseTexture(3);
+                NormalsFrameBuffer.UseTexture(4);
+                oddfb.UseTexture(5);
+                ScreenSpaceNormalsFrameBuffer.UseTexture(6);
+                //BackDiffuseFrameBuffer.UseTexture(7);
+                //BackNormalsFrameBuffer.UseTexture(9);
+                GlobalIllumination();
+            }
 
             /*SwitchToFB(GlobalIlluminationFrameBuffer);
 
@@ -372,6 +411,7 @@ namespace VDGTech
             LightPointsFrameBuffer.UseTexture(3);
             BloomFrameBuffer.UseTexture(4);
             GlobalIlluminationFrameBuffer.UseTexture(5);
+            DiffuseColorFrameBuffer.UseTexture(6);
             //BackDepthFrameBuffer.UseTexture(6);
 
             
@@ -379,13 +419,13 @@ namespace VDGTech
             Combine();
 
 
-            SwitchToFB(SmallFrameBuffer);
-            Pass2FrameBuffer.UseTexture(0);
-            Blit();
+            //SwitchToFB(SmallFrameBuffer);
+           // Pass2FrameBuffer.UseTexture(0);
+           // Blit();
 
-            SwitchBetweenFB();
-            if(World.Root.SkyDome != null) World.Root.SkyDome.Draw();
-            LensBlur();
+           // SwitchBetweenFB();
+           // if(World.Root.SkyDome != null) World.Root.SkyDome.Draw();
+            //LensBlur();
 
             SwitchToFB0();
             HDR();

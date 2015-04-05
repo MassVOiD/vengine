@@ -36,10 +36,10 @@ namespace VDGTech
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
-            GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
+            /*GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
                 Console.WriteLine("{0} {1} {2} {3} {4} {5}", source, type, id, severity, length, message);
-            }, (IntPtr)0);
+            }, (IntPtr)0);*/
             MouseMove += Mouse_Move;
             KeyPress += VEngineWindowAdapter_KeyPress;
             KeyDown += VEngineWindowAdapter_KeyDown;
@@ -70,7 +70,7 @@ namespace VDGTech
 
         protected override void OnLoad(System.EventArgs e)
         {
-            VSync = VSyncMode.On;
+            VSync = VSyncMode.Off;
 
             GL.ClearColor(0.37f, 0.37f, 0.37f, 1.0f);
             var s = GL.GetString(StringName.Version);

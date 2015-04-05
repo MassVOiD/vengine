@@ -14,9 +14,9 @@ layout(binding = 1) uniform sampler2D texDepth;
 
 vec3 blurWhitening(){
 	vec3 outc = vec3(0);
-	for(float g = 0; g < mPI2 * 3; g+=GOLDEN_RATIO)
+	for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
 	{ 
-		for(float g2 = 0; g2 < 14.0; g2+=1.0)
+		for(float g2 = 0; g2 < 16.0; g2+=1.0)
 		{ 
 			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.005);
 			vec3 color = texture(texColor, UV + gauss).rgb;

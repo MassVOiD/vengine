@@ -17,7 +17,10 @@ uniform int Instances;
 uniform mat4 ModelMatrixes[MAX_INSTANCES];
 uniform mat4 RotationMatrixes[MAX_INSTANCES];
 
-uniform float RandomSeed;
+uniform float RandomSeed1;
+uniform float RandomSeed2;
+uniform float RandomSeed3;
+uniform float RandomSeed4;
 uniform vec3 CameraPosition;
 uniform vec3 CameraDirection;
 uniform vec3 CameraTangentUp;

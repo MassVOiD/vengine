@@ -21,24 +21,19 @@ namespace ShadowsTester
             Add(dragon);*/
             var ballobj = Object3dInfo.LoadFromObjSingle(Media.Get("sphere.obj"));
             Random rand = new Random();
-            InstancedMesh3d im = new InstancedMesh3d(ballobj, new SolidColorMaterial(Color.White)
+            for(float x = -20; x < 20; x += 10)
             {
-                Color = new Vector4((float)rand.NextDouble() * 80.0f, (float)rand.NextDouble() * 80.0f, (float)rand.NextDouble() * 80.0f, 1)
-            });
-            for(float x = -130; x < 130; x += 10)
-            {
-                for(float y = -130; y < 130; y += 10)
+                for(float y = -20; y < 20; y += 10)
                 {
-                    for(float z = 0; z < 30; z += 10)
-                    {
 
-                        im.Transformations.Add(new TransformationManager(new Vector3(x, z, y)));
-                        im.Instances++;
-                    }
+                    var ball2 = new Mesh3d(ballobj, new SolidColorMaterial(Color.White)
+                    {
+                        Color = new Vector4((float)rand.NextDouble() * 60.0f, (float)rand.NextDouble() * 60.0f, (float)rand.NextDouble() * 60.0f, 1)
+                    });
+                    ball2.Transformation.Translate(new Vector3(x, 0, y));
+                    Add(ball2);
                 }
             }
-            im.UpdateMatrix();
-            Add(im);
 
 
         }

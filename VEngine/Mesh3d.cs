@@ -96,7 +96,10 @@ namespace VDGTech
             shader.SetUniform("DiffuseComponent", DiffuseComponent);
             shader.SetUniform("SpecularSize", SpecularSize);
             shader.SetUniform("IgnoreLighting", IgnoreLighting);
-            shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed4", (float)Randomizer.NextDouble());
             shader.SetUniform("ColoredID", MeshColoredID); //magic
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             /*if(LastMaterialHash == 0)

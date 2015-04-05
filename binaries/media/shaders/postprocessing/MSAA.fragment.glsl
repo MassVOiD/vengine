@@ -4,6 +4,8 @@ in vec2 UV;
 
 layout(binding = 0) uniform sampler2DMS texColor;
 layout(binding = 1) uniform sampler2DMS texDepth;
+layout(binding = 2) uniform sampler2D worldPosTex;
+layout(binding = 3) uniform sampler2D worldPosDepth;
 
 const int samples = 4;
 float samplesInverted = 1.0 / samples;
@@ -23,10 +25,7 @@ vec4 fetchColor()
 
 float fetchDepth()
 {
-	float d = 0.0;
-	ivec2 tx = ivec2(dtexSize * UV); 
-	for (int i = 0; i < samples; i++) d += texelFetch(texDepth, tx, i).r;  
-	return d * samplesInverted;
+	return texture(worldPosDepth, UV).r;
 }
 
 void main()

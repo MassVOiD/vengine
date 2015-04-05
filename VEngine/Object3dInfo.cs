@@ -322,7 +322,7 @@ namespace VDGTech
                     }
                     else
                     {
-                        var m = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName), "180_norm.JPG");
+                        var m = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName));
                         m.NormalMapScale = 10;
                         material = m;
                         mInfos[material] = mat;
@@ -376,8 +376,9 @@ namespace VDGTech
                 o3di.OriginToCenter();
                 // o3di.CorrectFacesByNormals();
                 Mesh3d mesh = new Mesh3d(o3di, kv.Key);
-                mesh.SpecularComponent = mInfos[kv.Key].SpecularStrength;
-                if(mInfos[kv.Key].AlphaMask.Length > 0) mesh.UseAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
+                mesh.SpecularComponent = mInfos[kv.Key].SpecularStrength + 0.01f;
+                mesh.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
+                if(mInfos[kv.Key].AlphaMask.Length > 1) mesh.UseAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
                // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 mesh.Transformation.Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(), 1.0f, 1.0f));

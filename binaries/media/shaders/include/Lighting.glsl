@@ -37,7 +37,7 @@ float getGaussianKernel(int i){
 }
 
 float lookupDepthFromLight(uint i, vec2 uv){
-	float distance1 = 0.0;
+	mediump float distance1 = 0.0;
 	if(i==0)distance1 = texture(lightDepth0, uv).r;
 	else if(i==1)distance1 = texture(lightDepth1, uv).r;
 	else if(i==2)distance1 = texture(lightDepth2, uv).r;
@@ -82,8 +82,8 @@ float getBlurAmount(vec2 uv, uint i){
 	float average = 0.0;
 	vec2 fakeUV;
 	int counter = 0;
-    for(float x = 0; x < mPI2 * 2; x+=GOLDEN_RATIO){ 
-        for(float y=0;y<4;y+= 1.0){  
+    for(float x = 0; x < mPI2; x+=GOLDEN_RATIO){ 
+        for(float y=0;y<3;y+= 1.0){  
 			vec2 crd = vec2(sin(x), cos(x)) * (y * 0.002);
 			fakeUV = uv + crd;
 			average += reverseLog(lookupDepthFromLight(i, fakeUV));
@@ -107,7 +107,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	//distance1 = lookupDepthFromLight(i, uv);
 	float pssblur = getBlurAmount(uv, i) + 0.1;
 	//float pssblur = 0.2;
-    for(float x = 0; x < mPI2 * 2; x+=GOLDEN_RATIO){ 
+    for(float x = 0; x < mPI2 * 1.5; x+=GOLDEN_RATIO){ 
         for(float y=0;y<4;y+= 1.0){  
 			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 0.001;
 			fakeUV = uv + crd;

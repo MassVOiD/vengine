@@ -40,7 +40,7 @@ namespace ShadowsTester
             // System.Threading.Thread.Sleep(1000);
 
             float aspect = Config.Height > Config.Width ? Config.Height / Config.Width : Config.Width / Config.Height;
-            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver2 * 0.7f);
+            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver2);
             FreeCam = freeCamera;
 
             Object3dInfo infocube = Object3dInfo.LoadFromObjSingle(Media.Get("cube.obj"));
@@ -50,7 +50,7 @@ namespace ShadowsTester
                 window.Resize += (o, e) =>
                 {
                     float aast = window.Height > window.Width ? window.Height / window.Width : window.Width / window.Height;
-                    freeCamera = new FreeCamera(aast, MathHelper.PiOver3);
+                    freeCamera = new FreeCamera(aast, MathHelper.PiOver2);
                     FreeCam = freeCamera;
                     GLThread.Resolution.X = window.Width;
                     GLThread.Resolution.Y = window.Height;
@@ -242,6 +242,10 @@ namespace ShadowsTester
 
             //new HallScene().Create();
             //new CarScene().Create();
+
+            window.PostProcessor.UseFog = false;
+            window.PostProcessor.UseSimpleGI = true;
+            window.PostProcessor.UseBilinearGI = false;
 
             //MeshLinker.Link(freeCamera.Cam, redConeLight, Vector3.Zero, Quaternion.Identity);
 
