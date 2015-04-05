@@ -72,7 +72,7 @@ void main()
 	//color1 += texture(bloom, UV).rgb;
 	centerDepth = texture(depth, UV).r;
 	//color1 += lookupGI();
-	vec3 gi = color1 + lookupGI();
+	vec3 gi = color1 + lookupGISimple(UV);
 	color1 = gi;
 	//vec3 color1 = subsurfaceScatteringExperiment();
 	

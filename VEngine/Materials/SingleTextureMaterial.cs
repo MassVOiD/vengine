@@ -15,6 +15,7 @@ namespace VDGTech
 
         protected static ShaderProgram Program;
         private Texture Tex, NormalMap, BumpMap;
+        public float NormalMapScale = 1.0f;
 
         public static SingleTextureMaterial FromMedia(string key)
         {
@@ -43,6 +44,7 @@ namespace VDGTech
             if(NormalMap != null)
             {
                 Program.SetUniform("UseNormalMap", 1);
+                Program.SetUniform("NormalMapScale", NormalMapScale);
                 NormalMap.Use(TextureUnit.Texture1);
             }
             else

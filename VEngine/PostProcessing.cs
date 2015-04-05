@@ -32,7 +32,9 @@ namespace VDGTech
             BlitShader, 
             DeferredShader, 
             CombinerShader,
-            BackDepthWriterShader;
+            BackDepthWriterShader,
+            ReflectShader,
+            ScreenSpaceNormalsWriterShader;
 
         private Framebuffer 
             MSAAResolvingFrameBuffer, 
@@ -43,6 +45,7 @@ namespace VDGTech
             FogFramebuffer, 
             WorldPositionFrameBuffer, 
             NormalsFrameBuffer, 
+            ScreenSpaceNormalsFrameBuffer,
             SmallFrameBuffer, 
             GlobalIlluminationFrameBuffer,
             DiffuseColorFrameBuffer,
@@ -74,17 +77,19 @@ namespace VDGTech
             Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
             WorldPositionFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             NormalsFrameBuffer = new Framebuffer(initialWidth, initialHeight);
+            //ScreenSpaceNormalsFrameBuffer = new Framebuffer(initialWidth, initialHeight);
 
-            LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
-            BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 3);
+            //LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
+            //BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 3);
             FogFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
-            BackDepthFrameBuffer = new Framebuffer(initialWidth, initialHeight, true); // depth only
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth, initialHeight);
+            //BackDepthFrameBuffer = new Framebuffer(initialWidth, initialHeight, true); // depth only
 
             WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
             NormalsWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("NormalsWriter.fragment.glsl"));
+            ScreenSpaceNormalsWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("ScreenSpaceNormalsWriter.fragment.glsl"));
             BackDepthWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("BackDepthWriter.fragment.glsl"));
 
             BloomShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Bloom.fragment.glsl"));
@@ -98,6 +103,7 @@ namespace VDGTech
             DeferredShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Deferred.fragment.glsl"));
             CombinerShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Combiner.fragment.glsl"));
             GlobalIlluminationShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("GlobalIllumination.fragment.glsl"));
+            ReflectShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Reflect.fragment.glsl"));
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new SolidColorMaterial(Color.Pink));
@@ -112,24 +118,29 @@ namespace VDGTech
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             LastFrameBuffer.UseTexture(0);
         }
-        private void SwitchToFB1()
+        private Framebuffer SwitchToFB1()
         {
             Pass1FrameBuffer.Use();
             LastFrameBuffer.UseTexture(0);
             LastFrameBuffer = Pass1FrameBuffer;
+            return Pass1FrameBuffer;
         }
-        private void SwitchToFB2()
+        private Framebuffer SwitchToFB2()
         {
             Pass2FrameBuffer.Use();
             LastFrameBuffer.UseTexture(0);
             LastFrameBuffer = Pass2FrameBuffer;
+            return Pass2FrameBuffer;
         }
 
         private void SwitchToFB(Framebuffer buffer)
         {
             buffer.Use();
-            //LastFrameBuffer.UseTexture(0);
-            //LastFrameBuffer = buffer;
+            if(buffer == Pass1FrameBuffer || buffer == Pass2FrameBuffer)
+            {
+                LastFrameBuffer.UseTexture(0);
+                LastFrameBuffer = buffer;
+            }
         }
 
         private void EnableFullBlend()
@@ -246,12 +257,12 @@ namespace VDGTech
             ShaderProgram.Lock = false;
         }
 
-        private void SwitchBetweenFB()
+        private Framebuffer SwitchBetweenFB()
         {
             if(LastFrameBuffer == Pass1FrameBuffer)
-                SwitchToFB2();
+                return SwitchToFB2();
             else
-                SwitchToFB1();
+                return SwitchToFB1();
         }
 
         public void ExecutePostProcessing()
@@ -266,7 +277,7 @@ namespace VDGTech
 
             DisableBlending();
 
-            WriteBackDepth();
+            //WriteBackDepth();
 
             // we dont need particles in normals and world pos passes so
             WorldPosWriterShader.Use();
@@ -280,6 +291,14 @@ namespace VDGTech
             NormalsFrameBuffer.Use();
             World.Root.Draw();
             ShaderProgram.Lock = false;
+            /*
+            ScreenSpaceNormalsWriterShader.Use();
+            ShaderProgram.Lock = true;
+            ScreenSpaceNormalsFrameBuffer.Use();
+            World.Root.Draw();
+            ShaderProgram.Lock = false;*/
+
+
             LastFrameBuffer = MSAAResolvingFrameBuffer;
 
             EnableFullBlend();
@@ -301,9 +320,9 @@ namespace VDGTech
             LastFrameBuffer.UseTexture(0);
             Blit();
 
-            SwitchToFB(LightPointsFrameBuffer);
-            LastFrameBuffer.UseTexture(0);
-            LightsPoints();
+            //SwitchToFB(LightPointsFrameBuffer);
+            //LastFrameBuffer.UseTexture(0);
+            //LightsPoints();
 
             SwitchToFB(FogFramebuffer);
             LastFrameBuffer.UseTexture(0);
@@ -320,31 +339,47 @@ namespace VDGTech
             //SwitchToFB(BloomFrameBuffer);
             //LastFrameBuffer.UseTexture(0);
             //Bloom();
-            SwitchToFB(Pass1FrameBuffer);
+            //Blit();
+            var oddfb = SwitchBetweenFB();
+            var evenfb = oddfb == Pass1FrameBuffer ? Pass2FrameBuffer : Pass1FrameBuffer;
             GlobalIlluminationFrameBuffer.UseTexture(0);
             Blit();
 
             SwitchToFB(GlobalIlluminationFrameBuffer);
-            LastFrameBuffer.UseTexture(0);
+            evenfb.UseTexture(0);
             DiffuseColorFrameBuffer.UseTexture(2);
             WorldPositionFrameBuffer.UseTexture(3);
             NormalsFrameBuffer.UseTexture(4);
-            Pass1FrameBuffer.UseTexture(5);
+            oddfb.UseTexture(5);
             GlobalIllumination();
 
-            SwitchBetweenFB();
+            /*SwitchToFB(GlobalIlluminationFrameBuffer);
 
+            ReflectShader.Use();
+            LastFrameBuffer.UseTexture(0);
+            ShaderProgram.Lock = true;
+            //WorldPositionFrameBuffer.UseTexture(3);
+            //NormalsFrameBuffer.UseTexture(4);
+            ScreenSpaceNormalsFrameBuffer.UseTexture(5);
+            PostProcessingMesh.Draw();
+            ShaderProgram.Lock = false;*/
+
+            SwitchToFB1();
+
+            evenfb.UseTexture(0);
             FogFramebuffer.UseTexture(2);
-            LightPointsFrameBuffer.UseTexture(3);
-            BloomFrameBuffer.UseTexture(4);
+            //LightPointsFrameBuffer.UseTexture(3);
+            //BloomFrameBuffer.UseTexture(4);
             GlobalIlluminationFrameBuffer.UseTexture(5);
-            BackDepthFrameBuffer.UseTexture(6);
+            //BackDepthFrameBuffer.UseTexture(6);
+
+            
 
             Combine();
 
 
             SwitchToFB(SmallFrameBuffer);
-            LastFrameBuffer.UseTexture(0);
+            Pass2FrameBuffer.UseTexture(0);
             Blit();
 
             SwitchBetweenFB();

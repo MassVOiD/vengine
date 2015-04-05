@@ -53,14 +53,16 @@ vec3 perturb_bump( float B, vec3 N, vec3 V)
     return normalize(TBN * map);
 }
 
+uniform float NormalMapScale;
+
 void main()
 {	
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normal;
 		if(UseNormalMap == 1){
-			vec3 nmap = texture(normalMap, UV).rbg;
+			//vec3 nmap = texture(normalMap, UV * NormalMapScale).rbg;
 			//normalNew = normalize(rotate_vector_by_vector(normal, nmap));
-			normalNew = perturb_normal(normal, positionWorldSpace, UV);
+			normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
 			
 		}
 		if(UseBumpMap == 1){

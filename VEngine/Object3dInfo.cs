@@ -315,7 +315,9 @@ namespace VDGTech
                     }
                     else
                     {
-                        material = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName));
+                        var m = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName), "180_norm.JPG");
+                        m.NormalMapScale = 10;
+                        material = m;
                         texCache.Add(mat.TextureName, material);
                        // material = colorPink;
                     }

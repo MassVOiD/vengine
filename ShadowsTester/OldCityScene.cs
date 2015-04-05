@@ -24,7 +24,10 @@ namespace ShadowsTester
                 this.Add(ob);
             }
             var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
-            var dragon = new Mesh3d(dragon3dInfo, new SolidColorMaterial(Color.White));
+            var dragon = new Mesh3d(dragon3dInfo, new SolidColorMaterial(Color.White)
+            {
+                //Color = new Vector4(100, 100, 100, 1)
+            });
             Add(dragon);
         }
 

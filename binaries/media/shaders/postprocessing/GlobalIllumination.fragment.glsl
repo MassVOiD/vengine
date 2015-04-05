@@ -231,6 +231,7 @@ vec3 bruteForceGIBounce2(vec2 centerUV, vec3 orgColor){
 	return atCenter * result ;
 }
 
+#include noise2d.glsl
 
 vec3 bruteForceGIBounce1(vec2 centerUV){
 	vec4 normalCenter4 = texture(normals, centerUV).rgba;
@@ -243,24 +244,35 @@ vec3 bruteForceGIBounce1(vec2 centerUV){
 	if(distanceToCamera < 0.2) return vec3(0);
 	vec3 outc = vec3(0);
 	int counter = 0;
-	for(float g = 0; g < 1; g += 0.0777)
+	vec3 CRel = CameraPosition - positionCenter;
+	const float quality = 1.0;
+	for(float g = 0; g < 1; g += 0.0977 / quality)
 	{ 
-		for(float g2 = 0; g2 < 1; g2 += 0.0819)
+		for(float g2 = 0; g2 < 1; g2 += 0.0919 / quality)
 		{ 
 			counter++;
-			vec2 coord = vec2(g, g2);
+			vec2 coord = vec2(rand(vec2(g, g2) * RandomSeed), rand(vec2(g2*RandomSeed, g-g2)* Time));
+			//vec2 coord = vec2(g, g2);
 			vec3 wpos = texture(worldPos, coord).rgb;
 			float worldDistance = distance(positionCenter, wpos);
-			if(worldDistance < 0.01) continue;
+			if(worldDistance < 0.02) continue;
 			//if(worldDistance > 5.0) continue;
 			if(testVisibility(coord, centerUV)) {
-				vec3 normalThere = texture(normals, coord).rgb;			
-				float dotdiffuse = dot(normalCenter, normalThere);
+				vec4 normalThere = texture(normals, coord).rgba;	
+				float dotdiffuse = dot(normalCenter, normalThere.xyz);
 				float diffuseComponent = 1.0 - clamp(dotdiffuse, 0.0, 1.0);
 				if(diffuseComponent > 0.0){
-					vec3 c = (texture(color, coord).rgb  * 350) / worldDistance * diffuseComponent;
-					outc += c;
+					vec3 c = (texture(color, coord).rgb  * 350) / worldDistance;
+					outc += c * diffuseComponent;
+					
+					vec3 lightRelativeToVPos = wpos - positionCenter;
+					vec3 R = reflect(lightRelativeToVPos, normalCenter.xyz);
+					float cosAlpha = -dot(normalize(CRel), normalize(R));
+					float s = smoothstep(0.95, 1.79, cosAlpha) * 66.0;
+					float specularComponent = s*s;
 					//outc += (c + bruteForceGIBounce2(coord, c));
+					outc += c * specularComponent * 10;
+					
 				}
 				//outc += 1.0;
 			}
@@ -339,10 +351,13 @@ vec3 radiosityAmbient(vec2 centerUV){
 	return result;
 }
 
+#define BUFFER 4.0
+#define BUFFER1 (BUFFER+1.0)
+
 void main()
 {
 
-	vec3 color1 = (texture(lastGi, UV).rgb + vec3(bruteForceGIBounce1(UV)) * 4.0) / 5.0;
+	vec3 color1 = (texture(lastGi, UV).rgb * BUFFER + vec3(bruteForceGIBounce1(UV))) / BUFFER1;
 	//vec3 color1 = vec3(0);
 	
 	gl_FragDepth = texture(depth, UV).r;

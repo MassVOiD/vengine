@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using OpenTK.Graphics;
+using OpenTK;
 
 namespace VDGTech
 {
@@ -9,11 +10,11 @@ namespace VDGTech
         {
             if(Program == null)
                 Program = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("SolidColorMaterial.fragment.glsl"));
-            Colour = color;
+            Color = new Vector4(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
         }
 
         protected static ShaderProgram Program;
-        private Color4 Colour;
+        public Vector4 Color;
 
         public ShaderProgram GetShaderProgram()
         {
@@ -24,7 +25,7 @@ namespace VDGTech
         {
             bool res = Program.Use();
             if(!ShaderProgram.Lock)
-                Program.SetUniform("input_Color", Colour);
+                Program.SetUniform("input_Color", Color);
             return res;
         }
     }
