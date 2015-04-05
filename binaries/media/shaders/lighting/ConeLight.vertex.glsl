@@ -12,6 +12,7 @@ uniform mat4 ProjectionMatrix;
 const int MAX_INSTANCES = 2000;
 uniform int Instances;
 uniform mat4 ModelMatrixes[MAX_INSTANCES];
+smooth out vec2 UV;
 
 //out vec3 normal;
 smooth out vec3 vertexWorldSpace;
@@ -22,5 +23,6 @@ void main(){
 	mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrixes[gl_InstanceID];
 	vertexWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
 	gl_Position = mvp * v;
+	UV = vec2(in_uv.x, -in_uv.y);
 
 }

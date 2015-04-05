@@ -20,20 +20,26 @@ namespace ShadowsTester
             var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("180.jpg", "180_norm.jpg"));
             Add(dragon);*/
             var ballobj = Object3dInfo.LoadFromObjSingle(Media.Get("sphere.obj"));
-            var ball1 = new Mesh3d(ballobj, new SolidColorMaterial(Color.Green));
-            ball1.Transformation.Translate(new Vector3(0, 0, 10));
-            Add(ball1);
-
-            var ball2 = new Mesh3d(ballobj, new SolidColorMaterial(Color.White)
+            Random rand = new Random();
+            InstancedMesh3d im = new InstancedMesh3d(ballobj, new SolidColorMaterial(Color.White)
             {
-                Color = new Vector4(10, 10, 10, 1)
+                Color = new Vector4((float)rand.NextDouble() * 80.0f, (float)rand.NextDouble() * 80.0f, (float)rand.NextDouble() * 80.0f, 1)
             });
-            ball2.SpecularSize = 0;
-            Add(ball2);
+            for(float x = -130; x < 130; x += 10)
+            {
+                for(float y = -130; y < 130; y += 10)
+                {
+                    for(float z = 0; z < 30; z += 10)
+                    {
 
-            var ball3 = new Mesh3d(ballobj, new SolidColorMaterial(Color.Red));
-            ball3.Transformation.Translate(new Vector3(0, 0, -10));
-            Add(ball3);
+                        im.Transformations.Add(new TransformationManager(new Vector3(x, z, y)));
+                        im.Instances++;
+                    }
+                }
+            }
+            im.UpdateMatrix();
+            Add(im);
+
 
         }
 

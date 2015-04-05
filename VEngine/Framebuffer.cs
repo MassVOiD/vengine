@@ -19,11 +19,11 @@ namespace VDGTech
         private bool DepthOnly, MultiSample;
         public bool Generated;
 
-        public Half GetDepth(float x, float y)
+        public float GetDepth(float x, float y)
         {
             GL.BindTexture(TextureTarget.Texture2D, TexDepth);
-            Half[] pixels = new Half[Width * Height];
-            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.DepthComponent, PixelType.HalfFloat, pixels);
+            float[] pixels = new float[Width * Height];
+            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.DepthComponent, PixelType.Float, pixels);
             return pixels[(int)(Width * x) + (int)((Height * y) * Width)];
         }
         public Vector3h GetColor(float x, float y)
@@ -163,7 +163,7 @@ namespace VDGTech
             // Generate multisampled textures
             TexColor = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2DMultisample, TexColor);
-            GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Samples, PixelInternalFormat.Rgba32f, Width, Height, false);
+            GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Samples, PixelInternalFormat.Rgba16f, Width, Height, false);
 
             TexDepth = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2DMultisample, TexDepth);

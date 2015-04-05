@@ -3,6 +3,15 @@
 
 layout(binding = 0) uniform sampler2D bumpMap;
 
+layout(binding = 2) uniform sampler2D AlphaMask;
+uniform int UseAlphaMask;
+
+void discardIfAlphaMasked(){
+	if(UseAlphaMask == 1){
+		if(texture(AlphaMask, UV).r < 0.5) discard;
+	}
+}
+
 vec3 rotate_vector_by_quat( vec4 quat, vec3 vec )
 {
 	return vec + 2.0 * cross( cross( vec, quat.xyz ) + quat.w * vec, quat.xyz );
@@ -57,6 +66,7 @@ uniform float NormalMapScale;
 
 void main()
 {	
+	discardIfAlphaMasked();
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normal;
 		if(UseNormalMap == 1){

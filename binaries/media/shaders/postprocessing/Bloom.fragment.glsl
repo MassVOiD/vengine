@@ -24,7 +24,7 @@ vec3 blurWhitening(){
 			if(luminance > 0.5)
 			{
 				//luminance = (luminance - 1.0) / 0.320;
-				outc += 0.0042857142 * color;
+				outc += 0.0012857142 * color;
 			}
 		}
 	}

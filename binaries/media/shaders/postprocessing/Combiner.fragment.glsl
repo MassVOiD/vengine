@@ -42,6 +42,8 @@ vec3 lookupGIBilinearDepthNearest(vec2 giuv){
     ivec2 texSize = textureSize(globalIllumination,0);
 	float lookupLengthX = 1.0 / texSize.x;
 	float lookupLengthY = 1.0 / texSize.y;
+	lookupLengthX = clamp(lookupLengthX, 0, 1);
+	lookupLengthY = clamp(lookupLengthY, 0, 1);
 	return (texture(globalIllumination, giuv + vec2(-lookupLengthX, -lookupLengthY)).rgb
 	+ texture(globalIllumination, giuv + vec2(lookupLengthX, -lookupLengthY)).rgb
 	+ texture(globalIllumination, giuv + vec2(-lookupLengthX, lookupLengthY)).rgb
@@ -68,13 +70,12 @@ void main()
 {
 	vec3 color1 = texture(color, UV).rgb;
 	color1 += lookupFog();
-	//color1 += texture(lightpoints, UV).rgb;
-	//color1 += texture(bloom, UV).rgb;
+	color1 += texture(lightpoints, UV).rgb;
+	color1 += texture(bloom, UV).rgb;
 	centerDepth = texture(depth, UV).r;
 	//color1 += lookupGI();
 	vec3 gi = color1 + lookupGISimple(UV);
 	color1 = gi;
-	//vec3 color1 = subsurfaceScatteringExperiment();
 	
 	
 	gl_FragDepth = centerDepth;

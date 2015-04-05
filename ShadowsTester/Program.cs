@@ -477,10 +477,10 @@ namespace ShadowsTester
             World.Root.UI.Elements.Add(smok);*/
             
             System.Timers.Timer lensFocusTimer = new System.Timers.Timer();
-            lensFocusTimer.Interval = 100;
+            lensFocusTimer.Interval = 300;
             lensFocusTimer.Elapsed += (o, e) =>
             {
-                //window.PostProcessor.UpdateCameraFocus(freeCamera.Cam);
+                window.PostProcessor.UpdateCameraFocus(freeCamera.Cam);
             };
             lensFocusTimer.Start();
 
@@ -505,9 +505,9 @@ namespace ShadowsTester
             
             GLThread.OnMouseWheel += (o, e) =>
             {
-                //if(!inPickingMode)
-               //     Camera.Current.LensBlurAmount -= e.Delta / 20.0f;
-                freeCamera.Cam.Brightness -= e.Delta / 20.0f;
+                if(!inPickingMode)
+                    Camera.Current.LensBlurAmount -= e.Delta / 20.0f;
+                //freeCamera.Cam.Brightness -= e.Delta / 20.0f;
             };
 
             World.Root.SimulationSpeed = 1.0f;

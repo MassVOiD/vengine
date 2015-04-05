@@ -286,6 +286,11 @@ namespace VDGTech
                     match = Regex.Match(line, @"map_Kd (.+)");
                     currentMaterial.TextureName = match.Groups[1].Value;
                 }
+                if(line.StartsWith("map_d"))
+                {
+                    match = Regex.Match(line, @"map_d (.+)");
+                    currentMaterial.AlphaMask = match.Groups[1].Value;
+                }
             }
             if(currentName != "")
                 materials.Add(currentName, currentMaterial);
@@ -300,25 +305,28 @@ namespace VDGTech
             List<Mesh3d> meshes = new List<Mesh3d>();
             Dictionary<string, IMaterial> texCache = new Dictionary<string, IMaterial>();
             Dictionary<Color, IMaterial> colorCache = new Dictionary<Color, IMaterial>();
+            Dictionary<IMaterial, MaterialInfo> mInfos = new Dictionary<IMaterial, MaterialInfo>();
             Dictionary<IMaterial, List<Object3dInfo>> linkCache = new Dictionary<IMaterial, List<Object3dInfo>>();
             var colorPink = new SolidColorMaterial(Color.Pink);
-
+            mInfos = new Dictionary<IMaterial, MaterialInfo>();
             foreach(var obj in objs)
             {
                 var mat = mtllib.ContainsKey(obj.MaterialName) ? mtllib[obj.MaterialName] : null;
                 IMaterial material = null;
                 if(mat != null && mat.TextureName.Length > 0)
                 {
-                    if(texCache.ContainsKey(mat.TextureName))
+                    if(texCache.ContainsKey(mat.TextureName + mat.AlphaMask))
                     {
-                        material = texCache[mat.TextureName];
+                        material = texCache[mat.TextureName + mat.AlphaMask];
+                        mInfos[material] = mat;
                     }
                     else
                     {
                         var m = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName), "180_norm.JPG");
                         m.NormalMapScale = 10;
                         material = m;
-                        texCache.Add(mat.TextureName, material);
+                        mInfos[material] = mat;
+                        texCache.Add(mat.TextureName + mat.AlphaMask, material);
                        // material = colorPink;
                     }
                     //material = new SolidColorMaterial(Color.Pink);
@@ -328,16 +336,19 @@ namespace VDGTech
                     if(colorCache.ContainsKey(mat.DiffuseColor))
                     {
                         material = colorCache[mat.DiffuseColor];
+                        mInfos[material] = mat;
                     }
                     else
                     {
                         material = new SolidColorMaterial(mat.DiffuseColor);
+                        mInfos[material] = mat;
                         colorCache.Add(mat.DiffuseColor, material);
                     }
                 }
                 else
                 {
                     material = colorPink;
+                    mInfos[material] = mat;
                 }
 
 
@@ -365,6 +376,8 @@ namespace VDGTech
                 o3di.OriginToCenter();
                 // o3di.CorrectFacesByNormals();
                 Mesh3d mesh = new Mesh3d(o3di, kv.Key);
+                mesh.SpecularComponent = mInfos[kv.Key].SpecularStrength;
+                if(mInfos[kv.Key].AlphaMask.Length > 0) mesh.UseAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
                // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 mesh.Transformation.Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(), 1.0f, 1.0f));
@@ -880,10 +893,12 @@ namespace VDGTech
                 Transparency = 1.0f;
                 SpecularStrength = 1.0f;
                 TextureName = "";
+                AlphaMask = "";
             }
 
             public Color DiffuseColor, SpecularColor, AmbientColor;
             public string TextureName;
+            public string AlphaMask;
             public float Transparency, SpecularStrength;
         }
 

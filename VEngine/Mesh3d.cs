@@ -35,7 +35,12 @@ namespace VDGTech
         public bool CastShadows = true;
         public bool ReceiveShadows = true;
         public bool IgnoreLighting = false;
+        private Texture AlphaMask = null;
 
+        public void UseAlphaMaskFromMedia(string key)
+        {
+            AlphaMask = new Texture(Media.Get(key));
+        }
 
         public RigidBody CreateRigidBody()
         {
@@ -104,7 +109,15 @@ namespace VDGTech
                 shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
                 shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
                 shader.SetUniform("LogEnchacer", 0.01f);
-
+                if(AlphaMask != null)
+                {
+                    shader.SetUniform("UseAlphaMask", 1);
+                    AlphaMask.Use(OpenTK.Graphics.OpenGL4.TextureUnit.Texture2);
+                }
+                else
+                {
+                    shader.SetUniform("UseAlphaMask", 0);
+                }
                 shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
                 shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
                 shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
