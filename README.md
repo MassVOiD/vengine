@@ -23,4 +23,6 @@ The software is licensed under GPLv3. If GPLv3 doesn't satify you - Contact me a
 
 ![A screenshot](http://i.imgur.com/QqXkx3m.jpg "Screenshot")
 
+![A screenshot](http://i.imgur.com/RrAAhJc.jpg "Screenshot")
+
 ![A screenshot](http://i.imgur.com/Q3avUB2.jpg "Screenshot")
