@@ -1,7 +1,7 @@
 #version 430 core
 #include Fragment.glsl
 
-layout(binding = 0) uniform sampler2D bumpMap;
+layout(binding = 16) uniform sampler2D bumpMap;
 
 layout(binding = 2) uniform sampler2D AlphaMask;
 uniform int UseAlphaMask;
@@ -53,6 +53,14 @@ vec3 perturb_normal( vec3 N, vec3 V, vec2 texcoord )
     mat3 TBN = cotangent_frame(N, -V, texcoord);
     return normalize(TBN * map);
 }
+vec3 perturb_normalRaw( vec3 N, vec3 V, vec3 map )
+{
+    // assume N, the interpolated vertex normal and 
+    // V, the view vector (vertex to eye)
+   map = map * 255./127. - 128./127.;
+    mat3 TBN = cotangent_frame(N, -V, UV);
+    return normalize(TBN * map);
+}
 vec3 perturb_bump( float B, vec3 N, vec3 V)
 {
 
@@ -63,22 +71,35 @@ vec3 perturb_bump( float B, vec3 N, vec3 V)
 }
 
 uniform float NormalMapScale;
-
+#include noise3D.glsl
 void main()
 {	
 	discardIfAlphaMasked();
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normal;
 		if(UseNormalMap == 1){
-			//vec3 nmap = texture(normalMap, UV * NormalMapScale).rbg;
-			//normalNew = normalize(rotate_vector_by_vector(normal, nmap));
 			normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
 			
 		}
 		if(UseBumpMap == 1){
-			float bmap = texture(bumpMap, UV).r;
+			//float bmap = texture(bumpMap, UV).r;
 			//normalNew = normalize(rotate_vector_by_vector(normal, nmap));
-			normalNew = perturb_bump(bmap, normal, positionWorldSpace);
+			//normalNew = perturb_bump(bmap, normal, positionWorldSpace);
+		//		
+			vec3 nmap = vec3(0.5, 0.5, 1.0) * 9.0;
+			nmap.x += snoise(vec3(UV.x / 3, UV.y / 3, Time * 2));
+			nmap.y -= snoise(vec3(UV.x / 3, UV.y / 3, Time * 3));
+			nmap.z += snoise(vec3(UV.x / 3, UV.y / 3, Time * 1.3));
+			
+			nmap.x += snoise(vec3(UV.x, UV.y, Time * 2));
+			nmap.y -= snoise(vec3(UV.x, UV.y, Time * 1.23));
+			nmap.z += snoise(vec3(UV.x, UV.y, Time* 3.1));
+			
+			nmap.x += snoise(vec3(UV.x * 10.0, UV.y * 10.0, Time));
+			nmap.y -= snoise(vec3(UV.x * 10.0, UV.y * 10.0, Time));
+			nmap.z += snoise(vec3(UV.x * 10.0, UV.y * 10.0, Time));
+			nmap = normalize(nmap/10);
+			normalNew = perturb_normalRaw(normalNew, positionWorldSpace, nmap * NormalMapScale);
 			
 		}
 		

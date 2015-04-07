@@ -19,7 +19,7 @@ out vec4 outColor;
 void main()
 {
 	vec3 colorOriginal = texture(texColor, UV).rgb;
-	vec3 color1 = colorOriginal * 0.03;
+	vec3 color1 = colorOriginal * 0.012;
 	gl_FragDepth = texture(texDepth, UV).r;
 	vec4 fragmentPosWorld3d = texture(worldPosTex, UV);
 	vec4 normal = texture(normalsTex, UV);

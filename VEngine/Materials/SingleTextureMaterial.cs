@@ -53,7 +53,7 @@ namespace VDGTech
             if(BumpMap != null)
             {
                 Program.SetUniform("UseBumpMap", 1);
-                BumpMap.Use(TextureUnit.Texture0);
+                BumpMap.Use(TextureUnit.Texture16);
             }
             else
                 Program.SetUniform("UseBumpMap", 0);

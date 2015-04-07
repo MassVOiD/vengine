@@ -14,7 +14,7 @@ namespace ShadowsTester
     {
         public HomeScene()
         {
-            var testroom = Object3dInfo.LoadSceneFromObj(Media.Get("testroom.obj"), Media.Get("testroom.mtl"), 1.0f);
+            var testroom = Object3dInfo.LoadSceneFromObj(Media.Get("testroom.obj"), Media.Get("testroom.mtl"), 3.0f);
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in testroom)
             {

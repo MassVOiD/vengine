@@ -14,12 +14,20 @@ namespace ShadowsTester
     {
         public LucyScene()
         {
-            /*
+            
             var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucyhires.vbo.raw"), Media.Get("lucyhires.indices.raw"));
             dragon3dInfo.ScaleUV(0.1f);
             var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("180.jpg", "180_norm.jpg"));
-            Add(dragon);*/
-            var ballobj = Object3dInfo.LoadFromObjSingle(Media.Get("sphere.obj"));
+            Add(dragon);
+            /*
+            var ballobj = Object3dInfo.LoadFromRaw(Media.Get("mustang.vbo.raw"), Media.Get("mustang.indices.raw"));
+            ballobj.MakeDoubleFaced();
+
+            var ball2 = new Mesh3d(ballobj, new SolidColorMaterial(Color.Red));
+            ball2.Transformation.Scale(4);
+            Add(ball2);
+            */
+            /*var ballobj = Object3dInfo.LoadFromObjSingle(Media.Get("sphere.obj"));
             Random rand = new Random();
             for(float x = -20; x < 20; x += 10)
             {
@@ -33,7 +41,8 @@ namespace ShadowsTester
                     ball2.Transformation.Translate(new Vector3(x, 0, y));
                     Add(ball2);
                 }
-            }
+            }*/
+
 
 
         }

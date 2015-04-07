@@ -116,8 +116,9 @@ namespace ShadowsTester
             Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
 
 
-            var color = SingleTextureMaterial.FromMedia("177.JPG", "177_norm.JPG");
-            //var color = new SolidColorMaterial(Color.White);
+            var color = SingleTextureMaterial.FromMedia("177.jpg", "177_norm.JPG");
+            //var color = new SolidColorMaterial(Color.Silver);
+            //color.SetBumpMapFromMedia("177_norm.JPG");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
@@ -137,7 +138,7 @@ namespace ShadowsTester
             });*/
 
 
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver2, 1.0f, 10000.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver2, 1.0f, 10000.0f);
             redConeLight.LightColor = new Vector4(1, 1, 1, 1);
 
 
@@ -241,8 +242,8 @@ namespace ShadowsTester
             //new BoxesScene().Create();
 
             //new HallScene().Create();
-            //new CarScene().Create();
-
+            //new HomeScene().Create();
+            System.Threading.Thread.Sleep(500);
             window.PostProcessor.UseFog = false;
             window.PostProcessor.UseSimpleGI = true;
             window.PostProcessor.UseBilinearGI = false;
@@ -548,11 +549,20 @@ namespace ShadowsTester
                 {
                     freeCamera.Cam.LookAt(new Vector3(0));
                 }
-                if(e.Key == OpenTK.Input.Key.Number3)
-                {
-                   // blueConeLight.GetTransformationManager().SetPosition(freeCamera.Cam.Transformation.GetPosition());
-                   // blueConeLight.GetTransformationManager().SetOrientation(freeCamera.Cam.Transformation.GetOrientation().Inverted());
-                }
+                if(e.Key == OpenTK.Input.Key.Number0)
+                    window.PostProcessor.UseBilinearGI = !window.PostProcessor.UseBilinearGI;
+                if(e.Key == OpenTK.Input.Key.Number9)
+                    window.PostProcessor.UseBloom = !window.PostProcessor.UseBloom;
+                if(e.Key == OpenTK.Input.Key.Number8)
+                    window.PostProcessor.UseDeferred = !window.PostProcessor.UseDeferred;
+                if(e.Key == OpenTK.Input.Key.Number7)
+                    window.PostProcessor.UseDepth = !window.PostProcessor.UseDepth;
+                if(e.Key == OpenTK.Input.Key.Number6)
+                    window.PostProcessor.UseFog = !window.PostProcessor.UseFog;
+                if(e.Key == OpenTK.Input.Key.Number5)
+                    window.PostProcessor.UseLightPoints = !window.PostProcessor.UseLightPoints;
+                if(e.Key == OpenTK.Input.Key.Number4)
+                    window.PostProcessor.UseSimpleGI = !window.PostProcessor.UseSimpleGI;
             };
 
             World.Root.SortByObject3d();

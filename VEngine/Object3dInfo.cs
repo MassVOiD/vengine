@@ -425,6 +425,12 @@ namespace VDGTech
                 Indices[i + 2] = Indices[i];
                 Indices[i] = tmp;
             }
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                VBO[i + 5] *= -1;
+                VBO[i + 6] *= -1;
+                VBO[i + 7] *= -1;
+            }
         }
         public void MakeDoubleFaced()
         {

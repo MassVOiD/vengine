@@ -374,25 +374,29 @@ namespace VDGTech
                 Bloom();
             }
 
-            var oddfb = SwitchBetweenFB();
-            var evenfb = oddfb == Pass1FrameBuffer ? Pass2FrameBuffer : Pass1FrameBuffer;
+
+            var p1 = SwitchBetweenFB();
+            var p2 = p1 == Pass1FrameBuffer ? Pass2FrameBuffer : Pass1FrameBuffer;
+            p2.UseTexture(0);
+            Blit();
+            SwitchBetweenFB();
             if(UseBilinearGI || UseSimpleGI)
             {
                 GlobalIlluminationFrameBuffer.UseTexture(0);
                 Blit();
 
                 SwitchToFB(GlobalIlluminationFrameBuffer);
-                evenfb.UseTexture(0);
+                p1.UseTexture(0);
                 DiffuseColorFrameBuffer.UseTexture(2);
                 WorldPositionFrameBuffer.UseTexture(3);
                 NormalsFrameBuffer.UseTexture(4);
-                oddfb.UseTexture(5);
-                ScreenSpaceNormalsFrameBuffer.UseTexture(6);
+                p2.UseTexture(5);
+                ScreenSpaceNormalsFrameBuffer.UseTexture(7);
                 //BackDiffuseFrameBuffer.UseTexture(7);
                 //BackNormalsFrameBuffer.UseTexture(9);
                 GlobalIllumination();
+                SwitchToFB(p2);
             }
-
             /*SwitchToFB(GlobalIlluminationFrameBuffer);
 
             ReflectShader.Use();
@@ -404,9 +408,8 @@ namespace VDGTech
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;*/
 
-            SwitchToFB1();
 
-            evenfb.UseTexture(0);
+            p1.UseTexture(0);
             FogFramebuffer.UseTexture(2);
             LightPointsFrameBuffer.UseTexture(3);
             BloomFrameBuffer.UseTexture(4);

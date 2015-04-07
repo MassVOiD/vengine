@@ -45,7 +45,7 @@ vec3 lookupGIBilinearDepthNearest(vec2 giuv){
 	//lookupLengthX = clamp(lookupLengthX, 0, 1);
 	//lookupLengthY = clamp(lookupLengthY, 0, 1);
 	vec3 gi =  (texture(globalIllumination, giuv ).rgb);
-	return length(texture(diffuseColor, giuv).rgb) * gi	* 1.1 + length(texture(color, giuv).rgb) * gi	* 1.1;
+	return (texture(diffuseColor, giuv).rgb) * gi	* 1.1 + (texture(color, giuv).rgb) * gi	* 1.1;
 }
 
 vec3 lookupGI(){
