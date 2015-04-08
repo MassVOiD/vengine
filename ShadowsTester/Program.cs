@@ -40,7 +40,7 @@ namespace ShadowsTester
             // System.Threading.Thread.Sleep(1000);
 
             float aspect = Config.Height > Config.Width ? Config.Height / Config.Width : Config.Width / Config.Height;
-            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver2);
+            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.Pi - 0.6f);
             FreeCam = freeCamera;
 
             Object3dInfo infocube = Object3dInfo.LoadFromObjSingle(Media.Get("cube.obj"));
@@ -502,7 +502,7 @@ namespace ShadowsTester
             
             Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("skydome.obj"));
             //var skydomeMaterial = SingleTextureMaterial.FromMedia("sky_povray.jpg");
-            var skydomeMaterial = new SolidColorMaterial(Color.Black);
+            var skydomeMaterial = new SolidColorMaterial(Color.White);
             var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
             skydome.Transformation.Scale(1000);
             skydome.IgnoreLighting = true;

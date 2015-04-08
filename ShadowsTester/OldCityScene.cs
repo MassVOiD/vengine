@@ -28,6 +28,15 @@ namespace ShadowsTester
             var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("180.JPG", "180_norm.JPG"));
             dragon.Transformation.Scale(2);
             Add(dragon);
+            var ballobj = Object3dInfo.LoadFromRaw(Media.Get("mustang.vbo.raw"), Media.Get("mustang.indices.raw"));
+            ballobj.MakeDoubleFaced();
+
+            var ball2 = new Mesh3d(ballobj, new SolidColorMaterial(Color.Red));
+            ball2.Transformation.Scale(2);
+            ball2.DiffuseComponent = 0.2f;
+            ball2.Transformation.Translate(new Vector3(10, 0, 0));
+            ball2.Transformation.Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver4));
+            Add(ball2);
         }
 
     }

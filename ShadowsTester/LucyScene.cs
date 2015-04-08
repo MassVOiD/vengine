@@ -14,11 +14,16 @@ namespace ShadowsTester
     {
         public LucyScene()
         {
-            
+            /*
             var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucyhires.vbo.raw"), Media.Get("lucyhires.indices.raw"));
             dragon3dInfo.ScaleUV(0.1f);
             var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("180.jpg", "180_norm.jpg"));
+            Add(dragon);*/
+            var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("kamaz.obj"));
+            var dragon = new Mesh3d(dragon3dInfo, new SolidColorMaterial(Color.PapayaWhip));
+            dragon.Transformation.Scale(4);
             Add(dragon);
+            
             /*
             var ballobj = Object3dInfo.LoadFromRaw(Media.Get("mustang.vbo.raw"), Media.Get("mustang.indices.raw"));
             ballobj.MakeDoubleFaced();
