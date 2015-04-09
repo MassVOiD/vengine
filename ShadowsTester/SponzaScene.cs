@@ -14,12 +14,15 @@ namespace ShadowsTester
     {
         public SponzaScene()
         {
-            var obj = Object3dInfo.LoadFromRaw(Media.Get("sponza.vbo.raw"), Media.Get("sponza.indices.raw"));
-            Mesh3d mesh = new Mesh3d(obj, new SolidColorMaterial(Color.White));
-            mesh.Transformation.SetScale(0.3f);
-           // mesh.SetMass(0);
-           // mesh.SetCollisionShape(obj.GetAccurateCollisionShape());
-            Add(mesh);
+            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("skyscr.obj"), Media.Get("skyscr.mtl"), 1f);
+            //var instances = InstancedMesh3d.FromMesh3dList(testroom);
+            foreach(var ob in scene)
+            {
+                //ob.SetMass(0);
+                // ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
+                //ob.SpecularComponent = 0.1f;
+                this.Add(ob);
+            }
         }
 
     }

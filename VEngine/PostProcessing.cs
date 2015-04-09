@@ -85,8 +85,8 @@ namespace VDGTech
             FogFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /1, initialHeight / 1);
-            BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth , initialHeight);
+            //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 
             WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
@@ -384,12 +384,12 @@ namespace VDGTech
             {
                 GlobalIlluminationFrameBuffer.UseTexture(0);
                 Blit();
-
+                /*
                 SwitchToFB(BackDiffuseFrameBuffer);
                 BackDepthWriterShader.Use();
                 ShaderProgram.Lock = true;
                 World.Root.Draw();
-                ShaderProgram.Lock = false;
+                ShaderProgram.Lock = false;*/
 
                 SwitchToFB(GlobalIlluminationFrameBuffer);
                 p1.UseTexture(0);
@@ -398,7 +398,7 @@ namespace VDGTech
                 NormalsFrameBuffer.UseTexture(4);
                 p2.UseTexture(5);
                 ScreenSpaceNormalsFrameBuffer.UseTexture(7);
-                BackDiffuseFrameBuffer.UseTexture(8);
+                //BackDiffuseFrameBuffer.UseTexture(8);
                 //BackDiffuseFrameBuffer.UseTexture(7);
                 //BackNormalsFrameBuffer.UseTexture(9);
                 GlobalIllumination();

@@ -101,6 +101,7 @@ namespace VDGTech
 
         public void Draw()
         {
+            //if(Camera.Current != null) SortByCameraDistance();
             for(int i = 0; i < Children.Count; i++)
             {
                 if(Children[i] != null)
@@ -215,6 +216,19 @@ namespace VDGTech
                 var am = a as Mesh3d;
                 var bm = b as Mesh3d;
                 return am.ObjectInfo.GetHash() - bm.ObjectInfo.GetHash();
+            });
+        }
+        public void SortByCameraDistance()
+        {
+            Children.Sort((a, b) =>
+            {
+                if(!(a is Mesh3d))
+                    return 0;
+                if(!(b is Mesh3d))
+                    return 0;
+                var am = a as Mesh3d;
+                var bm = b as Mesh3d;
+                return (int)((am.Transformation.GetPosition() - Camera.Current.Transformation.GetPosition()).Length - (bm.Transformation.GetPosition() - Camera.Current.Transformation.GetPosition()).Length * 100.0f);
             });
         }
     }

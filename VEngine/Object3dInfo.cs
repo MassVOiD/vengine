@@ -340,7 +340,7 @@ namespace VDGTech
                     }
                     else
                     {
-                        material = new SolidColorMaterial(mat.DiffuseColor);
+                        material = new SolidColorMaterial(Color.White);
                         mInfos[material] = mat;
                         colorCache.Add(mat.DiffuseColor, material);
                     }
@@ -374,6 +374,7 @@ namespace VDGTech
                 }
                 var trans = o3di.GetAverageTranslationFromZero();
                 o3di.OriginToCenter();
+                //o3di.CorrectFacesByNormals();
                 // o3di.CorrectFacesByNormals();
                 Mesh3d mesh = new Mesh3d(o3di, kv.Key);
                 mesh.SpecularComponent = mInfos[kv.Key].SpecularStrength + 0.01f;

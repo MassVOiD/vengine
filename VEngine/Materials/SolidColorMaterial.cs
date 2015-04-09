@@ -26,6 +26,8 @@ namespace VDGTech
             bool res = Program.Use();
             if(!ShaderProgram.Lock)
                 Program.SetUniform("input_Color", Color);
+            Program.SetUniform("UseNormalMap", 0);
+            Program.SetUniform("UseBumpMap", 0);
             return res;
         }
     }

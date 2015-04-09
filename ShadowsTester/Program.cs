@@ -40,7 +40,7 @@ namespace ShadowsTester
             // System.Threading.Thread.Sleep(1000);
 
             float aspect = Config.Height > Config.Width ? Config.Height / Config.Width : Config.Width / Config.Height;
-            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.Pi - 0.6f);
+            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver3);
             FreeCam = freeCamera;
 
             Object3dInfo infocube = Object3dInfo.LoadFromObjSingle(Media.Get("cube.obj"));
@@ -50,7 +50,7 @@ namespace ShadowsTester
                 window.Resize += (o, e) =>
                 {
                     float aast = window.Height > window.Width ? window.Height / window.Width : window.Width / window.Height;
-                    freeCamera = new FreeCamera(aast, MathHelper.PiOver2);
+                    freeCamera = new FreeCamera(aast, MathHelper.PiOver3);
                     FreeCam = freeCamera;
                     GLThread.Resolution.X = window.Width;
                     GLThread.Resolution.Y = window.Height;
@@ -235,13 +235,13 @@ namespace ShadowsTester
 
             //new SculptScene().Create();
             //new SponzaScene().Create();
-            new OldCityScene().Create();
+            //new OldCityScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new LucyScene().Create();
             //new BoxesScene().Create();
 
-            //new HallScene().Create();
+            new HallScene().Create();
             //new HomeScene().Create();
             System.Threading.Thread.Sleep(500);
             window.PostProcessor.UseFog = false;
