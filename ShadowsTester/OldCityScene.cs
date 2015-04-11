@@ -27,6 +27,9 @@ namespace ShadowsTester
             dragon3dInfo.ScaleUV(100);
             var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("180.JPG", "180_norm.JPG"));
             dragon.Transformation.Scale(2);
+            //dragon.DrawOddOnly = true;
+            dragon.DiffuseComponent = 0.5f;
+            dragon.SpecularSize = 28.0f;
             Add(dragon);
             var ballobj = Object3dInfo.LoadFromRaw(Media.Get("mustang.vbo.raw"), Media.Get("mustang.indices.raw"));
             ballobj.MakeDoubleFaced();

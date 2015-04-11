@@ -28,7 +28,8 @@ namespace VDGTech
             HDRShader,
             WorldPosWriterShader,
             NormalsWriterShader,
-            GlobalIlluminationShader, 
+            GlobalIlluminationShaderX,
+            GlobalIlluminationShaderY,
             BlitShader, 
             DeferredShader, 
             CombinerShader,
@@ -72,7 +73,7 @@ namespace VDGTech
             MSAAResolvingFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             MSAAResolvingFrameBuffer.SetMultiSample(true);
 
-            DiffuseColorFrameBuffer = new Framebuffer(initialWidth, initialHeight);
+            DiffuseColorFrameBuffer = new Framebuffer(initialWidth , initialHeight);
 
             Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
             Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
@@ -85,8 +86,8 @@ namespace VDGTech
             FogFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth , initialHeight);
-            //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /4, initialHeight /4);
+            //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 
             WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
@@ -104,8 +105,11 @@ namespace VDGTech
             BlitShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Blit.fragment.glsl"));
             DeferredShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Deferred.fragment.glsl"));
             CombinerShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Combiner.fragment.glsl"));
-            GlobalIlluminationShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("GlobalIllumination.fragment.glsl"));
-            ReflectShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Reflect.fragment.glsl"));
+            GlobalIlluminationShaderX = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("GlobalIllumination.fragment.glsl"));
+            GlobalIlluminationShaderX.SetGlobal("SEED", "gl_FragCoord.x");
+            GlobalIlluminationShaderY = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("GlobalIllumination.fragment.glsl"));
+            GlobalIlluminationShaderY.SetGlobal("SEED", "gl_FragCoord.y");
+            //ReflectShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Reflect.fragment.glsl"));
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new SolidColorMaterial(Color.Pink));
@@ -164,9 +168,14 @@ namespace VDGTech
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
         }
+        bool GIPassOdd = false;
         private void GlobalIllumination()
         {
-            GlobalIlluminationShader.Use();
+            GIPassOdd = !GIPassOdd;
+            if(GIPassOdd)
+                GlobalIlluminationShaderX.Use();
+            else
+                GlobalIlluminationShaderY.Use();
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -291,7 +300,9 @@ namespace VDGTech
             WorldPosWriterShader.Use();
             ShaderProgram.Lock = true;
             WorldPositionFrameBuffer.Use();
+            Mesh3d.IsOddframe = true;
             World.Root.Draw();
+            Mesh3d.IsOddframe = false;
             ShaderProgram.Lock = false;
 
             EnableFullBlend();

@@ -43,7 +43,7 @@ namespace ShadowsTester
             //Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
 
             Cam.UpdateFromRollPitch();
-            Cam.Transformation.BeenModified = false;
+            Cam.Transformation.ClearModifiedFlag();
         }
 
         private void UpdateSterring(object o, EventArgs e)
@@ -119,7 +119,7 @@ namespace ShadowsTester
             Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
 
             Cam.UpdateFromRollPitch();
-            Cam.Transformation.BeenModified = false;
+            Cam.Transformation.MarkAsModified();
         }
     }
 }

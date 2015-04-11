@@ -36,16 +36,16 @@ namespace VDGTech
         private bool Compiled;
         private Dictionary<string, int> UniformLocationsCache;
         private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
-        private static Dictionary<string, string> Globals = new Dictionary<string,string>();
+        private Dictionary<string, string> Globals = new Dictionary<string,string>();
 
-        public static void SetGlobal(string key, string value)
+        public void SetGlobal(string key, string value)
         {
             if(Globals.ContainsKey(key))
                 Globals[key] = value;
             else
                 Globals.Add(key, value);
         }
-        public static void RemoveGlobal(string key)
+        public void RemoveGlobal(string key)
         {
             if(Globals.ContainsKey(key))
                 Globals.Remove(key);

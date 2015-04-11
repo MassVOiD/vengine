@@ -38,8 +38,7 @@ void main()
 			vec3 lightRelativeToVPos = LightsPos[i] - fragmentPosWorld3d.xyz;
 			vec3 R = reflect(lightRelativeToVPos, normal.xyz);
 			float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
-			float s = smoothstep(0.95, 1.79, cosAlpha) * 66.0;
-			float specularComponent = s*s * fragmentPosWorld3d.a;
+			float specularComponent = clamp(pow(cosAlpha, 80.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
 
 
 			lightRelativeToVPos = LightsPos[i] - fragmentPosWorld3d.xyz;

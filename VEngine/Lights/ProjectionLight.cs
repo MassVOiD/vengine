@@ -69,10 +69,10 @@ namespace VDGTech
             if(IsStatic && !NeedsRefreshing)
                 return;
             FBO.Use();
-            if(camera.Transformation.BeenModified)
+            if(camera.Transformation.HasBeenModified())
             {
                 camera.Update();
-                camera.Transformation.BeenModified = false;
+                camera.Transformation.ClearModifiedFlag();
             }
             Camera last = Camera.Current;
             Camera.Current = camera;

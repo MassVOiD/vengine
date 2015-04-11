@@ -23,13 +23,33 @@ vec3 lookupFog(){
 	{ 
 		for(float g2 = 0; g2 < 6.0; g2+=1.0)
 		{ 
-			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.005);
+			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001);
 			vec3 color = texture(fog, UV + gauss).rgb;
 			outc += color;
 			counter++;
 		}
 	}
 	return outc / counter;
+}
+
+vec3 lookupGIBlurred(float radius){
+	vec3 outc = vec3(0);
+	float last = 0;
+	int counter = 0;
+	for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
+	{ 
+		for(float g2 = 1; g2 < 6.0; g2+=1.0)
+		{ 
+			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * radius);
+			vec3 color = texture(globalIllumination, UV + gauss).rgb;
+			if(length(color) >= last){
+				outc += color;
+				counter++;
+				last = length(color);
+			}
+		}
+	}
+	return outc / counter / 3 * texture(diffuseColor, UV).rgb ;
 }
 
 vec3 lookupFogSimple(){
@@ -81,7 +101,7 @@ void main()
 	if(UseBloom == 1) color1 += texture(bloom, UV).rgb;
 	if(UseDepth == 1) color1 += texture(depth, UV).rrr;
 	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(UV);
-	if(UseSimpleGI == 1) color1 += lookupGISimple(UV);
+	if(UseSimpleGI == 1) color1 += lookupGIBlurred(0.0005);
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;

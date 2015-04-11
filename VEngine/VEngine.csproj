@@ -80,9 +80,11 @@
     </Content>
     <Compile Include="ColladaScene.cs" />
     <Compile Include="ComputeShader.cs" />
+    <Compile Include="GameConsole\GameConsole.cs" />
     <Compile Include="Debugger.cs" />
     <Compile Include="Fog\FogDensitySphere.cs" />
     <Compile Include="Fog\FogPool.cs" />
+    <Compile Include="Interpolator.cs" />
     <Compile Include="IntHashGenerator.cs" />
     <Compile Include="KeyframeAnimatedMesh3d.cs" />
     <Compile Include="Lights\PointLight.cs" />
@@ -123,6 +125,7 @@
     <Compile Include="UI\Rectangle.cs" />
     <Compile Include="UI\Text.cs" />
     <Compile Include="UI\UIRenderer.cs" />
+    <Compile Include="ValuePointer.cs" />
     <Compile Include="VEngineInvisibleAdapter.cs" />
     <Compile Include="World.cs" />
     <Compile Include="ShaderProgram.cs" />

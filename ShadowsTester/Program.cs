@@ -235,13 +235,13 @@ namespace ShadowsTester
 
             //new SculptScene().Create();
             //new SponzaScene().Create();
-            //new OldCityScene().Create();
+            new OldCityScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new LucyScene().Create();
             //new BoxesScene().Create();
 
-            new HallScene().Create();
+            //new HallScene().Create();
             //new HomeScene().Create();
             System.Threading.Thread.Sleep(500);
             window.PostProcessor.UseFog = false;
@@ -548,6 +548,10 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Number2)
                 {
                     freeCamera.Cam.LookAt(new Vector3(0));
+                }
+                if(e.Key == OpenTK.Input.Key.Number3)
+                {
+                    Interpolator.Interpolate<Vector3>(redConeLight.GetTransformationManager().Position, redConeLight.GetTransformationManager().Position.R, freeCamera.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
                 }
                 if(e.Key == OpenTK.Input.Key.Number0)
                     window.PostProcessor.UseBilinearGI = !window.PostProcessor.UseBilinearGI;

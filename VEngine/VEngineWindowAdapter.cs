@@ -80,6 +80,8 @@ namespace VDGTech
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            Interpolator.StepAll();
+
             GLThread.InvokeQueue();
 
             LightPool.MapAll();

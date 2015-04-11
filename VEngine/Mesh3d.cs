@@ -36,6 +36,8 @@ namespace VDGTech
         public bool ReceiveShadows = true;
         public bool IgnoreLighting = false;
         private Texture AlphaMask = null;
+        public bool DrawOddOnly = false;
+        public static bool IsOddframe = false;
 
         public void UseAlphaMaskFromMedia(string key)
         {
@@ -64,10 +66,12 @@ namespace VDGTech
 
         public void Draw()
         {
-            if(Transformation.BeenModified)
+            if(IsOddframe && DrawOddOnly)
+                return;
+            if(Transformation.HasBeenModified())
             {
                 UpdateMatrix();
-                Transformation.BeenModified = false;
+                Transformation.ClearModifiedFlag();
             }
             if(Camera.Current == null)
                 return;
@@ -149,14 +153,14 @@ namespace VDGTech
         {
             PhysicalShape = shape;
             PhysicalShape.UserObject = this;
-            Transformation.BeenModified = true;
+            Transformation.MarkAsModified();
             return this;
         }
 
         public Mesh3d SetMass(float mass)
         {
             Mass = mass;
-            Transformation.BeenModified = true;
+            Transformation.MarkAsModified();
             return this;
         }
 
