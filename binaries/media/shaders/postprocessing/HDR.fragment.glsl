@@ -1,6 +1,7 @@
 #version 430 core
 
 in vec2 UV;
+#include LogDepth.glsl
 #include Lighting.glsl
 
 layout(binding = 0) uniform sampler2D texColor;

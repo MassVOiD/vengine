@@ -1,8 +1,8 @@
 #version 430 core
 
 in vec2 UV;
-#include Lighting.glsl
 #include LogDepth.glsl
+#include Lighting.glsl
 #define mPI (3.14159265)
 #define mPI2 (2*3.14159265)
 #define GOLDEN_RATIO (1.6180339)
@@ -15,6 +15,8 @@ layout(binding = 3) uniform sampler2D lightpoints;
 layout(binding = 4) uniform sampler2D bloom;
 layout(binding = 5) uniform sampler2D globalIllumination;
 layout(binding = 6) uniform sampler2D diffuseColor;
+layout(binding = 7) uniform sampler2D normals;
+layout(binding = 8) uniform sampler2D worldPos;
 
 vec3 lookupFog(){
 	vec3 outc = vec3(0);
@@ -84,6 +86,14 @@ vec3 subsurfaceScatteringExperiment(){
 	);
 }*/
 
+vec2 refractUV(){
+	vec3 rdir = normalize(CameraPosition - texture(worldPos, UV).rgb);
+	vec3 crs1 = normalize(cross(CameraPosition, texture(worldPos, UV).rgb));
+	vec3 crs2 = normalize(cross(crs1, rdir));
+	vec3 rf = refract(rdir, texture(normals, UV).rgb, 0.6);
+	return UV - vec2(dot(rf, crs1), dot(rf, crs2)) * 0.3;
+}
+
 uniform int UseSimpleGI;
 uniform int UseFog;
 uniform int UseLightPoints;
@@ -94,14 +104,19 @@ uniform int UseBilinearGI;
 
 void main()
 {
+	vec2 nUV = UV;
+	if(texture(diffuseColor, UV).a < 0.99){
+		nUV = refractUV();
+	}
 	vec3 color1 = vec3(0);
-	if(UseDeferred == 1) color1 += texture(color, UV).rgb;
+	if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
 	if(UseFog == 1) color1 += lookupFog();
-	if(UseLightPoints == 1) color1 += texture(lightpoints, UV).rgb;
-	if(UseBloom == 1) color1 += texture(bloom, UV).rgb;
-	if(UseDepth == 1) color1 += texture(depth, UV).rrr;
-	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(UV);
-	if(UseSimpleGI == 1) color1 += lookupGIBlurred(0.0005);
+	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
+	if(UseBloom == 1) color1 += texture(bloom, nUV).rgb;
+	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
+	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
+	//if(UseSimpleGI == 1) color1 += lookupGIBlurred(0.0005) * 0.8;
+	if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * 0.3;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;

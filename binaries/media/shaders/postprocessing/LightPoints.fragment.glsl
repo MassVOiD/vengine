@@ -1,8 +1,8 @@
 #version 430 core
 
 in vec2 UV;
-#include Lighting.glsl
 #include LogDepth.glsl
+#include Lighting.glsl
 
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
@@ -37,13 +37,13 @@ void main()
 		if(clipspace2.z >= 0.0) {
 			vec2 sspace = ((clipspace2.xyz / clipspace2.w).xy + 1.0) / 2.0;
 			float dist = distance(CameraPosition, LightsPos[i]);
-			float lndist = toLogDepth(dist);
+			//float lndist = toLogDepth(dist);
 			dist += 1.0;
 			float overall = 0.0;
 			for(float g2 = 0; g2 < 8.0; g2+=2.0){ 
 				for(float g = 0; g < mPI2; g+=0.6){ 
 					float percent = lookupDepthFromLight(i, sspace + vec2(sin(g) * ratio, cos(g))*0.001*g2);
-					float newdist = 1.0f - (lndist - percent);
+					float newdist = 1.0f - (dist - percent);
 					if(newdist > 1) overall += 1.0;
 				}
 			}
@@ -61,7 +61,7 @@ void main()
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
 		float dist = distance(CameraPosition, SimpleLightsPos[i]);
-		float revlog = reverseLog(texture(texDepth, UV).r);
+		float revlog = (texture(texDepth, UV).r);
 		if(dist > revlog)continue;
 		dist += 1.0;
 		color += ball(vec3(SimpleLightsColors[i]*2.0 * SimpleLightsColors[i].a),0.1/ dist, sspace1.x, sspace1.y);

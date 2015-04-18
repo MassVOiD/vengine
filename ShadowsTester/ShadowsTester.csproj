@@ -55,6 +55,7 @@
     <Compile Include="HallScene.cs" />
     <Compile Include="CarScene.cs" />
     <Compile Include="DragonScene.cs" />
+    <Compile Include="NatureScene.cs" />
     <Compile Include="OldCityScene.cs" />
     <Compile Include="BoxesScene.cs" />
     <Compile Include="IndirectTestScene.cs" />

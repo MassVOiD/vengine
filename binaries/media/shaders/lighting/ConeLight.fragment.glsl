@@ -1,11 +1,7 @@
 #version 430 core
 //in vec3 normal;
 smooth in vec3 vertexWorldSpace;
-smooth in vec3 positionWorldSpace;
 uniform vec3 LightPosition;
-uniform vec3 CameraPosition;
-uniform float FarPlane;
-uniform float LogEnchacer;
 #include LogDepth.glsl
 
 layout(binding = 2) uniform sampler2D AlphaMask;
@@ -23,8 +19,7 @@ void main()
 {
 	discardIfAlphaMasked();
 	float depth = distance(vertexWorldSpace, LightPosition);
-	float badass_depth = toLogDepth(depth);
-	gl_FragDepth = badass_depth;
+	gl_FragDepth = toLogDepth(depth);
 		
     outColor = 0;
 }

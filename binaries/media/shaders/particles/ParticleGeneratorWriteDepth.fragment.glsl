@@ -1,7 +1,6 @@
 /*fragment*/
 #version 430 core
 in vec2 UV;
-smooth in vec3 positionWorldSpace;
 uniform vec3 CameraPosition;
 uniform float LogEnchacer;
 uniform float FarPlane;

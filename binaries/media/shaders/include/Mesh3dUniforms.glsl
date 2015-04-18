@@ -12,7 +12,7 @@ uniform float LightsFarPlane[MAX_LIGHTS];
 uniform vec4 LightsColors[MAX_LIGHTS];
 
 
-const int MAX_INSTANCES = 2000;
+const int MAX_INSTANCES = 1500;
 uniform int Instances;
 uniform mat4 ModelMatrixes[MAX_INSTANCES];
 uniform mat4 RotationMatrixes[MAX_INSTANCES];
@@ -34,5 +34,6 @@ uniform float SpecularComponent;
 uniform float SpecularSize;
 uniform vec2 resolution;
 float ratio = resolution.y/resolution.x;
+
 
 uniform int IgnoreLighting;

@@ -32,6 +32,7 @@ namespace VDGTech
         public void BuildOrthographicProjection(float width, float height, float near, float far)
         {
             camera.ProjectionMatrix = Matrix4.CreateOrthographic(width, height, near, far);
+            camera.Update();
         }
 
         public Vector4 GetColor()

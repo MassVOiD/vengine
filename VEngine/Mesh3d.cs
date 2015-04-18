@@ -44,12 +44,35 @@ namespace VDGTech
             AlphaMask = new Texture(Media.Get(key));
         }
 
-        public RigidBody CreateRigidBody()
+        public RigidBody CreateRigidBody(bool forceRecreate = false)
         {
+            if(PhysicalBody != null && !forceRecreate)
+                return PhysicalBody;
             bool isDynamic = (Mass != 0.0f);
             var shape = GetCollisionShape();
 
             Vector3 localInertia = Vector3.Zero;
+            if(isDynamic)
+                shape.CalculateLocalInertia(Mass, out localInertia);
+
+            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) * Matrix4.CreateTranslation(Transformation.GetPosition()));
+
+            RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(Mass, myMotionState, shape, localInertia);
+            RigidBody body = new RigidBody(rbInfo);
+            body.UserObject = this;
+
+            PhysicalBody = body;
+
+            return body;
+        }
+        public RigidBody CreateRigidBody(Vector3 massCenter, bool forceRecreate = false)
+        {
+            if(PhysicalBody != null && !forceRecreate)
+                return PhysicalBody;
+            bool isDynamic = (Mass != 0.0f);
+            var shape = GetCollisionShape();
+
+            Vector3 localInertia = massCenter;
             if(isDynamic)
                 shape.CalculateLocalInertia(Mass, out localInertia);
 
@@ -164,10 +187,15 @@ namespace VDGTech
             return this;
         }
 
-        private void UpdateMatrix()
+        public void UpdateMatrix(bool noPhysics = false)
         {
             RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
             Matrix =  Matrix4.CreateScale(Transformation.GetScale()) * RotationMatrix * Matrix4.CreateTranslation(Transformation.GetPosition());
+            if(!noPhysics && PhysicalBody != null)
+            {
+                PhysicalBody.WorldTransform = RotationMatrix
+                    * Matrix;
+            }
         }
     }
 }

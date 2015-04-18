@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using BulletSharp;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 using VDGTech.UI;
 
 namespace VDGTech
@@ -40,7 +41,7 @@ namespace VDGTech
         private Dictionary<IRenderable, CollisionObject> CollisionObjects;
         private CollisionDispatcher Dispatcher;
         private Matrix4 Matrix;
-        public  Mesh3d SkyDome;
+        public Mesh3d SkyDome;
 
         public void Add(IRenderable renderable)
         {
@@ -99,13 +100,32 @@ namespace VDGTech
             return body;
         }
 
-        public void Draw()
+        public void Draw(bool ignoreMeshWithDisabledDepthTest = false)
         {
             //if(Camera.Current != null) SortByCameraDistance();
+            GL.CullFace(CullFaceMode.Back);
             for(int i = 0; i < Children.Count; i++)
             {
                 if(Children[i] != null)
+                {
+                    if(Children[i] is Mesh3d && ((Mesh3d)Children[i]).DisableDepthWrite == true)
+                        continue;
                     Children[i].Draw();
+
+                }
+            }
+            if(!ignoreMeshWithDisabledDepthTest)
+            {
+                GL.CullFace(CullFaceMode.Front);
+                for(int i = 0; i < Children.Count; i++)
+                {
+                    if(Children[i] != null)
+                    {
+                        if((Children[i] is Mesh3d) && ((Mesh3d)Children[i]).DisableDepthWrite == true)
+                            Children[i].Draw();
+                    }
+                }
+                GL.CullFace(CullFaceMode.Back);
             }
         }
 
@@ -136,7 +156,7 @@ namespace VDGTech
                 {
                     Vector3 offset = mesh.Transformation.GetPosition() - position;
                     float distanceSquared = offset.LengthSquared;
-                    if(distanceSquared > float.Epsilon) 
+                    if(distanceSquared > float.Epsilon)
                     {
                         var distance = (float)Math.Sqrt(distanceSquared);
                         mesh.PhysicalBody.ApplyImpulse((offset * ((magnitude * 100.0f) / (distanceSquared))), Vector3.Zero);
@@ -178,25 +198,28 @@ namespace VDGTech
 
                     mesh.Transformation.SetPosition((Matrix4.CreateScale(Scale) * body.WorldTransform).ExtractTranslation());
                     mesh.Transformation.SetOrientation(mesh.PhysicalBody.Orientation);
+                    mesh.UpdateMatrix(true);
+                    mesh.Transformation.ClearModifiedFlag();
                 }
             }
             if(MeshCollide != null)
             {
                 int numManifolds = Dispatcher.NumManifolds;
-                for (int i=0;i<numManifolds;i++)
+                for(int i = 0; i < numManifolds; i++)
                 {
-                    var contactManifold =  Dispatcher.GetManifoldByIndexInternal(i);
+                    var contactManifold = Dispatcher.GetManifoldByIndexInternal(i);
                     var obA = contactManifold.Body0;
                     var obB = contactManifold.Body1;
                     var meshA = obA.UserObject as Mesh3d;
                     var meshB = obB.UserObject as Mesh3d;
-                    if(meshA == null || meshB == null) continue;
+                    if(meshA == null || meshB == null)
+                        continue;
 
                     int numContacts = contactManifold.NumContacts;
-                    for (int j=0;j<numContacts;j++)
+                    for(int j = 0; j < numContacts; j++)
                     {
                         var pt = contactManifold.GetContactPoint(j);
-                        if (pt.Distance<0.0f)
+                        if(pt.Distance < 0.0f)
                         {
                             MeshCollide.Invoke(meshA, meshB, pt.PositionWorldOnA, pt.NormalWorldOnB);
                         }
@@ -229,6 +252,19 @@ namespace VDGTech
                 var am = a as Mesh3d;
                 var bm = b as Mesh3d;
                 return (int)((am.Transformation.GetPosition() - Camera.Current.Transformation.GetPosition()).Length - (bm.Transformation.GetPosition() - Camera.Current.Transformation.GetPosition()).Length * 100.0f);
+            });
+        }
+        public void SortByDepthMasking()
+        {
+            Children.Sort((a, b) =>
+            {
+                if(!(a is Mesh3d))
+                    return 0;
+                if(!(b is Mesh3d))
+                    return 0;
+                var am = a as Mesh3d;
+                var bm = b as Mesh3d;
+                return am.DisableDepthWrite && !bm.DisableDepthWrite ? 1 : 0;
             });
         }
     }

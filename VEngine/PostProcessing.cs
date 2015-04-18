@@ -34,24 +34,21 @@ namespace VDGTech
             DeferredShader, 
             CombinerShader,
             BackDepthWriterShader,
-            ReflectShader,
             ScreenSpaceNormalsWriterShader;
 
-        private Framebuffer 
-            MSAAResolvingFrameBuffer, 
-            Pass1FrameBuffer, 
-            Pass2FrameBuffer, 
-            LightPointsFrameBuffer, 
-            BloomFrameBuffer, 
-            FogFramebuffer, 
-            WorldPositionFrameBuffer, 
-            NormalsFrameBuffer, 
+        private Framebuffer
+            MSAAResolvingFrameBuffer,
+            Pass1FrameBuffer,
+            Pass2FrameBuffer,
+            LightPointsFrameBuffer,
+            BloomFrameBuffer,
+            FogFramebuffer,
+            WorldPositionFrameBuffer,
+            NormalsFrameBuffer,
             ScreenSpaceNormalsFrameBuffer,
-            SmallFrameBuffer, 
+            SmallFrameBuffer,
             GlobalIlluminationFrameBuffer,
-            DiffuseColorFrameBuffer,
-            BackDiffuseFrameBuffer,
-            BackNormalsFrameBuffer;
+            DiffuseColorFrameBuffer;
 
         private Mesh3d PostProcessingMesh;
 
@@ -86,28 +83,28 @@ namespace VDGTech
             FogFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /4, initialHeight /4);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /1, initialHeight /1);
             //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 
-            WorldPosWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("WorldPosWriter.fragment.glsl"));
-            NormalsWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("NormalsWriter.fragment.glsl"));
-            ScreenSpaceNormalsWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("ScreenSpaceNormalsWriter.fragment.glsl"));
-            BackDepthWriterShader = ShaderProgram.Compile(Media.ReadAllText("Generic.vertex.glsl"), Media.ReadAllText("BackDepthWriter.fragment.glsl"));
+            WorldPosWriterShader = ShaderProgram.Compile("Generic.vertex.glsl", "WorldPosWriter.fragment.glsl");
+            NormalsWriterShader = ShaderProgram.Compile("Generic.vertex.glsl", "NormalsWriter.fragment.glsl");
+            ScreenSpaceNormalsWriterShader = ShaderProgram.Compile("Generic.vertex.glsl", "ScreenSpaceNormalsWriter.fragment.glsl");
+            BackDepthWriterShader = ShaderProgram.Compile("Generic.vertex.glsl", "BackDepthWriter.fragment.glsl");
 
-            BloomShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Bloom.fragment.glsl"));
-            MSAAShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("MSAA.fragment.glsl"));
-            SSAOShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("SSAO.fragment.glsl"));
-            FogShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Fog.fragment.glsl"));
-            LightPointsShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("LightPoints.fragment.glsl"));
-            LensBlurShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("LensBlur.fragment.glsl"));
-            HDRShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("HDR.fragment.glsl"));
-            BlitShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Blit.fragment.glsl"));
-            DeferredShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Deferred.fragment.glsl"));
-            CombinerShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Combiner.fragment.glsl"));
-            GlobalIlluminationShaderX = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("GlobalIllumination.fragment.glsl"));
+            BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
+            MSAAShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "MSAA.fragment.glsl");
+            SSAOShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "SSAO.fragment.glsl");
+            FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
+            LightPointsShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "LightPoints.fragment.glsl");
+            LensBlurShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "LensBlur.fragment.glsl");
+            HDRShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "HDR.fragment.glsl");
+            BlitShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Blit.fragment.glsl");
+            DeferredShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Deferred.fragment.glsl");
+            CombinerShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Combiner.fragment.glsl");
+            GlobalIlluminationShaderX = ShaderProgram.Compile("PostProcess.vertex.glsl", "GlobalIllumination.fragment.glsl");
             GlobalIlluminationShaderX.SetGlobal("SEED", "gl_FragCoord.x");
-            GlobalIlluminationShaderY = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("GlobalIllumination.fragment.glsl"));
+            GlobalIlluminationShaderY = ShaderProgram.Compile("PostProcess.vertex.glsl", "GlobalIllumination.fragment.glsl");
             GlobalIlluminationShaderY.SetGlobal("SEED", "gl_FragCoord.y");
             //ReflectShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Reflect.fragment.glsl"));
 
@@ -205,6 +202,7 @@ namespace VDGTech
             DeferredShader.Use();
             WorldPositionFrameBuffer.UseTexture(30);
             NormalsFrameBuffer.UseTexture(31);
+            LightPool.UseTextures(2);
             LightPool.MapSimpleLightsToShader(DeferredShader);
             SetLightingUniforms(DeferredShader);
             ShaderProgram.Lock = true;
@@ -250,13 +248,6 @@ namespace VDGTech
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
         }
-        private void WriteBackFaces()
-        {
-            GL.CullFace(CullFaceMode.Front);
-            BackDiffuseFrameBuffer.Use();
-            World.Root.Draw();
-            GL.CullFace(CullFaceMode.Back);
-        }
         private void Combine()
         {
             CombinerShader.Use();
@@ -287,69 +278,74 @@ namespace VDGTech
         public bool UseBloom = true;
         public bool UseDeferred = true;
         public bool UseBilinearGI = false;
+        public bool UseMSAA = false;
 
         public void ExecutePostProcessing()
         {
-            
+            /**
+             * MSAA way:
+             * - Draw world position fb
+             * - Draw normals fb
+             * - Draw MSAA fb
+             * - Resolve MSAA
+             * 
+             * Non MSAA way
+             * - Draw world position fb
+             * - Draw normals fb
+             * - Switch to FB1 and draw scene
+             */
 
             //WriteBackDepth();
 
             DisableBlending();
 
             // we dont need particles in normals and world pos passes so
+            // DRAWING WORLD POS
             WorldPosWriterShader.Use();
             ShaderProgram.Lock = true;
             WorldPositionFrameBuffer.Use();
-            Mesh3d.IsOddframe = true;
-            World.Root.Draw();
-            Mesh3d.IsOddframe = false;
+            World.Root.Draw(true);
             ShaderProgram.Lock = false;
 
-            EnableFullBlend();
-            MSAAResolvingFrameBuffer.Use();
-            WorldPositionFrameBuffer.UseTexture(2);
-            // and then draw the scene
-            World.Root.Draw();
-            //ParticleSystem.DrawAll();
-            if(Skybox.Current != null)
-                Skybox.Current.Draw();
-
-            DisableBlending();
-
+            // DRAWING NORMALS
             NormalsWriterShader.Use();
             ShaderProgram.Lock = true;
             NormalsFrameBuffer.Use();
             World.Root.Draw();
-            //BackNormalsFrameBuffer.Use();
-           // GL.CullFace(CullFaceMode.Front);
-            //World.Root.Draw();
-            //GL.CullFace(CullFaceMode.Back);
             ShaderProgram.Lock = false;
-            
+
+            // DRAWING MESH OPTIONS
             ScreenSpaceNormalsWriterShader.Use();
             ShaderProgram.Lock = true;
             ScreenSpaceNormalsFrameBuffer.Use();
             World.Root.Draw();
             ShaderProgram.Lock = false;
 
-            //WriteBackFaces();
-
-            LastFrameBuffer = MSAAResolvingFrameBuffer;
-
             EnableFullBlend();
-            LightPool.UseTextures(2);
+            if(UseMSAA)
+            {
+                // DRAWING MSAA
+                MSAAResolvingFrameBuffer.Use();
+                World.Root.Draw();
+                //ParticleSystem.DrawAll();
 
-            // we are into the game! We have world pos and normals, and MSAA scene
-            // Scene is already drawn into MSAA framebuffer so need to resolve it
+                LastFrameBuffer = MSAAResolvingFrameBuffer;
 
-            SwitchToFB1();
-            MSAAShader.Use();
-            ShaderProgram.Lock = true;
-            PostProcessingMesh.Draw();
-            ShaderProgram.Lock = false;
+                // we are into the game! We have world pos and normals, and MSAA scene
+                // Scene is already drawn into MSAA framebuffer so need to resolve it
 
-            // now we have MSAA filetered img
-
+                SwitchToFB1();
+                MSAAShader.Use();
+                ShaderProgram.Lock = true;
+                PostProcessingMesh.Draw();
+                ShaderProgram.Lock = false;
+            }
+            else
+            {
+                LastFrameBuffer = WorldPositionFrameBuffer;
+                SwitchToFB1();
+                World.Root.Draw();
+            }
 
             SwitchToFB(DiffuseColorFrameBuffer);
             LastFrameBuffer.UseTexture(0);
@@ -433,6 +429,8 @@ namespace VDGTech
             BloomFrameBuffer.UseTexture(4);
             GlobalIlluminationFrameBuffer.UseTexture(5);
             DiffuseColorFrameBuffer.UseTexture(6);
+            NormalsFrameBuffer.UseTexture(7);
+            WorldPositionFrameBuffer.UseTexture(8);
             //BackDepthFrameBuffer.UseTexture(6);
 
             
@@ -450,6 +448,8 @@ namespace VDGTech
 
             SwitchToFB0();
             HDR();
+            if(World.Root != null && World.Root.UI != null)
+                World.Root.UI.DrawAll();
         }
 
         private void SetLightingUniforms(ShaderProgram shader)

@@ -10,20 +10,35 @@ namespace VDGTech
 {
     public class ShaderProgram
     {
-        private ShaderProgram(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
+        private string VertexFile;
+        private string FragmentFile;
+        private string GeometryFile;
+        private string TessControlFile;
+        private string TessEvalFile;
+        private ShaderProgram(string vertexFile, string fragmentFile, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
+        {
+            VertexFile = vertexFile;
+            FragmentFile = fragmentFile;
+            GeometryFile = geometryFile;
+            TessControlFile = tesscontrolFile;
+            TessEvalFile = tessevalFile;
+            Recompile();
+        }
+
+        public void Recompile()
         {
             UniformLocationsCache = new Dictionary<string, int>();
 
-            VertexSource = ShaderPreparser.Preparse(vertex);
-            FragmentSource = ShaderPreparser.Preparse(fragment);
-            if(geometry != null)
+            VertexSource = ShaderPreparser.Preparse(VertexFile, Media.ReadAllText(VertexFile));
+            FragmentSource = ShaderPreparser.Preparse(FragmentFile, Media.ReadAllText(FragmentFile));
+            if(GeometryFile != null)
             {
-                GeometrySource = ShaderPreparser.Preparse(geometry);
+                GeometrySource = ShaderPreparser.Preparse(GeometryFile, Media.ReadAllText(GeometryFile));
             }
-            if(tesscontrol != null && tesseval != null)
+            if(TessControlFile != null && TessEvalFile != null)
             {
-                TessControlSource = ShaderPreparser.Preparse(tesscontrol);
-                TessEvaluationSource = ShaderPreparser.Preparse(tesseval);
+                TessControlSource = ShaderPreparser.Preparse(TessControlFile, Media.ReadAllText(TessControlFile));
+                TessEvaluationSource = ShaderPreparser.Preparse(TessEvalFile, Media.ReadAllText(TessEvalFile));
                 UsingTesselation = true;
             }
             Compiled = false;
@@ -235,17 +250,21 @@ namespace VDGTech
         {
             Handle = GL.CreateProgram();
 
+            Console.WriteLine("Compiling vertex shader {0}", VertexFile);
             int vertexShaderHandle = CompileSingleShader(ShaderType.VertexShader, VertexSource);
             GL.AttachShader(Handle, vertexShaderHandle);
 
+            Console.WriteLine("Compiling fragment shader {0}", FragmentFile);
             int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, FragmentSource);
             GL.AttachShader(Handle, fragmentShaderHandle);
 
             if(TessControlSource != null && TessEvaluationSource != null)
             {
+                Console.WriteLine("Compiling tesselation control shader {0}", TessControlFile);
                 int tessCShaderHandle = CompileSingleShader(ShaderType.TessControlShader, TessControlSource);
                 GL.AttachShader(Handle, tessCShaderHandle);
 
+                Console.WriteLine("Compiling tesselation evaluation shader {0}", TessEvalFile);
                 int tessEShaderHandle = CompileSingleShader(ShaderType.TessEvaluationShader, TessEvaluationSource);
                 GL.AttachShader(Handle, tessEShaderHandle);
                 GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
@@ -253,6 +272,7 @@ namespace VDGTech
 
             if(GeometrySource != null)
             {
+                Console.WriteLine("Compiling geometry shader {0}", GeometryFile);
                 int geometryShaderHandle = CompileSingleShader(ShaderType.GeometryShader, GeometrySource);
                 GL.AttachShader(Handle, geometryShaderHandle);
             }

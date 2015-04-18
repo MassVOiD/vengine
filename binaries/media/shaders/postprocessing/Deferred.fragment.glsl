@@ -1,8 +1,8 @@
 #version 430 core
 
 in vec2 UV;
-#include Lighting.glsl
 #include LogDepth.glsl
+#include Lighting.glsl
 
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
@@ -19,6 +19,7 @@ out vec4 outColor;
 void main()
 {
 	vec3 colorOriginal = texture(texColor, UV).rgb;
+	float alpha = texture(texColor, UV).a;
 	vec3 color1 = colorOriginal * 0.012;
 	gl_FragDepth = texture(texDepth, UV).r;
 	vec4 fragmentPosWorld3d = texture(worldPosTex, UV);

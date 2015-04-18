@@ -58,6 +58,8 @@ namespace VDGTech
         {
             RotationMatrix = Matrix4.LookAt(-Vector3.Zero, location - Transformation.GetPosition(), new Vector3(0, 1, 0));
             ViewMatrix = Matrix4.LookAt(Transformation.GetPosition(), location, new Vector3(0, 1, 0));
+            Transformation.SetOrientation(RotationMatrix.ExtractRotation());
+            Transformation.ClearModifiedFlag();
         }
 
         public void ProcessKeyboardState(OpenTK.Input.KeyboardState keys)

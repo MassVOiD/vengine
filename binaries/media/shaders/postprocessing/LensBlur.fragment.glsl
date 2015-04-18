@@ -1,6 +1,7 @@
 #version 430 core
 
 in vec2 UV;
+#include LogDepth.glsl
 #include Lighting.glsl
 
 layout(binding = 0) uniform sampler2D texColor;
@@ -19,7 +20,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 	vec3 finalColor = vec3(0.0,0.0,0.0);  
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
     float radius = max_radius;  
-	float centerDepthDistance = abs(reverseLog(centerDepth) - reverseLog(depthfocus));
+	float centerDepthDistance = abs((centerDepth) - (depthfocus));
 	//float centerDepth = texture(texDepth, UV).r;
     for(float x = 0; x < mPI2; x+=0.1){ 
         for(float y=0;y<samples;y+= 1.0){  

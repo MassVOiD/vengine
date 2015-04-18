@@ -4,7 +4,6 @@ in vec2 UV;
 uniform vec3 CameraPosition;
 uniform float LogEnchacer;
 uniform float FarPlane;
-in vec3 positionWorldSpace;
 
 #include LogDepth.glsl
 

@@ -80,6 +80,7 @@
     </Content>
     <Compile Include="ColladaScene.cs" />
     <Compile Include="ComputeShader.cs" />
+    <Compile Include="CubeMapFramebuffer.cs" />
     <Compile Include="GameConsole\GameConsole.cs" />
     <Compile Include="Debugger.cs" />
     <Compile Include="Fog\FogDensitySphere.cs" />

@@ -1,20 +1,9 @@
 #include LightingSamplers.glsl
-#include Mesh3dUniforms.glsl
 /*
 Insane lighting
 Part of: https://github.com/achlubek/vengine
 @author Adrian Chlubek
 */
-
-vec2 LightScreenSpaceFromGeo[MAX_LIGHTS];
-smooth in vec3 positionModelSpace;
-smooth in vec3 positionWorldSpace;
-smooth in vec3 normal;
-smooth in vec3 barycentric;
-flat in int instanceId;
-uniform int UseNormalMap;
-uniform int UseBumpMap;
-
 
 float specular(vec3 normalin, uint index){
 	vec3 lightRelativeToVPos = LightsPos[index] - positionWorldSpace.xyz;
@@ -68,11 +57,6 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	else if(i==27)distance1 = texture(lightDepth27, uv).r;
 	return distance1;
 }
-#define MATH_E 2.7182818284
-float reverseLog(float dd){
-	return pow(MATH_E, dd - 1.0) / LogEnchacer;
-}
-
 #define mPI (3.14159265)
 #define mPI2 (2*3.14159265)
 #define GOLDEN_RATIO (1.6180339)

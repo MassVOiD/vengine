@@ -19,8 +19,8 @@ namespace VDGTech.Particles
             Scale = scale;
             AlphaDecrease = alphaDecrease;
             Info3d = Generators.Object3dGenerator.CreateGround(new Vector2(-1, -1), new Vector2(1, 1), new Vector2(1), Vector3.UnitY);
-            Program = ShaderProgram.Compile(Media.ReadAllText("ParticleGenerator.vertex.glsl"), Media.ReadAllText("ParticleGenerator.fragment.glsl"));
-            DepthWriter = ShaderProgram.Compile(Media.ReadAllText("ParticleGenerator.vertex.glsl"), Media.ReadAllText("ParticleGeneratorWriteDepth.fragment.glsl"));
+            Program = ShaderProgram.Compile("ParticleGenerator.vertex.glsl", "ParticleGenerator.fragment.glsl");
+            DepthWriter = ShaderProgram.Compile("ParticleGenerator.vertex.glsl", "ParticleGeneratorWriteDepth.fragment.glsl");
             TimeRate = 9.0f / 1000000.0f;
             TimeToLife = 9.0f;
             MaxInstances = 1000000;

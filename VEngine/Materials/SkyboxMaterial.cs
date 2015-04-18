@@ -2,7 +2,7 @@
 {
     public class SkyboxMaterial : IMaterial
     {
-        private static ShaderProgram Program = ShaderProgram.Compile(Media.ReadAllText("Skybox.vertex.glsl"), Media.ReadAllText("Skybox.fragment.glsl"));
+        private static ShaderProgram Program = ShaderProgram.Compile("Skybox.vertex.glsl", "Skybox.fragment.glsl");
 
         public ShaderProgram GetShaderProgram()
         {

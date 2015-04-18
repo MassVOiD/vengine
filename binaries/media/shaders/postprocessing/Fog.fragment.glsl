@@ -1,8 +1,8 @@
 #version 430 core
 
 in vec2 UV;
-#include Lighting.glsl
 #include LogDepth.glsl
+#include Lighting.glsl
 
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
@@ -56,7 +56,7 @@ void main()
 				fogDensity += idle;
 				continue;
 			}
-			if(toLogDepth(distance(pos, LightsPos[i])) < lookupDepthFromLight(i,lightScreenSpace)) {
+			if(distance(pos, LightsPos[i]) < lookupDepthFromLight(i,lightScreenSpace)) {
 				float culler = clamp(1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float fogNoise = 1.0;
 				fogDensity += idle + 1.0 / 200.0 * culler * fogNoise * fogMultiplier;
