@@ -151,7 +151,7 @@ namespace ShadowsTester
                 }
                 if(e.Button == OpenTK.Input.MouseButton.Left)
                 {
-                    var sphere = new BulletSharp.SphereShape(0.3f);
+                    var sphere = new BulletSharp.SphereShape(3.3f);
                     Mesh3d m = new Mesh3d(Object3dInfo.Empty, new SolidColorMaterial(Color.White));
                     m.Transformation.SetPosition(freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 2.0f);
                     m.SetMass(11.0f);

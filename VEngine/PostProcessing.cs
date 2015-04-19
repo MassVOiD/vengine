@@ -80,7 +80,7 @@ namespace VDGTech
 
             LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
             BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 3);
-            FogFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
+            FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
             GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /1, initialHeight /1);
@@ -213,9 +213,11 @@ namespace VDGTech
         private void Fog()
         {
             FogShader.Use();
+            LightPool.UseTextures(2);
             WorldPositionFrameBuffer.UseTexture(30);
             FogShader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             SetLightingUniforms(FogShader);
+            LightPool.MapSimpleLightsToShader(FogShader);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -361,7 +363,7 @@ namespace VDGTech
             if(UseFog)
             {
                 SwitchToFB(FogFramebuffer);
-                LastFrameBuffer.UseTexture(0);
+                DiffuseColorFrameBuffer.UseTexture(0);
                 Fog();
             }
 
@@ -370,7 +372,17 @@ namespace VDGTech
 
             if(UseDeferred)
             {
+                WorldPosWriterShader.Use();
+                ShaderProgram.Lock = true;
+                BloomFrameBuffer.Use();
+                GL.CullFace(CullFaceMode.Front);
+                World.Root.Draw(true);
+                GL.CullFace(CullFaceMode.Back);
+                ShaderProgram.Lock = false;
+
                 SwitchBetweenFB();
+                DiffuseColorFrameBuffer.UseTexture(0);
+                BloomFrameBuffer.UseTexture(29);
                 Deferred();
             }
 
@@ -425,12 +437,12 @@ namespace VDGTech
 
             p1.UseTexture(0);
             FogFramebuffer.UseTexture(2);
-            LightPointsFrameBuffer.UseTexture(3);
-            BloomFrameBuffer.UseTexture(4);
-            GlobalIlluminationFrameBuffer.UseTexture(5);
-            DiffuseColorFrameBuffer.UseTexture(6);
-            NormalsFrameBuffer.UseTexture(7);
-            WorldPositionFrameBuffer.UseTexture(8);
+            LightPointsFrameBuffer.UseTexture(4);
+            BloomFrameBuffer.UseTexture(5);
+            GlobalIlluminationFrameBuffer.UseTexture(6);
+            DiffuseColorFrameBuffer.UseTexture(7);
+            NormalsFrameBuffer.UseTexture(8);
+            WorldPositionFrameBuffer.UseTexture(9);
             //BackDepthFrameBuffer.UseTexture(6);
 
             

@@ -89,6 +89,11 @@ namespace VDGTech
 
         public void Draw()
         {
+            Draw(false);
+        }
+
+        public void Draw(bool ignoreDisableDepthWriteFlag = false)
+        {
             if(IsOddframe && DrawOddOnly)
                 return;
             if(Transformation.HasBeenModified())
@@ -102,12 +107,19 @@ namespace VDGTech
             SetUniforms();
             Material.GetShaderProgram().SetUniformArray("ModelMatrixes", new Matrix4[] { Matrix });
             Material.GetShaderProgram().SetUniformArray("RotationMatrixes", new Matrix4[] { RotationMatrix });
-           
-            if(DisableDepthWrite)
-                OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
-            ObjectInfo.Draw();
-            if(DisableDepthWrite)
-                OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
+
+            if(!ignoreDisableDepthWriteFlag)
+            {
+                if(DisableDepthWrite)
+                    OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
+                ObjectInfo.Draw();
+                if(DisableDepthWrite)
+                    OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
+            }
+            else
+            {
+                ObjectInfo.Draw();
+            }
 
             GLThread.CheckErrors();
         }

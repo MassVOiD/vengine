@@ -37,19 +37,19 @@ void main()
 		if(clipspace2.z >= 0.0) {
 			vec2 sspace = ((clipspace2.xyz / clipspace2.w).xy + 1.0) / 2.0;
 			float dist = distance(CameraPosition, LightsPos[i]);
-			//float lndist = toLogDepth(dist);
+			float lndist = toLogDepth(dist);
 			dist += 1.0;
 			float overall = 0.0;
 			for(float g2 = 0; g2 < 8.0; g2+=2.0){ 
 				for(float g = 0; g < mPI2; g+=0.6){ 
 					float percent = lookupDepthFromLight(i, sspace + vec2(sin(g) * ratio, cos(g))*0.001*g2);
-					float newdist = 1.0f - (dist - percent);
+					float newdist = 1.0f - (lndist - percent);
 					if(newdist > 1) overall += 1.0;
 				}
 			}
 			overall /= 100;
 			if(overall > 0.01) {
-				color += ball(vec3(LightsColors[i]*2.0 * overall),0.1/ dist, sspace1.x, sspace1.y);
+				color += ball(vec3(LightsColors[i]*2.0 * overall),0.8/ dist, sspace1.x, sspace1.y);
 				//color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
 			}
 		}
@@ -61,10 +61,10 @@ void main()
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
 		float dist = distance(CameraPosition, SimpleLightsPos[i]);
-		float revlog = (texture(texDepth, UV).r);
+		float revlog = reverseLog(texture(texDepth, UV).r);
 		if(dist > revlog)continue;
 		dist += 1.0;
-		color += ball(vec3(SimpleLightsColors[i]*2.0 * SimpleLightsColors[i].a),0.1/ dist, sspace1.x, sspace1.y);
+		color += ball(vec3(SimpleLightsColors[i]*2.0 * SimpleLightsColors[i].a),0.8/ dist, sspace1.x, sspace1.y);
 
 	
 	}

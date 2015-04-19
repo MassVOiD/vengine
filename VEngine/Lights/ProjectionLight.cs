@@ -84,7 +84,7 @@ namespace VDGTech
             Shader.GetShaderProgram().SetUniform("LightPosition", camera.Transformation.GetPosition());
             Shader.GetShaderProgram().SetUniform("FarPlane", camera.Far);
             Shader.GetShaderProgram().SetUniform("LogEnchacer", 0.01f);
-            World.Root.Draw();
+            World.Root.Draw(false, true);
             if(Skybox.Current != null)
                 Skybox.Current.Draw();
             ShaderProgram.Lock = false;

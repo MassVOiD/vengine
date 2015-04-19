@@ -100,7 +100,7 @@ namespace VDGTech
             return body;
         }
 
-        public void Draw(bool ignoreMeshWithDisabledDepthTest = false)
+        public void Draw(bool ignoreMeshWithDisabledDepthTest = false, bool ignoreDisableDepthWriteFlag = false)
         {
             //if(Camera.Current != null) SortByCameraDistance();
             GL.CullFace(CullFaceMode.Back);
@@ -116,16 +116,16 @@ namespace VDGTech
             }
             if(!ignoreMeshWithDisabledDepthTest)
             {
-                GL.CullFace(CullFaceMode.Front);
+               // GL.CullFace(CullFaceMode.Front);
                 for(int i = 0; i < Children.Count; i++)
                 {
                     if(Children[i] != null)
                     {
                         if((Children[i] is Mesh3d) && ((Mesh3d)Children[i]).DisableDepthWrite == true)
-                            Children[i].Draw();
+                            ((Mesh3d)Children[i]).Draw(ignoreDisableDepthWriteFlag);
                     }
                 }
-                GL.CullFace(CullFaceMode.Back);
+               // GL.CullFace(CullFaceMode.Back);
             }
         }
 
