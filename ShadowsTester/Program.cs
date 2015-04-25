@@ -4,10 +4,10 @@ using System.Drawing;
 using System.Threading.Tasks;
 using OpenTK;
 using System.IO;
-using VDGTech;
+using VEngine;
 using BulletSharp;
-using VDGTech.Generators;
-using UI = VDGTech.UI;
+using VEngine.Generators;
+using UI = VEngine.UI;
 using System.Threading;
 
 namespace ShadowsTester
@@ -248,6 +248,10 @@ namespace ShadowsTester
             };
             GLThread.OnKeyUp += (o, e) =>
             {
+                if(e.Key == OpenTK.Input.Key.Tab)
+                {
+                    window.IsCursorVisible = !window.IsCursorVisible;
+                }
                 if(e.Key == OpenTK.Input.Key.T)
                 {
                     World.Root.SimulationSpeed = 1.0f;

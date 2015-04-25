@@ -3,7 +3,7 @@ using System.Linq;
 using OpenTK;
 using System.Drawing;
 
-namespace VDGTech
+namespace VEngine
 {
     public static class LightPool
     {

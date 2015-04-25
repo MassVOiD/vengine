@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using VDGTech.Particles;
+using VEngine.Particles;
 using System.Drawing;
 
-namespace VDGTech
+namespace VEngine
 {
     public class PostProcessing
     {

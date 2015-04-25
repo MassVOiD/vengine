@@ -4,7 +4,7 @@ using System.Linq;
 using OpenTK;
 using System.Collections.Generic;
 using System.Linq;
-namespace VDGTech
+namespace VEngine
 {
     public class InstancedMesh3d : IRenderable
     {

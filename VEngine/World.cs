@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using BulletSharp;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
-using VDGTech.UI;
+using VEngine.UI;
 
-namespace VDGTech
+namespace VEngine
 {
     public class World
     {

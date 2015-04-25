@@ -1,7 +1,7 @@
 ﻿using System;
 using BulletSharp;
 using OpenTK;
-using VDGTech;
+using VEngine;
 
 namespace ShadowsTester
 {
@@ -31,6 +31,8 @@ namespace ShadowsTester
 
         private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
+            if(GLThread.WindowAdapter.IsCursorVisible)
+                return;
             Cam.Pitch += (float)e.XDelta / 100.0f;
             if(Cam.Pitch > MathHelper.TwoPi)
                 Cam.Pitch = 0.0f;

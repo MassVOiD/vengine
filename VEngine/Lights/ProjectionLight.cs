@@ -2,7 +2,7 @@
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
-namespace VDGTech
+namespace VEngine
 {
     public class ProjectionLight : ILight, ITransformable
     {

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public class KeyframeAnimatedMesh3d : IRenderable, ITransformable
     {

@@ -258,7 +258,7 @@ const float seeds[] = {RandomSeed1, RandomSeed2, RandomSeed3, RandomSeed4, Rando
 // afl_ext (Adrian Chlubek) global illumination explained
 vec3 GlobalIlluminationVersion1() 
 {
-	vec3 originalColor = (texture(color, UV).rgb * 12 + texture(diffuseColor, UV).rgb * 0.1) * 0.7;
+	vec3 originalColor = (texture(color, UV).rgb * 12 + texture(diffuseColor, UV).rgb * GIDiffuseComponent) * 0.7;
 	//if(length(originalColor) > 0.8) discard;
 	// Get some basic data for processed pixel, like normal, original color, position in world space
 	// distance to camera, and precalculate some used data too.
@@ -271,8 +271,8 @@ vec3 GlobalIlluminationVersion1()
 	vec3 outBuffer = vec3(0);
 	vec3 cameraSpace = CameraPosition - positionCenter;
 	// We are going to sample the scene 256 times per frame.
-	#define samplesCount 200
-	for(int g = 1; g < samplesCount; g += 1) 
+	#define samplesCount 100
+	for(float g = 1; g < GISamples; g += 1) 
 	{ 			
 		for(int z = 0; z < 10; z++){
 			// Calculate 1D seed unique for every loop iteration
@@ -284,7 +284,7 @@ vec3 GlobalIlluminationVersion1()
 			if(testVisibilityUnrolled(coord, UV)) 
 			{
 				// Get pixel color
-				vec3 c = ((texture(color, coord).rgb * 12 + texture(diffuseColor, coord).rgb * 0.1)  * 2);
+				vec3 c = ((texture(color, coord).rgb * 12 + texture(diffuseColor, coord).rgb * 0.2)  * 9);
 				if(length(c) < 0.05) continue;
 				// Pixels see each other.
 				// Get pixel world position and calculate attentuation based on pixels' distance
@@ -315,64 +315,6 @@ vec3 GlobalIlluminationVersion1()
 	return originalColor * ((outBuffer / (samplesCount*10))) * (distanceToCamera / 16 * (texture(ssnormals, UV).a));
 }
 
-
-vec3 BruteForceGI() 
-{
-	vec3 originalColor = (texture(color, UV).rgb * 30 + texture(diffuseColor, UV).rgb * 0.1) * 0.7;
-	//if(length(originalColor) > 0.8) discard;
-	// Get some basic data for processed pixel, like normal, original color, position in world space
-	// distance to camera, and precalculate some used data too.
-	vec3 normalCenter = texture(normals, UV).rgb;
-	float specSize = texture(normals, UV).a;
-	// Good to mix direct light color with diffuse color
-	vec3 positionCenter = texture(worldPos, UV).rgb;  
-	float speccomp = texture(worldPos, UV).a;  
-	float distanceToCamera = distance(CameraPosition, positionCenter);
-	vec3 outBuffer = vec3(0);
-	vec3 cameraSpace = CameraPosition - positionCenter;
-	// We are going to sample the scene 256 times per frame.
-	#define SamplesX 32
-	#define SamplesY 32
-	#define InvSamplesX 1.0/SamplesX
-	#define InvSamplesY 1.0/SamplesY
-	
-	for(float g = 0; g < 1; g += InvSamplesX) for(float g2 = 0; g2 < 1; g2 += InvSamplesY) 
-	{ 			
-		vec2 coord = vec2(rand(vec2(g, g2)), rand(vec2(RandomSeed1, RandomSeed2)));
-		// Let's test visibility
-		if(testVisibilityUnrolled(coord, UV)) 
-		{
-			// Get pixel color
-			vec3 c = ((texture(color, coord).rgb * 30 + texture(diffuseColor, coord).rgb * 0.1)  * 26);
-			if(length(c) < 0.3) continue;
-			// Pixels see each other.
-			// Get pixel world position and calculate attentuation based on pixels' distance
-			vec3 worldPosition = texture(worldPos, coord).rgb;
-			float worldDistance = distance(positionCenter, worldPosition);
-			if(worldDistance < 0.12) continue;
-			//if(worldDistance > 6.2) continue;
-			float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 80.0;
-			if(attentuation < 0.01) continue;
-			// Get last GI result so we can bounce infinitely now! That color gets mixed with selected pixel
-			vec3 giLastResult = texture(lastGi, coord).rgb;
-			// Get normal of that random pixel
-			vec3 normalThere = texture(normals, coord).rgb;
-			// calculate diffuse component and add it
-			outBuffer += (c + giLastResult * 1.7) * attentuation * 1.0 - clamp(dot(normalCenter, normalThere), 0.0, 1.0);
-			// calculate specular component and add it
-			vec3 lightRelativeToVPos = worldPosition - positionCenter;
-			vec3 R = reflect(lightRelativeToVPos, normal.xyz);
-			float cosAlpha = max(0, -dot(normalize(cameraSpace), normalize(R)));
-			float specularComponent = pow(cosAlpha, 80.0 / specSize) * speccomp;
-			outBuffer += c * 10 * specularComponent;
-		}
-	}	
-	// Return calculated buffered value divided by samples count and by camera distance.
-	// Check alpha mask there too.
-	return originalColor * ((outBuffer / (SamplesX*SamplesY))) * (distanceToCamera / 16 * (texture(ssnormals, UV).a));
-}
-
-
 #define BUFFER 3.0
 #define BUFFER1 (4.0)
 void main() {
@@ -385,11 +327,11 @@ void main() {
 	//color1 *= ambientRadiosity(UV) * 0.8;
 	color1 = clamp(color1, 0, 1);
 	centerDepth = texture(depth, UV).r;
-	//vec3 lgi = texture(lastGi, UV).rgb;
+	vec3 lgi = texture(lastGi, UV).rgb;
 	
-	//if(length(lgi) > 0.001 && !(lgi.x == 1.0 && lgi.y == 1.0 && lgi.z == 1.0)){
-	//	color1 = (lgi * BUFFER + color1) / BUFFER1;
-	//}
+	if(length(lgi) > 0.001 && !(lgi.x == 1.0 && lgi.y == 1.0 && lgi.z == 1.0)){
+		color1 = (lgi * BUFFER + color1) / BUFFER1;
+	}
 	gl_FragDepth = centerDepth;
 	outColor = vec4(color1, 1);
 }

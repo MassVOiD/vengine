@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
-namespace VDGTech.UI
+namespace VEngine.UI
 {
     public class Rectangle : AbsUIElement
     {

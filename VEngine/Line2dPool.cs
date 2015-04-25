@@ -2,7 +2,7 @@
 using System.Linq;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public class Line2dPool : List<Line2d>
     {

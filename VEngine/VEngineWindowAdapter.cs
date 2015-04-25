@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
-using VDGTech.Particles;
+using VEngine.Particles;
 
-namespace VDGTech
+namespace VEngine
 {
     public class VEngineWindowAdapter : GameWindow, IVEngineDisplayAdapter
     {
@@ -18,10 +18,14 @@ namespace VDGTech
                 DisplayDevice.Default, 4, 4,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
+            GLThread.WindowAdapter = this;
             GLThread.StartTime = DateTime.Now;
             GLThread.Resolution = new Vector2(width, height);
 
             PostProcessor = new PostProcessing(width, height);
+
+            var settings = new GraphicsSettings();
+            new SettingsWindow(settings).Show();
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);

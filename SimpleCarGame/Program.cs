@@ -4,12 +4,12 @@ using System.Drawing;
 using System.Threading.Tasks;
 using OpenTK;
 using System.IO;
-using VDGTech;
+using VEngine;
 using BulletSharp;
-using VDGTech.Generators;
-using UI = VDGTech.UI;
+using VEngine.Generators;
+using UI = VEngine.UI;
 using System.Threading;
-using VDGTech.GameConsole;
+using VEngine.GameConsole;
 
 namespace SimpleCarGame
 {

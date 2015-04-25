@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using OpenTK.Graphics.OpenGL4;
-using VDGTech;
+using VEngine;
 
 namespace GLSLLint
 {

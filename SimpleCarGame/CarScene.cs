@@ -6,8 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Threading.Tasks;
-using VDGTech;
-using VDGTech.Generators;
+using VEngine;
+using VEngine.Generators;
 using OpenTK;
 using BulletSharp;
 

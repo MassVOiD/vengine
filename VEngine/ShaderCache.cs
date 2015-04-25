@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace VDGTech
+namespace VEngine
 {
     internal class ShaderCache
     {

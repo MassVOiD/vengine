@@ -10,7 +10,7 @@ using BulletSharp;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
-namespace VDGTech
+namespace VEngine
 {
     public class Object3dInfo
     {

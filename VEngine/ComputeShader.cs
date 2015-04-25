@@ -4,7 +4,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 
-namespace VDGTech
+namespace VEngine
 {
     internal class ComputeShader
     {

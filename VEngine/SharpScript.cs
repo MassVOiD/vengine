@@ -3,7 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using Microsoft.CSharp;
 
-namespace VDGTech
+namespace VEngine
 {
     public class SharpScript
     {
@@ -13,7 +13,7 @@ namespace VDGTech
         {
             var name = "CLS" + Guid.NewGuid().ToString().Substring(0, 8).Replace("-", string.Empty);
             string code = string.Format(@"
-            namespace VDGTech.SharpScriptNS{{
+            namespace VEngine.SharpScriptNS{{
                 public class {0}
                 {{
                     {1}
@@ -27,7 +27,7 @@ namespace VDGTech
             foreach(CompilerError compilerError in compilerResult.Errors)
                 errorText += compilerError + "\n";
             var compiledAssembly = compilerResult.CompiledAssembly;
-            var type = compiledAssembly.GetType("VDGTech.SharpScriptNS." + name).GetConstructor(new Type[0]).Invoke(new object[0]);
+            var type = compiledAssembly.GetType("VEngine.SharpScriptNS." + name).GetConstructor(new Type[0]).Invoke(new object[0]);
             return type;
         }
     }

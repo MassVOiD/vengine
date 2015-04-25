@@ -1,7 +1,7 @@
 ﻿using System;
 using OpenTK.Graphics.OpenGL4;
 
-namespace VDGTech
+namespace VEngine
 {
     public class ShaderStorageBuffer
     {

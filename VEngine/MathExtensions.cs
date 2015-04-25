@@ -1,6 +1,6 @@
 ﻿using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public static class MathExtensions
     {

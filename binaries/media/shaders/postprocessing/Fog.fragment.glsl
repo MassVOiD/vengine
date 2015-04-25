@@ -57,7 +57,7 @@ void main()
 		float fogDensity = 0.0;
 		float fogMultiplier = 0.4;
 		
-		for(float m = 0.0; m< 1.0;m+= 0.020){
+		for(float m = 0.0; m< 1.0;m+= FogSamples){
 			vec3 pos = mix(CameraPosition, fragmentPosWorld3d, m);
 			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * 390.0;
 			vec4 lightClipSpace = lightPV * vec4(pos, 1.0);

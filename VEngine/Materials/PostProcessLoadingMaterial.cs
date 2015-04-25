@@ -1,4 +1,4 @@
-﻿namespace VDGTech
+﻿namespace VEngine
 {
     public class PostProcessLoadingMaterial : IMaterial
     {

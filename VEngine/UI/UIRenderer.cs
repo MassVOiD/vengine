@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK;
-namespace VDGTech.UI
+namespace VEngine.UI
 {
     public class UIRenderer
     {

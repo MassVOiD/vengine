@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
 using OldGL = OpenTK.Graphics.OpenGL;
 
-namespace VDGTech
+namespace VEngine
 {
     public class Texture
     {

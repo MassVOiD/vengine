@@ -2,7 +2,7 @@
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
-namespace VDGTech.Particles
+namespace VEngine.Particles
 {
     public class ParticleGenerator
     {

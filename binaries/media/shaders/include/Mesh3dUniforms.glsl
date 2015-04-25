@@ -43,3 +43,22 @@ float ratio = resolution.y/resolution.x;
 
 
 uniform int IgnoreLighting;
+
+// settings
+uniform float HBAOContribution;
+uniform float GIContribution;
+uniform float MainLightAttentuation;
+uniform float SimpleLightAttentuation;
+uniform float FogContribution;
+uniform float FogSamples;
+uniform float GISamples;
+uniform float HBAOSamples;
+uniform float ShadowsBlur;
+uniform float ShadowsSamples;
+uniform float LightPointSize;
+uniform float SimpleLightPointSize;
+uniform float BloomSamples;
+uniform float BloomSize;
+uniform float BloomContribution;
+uniform float GIDiffuseComponent;
+uniform float HBAOStrength;

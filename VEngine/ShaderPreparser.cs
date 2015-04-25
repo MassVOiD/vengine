@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace VDGTech
+namespace VEngine
 {
     public class ShaderPreparser
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using OpenTK;
 using System.Drawing;
 
-namespace VDGTech.Fog
+namespace VEngine.Fog
 {
     class FogDensitySphere
     {

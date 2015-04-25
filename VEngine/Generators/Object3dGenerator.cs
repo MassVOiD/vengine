@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using OpenTK;
 
-namespace VDGTech.Generators
+namespace VEngine.Generators
 {
     public class Object3dGenerator
     {

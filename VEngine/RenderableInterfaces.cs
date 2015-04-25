@@ -1,7 +1,7 @@
 ﻿using BulletSharp;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public interface IControllable
     {

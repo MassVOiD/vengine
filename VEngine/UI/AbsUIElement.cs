@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
-using VDGTech.Generators;
+using VEngine.Generators;
 
-namespace VDGTech.UI
+namespace VEngine.UI
 {
     public abstract class AbsUIElement
     {

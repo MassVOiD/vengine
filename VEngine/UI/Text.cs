@@ -2,7 +2,7 @@
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
-namespace VDGTech.UI
+namespace VEngine.UI
 {
     public class Text : AbsUIElement
     {

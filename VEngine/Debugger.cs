@@ -1,6 +1,6 @@
 ﻿using System.Net.Sockets;
 
-namespace VDGTech
+namespace VEngine
 {
     public static class Debugger
     {

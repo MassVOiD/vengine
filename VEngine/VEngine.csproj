@@ -7,7 +7,7 @@
     <ProjectGuid>{7119D27E-2027-4FA3-BD1E-FAE58899C12C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>VDGTech</RootNamespace>
+    <RootNamespace>VEngine</RootNamespace>
     <AssemblyName>VDGTech.VEngine</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -85,6 +85,7 @@
     <Compile Include="Debugger.cs" />
     <Compile Include="Fog\FogDensitySphere.cs" />
     <Compile Include="Fog\FogPool.cs" />
+    <Compile Include="GraphicsSettings.cs" />
     <Compile Include="Interpolator.cs" />
     <Compile Include="IntHashGenerator.cs" />
     <Compile Include="KeyframeAnimatedMesh3d.cs" />
@@ -111,6 +112,12 @@
     <Compile Include="Object3dInfo.cs" />
     <Compile Include="Materials\PostProcessLoadingMaterial.cs" />
     <Compile Include="Scene.cs" />
+    <Compile Include="SettingsWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingsWindow.Designer.cs">
+      <DependentUpon>SettingsWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="ShaderCache.cs" />
     <Compile Include="ShaderPreparser.cs" />
     <Compile Include="SharpScript.cs" />
@@ -139,6 +146,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="SettingsWindow.resx">
+      <DependentUpon>SettingsWindow.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

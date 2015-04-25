@@ -1,7 +1,7 @@
 ﻿using System;
 using OpenTK;
-using VDGTech;
-using VDGTech.Generators;
+using VEngine;
+using VEngine.Generators;
 
 namespace TerrainGenerator
 {

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Threading;
 using System.Timers;
-namespace VDGTech
+namespace VEngine
 {
     public class GLThread
     {
@@ -26,6 +26,9 @@ namespace VDGTech
         static public event EventHandler<OpenTK.Input.MouseWheelEventArgs> OnMouseWheel;
 
         static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw, OnLoad;
+
+        static public VEngineWindowAdapter WindowAdapter;
+        static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
 
         static public void CheckErrors()
         {

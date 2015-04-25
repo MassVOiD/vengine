@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public class MeshLinker
     {

@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public class Sun
     {

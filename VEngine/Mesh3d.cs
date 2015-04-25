@@ -4,7 +4,7 @@ using System.Linq;
 using BulletSharp;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public class Mesh3d : IRenderable, ITransformable
     {
@@ -184,7 +184,7 @@ namespace VDGTech
             bool shaderSwitchResult = GetCurrentMaterial().Use();
 
             // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
-
+            GLThread.GraphicsSettings.SetUniforms(shader);
             shader.SetUniform("SpecularComponent", SpecularComponent);
             shader.SetUniform("DiffuseComponent", DiffuseComponent);
             shader.SetUniform("SpecularSize", SpecularSize);

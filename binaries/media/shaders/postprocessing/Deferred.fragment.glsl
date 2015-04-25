@@ -89,13 +89,13 @@ vec3 GoodHBAO()
 				counter++;
 				minval = angle;
 				if(angle != 0 && angle > 0) {
-					outc += originalColor * (pow(angle / mPIo2, 9));
+					outc += originalColor * (pow(angle / mPIo2, HBAOStrength));
 				}
 			}
 		}	
 	}
 	// return final color
-	return outc /counter;
+	return (outc /counter) * HBAOContribution;
 }
 
 void main()
@@ -123,7 +123,7 @@ void main()
 		
 			float distanceToLight = distance(fragmentPosWorld3d.xyz, LightsPos[i]);
             //if(worldDistance < 0.0002) continue;
-			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * 390.0;
+			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * MainLightAttentuation;
 			mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 			
 			
@@ -166,9 +166,10 @@ void main()
 			//if(clipspace.z < 0.0) continue;
 			float vis = testVisibility(UV, sspace1, SimpleLightsPos[i]);
 					
-			float dist = distance(CameraPosition, SimpleLightsPos[i]);
-			float att = 1.0 / pow(((dist/1.0) + 1.0), 2.0) * 390.0;
-			float revlog = reverseLog(texture(texDepth, nUV).r);
+			float distanceToLight = distance(fragmentPosWorld3d.xyz, SimpleLightsPos[i]);
+			//float dist = distance(CameraPosition, SimpleLightsPos[i]);
+			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * SimpleLightAttentuation;
+			//float revlog = reverseLog(texture(texDepth, nUV).r);
 			
 			vec3 lightRelativeToVPos = SimpleLightsPos[i] - fragmentPosWorld3d.xyz;
 			vec3 R = reflect(lightRelativeToVPos, normal.xyz);

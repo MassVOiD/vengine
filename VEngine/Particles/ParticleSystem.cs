@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace VDGTech.Particles
+namespace VEngine.Particles
 {
     public class ParticleSystem
     {

@@ -1,4 +1,4 @@
-﻿namespace VDGTech.Generators
+﻿namespace VEngine.Generators
 {
     internal class MeshGenerator
     {

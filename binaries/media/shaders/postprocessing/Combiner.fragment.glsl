@@ -133,13 +133,13 @@ void main()
 	   //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
 	}
 	if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
-	if(UseFog == 1) color1 += lookupFog(nUV);
+	if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
-	if(UseBloom == 1) color1 += texture(bloom, nUV).rgb;
+	if(UseBloom == 1) color1 += texture(bloom, nUV).rgb * BloomContribution;
 	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
 	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
-	if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * 0.8;
-	//if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * 0.3;
+	if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * GIContribution;
+	//if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * GIContribution;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;

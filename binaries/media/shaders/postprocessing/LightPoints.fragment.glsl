@@ -49,7 +49,7 @@ void main()
 			}
 			overall /= 100;
 			if(overall > 0.01) {
-				color += ball(vec3(LightsColors[i]*2.0 * overall),0.8/ dist, sspace1.x, sspace1.y);
+				color += ball(vec3(LightsColors[i]*2.0 * overall),LightPointSize * (0.8/ dist), sspace1.x, sspace1.y);
 				//color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
 			}
 		}
@@ -61,10 +61,10 @@ void main()
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
 		float dist = distance(CameraPosition, SimpleLightsPos[i]);
-		float revlog = reverseLog(texture(texDepth, UV).r);
-		if(dist > revlog)continue;
+		float revlog = reverseLog(texture(texDepth, sspace1).r);
+		if(dist < revlog)continue;
 		dist += 1.0;
-		color += ball(vec3(SimpleLightsColors[i]*2.0 * SimpleLightsColors[i].a),0.8/ dist, sspace1.x, sspace1.y);
+		color += ball(vec3(SimpleLightsColors[i]*2.0 * SimpleLightsColors[i].a),SimpleLightPointSize * (0.8/ dist), sspace1.x, sspace1.y);
 
 	
 	}

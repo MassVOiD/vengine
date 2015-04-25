@@ -2,7 +2,7 @@
 using OpenTK.Graphics;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public class SolidColorMaterial : IMaterial
     {

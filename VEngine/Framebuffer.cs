@@ -2,7 +2,7 @@
 using OpenTK.Graphics.OpenGL4;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public class Framebuffer
     {

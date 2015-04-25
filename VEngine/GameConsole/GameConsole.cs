@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using OpenTK;
-using VDGTech.UI;
+using VEngine.UI;
 
-namespace VDGTech.GameConsole
+namespace VEngine.GameConsole
 {
     public class Token
     {

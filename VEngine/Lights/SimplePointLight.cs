@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using OpenTK;
 
-namespace VDGTech
+namespace VEngine
 {
     public class SimplePointLight: ITransformable
     {

@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Threading.Tasks;
-using VDGTech;
-using VDGTech.Generators;
+using VEngine;
+using VEngine.Generators;
 using OpenTK;
 
 namespace ShadowsTester
@@ -36,7 +36,7 @@ namespace ShadowsTester
             Add(dragon);
 
             var rand = new Random();
-            
+            /*
             var scene1 = Object3dInfo.LoadSceneFromObj(Media.Get("tree1.obj"), Media.Get("tree1.mtl"), 12);
             List<Mesh3d> trees = new List<Mesh3d>();
             for(int i = 0; i < 50; i++)
@@ -52,8 +52,8 @@ namespace ShadowsTester
             {
                 a.UpdateMatrix();
                 Add(a);
-            });
-            var grasslod0 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod0.obj"));
+            });*/
+            var grasslod0 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
             var grasslod1 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
             var grasslod2 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod2.obj"));
             var grasslod3 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod3.obj"));

@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace VDGTech
+namespace VEngine
 {
     public class Skybox
     {
