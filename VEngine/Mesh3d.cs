@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BulletSharp;
 using OpenTK;
 
@@ -10,15 +12,15 @@ namespace VDGTech
         {
             DisableDepthWrite = false;
             Instances = 1;
-            ObjectInfo = objectInfo;
-            Material = material;
+            MainObjectInfo = objectInfo;
+            MainMaterial = material;
             Transformation = new TransformationManager(Vector3.Zero, Quaternion.Identity, 1.0f);
             UpdateMatrix();
             MeshColoredID = new Vector3((float)Randomizer.NextDouble(), (float)Randomizer.NextDouble(), (float)Randomizer.NextDouble());
         }
 
         public int Instances;
-        public IMaterial Material;
+        public IMaterial MainMaterial;
         public Matrix4 Matrix, RotationMatrix;
         public RigidBody PhysicalBody;
         public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
@@ -27,7 +29,7 @@ namespace VDGTech
 
         private static int LastMaterialHash = 0;
         private float Mass = 1.0f;
-        public Object3dInfo ObjectInfo;
+        public Object3dInfo MainObjectInfo;
         private CollisionShape PhysicalShape;
         private static Random Randomizer = new Random();
         private Vector3 MeshColoredID;
@@ -38,6 +40,58 @@ namespace VDGTech
         private Texture AlphaMask = null;
         public bool DrawOddOnly = false;
         public static bool IsOddframe = false;
+
+        class LodLevelData{
+            public Object3dInfo Info3d;
+            public IMaterial Material;
+            public float Distance;
+        }
+
+        private List<LodLevelData> LodLevels;
+
+        public void AddLodLevel(float distance, Object3dInfo info, IMaterial material)
+        {
+            if(LodLevels == null)
+                LodLevels = new List<LodLevelData>();
+            LodLevels.Add(new LodLevelData()
+            {
+                Info3d = info,
+                Material = material,
+                Distance = distance
+            });
+            LodLevels.Sort((a, b) => (int)((b.Distance - a.Distance)*100.0)); // *100 to preserve precision
+        }
+
+        private IMaterial GetCurrentMaterial()
+        {
+            if(LodLevels == null)
+                return MainMaterial;
+            float distance = (Camera.Current.GetPosition() - Transformation.GetPosition()).Length;
+            if(distance < LodLevels.Last().Distance)
+                return MainMaterial;
+            float d1 = float.MaxValue;
+            foreach(var l in LodLevels)
+            {
+                if(l.Distance < distance)
+                    return l.Material;
+            }
+            return LodLevels.Last().Material;
+        }
+        private Object3dInfo GetCurrent3dInfo()
+        {
+            if(LodLevels == null)
+                return MainObjectInfo;
+            float distance = (Camera.Current.GetPosition() - Transformation.GetPosition()).Length;
+            if(distance < LodLevels.Last().Distance)
+                return MainObjectInfo;
+            float d1 = float.MaxValue;
+            foreach(var l in LodLevels)
+            {
+                if(l.Distance < distance)
+                    return l.Info3d;
+            }
+            return LodLevels.Last().Info3d;
+        }
 
         public void UseAlphaMaskFromMedia(string key)
         {
@@ -105,20 +159,20 @@ namespace VDGTech
                 return;
 
             SetUniforms();
-            Material.GetShaderProgram().SetUniformArray("ModelMatrixes", new Matrix4[] { Matrix });
-            Material.GetShaderProgram().SetUniformArray("RotationMatrixes", new Matrix4[] { RotationMatrix });
+            GetCurrentMaterial().GetShaderProgram().SetUniformArray("ModelMatrixes", new Matrix4[] { Matrix });
+            GetCurrentMaterial().GetShaderProgram().SetUniformArray("RotationMatrixes", new Matrix4[] { RotationMatrix });
 
             if(!ignoreDisableDepthWriteFlag)
             {
                 if(DisableDepthWrite)
                     OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
-                ObjectInfo.Draw();
+                GetCurrent3dInfo().Draw();
                 if(DisableDepthWrite)
                     OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
             }
             else
             {
-                ObjectInfo.Draw();
+                GetCurrent3dInfo().Draw();
             }
 
             GLThread.CheckErrors();
@@ -127,7 +181,7 @@ namespace VDGTech
         public void SetUniforms()
         {
             ShaderProgram shader = ShaderProgram.Current;
-            bool shaderSwitchResult = Material.Use();
+            bool shaderSwitchResult = GetCurrentMaterial().Use();
 
             // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
 
@@ -139,6 +193,12 @@ namespace VDGTech
             shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed4", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed5", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed6", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed7", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed8", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed9", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
             shader.SetUniform("ColoredID", MeshColoredID); //magic
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             /*if(LastMaterialHash == 0)

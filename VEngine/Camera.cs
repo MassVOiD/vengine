@@ -13,6 +13,8 @@ namespace VDGTech
             Far = far;
             if(Current == null)
                 Current = this;
+            if(MainDisplayCamera == null)
+                MainDisplayCamera = this;
             Pitch = 0.0f;
             Roll = 0.0f;
             Update();
@@ -32,6 +34,7 @@ namespace VDGTech
         }
 
         static public Camera Current;
+        static public Camera MainDisplayCamera;
         public float CurrentDepthFocus = 0.06f;
         public float LensBlurAmount = 0.0f;
         public float Brightness = 1.0f;

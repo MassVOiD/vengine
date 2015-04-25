@@ -112,7 +112,7 @@ vec2 refractUV(){
 	vec3 rdir = normalize(texture(worldPos, UV).rgb - CameraPosition);
 	vec3 crs1 = normalize(cross(CameraPosition, texture(worldPos, UV).rgb));
 	vec3 crs2 = normalize(cross(crs1, rdir));
-	vec3 rf = refract(rdir, texture(normals, UV).rgb, 0.1);
+	vec3 rf = refract(rdir, texture(normals, UV).rgb, 0.02);
 	return UV + vec2(dot(rf, crs1), dot(rf, crs2)) * 0.3;
 }
 
@@ -127,18 +127,19 @@ uniform int UseBilinearGI;
 void main()
 {
 	vec2 nUV = UV;
+	vec3 color1 = vec3(0);
 	if(texture(diffuseColor, UV).a < 0.99){
 		nUV = refractUV();
+	   //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
 	}
-	vec3 color1 = vec3(0);
 	if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
 	if(UseFog == 1) color1 += lookupFog(nUV);
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
 	if(UseBloom == 1) color1 += texture(bloom, nUV).rgb;
 	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
 	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
-	//if(UseSimpleGI == 1) color1 += lookupGIBlurred(0.0005) * 0.8;
-	if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * 0.3;
+	if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * 0.8;
+	//if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * 0.3;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;

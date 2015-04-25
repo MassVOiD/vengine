@@ -83,7 +83,7 @@ namespace VDGTech
             FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /1, initialHeight /1);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /4, initialHeight /4);
             //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 

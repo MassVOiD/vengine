@@ -238,7 +238,7 @@ namespace VDGTech
                     return 0;
                 var am = a as Mesh3d;
                 var bm = b as Mesh3d;
-                return am.ObjectInfo.GetHash() - bm.ObjectInfo.GetHash();
+                return am.MainObjectInfo.GetHash() - bm.MainObjectInfo.GetHash();
             });
         }
         public void SortByCameraDistance()

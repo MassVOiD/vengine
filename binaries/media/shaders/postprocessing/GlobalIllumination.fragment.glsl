@@ -252,10 +252,13 @@ vec3 directional() {
 #define SEED 0
 #endif
 
+const float seeds[] = {RandomSeed1, RandomSeed2, RandomSeed3, RandomSeed4, RandomSeed5,
+					   RandomSeed6, RandomSeed7, RandomSeed8, RandomSeed9, RandomSeed10};
+
 // afl_ext (Adrian Chlubek) global illumination explained
 vec3 GlobalIlluminationVersion1() 
 {
-	vec3 originalColor = (texture(color, UV).rgb * 30 + texture(diffuseColor, UV).rgb * 0.1) * 0.7;
+	vec3 originalColor = (texture(color, UV).rgb * 12 + texture(diffuseColor, UV).rgb * 0.1) * 0.7;
 	//if(length(originalColor) > 0.8) discard;
 	// Get some basic data for processed pixel, like normal, original color, position in world space
 	// distance to camera, and precalculate some used data too.
@@ -268,46 +271,48 @@ vec3 GlobalIlluminationVersion1()
 	vec3 outBuffer = vec3(0);
 	vec3 cameraSpace = CameraPosition - positionCenter;
 	// We are going to sample the scene 256 times per frame.
-	#define samplesCount 1500
-	float seed = RandomSeed1 + RandomSeed2;
+	#define samplesCount 200
 	for(int g = 1; g < samplesCount; g += 1) 
 	{ 			
-		// Calculate 1D seed unique for every loop iteration
-		float random = seed * g;
-		// Performance trick to get unique vec2 :)
-		// This vec2 is in range [0,1] so use it for random UV lookup
-		vec2 coord = vec2(fract(random), fract(random*12.545));
-		// Let's test visibility
-		if(testVisibilityUnrolled(coord, UV)) 
-		{
-			// Get pixel color
-			vec3 c = ((texture(color, coord).rgb * 30 + texture(diffuseColor, coord).rgb * 0.1)  * 26);
-			if(length(c) < 0.3) continue;
-			// Pixels see each other.
-			// Get pixel world position and calculate attentuation based on pixels' distance
-			vec3 worldPosition = texture(worldPos, coord).rgb;
-			float worldDistance = distance(positionCenter, worldPosition);
-			if(worldDistance < 0.12) continue;
-			//if(worldDistance > 6.2) continue;
-			float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 80.0;
-			if(attentuation < 0.01) continue;
-			// Get last GI result so we can bounce infinitely now! That color gets mixed with selected pixel
-			vec3 giLastResult = texture(lastGi, coord).rgb;
-			// Get normal of that random pixel
-			vec3 normalThere = texture(normals, coord).rgb;
-			// calculate diffuse component and add it
-			outBuffer += (c + giLastResult * 1.7) * attentuation * 1.0 - clamp(dot(normalCenter, normalThere), 0.0, 1.0);
-			// calculate specular component and add it
-			vec3 lightRelativeToVPos = worldPosition - positionCenter;
-			vec3 R = reflect(lightRelativeToVPos, normal.xyz);
-			float cosAlpha = max(0, -dot(normalize(cameraSpace), normalize(R)));
-			float specularComponent = pow(cosAlpha, 80.0 / specSize) * speccomp;
-			outBuffer += c * 10 * specularComponent;
+		for(int z = 0; z < 10; z++){
+			// Calculate 1D seed unique for every loop iteration
+			float random = seeds[z] * g;
+			// Performance trick to get unique vec2 :)
+			// This vec2 is in range [0,1] so use it for random UV lookup
+			vec2 coord = vec2(fract(random), fract(random*12.545));
+			// Let's test visibility
+			if(testVisibilityUnrolled(coord, UV)) 
+			{
+				// Get pixel color
+				vec3 c = ((texture(color, coord).rgb * 12 + texture(diffuseColor, coord).rgb * 0.1)  * 2);
+				if(length(c) < 0.05) continue;
+				// Pixels see each other.
+				// Get pixel world position and calculate attentuation based on pixels' distance
+				vec3 worldPosition = texture(worldPos, coord).rgb;
+				float worldDistance = distance(positionCenter, worldPosition);
+				if(worldDistance < 0.12) continue;
+				//if(worldDistance > 6.2) continue;
+				float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 80.0;
+				if(attentuation < 0.01) continue;
+				// Get last GI result so we can bounce infinitely now! That color gets mixed with selected pixel
+				vec3 giLastResult = texture(lastGi, coord).rgb;
+				// Get normal of that random pixel
+				vec3 normalThere = texture(normals, coord).rgb;
+				// calculate diffuse component and add it
+				outBuffer += (c + giLastResult * 1.7) * attentuation * 1.0 - clamp(dot(normalCenter, normalThere), 0.0, 1.0);
+				// calculate specular component and add it
+				vec3 lightRelativeToVPos = worldPosition - positionCenter;
+				vec3 R = reflect(lightRelativeToVPos, normal.xyz);
+				float cosAlpha = max(0, -dot(normalize(cameraSpace), normalize(R)));
+				float specularComponent = pow(cosAlpha, 80.0 / specSize) * speccomp;
+				outBuffer += c * 10 * specularComponent;
+			}
 		}
+		
 	}	
 	// Return calculated buffered value divided by samples count and by camera distance.
 	// Check alpha mask there too.
-	return originalColor * ((outBuffer / samplesCount)) * (distanceToCamera / 16 * (texture(ssnormals, UV).a));
+	return originalColor * ((outBuffer / (samplesCount*10))) * (distanceToCamera / 16 * (texture(ssnormals, UV).a));
 }
 
 
@@ -367,39 +372,14 @@ vec3 BruteForceGI()
 	return originalColor * ((outBuffer / (SamplesX*SamplesY))) * (distanceToCamera / 16 * (texture(ssnormals, UV).a));
 }
 
-#define mPI (3.14159265)
-#define mPI2 (2*3.14159265)
-vec3 GoodHBAO() 
-{
-	vec3 originalColor = (texture(color, UV).rgb * 30 + texture(diffuseColor, UV).rgb * 0.1) * 0.7;
-	//float alpha = texture(diffuseColor, UV).a;
-	vec3 centerPosition = texture(worldPos, UV).rgb;  
-	float maxdot = 11.0;
-	float A = distance(CameraPosition, centerPosition);
-	float AInv = 1.0 / (distance(CameraPosition, centerPosition) + 1.0);
-	for(float g = 0.05; g < mPI2; g += 0.4) 
-	{
-		for(float g2 = 0.05; g2 < 1; g2 += 0.08) 
-		{ 			
-			vec2 coord = UV + (vec2(sin(g), cos(g)) * ((g2) * 0.5 * AInv));
-			vec3 coordPosition = texture(worldPos, coord).rgb;  
-			float B = distance(CameraPosition, coordPosition);
-			float C = distance(coordPosition, centerPosition);
-			if(C > 1.0) continue;
-			float angle = acos( (C*C + A*A - B*B ) / (2 * C * A) );
-			maxdot = min(angle, maxdot);
-		}	
-	}
-	return originalColor * maxdot;
-}
 
 #define BUFFER 3.0
 #define BUFFER1 (4.0)
 void main() {
 	vec3 color1 = vec3(0);
-	//color1 = GlobalIlluminationVersion1();
+	color1 = GlobalIlluminationVersion1();
 	//color1 = BruteForceGI();
-	color1 = GoodHBAO();
+	//color1 = GoodHBAO();
 	//color1 += directional();
 	//color1 = bruteForceGIBounce1(UV);
 	//color1 *= ambientRadiosity(UV) * 0.8;

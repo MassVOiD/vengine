@@ -29,7 +29,7 @@ namespace VDGTech
 
         public void Draw()
         {
-            var sp = Mesh.Material.GetShaderProgram();
+            var sp = Mesh.MainMaterial.GetShaderProgram();
             sp.Use();
             sp.SetUniform("CameraDirection", Camera.Current.GetDirection());
             Mesh.Draw();

@@ -18,6 +18,12 @@ namespace VDGTech
         private int FBO, RBO, Width, Height;
         private bool DepthOnly, MultiSample;
         public bool Generated;
+        public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.Rgba16f;
+        public PixelFormat ColorPixelFormat = PixelFormat.Rgba;
+        public PixelType ColorPixelType = PixelType.HalfFloat;
+        public PixelInternalFormat DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
+        public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
+        public PixelType DepthPixelType = PixelType.Float;
 
         public float GetDepth(float x, float y)
         {
@@ -91,7 +97,7 @@ namespace VDGTech
             // this is because somebody recommended it on stackoverflow
             GL.ActiveTexture(TextureUnit.Texture0);
         }
-
+        
         private void Generate()
         {
             Generated = true;
@@ -111,7 +117,7 @@ namespace VDGTech
             {
                 TexColor = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, TexColor);
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, (IntPtr)0);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, ColorInternalFormat, Width, Height, 0, ColorPixelFormat, ColorPixelType, (IntPtr)0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
             }
@@ -124,7 +130,7 @@ namespace VDGTech
             GL.BindTexture(TextureTarget.Texture2D, TexDepth);
             if(DepthOnly)
             {
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32f, Width, Height, 0, PixelFormat.DepthComponent, PixelType.Float, (IntPtr)0);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, DepthInternalFormat, Width, Height, 0, DepthPixelFormat, DepthPixelType, (IntPtr)0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
@@ -132,7 +138,7 @@ namespace VDGTech
             }
             else
             {
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent, Width, Height, 0, PixelFormat.DepthComponent, PixelType.UnsignedByte, (IntPtr)0);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, DepthInternalFormat, Width, Height, 0, DepthPixelFormat, DepthPixelType, (IntPtr)0);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);

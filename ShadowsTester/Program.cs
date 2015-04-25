@@ -60,7 +60,7 @@ namespace ShadowsTester
              water.DiffuseComponent = 0.2f;
             World.Root.Add(water);
 
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 512, 512, MathHelper.PiOver3, 1.0f, 10000.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 1.0f, 10000.0f);
             redConeLight.LightColor = new Vector4(1, 1, 1, 20);
 
             LightPool.Add(redConeLight);
@@ -123,7 +123,6 @@ namespace ShadowsTester
             //new SculptScene().Create();
             //new SponzaScene().Create();
             new OldCityScene().Create();
-            World.Root.SortByDepthMasking();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
@@ -132,11 +131,17 @@ namespace ShadowsTester
 
             //new HallScene().Create();
             //new HomeScene().Create();
+
+            World.Root.SortByDepthMasking();
+
             System.Threading.Thread.Sleep(500);
             window.PostProcessor.UseFog = false;
             window.PostProcessor.UseSimpleGI = true;
             window.PostProcessor.UseBilinearGI = false;
 
+            var sphere3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
+            sphere3dInfo.Normalize();
+            
             GLThread.OnMouseUp += (o, e) =>
             {
                 if(e.Button == OpenTK.Input.MouseButton.Middle)
@@ -151,8 +156,9 @@ namespace ShadowsTester
                 }
                 if(e.Button == OpenTK.Input.MouseButton.Left)
                 {
-                    var sphere = new BulletSharp.SphereShape(3.3f);
-                    Mesh3d m = new Mesh3d(Object3dInfo.Empty, new SolidColorMaterial(Color.White));
+                    var sphere = new BulletSharp.SphereShape(0.3f);
+                    Mesh3d m = new Mesh3d(sphere3dInfo, new SolidColorMaterial(new Vector4(1,1,1,0.1f)));
+                    m.SetScale(0.3f);
                     m.Transformation.SetPosition(freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 2.0f);
                     m.SetMass(11.0f);
                     m.SetCollisionShape(sphere);

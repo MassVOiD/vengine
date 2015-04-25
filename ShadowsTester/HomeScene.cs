@@ -19,7 +19,7 @@ namespace ShadowsTester
             foreach(var ob in testroom)
             {
                 ob.SetMass(0);
-                ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
+                ob.SetCollisionShape(ob.MainObjectInfo.GetAccurateCollisionShape());
                 this.Add(ob);
             }
         }
