@@ -65,7 +65,7 @@ namespace ShadowsTester
             var car3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("vmbody.obj"));
 
             var car = new Mesh3d(car3dInfo, new SolidColorMaterial(Color.LightGreen));
-            car.SetMass(200);
+            car.SetMass(800);
             //car.Translate(0, 3.76f, 0);
             car.SetCollisionShape(new BoxShape(car3dInfo.GetAxisAlignedBox()));
             car.CreateRigidBody(new Vector3(0, -25, 0), true);
@@ -75,10 +75,23 @@ namespace ShadowsTester
             CurrentCar = car;
             World.Root.Add(car);
 
+            ProjectionLight carLightLeft = new ProjectionLight(new Vector3(1, 25, 1), Quaternion.Identity, 256, 256, MathHelper.PiOver2, 1.0f, 10000.0f);
+            carLightLeft.LightColor = new Vector4(0.90f, 0.90f, 1, 11);
+            LightPool.Add(carLightLeft);
+            ProjectionLight carLightRight = new ProjectionLight(new Vector3(1, 25, 1), Quaternion.Identity, 256, 256, MathHelper.PiOver2, 1.0f, 10000.0f);
+            carLightRight.LightColor = new Vector4(0.90f, 0.90f, 1, 11);
+            LightPool.Add(carLightRight);
+
+
 
             float axis = 5.240539f;
             float side = 2.94906f;
             float suspension = 2.0f;
+
+            var lightrot = Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2);
+
+            MeshLinker.Link(car, carLightLeft, new Vector3(-axis - 4, 0, side), lightrot);
+            MeshLinker.Link(car, carLightRight, new Vector3(-axis - 4, 0, -side), lightrot);
 
             var shape = new SphereShape(wheel3dInfo.GetAxisAlignedBox().X);
             //var shape = wheel3dInfo.GetAccurateCollisionShape();
@@ -191,9 +204,9 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Up)
                 {
                     centerAxis1.EnableMotor = true;
-                    centerAxis1.EnableAngularMotor(true, -100.0f, 110.0f);
+                    centerAxis1.EnableAngularMotor(true, -100.0f, 210.0f);
                     centerAxis2.EnableMotor = true;
-                    centerAxis2.EnableAngularMotor(true, -100.0f, 110.0f);
+                    centerAxis2.EnableAngularMotor(true, -100.0f, 210.0f);
                 }
                 if(e.Key == OpenTK.Input.Key.Down)
                 {
@@ -205,7 +218,7 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Left)
                 {
-                    float angle = 0.6f / (car.PhysicalBody.LinearVelocity.Length * 0.1f  + 1.0f);
+                    float angle = 1.6f / (car.PhysicalBody.LinearVelocity.Length * 0.1f  + 1.0f);
                     centerAxis3.SetFrames(Matrix4.CreateRotationY(angle) * Matrix4.CreateTranslation(new Vector3(-axis, -suspension, side)), Matrix4.CreateTranslation(new Vector3(0)));
                     centerAxis4.SetFrames(Matrix4.CreateRotationY(angle) * Matrix4.CreateTranslation(new Vector3(-axis, -suspension, -side)), Matrix4.CreateTranslation(new Vector3(0)));
                     //centerAxis3.SetAxis(new Vector3(1, 0, 1));
@@ -213,7 +226,7 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Right)
                 {
-                    float angle = 0.6f / (car.PhysicalBody.LinearVelocity.Length * 0.1f + 1.0f);
+                    float angle = 1.6f / (car.PhysicalBody.LinearVelocity.Length * 0.1f + 1.0f);
                     centerAxis3.SetFrames(Matrix4.CreateRotationY(-angle) * Matrix4.CreateTranslation(new Vector3(-axis, -suspension, side)), Matrix4.CreateTranslation(new Vector3(0)));
                     centerAxis4.SetFrames(Matrix4.CreateRotationY(-angle) * Matrix4.CreateTranslation(new Vector3(-axis, -suspension, -side)), Matrix4.CreateTranslation(new Vector3(0)));
                     //centerAxis3.SetAxis(new Vector3(-1, 0, 1));

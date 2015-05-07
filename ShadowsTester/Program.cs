@@ -126,8 +126,7 @@ namespace ShadowsTester
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
-            new ManyCubesScene
-().Create();
+            new ManyCubesScene().Create();
             //new CarScene().Create();
 
             //new HallScene().Create();

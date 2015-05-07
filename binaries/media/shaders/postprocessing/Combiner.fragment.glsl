@@ -18,6 +18,7 @@ layout(binding = 6) uniform sampler2D globalIllumination;
 layout(binding = 7) uniform sampler2D diffuseColor;
 layout(binding = 8) uniform sampler2D normals;
 layout(binding = 9) uniform sampler2D worldPos;
+layout(binding = 10) uniform sampler2D lastworldPos;
 
 float centerDepth;
 
@@ -131,6 +132,37 @@ vec2 refractUV(){
 	return UV + vec2(dot(rf, crs1), dot(rf, crs2)) * 0.3;
 }
 
+vec3 motionBlurExperiment(){
+	vec3 outc = texture(color, UV).rgb;
+	vec3 centerPos = texture(worldPos, UV).rgb;
+	vec2 nearestUV = UV;
+	float worldDistance = 999999;
+	
+	for(float g = 0; g < mPI2 * 2; g+=0.3)
+	{ 
+		for(float g2 = 0.0; g2 < 6.0; g2+=0.3)
+		{ 
+			vec2 dsplc = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.004);
+			vec3 pos = texture(lastworldPos, UV + dsplc).rgb;
+			float ds = distance(pos, centerPos);
+			if(worldDistance > ds){
+				worldDistance = ds;
+				nearestUV = UV + dsplc;
+			}
+		}
+	}	
+	//if(distance(nearestUV, UV) < 0.001) return outc;
+	int counter = 0;
+	outc = vec3(0);
+	vec2 direction = nearestUV - UV;
+	for(float g = 0; g < 1; g+=0.04)
+	{ 
+		outc += texture(color, mix(UV - direction, UV + direction, g)).rgb;
+		counter++;
+	}
+	return outc / counter;
+}
+
 uniform int UseSimpleGI;
 uniform int UseFog;
 uniform int UseLightPoints;
@@ -147,7 +179,8 @@ void main()
 		nUV = refractUV();
 	   //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
 	}
-	if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
+	//if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
+	if(UseDeferred == 1) color1 += motionBlurExperiment();
 	//if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 	if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;

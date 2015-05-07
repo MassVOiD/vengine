@@ -198,7 +198,7 @@ namespace VEngine
                 if(mesh != null)
                 {
 
-                    mesh.Transformation.SetPosition((Matrix4.CreateScale(Scale) * body.WorldTransform).ExtractTranslation());
+                    mesh.Transformation.SetPosition(mesh.PhysicalBody.CenterOfMassPosition);
                     mesh.Transformation.SetOrientation(mesh.PhysicalBody.Orientation);
                     mesh.UpdateMatrix(true);
                     mesh.Transformation.ClearModifiedFlag();

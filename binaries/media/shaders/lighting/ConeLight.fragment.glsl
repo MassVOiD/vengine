@@ -17,7 +17,7 @@ out float outColor;
 
 void main()
 {
-	discardIfAlphaMasked();
+	//discardIfAlphaMasked();
 	float depth = distance(vertexWorldSpace, LightPosition);
 	gl_FragDepth = toLogDepth(depth);
 		

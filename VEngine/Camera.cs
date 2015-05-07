@@ -110,8 +110,7 @@ namespace VEngine
 
         public void Update()
         {
-            Transformation.GetOrientation().Invert();
-            RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
+            RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());
             ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
         }
 

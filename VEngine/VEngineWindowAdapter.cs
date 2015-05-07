@@ -59,7 +59,6 @@ namespace VEngine
             LightPool.MapAll();
 
             //LightPool.UseTextures(2);
-            World.Root.ShouldUpdatePhysics = true;
             // this is here so you can issue draw calls from there if you want
             GLThread.InvokeOnBeforeDraw();
             PostProcessor.ExecutePostProcessing();
@@ -69,6 +68,8 @@ namespace VEngine
             World.Root.UI.DrawAll();
 
             GLThread.CheckErrors();
+
+            World.Root.ShouldUpdatePhysics = true;
 
             SwapBuffers();
         }

@@ -6,7 +6,6 @@ in vec2 UV;
 
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
-layout(binding = 29) uniform sampler2D backWorldPosTex;
 layout(binding = 30) uniform sampler2D worldPosTex;
 layout(binding = 31) uniform sampler2D normalsTex;
 

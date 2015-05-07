@@ -18,20 +18,22 @@ namespace ShadowsTester
             var protagonist = Object3dInfo.LoadSceneFromObj(Media"protagonist.obj", "protagonist.mtl", 1.0f);
             foreach(var o in protagonist)
                 Add(o);*/
-            /*
-            var hmap = System.IO.File.ReadAllBytes(Media.Get("krakow.raw"));
+            
+            var hmap = System.IO.File.ReadAllBytes(Media.Get("pearlharbor.raw"));
             int count = 0;
-            int scale = 4;
+            int scale = 1;
             Func<uint, uint, float> terrainGen = (x, y) =>
             {
-                int ix = (int)(y * scale * 1830 + x * scale) * 3;
+                int yy = (int)(((double)y / (750.0 / scale)) * 5425);
+                int xx = (int)(((double)x / (750.0 / scale)) * 6804);
+                int ix = (int)(yy * 6804  + xx) * 3;
                 count++;
                 if(count % 1000 == 0)
                     Console.WriteLine(count * 100 / hmap.Length);
-                return ix < hmap.Length ? hmap[ix] * 0.1f : 0;
+                return ix < hmap.Length ? hmap[ix] * 0.5f : 0;
             };
             Object3dGenerator.UseCache = false;
-            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1830 / scale, -750 / scale), new Vector2(1830 / scale, 750 / scale), new Vector2(4096, 4096), Vector3.UnitY, 750 / scale, terrainGen);
+            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1830 / scale, -1600 / scale), new Vector2(1830 / scale, 1600 / scale), new Vector2(4096, 4096), Vector3.UnitY, 1024 / scale, terrainGen);
             hmap = null;
             GC.Collect();
 
@@ -45,8 +47,8 @@ namespace ShadowsTester
             var water = new Mesh3d(waterInfo, waterMat);
             water.Transformation.Translate(0, 10, 0);
             //water.DisableDepthWrite = true;
-            Add(water);
-            */
+            //Add(water);
+            
 
             var daetest = Object3dInfo.LoadFromObjSingle(Media.Get("carreragt.obj"));
             daetest.CorrectFacesByNormals();

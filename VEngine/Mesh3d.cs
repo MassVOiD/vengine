@@ -40,7 +40,7 @@ namespace VEngine
         private Texture AlphaMask = null;
         public bool DrawOddOnly = false;
         public static bool IsOddframe = false;
-        public bool PostProcessingUniformsOnly = false;
+        public static bool PostProcessingUniformsOnly = false;
 
         class LodLevelData{
             public Object3dInfo Info3d;

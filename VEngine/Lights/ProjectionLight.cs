@@ -85,8 +85,8 @@ namespace VEngine
             Shader.GetShaderProgram().SetUniform("FarPlane", camera.Far);
             Shader.GetShaderProgram().SetUniform("LogEnchacer", 0.01f);
             World.Root.Draw(false, true);
-            if(Skybox.Current != null)
-                Skybox.Current.Draw();
+            //if(Skybox.Current != null)
+            //    Skybox.Current.Draw();
             ShaderProgram.Lock = false;
             //ParticleSystem.DrawAll(true);
             Camera.Current = last;

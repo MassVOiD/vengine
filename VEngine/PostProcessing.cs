@@ -42,7 +42,8 @@ namespace VEngine
             BloomFrameBuffer,
             FogFramebuffer,
             SmallFrameBuffer,
-            GlobalIlluminationFrameBuffer;
+            GlobalIlluminationFrameBuffer,
+            LastWorldPositionFramebuffer;
 
         private MRTFramebuffer MRT;
 
@@ -75,6 +76,7 @@ namespace VEngine
             BloomFrameBuffer = new Framebuffer(initialWidth / 4, initialHeight / 4);
             FogFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
+            LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 
             GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /1, initialHeight /1);
             //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
@@ -101,7 +103,6 @@ namespace VEngine
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new SolidColorMaterial(Color.Pink));
-            PostProcessingMesh.PostProcessingUniformsOnly = true;
         }
 
         private Framebuffer LastFrameBuffer;
@@ -291,9 +292,15 @@ namespace VEngine
 
             //WriteBackDepth();
 
+            LastWorldPositionFramebuffer.Use();
+            MRT.UseTextureWorldPosition(0);
+            Blit();
+
             DisableBlending();
+            Mesh3d.PostProcessingUniformsOnly = false;
             MRT.Use();
             World.Root.Draw();
+            Mesh3d.PostProcessingUniformsOnly = true;
 
             if(UseLightPoints)
             {
@@ -319,6 +326,8 @@ namespace VEngine
                 SwitchBetweenFB();
                 MRT.UseTextureDiffuseColor(0);
                 MRT.UseTextureDepth(1);
+                MRT.UseTextureWorldPosition(30);
+                MRT.UseTextureNormals(31);
                 //BloomFrameBuffer.UseTexture(29);
                 Deferred();
             }
@@ -380,6 +389,7 @@ namespace VEngine
             MRT.UseTextureDiffuseColor(7);
             MRT.UseTextureNormals(8);
             MRT.UseTextureWorldPosition(9);
+            LastWorldPositionFramebuffer.UseTexture(10);
             //BackDepthFrameBuffer.UseTexture(6);
 
             
@@ -401,6 +411,7 @@ namespace VEngine
             HDR();
             if(World.Root != null && World.Root.UI != null)
                 World.Root.UI.DrawAll();
+            Mesh3d.PostProcessingUniformsOnly = false;
         }
 
         private void SetLightingUniforms(ShaderProgram shader)
