@@ -5,13 +5,10 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
-    public class VEngineInvisibleAdapter : GameWindow, IVEngineDisplayAdapter
+    public class VEngineInvisibleAdapter : AbsDisplayAdapter
     {
         public VEngineInvisibleAdapter()
-            : base(1, 1,
-                new OpenTK.Graphics.GraphicsMode(32, 24, 8, 4), "INVISIBLE", GameWindowFlags.Default,
-                DisplayDevice.Default, 4, 3,
-                GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
+            : base("", 1, 1)
         {
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);

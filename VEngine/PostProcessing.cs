@@ -26,8 +26,6 @@ namespace VEngine
             LightPointsShader, 
             LensBlurShader, 
             HDRShader,
-            WorldPosWriterShader,
-            NormalsWriterShader,
             GlobalIlluminationShaderX,
             GlobalIlluminationShaderY,
             BlitShader, 
@@ -43,12 +41,10 @@ namespace VEngine
             LightPointsFrameBuffer,
             BloomFrameBuffer,
             FogFramebuffer,
-            WorldPositionFrameBuffer,
-            NormalsFrameBuffer,
-            ScreenSpaceNormalsFrameBuffer,
             SmallFrameBuffer,
-            GlobalIlluminationFrameBuffer,
-            DiffuseColorFrameBuffer;
+            GlobalIlluminationFrameBuffer;
+
+        private MRTFramebuffer MRT;
 
         private Mesh3d PostProcessingMesh;
 
@@ -70,25 +66,20 @@ namespace VEngine
             MSAAResolvingFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             MSAAResolvingFrameBuffer.SetMultiSample(true);
 
-            DiffuseColorFrameBuffer = new Framebuffer(initialWidth , initialHeight);
+            MRT = new MRTFramebuffer(initialWidth , initialHeight);
 
             Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
             Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
-            WorldPositionFrameBuffer = new Framebuffer(initialWidth, initialHeight);
-            NormalsFrameBuffer = new Framebuffer(initialWidth, initialHeight);
-            ScreenSpaceNormalsFrameBuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
 
             LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
-            BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 3);
-            FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            BloomFrameBuffer = new Framebuffer(initialWidth / 4, initialHeight / 4);
+            FogFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /4, initialHeight /4);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /1, initialHeight /1);
             //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 
-            WorldPosWriterShader = ShaderProgram.Compile("Generic.vertex.glsl", "WorldPosWriter.fragment.glsl");
-            NormalsWriterShader = ShaderProgram.Compile("Generic.vertex.glsl", "NormalsWriter.fragment.glsl");
             ScreenSpaceNormalsWriterShader = ShaderProgram.Compile("Generic.vertex.glsl", "ScreenSpaceNormalsWriter.fragment.glsl");
             BackDepthWriterShader = ShaderProgram.Compile("Generic.vertex.glsl", "BackDepthWriter.fragment.glsl");
 
@@ -110,6 +101,7 @@ namespace VEngine
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new SolidColorMaterial(Color.Pink));
+            PostProcessingMesh.PostProcessingUniformsOnly = true;
         }
 
         private Framebuffer LastFrameBuffer;
@@ -124,14 +116,15 @@ namespace VEngine
         private Framebuffer SwitchToFB1()
         {
             Pass1FrameBuffer.Use();
-            LastFrameBuffer.UseTexture(0);
+            if(LastFrameBuffer != null) LastFrameBuffer.UseTexture(0);
             LastFrameBuffer = Pass1FrameBuffer;
             return Pass1FrameBuffer;
         }
         private Framebuffer SwitchToFB2()
         {
             Pass2FrameBuffer.Use();
-            LastFrameBuffer.UseTexture(0);
+            if(LastFrameBuffer != null)
+                LastFrameBuffer.UseTexture(0);
             LastFrameBuffer = Pass2FrameBuffer;
             return Pass2FrameBuffer;
         }
@@ -188,20 +181,11 @@ namespace VEngine
             ShaderProgram.Lock = false;
         }
 
-        private void SSAO()
-        {
-            SSAOShader.Use();
-            WorldPositionFrameBuffer.UseTexture(30);
-            NormalsFrameBuffer.UseTexture(31);
-            ShaderProgram.Lock = true;
-            PostProcessingMesh.Draw();
-            ShaderProgram.Lock = false;
-        }
         private void Deferred()
         {
             DeferredShader.Use();
-            WorldPositionFrameBuffer.UseTexture(30);
-            NormalsFrameBuffer.UseTexture(31);
+            MRT.UseTextureWorldPosition(30);
+            MRT.UseTextureNormals(31);
             LightPool.UseTextures(2);
             LightPool.MapSimpleLightsToShader(DeferredShader);
             SetLightingUniforms(DeferredShader);
@@ -214,7 +198,8 @@ namespace VEngine
         {
             FogShader.Use();
             LightPool.UseTextures(2);
-            WorldPositionFrameBuffer.UseTexture(30);
+            MRT.UseTextureWorldPosition(30);
+            MRT.UseTextureNormals(31);
             FogShader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             SetLightingUniforms(FogShader);
             LightPool.MapSimpleLightsToShader(FogShader);
@@ -226,6 +211,13 @@ namespace VEngine
         {
             HDRShader.Use();
             HDRShader.SetUniform("Brightness", Camera.Current.Brightness);
+            if(Camera.MainDisplayCamera != null)
+            {
+                LensBlurShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
+                LensBlurShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
+            }
+            MRT.UseTextureDiffuseColor(2);
+            MRT.UseTextureDepth(3);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -300,70 +292,22 @@ namespace VEngine
             //WriteBackDepth();
 
             DisableBlending();
-
-            // we dont need particles in normals and world pos passes so
-            // DRAWING WORLD POS
-            WorldPosWriterShader.Use();
-            ShaderProgram.Lock = true;
-            WorldPositionFrameBuffer.Use();
-            World.Root.Draw(true);
-            ShaderProgram.Lock = false;
-
-            // DRAWING NORMALS
-            NormalsWriterShader.Use();
-            ShaderProgram.Lock = true;
-            NormalsFrameBuffer.Use();
+            MRT.Use();
             World.Root.Draw();
-            ShaderProgram.Lock = false;
-
-            // DRAWING MESH OPTIONS
-            ScreenSpaceNormalsWriterShader.Use();
-            ShaderProgram.Lock = true;
-            ScreenSpaceNormalsFrameBuffer.Use();
-            World.Root.Draw();
-            ShaderProgram.Lock = false;
-
-            EnableFullBlend();
-            if(UseMSAA)
-            {
-                // DRAWING MSAA
-                MSAAResolvingFrameBuffer.Use();
-                World.Root.Draw();
-                //ParticleSystem.DrawAll();
-
-                LastFrameBuffer = MSAAResolvingFrameBuffer;
-
-                // we are into the game! We have world pos and normals, and MSAA scene
-                // Scene is already drawn into MSAA framebuffer so need to resolve it
-
-                SwitchToFB1();
-                MSAAShader.Use();
-                ShaderProgram.Lock = true;
-                PostProcessingMesh.Draw();
-                ShaderProgram.Lock = false;
-            }
-            else
-            {
-                LastFrameBuffer = WorldPositionFrameBuffer;
-                SwitchToFB1();
-                World.Root.Draw();
-            }
-
-            SwitchToFB(DiffuseColorFrameBuffer);
-            LastFrameBuffer.UseTexture(0);
-            Blit();
 
             if(UseLightPoints)
             {
                 SwitchToFB(LightPointsFrameBuffer);
-                LastFrameBuffer.UseTexture(0);
+                MRT.UseTextureDiffuseColor(0);
+                MRT.UseTextureDepth(1);
                 LightsPoints();
             }
 
             if(UseFog)
             {
                 SwitchToFB(FogFramebuffer);
-                DiffuseColorFrameBuffer.UseTexture(0);
+                MRT.UseTextureDiffuseColor(0);
+                MRT.UseTextureDepth(1);
                 Fog();
             }
 
@@ -372,17 +316,10 @@ namespace VEngine
 
             if(UseDeferred)
             {
-                WorldPosWriterShader.Use();
-                ShaderProgram.Lock = true;
-                BloomFrameBuffer.Use();
-                GL.CullFace(CullFaceMode.Front);
-                World.Root.Draw(true);
-                GL.CullFace(CullFaceMode.Back);
-                ShaderProgram.Lock = false;
-
                 SwitchBetweenFB();
-                DiffuseColorFrameBuffer.UseTexture(0);
-                BloomFrameBuffer.UseTexture(29);
+                MRT.UseTextureDiffuseColor(0);
+                MRT.UseTextureDepth(1);
+                //BloomFrameBuffer.UseTexture(29);
                 Deferred();
             }
 
@@ -412,14 +349,14 @@ namespace VEngine
 
                 SwitchToFB(GlobalIlluminationFrameBuffer);
                 p1.UseTexture(0);
-                DiffuseColorFrameBuffer.UseTexture(2);
-                WorldPositionFrameBuffer.UseTexture(3);
-                NormalsFrameBuffer.UseTexture(4);
+                MRT.UseTextureDiffuseColor(2);
+                MRT.UseTextureWorldPosition(3);
+                MRT.UseTextureNormals(4);
                 p2.UseTexture(5);
-                ScreenSpaceNormalsFrameBuffer.UseTexture(7);
+                //ScreenSpaceMRT.UseTextureNormals(7);
                 //BackDiffuseFrameBuffer.UseTexture(8);
                 //BackDiffuseFrameBuffer.UseTexture(7);
-                //BackNormalsFrameBuffer.UseTexture(9);
+                //BackMRT.UseTextureNormals(9);
                 GlobalIllumination();
                 SwitchToFB(p2);
             }
@@ -428,9 +365,9 @@ namespace VEngine
             ReflectShader.Use();
             LastFrameBuffer.UseTexture(0);
             ShaderProgram.Lock = true;
-            //WorldPositionFrameBuffer.UseTexture(3);
-            //NormalsFrameBuffer.UseTexture(4);
-            ScreenSpaceNormalsFrameBuffer.UseTexture(5);
+            //MRT.UseTextureWorldPosition(3);
+            //MRT.UseTextureNormals(4);
+            ScreenSpaceMRT.UseTextureNormals(5);
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;*/
 
@@ -440,9 +377,9 @@ namespace VEngine
             LightPointsFrameBuffer.UseTexture(4);
             BloomFrameBuffer.UseTexture(5);
             GlobalIlluminationFrameBuffer.UseTexture(6);
-            DiffuseColorFrameBuffer.UseTexture(7);
-            NormalsFrameBuffer.UseTexture(8);
-            WorldPositionFrameBuffer.UseTexture(9);
+            MRT.UseTextureDiffuseColor(7);
+            MRT.UseTextureNormals(8);
+            MRT.UseTextureWorldPosition(9);
             //BackDepthFrameBuffer.UseTexture(6);
 
             
@@ -450,15 +387,17 @@ namespace VEngine
             Combine();
 
 
-            //SwitchToFB(SmallFrameBuffer);
-           // Pass2FrameBuffer.UseTexture(0);
-           // Blit();
+            SwitchToFB(SmallFrameBuffer);
+            MRT.UseTextureDiffuseColor(0);
+            MRT.UseTextureDepth(1);
+            Blit();
 
            // SwitchBetweenFB();
            // if(World.Root.SkyDome != null) World.Root.SkyDome.Draw();
             //LensBlur();
 
             SwitchToFB0();
+            
             HDR();
             if(World.Root != null && World.Root.UI != null)
                 World.Root.UI.DrawAll();

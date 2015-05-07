@@ -25,12 +25,12 @@ namespace VEngine
             o.GetTransformationManager().MarkAsModified();
             return o.GetTransformationManager();
         }
-        public static TransformationManager Rotate(this ITransformable o, float pitch, float yaw, float roll)
+        /*public static TransformationManager Rotate(this ITransformable o, float pitch, float yaw, float roll)
         {
             o.GetTransformationManager().Orientation = Quaternion.Multiply(o.GetTransformationManager().Orientation, Quaternion.FromEulerAngles(pitch, yaw, roll));
             o.GetTransformationManager().MarkAsModified();
             return o.GetTransformationManager();
-        }
+        }*/
 
         public static TransformationManager Scale(this ITransformable o, float scale)
         {
@@ -61,12 +61,12 @@ namespace VEngine
             return o.GetTransformationManager();
         }
 
-        public static TransformationManager SetOrientation(this ITransformable o, float pitch, float yaw, float roll)
+        /*public static TransformationManager SetOrientation(this ITransformable o, float pitch, float yaw, float roll)
         {
             o.GetTransformationManager().Orientation = Quaternion.FromEulerAngles(pitch, yaw, roll);
             o.GetTransformationManager().MarkAsModified();
             return o.GetTransformationManager();
-        }
+        }*/
 
         public static TransformationManager SetPosition(this ITransformable o, Vector3 pos)
         {
@@ -128,10 +128,10 @@ namespace VEngine
             ScaleValue = scale;
             BeenModified = true;
         }
-        public TransformationManager(Vector3 pos, Vector3 orient, Vector3 scale)
+        public TransformationManager(Vector3 pos, Vector3 axis, float angle, Vector3 scale)
         {
             Position = pos;
-            Orientation = Quaternion.FromEulerAngles(orient);
+            Orientation = Quaternion.FromAxisAngle(axis, angle);
             ScaleValue = scale;
             BeenModified = true;
         }
@@ -142,10 +142,10 @@ namespace VEngine
             ScaleValue = new Vector3(scale, scale, scale);
             BeenModified = true;
         }
-        public TransformationManager(Vector3 pos, Vector3 orient, float scale)
+        public TransformationManager(Vector3 pos, Vector3 axis, float angle, float scale)
         {
             Position = pos;
-            Orientation = Quaternion.FromEulerAngles(orient);
+            Orientation = Quaternion.FromAxisAngle(axis, angle);
             ScaleValue = new Vector3(scale, scale, scale);
             BeenModified = true;
         }
@@ -209,12 +209,12 @@ namespace VEngine
             BeenModified = true;
             return this;
         }
-        public TransformationManager Rotate(float pitch, float yaw, float roll)
+        /*public TransformationManager Rotate(float pitch, float yaw, float roll)
         {
             Orientation = Quaternion.Multiply(Orientation, Quaternion.FromEulerAngles(pitch, yaw, roll));
             BeenModified = true;
             return this;
-        }
+        }*/
 
         //---------------/
 
@@ -248,12 +248,12 @@ namespace VEngine
             BeenModified = true;
             return this;
         }
-        public TransformationManager SetOrientation(float pitch, float yaw, float roll)
+        /*public TransformationManager SetOrientation(float pitch, float yaw, float roll)
         {
             Orientation = Quaternion.FromEulerAngles(pitch, yaw, roll);
             BeenModified = true;
             return this;
-        }
+        }*/
 
         //---------------/
 

@@ -37,6 +37,9 @@ vec3 lookupFog(vec2 fuv){
 	}
 	return outc / counter;
 }
+vec3 lookupFogSimple(vec2 fuv){
+	return texture(fog, fuv).rgb;
+}
 /*
 vec3 lookupFog(vec2 fuv){
 	vec3 outc = vec3(0);
@@ -77,8 +80,20 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
 	return outc / counter / 3 * texture(diffuseColor, giuv).rgb ;
 }
 
-vec3 lookupFogSimple(vec2 fuv){
-	return texture(fog, fuv).rgb;
+vec3 lookupBloomBlurred(vec2 buv, float radius){
+	vec3 outc = vec3(0);
+	int counter = 0;
+	for(float g = 0; g < mPI2 * 2; g+=0.4)
+	{ 
+		for(float g2 = 0; g2 < 1.0; g2+=0.15)
+		{ 
+			vec2 gauss = vec2(sin(g)*ratio, cos(g)) * (g2 * radius);
+			vec4 color = texture(bloom, buv + gauss).rgba;
+			outc += (color.rgb * color.a) * (1.0 - g2);
+			counter++;
+		}
+	}
+	return outc / counter;
 }
 
 
@@ -133,13 +148,14 @@ void main()
 	   //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
 	}
 	if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
-	if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
+	//if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
+	if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
-	if(UseBloom == 1) color1 += texture(bloom, nUV).rgb * BloomContribution;
+	if(UseBloom == 1) color1 += lookupBloomBlurred(nUV, 0.1).rgb * BloomContribution;
 	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
 	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
-	if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * GIContribution;
-	//if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * GIContribution;
+	//if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.001) * GIContribution;
+	if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * GIContribution;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;

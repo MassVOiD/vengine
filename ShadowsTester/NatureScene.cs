@@ -14,27 +14,44 @@ namespace ShadowsTester
     {
         public NatureScene()
         {
+            /*
+            var protagonist = Object3dInfo.LoadSceneFromObj(Media"protagonist.obj", "protagonist.mtl", 1.0f);
+            foreach(var o in protagonist)
+                Add(o);*/
+            /*
+            var hmap = System.IO.File.ReadAllBytes(Media.Get("krakow.raw"));
+            int count = 0;
+            int scale = 4;
+            Func<uint, uint, float> terrainGen = (x, y) =>
+            {
+                int ix = (int)(y * scale * 1830 + x * scale) * 3;
+                count++;
+                if(count % 1000 == 0)
+                    Console.WriteLine(count * 100 / hmap.Length);
+                return ix < hmap.Length ? hmap[ix] * 0.1f : 0;
+            };
+            Object3dGenerator.UseCache = false;
+            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1830 / scale, -750 / scale), new Vector2(1830 / scale, 750 / scale), new Vector2(4096, 4096), Vector3.UnitY, 750 / scale, terrainGen);
+            hmap = null;
+            GC.Collect();
 
-            var lod0 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod0.vbo.raw"), Media.Get("lucy_lod0.indices.raw"));
-            var lod1 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod1.vbo.raw"), Media.Get("lucy_lod1.indices.raw"));
-            var lod2 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod2.vbo.raw"), Media.Get("lucy_lod2.indices.raw"));
-            var lod3 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod3.vbo.raw"), Media.Get("lucy_lod3.indices.raw"));
-            var lod4 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod4.vbo.raw"), Media.Get("lucy_lod4.indices.raw"));
-            var lod5 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod5.vbo.raw"), Media.Get("lucy_lod5.indices.raw"));
-            var mat = new SolidColorMaterial(new Vector4(0, 0, 1, 1f));
-            var dragon = new Mesh3d(lod0, mat);
-            dragon.AddLodLevel(40, lod1, mat);
-            dragon.AddLodLevel(60, lod2, mat);
-            dragon.AddLodLevel(90, lod3, mat);
-            dragon.AddLodLevel(100, lod4, mat);
-            dragon.AddLodLevel(130, lod5, mat);
-            //var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("180.JPG", "180_norm.JPG"));
-            dragon.Transformation.Scale(2);
-            //dragon.DrawOddOnly = true;
-            //dragon.DiffuseComponent = 0.5f;
-            //dragon.SpecularSize = 28.0f;
-            Add(dragon);
+            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048 / scale, -2048 / scale), new Vector2(2048 / scale, 2048 / scale), new Vector2(496, 496), Vector3.UnitY);
 
+            var terrain = new Mesh3d(terrainInfo, new SolidColorMaterial(Color.Green));
+            Add(terrain);
+
+            var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
+            waterMat.SetNormalMapFromMedia("waternormal.png");
+            var water = new Mesh3d(waterInfo, waterMat);
+            water.Transformation.Translate(0, 10, 0);
+            //water.DisableDepthWrite = true;
+            Add(water);
+            */
+
+            var daetest = Object3dInfo.LoadFromObjSingle(Media.Get("carreragt.obj"));
+            daetest.CorrectFacesByNormals();
+            var car = new Mesh3d(daetest, new SolidColorMaterial(Color.Red));
+            Add(car);
             var rand = new Random();
             /*
             var scene1 = Object3dInfo.LoadSceneFromObj(Media.Get("tree1.obj"), Media.Get("tree1.mtl"), 12);
@@ -53,7 +70,7 @@ namespace ShadowsTester
                 a.UpdateMatrix();
                 Add(a);
             });*/
-            var grasslod0 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
+            /*var grasslod0 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
             var grasslod1 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
             var grasslod2 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod2.obj"));
             var grasslod3 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod3.obj"));
@@ -61,24 +78,24 @@ namespace ShadowsTester
             //grassBlock3dInfo.MakeDoubleFaced();
             var grasscolor = new SolidColorMaterial(Color.DarkGreen);
             var grassInstanced = new InstancedMesh3d(grasslod0, grasscolor);
-            grassInstanced.AddLodLevel(70, grasslod0, grasscolor);
-            grassInstanced.AddLodLevel(260, grasslod1, grasscolor);
-            grassInstanced.AddLodLevel(400, grasslod2, grasscolor);
-            grassInstanced.AddLodLevel(600, grasslod3, grasscolor);
-            GLThread.CreateTimer(() =>
+            //grassInstanced.AddLodLevel(15, grasslod0, grasscolor);
+            //grassInstanced.AddLodLevel(60, grasslod1, grasscolor);
+            //grassInstanced.AddLodLevel(200, grasslod2, grasscolor);
+            //grassInstanced.AddLodLevel(600, grasslod3, grasscolor);
+           // GLThread.CreateTimer(() =>
+            //{
+            //    grassInstanced.RecalculateLod();
+            //}, 100).Start();
+            for(int x = -15; x < 15; x++)
             {
-                grassInstanced.RecalculateLod();
-            }, 100).Start();
-            for(int x = -18; x < 18; x++)
-            {
-                for(int y = -18; y < 18; y++)
+                for(int y = -15; y < 15; y++)
                 {
-                    grassInstanced.Transformations.Add(new TransformationManager(new Vector3(x * 10, 0, y * 10), Quaternion.FromAxisAngle(Vector3.UnitY, (float)rand.NextDouble() * MathHelper.Pi), new Vector3(5, 7, 5)));
+                    grassInstanced.Transformations.Add(new TransformationManager(new Vector3(x, 0, y), Quaternion.FromAxisAngle(Vector3.UnitY, (float)rand.NextDouble() * MathHelper.Pi), new Vector3(1, 1, 1)));
                     grassInstanced.Instances++;
                 }
             }
             grassInstanced.UpdateMatrix();
-            Add(grassInstanced);
+            Add(grassInstanced);*/
             /*
             var grassBlock3dInfo2 = Object3dInfo.LoadFromRaw(Media.Get("grassblock2.vbo.raw"), Media.Get("grassblock2.indices.raw"));
             //grassBlock3dInfo2.MakeDoubleFaced();

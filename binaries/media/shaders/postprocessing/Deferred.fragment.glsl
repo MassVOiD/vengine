@@ -10,7 +10,7 @@ layout(binding = 29) uniform sampler2D backWorldPosTex;
 layout(binding = 30) uniform sampler2D worldPosTex;
 layout(binding = 31) uniform sampler2D normalsTex;
 
-const int MAX_SIMPLE_LIGHTS = 2000;
+const int MAX_SIMPLE_LIGHTS = 7500;
 uniform int SimpleLightsCount;
 uniform vec3 SimpleLightsPos[MAX_SIMPLE_LIGHTS];
 uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
@@ -55,7 +55,7 @@ vec3 GoodHBAO()
 	vec3 centerPosition = texture(worldPosTex, UV).rgb;  
 	// get a position 'above' the surface, by adding multiplied normal to world position
 	// this could also be a directional light inverted direction + world pos
-	vec3 lookupPosition = centerPosition + texture(normalsTex, UV).rgb * 15.0;
+	vec3 lookupPosition = CameraPosition;
 	// get distance from center position to sampling (above) position
 	float A = distance(lookupPosition, centerPosition);
 	// calculate how big area of texture should be sampled
@@ -63,15 +63,16 @@ vec3 GoodHBAO()
 	// create some boring variables
 	vec3 outc = vec3(0);
 	int counter = 0;
-	float minval = 2;
+	float minval = 0;
 	// two loops, one for doing circles, and second for circle radius
 	for(float g = 0.05; g < mPI2; g += 0.4) 
 	{
-		minval = 2;
-		for(float g2 = 0.05; g2 < 1; g2 += 0.08) 
+		//minval = 2;
+		for(float g2 = 0.02; g2 < 1; g2 += 0.08) 
 		{ 			
 			// calculate lookup UV
-			vec2 coord = UV + (vec2(sin(g), cos(g)) * ((g2) * 2.0 * AInv));
+			vec2 coord = UV + (vec2(sin(g), cos(g)) * ((g2) * 1.1 * AInv));
+			if(UV.x < 0 || UV.x > 1 || UV.y < 0 || UV.y > 1) continue;
 			// get position of pixel under that UV
 			vec3 coordPosition = texture(worldPosTex, coord).rgb;  
 			// calculate distance from that position and sampling (above center) position
@@ -79,23 +80,22 @@ vec3 GoodHBAO()
 			// calculate distance from that position to center pixel world position
 			float C = distance(coordPosition, centerPosition);
 			// skip too far away pixels
-			if(C > 0.9) continue;
+			if(C > 1.9) continue;
 			// because 3 triangle sides are known, calculate free horizon angle 
 			float angle = acos( (C*C + A*A - B*B ) / (2 * C * A) );
 			// fix too bright outer corners
-			if(angle > mPIo2)angle = mPIo2;
+			angle = clamp(angle, 0, mPIo2);
+			//if(angle > mPIo2)angle = mPIo2;
 			// add color multiplied by angle, adjusted by powering 
-			if(minval > angle){
-				counter++;
-				minval = angle;
-				if(angle != 0 && angle > 0) {
-					outc += originalColor * (pow(angle / mPIo2, HBAOStrength));
-				}
+			if(angle > 0){
+				minval += angle;
 			}
+			counter++;
 		}	
 	}
 	// return final color
-	return (outc /counter) * HBAOContribution;
+	minval = minval / counter;
+	return (originalColor * (pow(minval / mPIo2, HBAOStrength))) * HBAOContribution;
 }
 
 void main()
@@ -106,7 +106,7 @@ void main()
 		//nUV = refractUV();
 	}
 	vec3 colorOriginal = texture(texColor, nUV).rgb;
-	vec3 color1 = GoodHBAO() ;	
+	vec3 color1 = GoodHBAO();
 	if(texture(texColor, UV).a < 0.99){
 	    color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
 	}
@@ -120,11 +120,13 @@ void main()
 		vec3 cameraRelativeToVPos = CameraPosition - fragmentPosWorld3d.xyz;
 		for(int i=0;i<LightsCount;i++){
 
+			mat4 lightPV = (LightsPs[i] * LightsVs[i]);
+			vec4 lightClipSpace = lightPV * vec4(fragmentPosWorld3d.xyz, 1.0);
+			if(lightClipSpace.z <= 0.0) continue;
 		
 			float distanceToLight = distance(fragmentPosWorld3d.xyz, LightsPos[i]);
-            //if(worldDistance < 0.0002) continue;
-			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * MainLightAttentuation;
-			mat4 lightPV = (LightsPs[i] * LightsVs[i]);
+			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5;
+            if(att < 0.002) continue;
 			
 			
 			vec3 lightRelativeToVPos = LightsPos[i] - fragmentPosWorld3d.xyz;
@@ -140,20 +142,19 @@ void main()
 			//int counter = 0;
 
 			// do shadows
-			vec4 lightClipSpace = lightPV * vec4(fragmentPosWorld3d.xyz, 1.0);
-			if(lightClipSpace.z >= 0.0){ 
-				vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;	
-				if(lightScreenSpace.x > 0.0 && lightScreenSpace.x < 1.0 && lightScreenSpace.y > 0.0 && lightScreenSpace.y < 1.0){ 
-					float percent = clamp(getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i), 0.0, 1.0);
-					
+			vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;	
+			if(lightScreenSpace.x > 0.0 && lightScreenSpace.x < 1.0 && lightScreenSpace.y > 0.0 && lightScreenSpace.y < 1.0){ 
+				float percent = clamp(getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i), 0.0, 1.0);
+				
+				
 
-					float culler = clamp((1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0), 0.0, 1.0);
+				float culler = clamp((1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0), 0.0, 1.0);
 
-					color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
-					+ (LightsColors[i].rgb * specularComponent)) * LightsColors[i].a 
-					* culler * att * percent;
-					
-				}
+				color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
+				+ (LightsColors[i].rgb * specularComponent))
+				* culler * att * percent;
+				
+			
 			}
 			
 		}
@@ -168,7 +169,7 @@ void main()
 					
 			float distanceToLight = distance(fragmentPosWorld3d.xyz, SimpleLightsPos[i]);
 			//float dist = distance(CameraPosition, SimpleLightsPos[i]);
-			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * SimpleLightAttentuation;
+			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * SimpleLightsColors[i].a;
 			//float revlog = reverseLog(texture(texDepth, nUV).r);
 			
 			vec3 lightRelativeToVPos = SimpleLightsPos[i] - fragmentPosWorld3d.xyz;

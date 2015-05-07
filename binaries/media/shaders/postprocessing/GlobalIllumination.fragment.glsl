@@ -91,6 +91,20 @@ bool testVisibilityUnrolled(vec2 uv1, vec2 uv2) {
 	return true;
 }
 
+bool testVisibility2(vec2 uv1, vec2 uv2) {
+	float d3d1 = texture(depth, uv1).r;
+	float d3d2 = texture(depth, uv2).r;
+	float s = RandomSeed4 * 91234.2351235;
+	for(int i=0;i<15;i++){
+		float d = fract(s * i);
+		vec2 ruv = mix(uv1, uv2, d);
+		float rd3d = texture(depth, ruv).r;
+		if(rd3d < mix(d3d1, d3d2, d)) return false;
+	}
+
+	return true;
+}
+
 mediump float rand(vec2 co) {
 	mediump float a = 12.9898; mediump float b = 78.233; mediump float c = 43758.5453; 
 	mediump float dt= dot(co.xy ,vec2(a,b)); mediump float sn= mod(dt,3.14);
@@ -271,7 +285,9 @@ vec3 GlobalIlluminationVersion1()
 	vec3 outBuffer = vec3(0);
 	vec3 cameraSpace = CameraPosition - positionCenter;
 	// We are going to sample the scene 256 times per frame.
+	//float seeduv = rand(UV);
 	#define samplesCount 100
+	//float fullrandom = rand(UV);
 	for(float g = 1; g < GISamples; g += 1) 
 	{ 			
 		for(int z = 0; z < 10; z++){
@@ -279,7 +295,7 @@ vec3 GlobalIlluminationVersion1()
 			float random = seeds[z] * g;
 			// Performance trick to get unique vec2 :)
 			// This vec2 is in range [0,1] so use it for random UV lookup
-			vec2 coord = vec2(fract(random), fract(random*12.545));
+			vec2 coord = vec2(fract(random), fract(random * 12.545));
 			// Let's test visibility
 			if(testVisibilityUnrolled(coord, UV)) 
 			{
@@ -290,10 +306,10 @@ vec3 GlobalIlluminationVersion1()
 				// Get pixel world position and calculate attentuation based on pixels' distance
 				vec3 worldPosition = texture(worldPos, coord).rgb;
 				float worldDistance = distance(positionCenter, worldPosition);
-				if(worldDistance < 0.12) continue;
-				//if(worldDistance > 6.2) continue;
+				//if(worldDistance < 0.12) continue;
+				//if(worldDistance > 8.2) continue;
 				float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 80.0;
-				if(attentuation < 0.01) continue;
+				if(attentuation < 0.07) continue;
 				// Get last GI result so we can bounce infinitely now! That color gets mixed with selected pixel
 				vec3 giLastResult = texture(lastGi, coord).rgb;
 				// Get normal of that random pixel
@@ -312,11 +328,11 @@ vec3 GlobalIlluminationVersion1()
 	}	
 	// Return calculated buffered value divided by samples count and by camera distance.
 	// Check alpha mask there too.
-	return originalColor * ((outBuffer / (samplesCount*10))) * (distanceToCamera / 16 * (texture(ssnormals, UV).a));
+	return originalColor * ((outBuffer / (samplesCount*10))) * (distanceToCamera / 16);
 }
 
 #define BUFFER 3.0
-#define BUFFER1 (4.0)
+#define BUFFER1 (3.2)
 void main() {
 	vec3 color1 = vec3(0);
 	color1 = GlobalIlluminationVersion1();

@@ -9,36 +9,14 @@ using VEngine.Particles;
 
 namespace VEngine
 {
-    public class VEngineWindowAdapter : GameWindow, IVEngineDisplayAdapter
+    public class VEngineWindowAdapter : AbsDisplayAdapter
     {
-        public PostProcessing PostProcessor;
         public VEngineWindowAdapter(string title, int width, int height)
-            : base(width, height,
-                new OpenTK.Graphics.GraphicsMode(8, 0, 0, 0), title, GameWindowFlags.Default,
-                DisplayDevice.Default, 4, 4,
-                GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
+            : base(title, width, height)
         {
-            GLThread.WindowAdapter = this;
-            GLThread.StartTime = DateTime.Now;
-            GLThread.Resolution = new Vector2(width, height);
-
-            PostProcessor = new PostProcessing(width, height);
-
+            Initialize();
             var settings = new GraphicsSettings();
             new SettingsWindow(settings).Show();
-
-            GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Lequal);
-            GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Back);
-            GL.Enable(EnableCap.DepthClamp);
-            GL.Enable(EnableCap.DebugOutput);
-            GL.Enable(EnableCap.DebugOutputSynchronous);
-
-            GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
-
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
             /*GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
@@ -55,17 +33,7 @@ namespace VEngine
             CursorVisible = false;
         }
 
-        public bool IsCursorVisible
-        {
-            get
-            {
-                return CursorVisible;
-            }
-            set
-            {
-                CursorVisible = value;
-            }
-        }
+
 
         public void StartPhysicsThread()
         {

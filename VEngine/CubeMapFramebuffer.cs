@@ -8,9 +8,14 @@ using OpenTK;
 
 namespace VEngine
 {
-    class CubeMapFramebuffer
+    class CubeMapFramebuffer : ITransformable
     {
-        TransformationManager Transformation;
-        
+        public TransformationManager Transformation;
+        public int Resolution;
+
+        public TransformationManager GetTransformationManager()
+        {
+            return Transformation;
+        }
     }
 }

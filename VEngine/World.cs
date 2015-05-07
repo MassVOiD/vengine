@@ -56,9 +56,9 @@ namespace VEngine
                     lock(PhysicalWorld)
                     {
                         CollisionObjects.Add(renderable, mesh.CreateRigidBody());
-                        mesh.PhysicalBody.SetSleepingThresholds(0, 0);
-                        mesh.PhysicalBody.ContactProcessingThreshold = 0;
-                        mesh.PhysicalBody.CcdMotionThreshold = 0;
+                        //mesh.PhysicalBody.SetSleepingThresholds(0, 0);
+                       // mesh.PhysicalBody.ContactProcessingThreshold = 0;
+                        //mesh.PhysicalBody.CcdMotionThreshold = 0;
                         PhysicalWorld.AddRigidBody(mesh.PhysicalBody);
                     }
                 }
@@ -123,6 +123,8 @@ namespace VEngine
                     {
                         if((Children[i] is Mesh3d) && ((Mesh3d)Children[i]).DisableDepthWrite == true)
                             ((Mesh3d)Children[i]).Draw(ignoreDisableDepthWriteFlag);
+                        if((Children[i] is InstancedMesh3d) && ((InstancedMesh3d)Children[i]).DisableDepthWrite == true)
+                            ((InstancedMesh3d)Children[i]).Draw(ignoreDisableDepthWriteFlag);
                     }
                 }
                // GL.CullFace(CullFaceMode.Back);
@@ -226,6 +228,7 @@ namespace VEngine
                     }
                 }
             }
+            MeshLinker.Resolve();
         }
 
         public void SortByObject3d()

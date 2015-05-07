@@ -74,11 +74,12 @@ float getBlurAmount(vec2 uv, uint i, float distance2){
 			vec2 crd = vec2(sin(x), cos(x)) * (y * 0.05);
 			fakeUV = uv + crd;
 			float bval = (lookupDepthFromLight(i, fakeUV));
+			if(bval == 0  || bval == 1) continue;
 			minv = min(minv, bval);
 			maxv = max(maxv, bval);
 		}
 	}
-	return maxv - minv;
+	return clamp(maxv - minv - 0.001, 0, 0.01);
 }
 
 
@@ -97,9 +98,9 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	//distance1 = lookupDepthFromLight(i, uv);
 	float pssblur = (getBlurAmount(uv, i, distance2)) * ShadowsBlur;
 	//float pssblur = 0.2;
-    for(float x = 0; x < mPI2 * 3.5; x+=GOLDEN_RATIO){ 
+    for(float x = 0; x < mPI2 * 1.5; x+=GOLDEN_RATIO){ 
         for(float y=0;y<4;y+= ShadowsSamples ){  
-			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 0.05;
+			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 0.1 * AInv;
 			fakeUV = uv + crd;
 			distance1 = lookupDepthFromLight(i, fakeUV);
 			float diff = abs(distance1 -  badass_depth);

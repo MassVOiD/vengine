@@ -82,8 +82,12 @@ namespace VEngine
                 }
             }
         }
-
         public void Draw()
+        {
+            Draw(false);
+        }
+
+        public void Draw(bool ignoreDisableDepthWriteFlag = false)
         {
             if(Instances < 1)
                 return;
@@ -99,7 +103,11 @@ namespace VEngine
                 {
                     Material.GetShaderProgram().SetUniformArray("ModelMatrixes", ModelMatrices[i]);
                     Material.GetShaderProgram().SetUniformArray("RotationMatrixes", RotationMatrices[i]);
+                    if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
+                        OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
                     ObjectInfo.DrawInstanced(ModelMatrices[i].Length);
+                    if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
+                        OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
                 }
             }
             else
@@ -115,7 +123,11 @@ namespace VEngine
                         SetUniforms(l.Material);
                         Material.GetShaderProgram().SetUniformArray("ModelMatrixes", MMatrices[l].ToArray());
                         Material.GetShaderProgram().SetUniformArray("RotationMatrixes", RMatrices[l].ToArray());
+                        if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
+                            OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
                         l.Info3d.DrawInstanced(MMatrices[l].Count);
+                        if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
+                            OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
 
                     }
                 }
@@ -123,6 +135,8 @@ namespace VEngine
             // GLThread.CheckErrors();
         }
         static int LastMaterialHash = 0;
+        public bool IgnoreLighting = false;
+        public bool DisableDepthWrite = false;
         public void SetUniforms(IMaterial material)
         {
             ShaderProgram shader = material.GetShaderProgram();
@@ -133,7 +147,22 @@ namespace VEngine
             shader.SetUniform("SpecularComponent", SpecularComponent);
             shader.SetUniform("DiffuseComponent", DiffuseComponent);
             shader.SetUniform("SpecularSize", SpecularSize);
-            shader.SetUniform("RandomSeed", (float)Randomizer.NextDouble());
+            shader.SetUniform("IgnoreLighting", IgnoreLighting);
+
+            shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed4", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed5", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed6", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed7", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed8", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed9", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
+
+            shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+
+            shader.SetUniform("UseAlphaMask", 0);
 
             //LastMaterialHash = Material.GetShaderProgram().GetHashCode();
             // per world
@@ -170,8 +199,7 @@ namespace VEngine
             List<Matrix4> Matrix, RotationMatrix;
             RotationMatrix = new List<Matrix4>();
             Matrix = new List<Matrix4>();
-            if(Instances > Transformations.Count)
-                Instances = Transformations.Count;
+            Instances = Transformations.Count;
             for(int i = 0; i < Instances; i++)
             {
                 RotationMatrix.Add(Matrix4.CreateFromQuaternion(Transformations[i].GetOrientation()));

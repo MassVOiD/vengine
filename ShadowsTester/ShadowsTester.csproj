@@ -39,7 +39,7 @@
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Desktop\opentk-develop\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
+      <HintPath>..\opentk-2014-07-23\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -55,6 +55,7 @@
     <Compile Include="HallScene.cs" />
     <Compile Include="CarScene.cs" />
     <Compile Include="DragonScene.cs" />
+    <Compile Include="RoadScene.cs" />
     <Compile Include="NatureScene.cs" />
     <Compile Include="OldCityScene.cs" />
     <Compile Include="BoxesScene.cs" />

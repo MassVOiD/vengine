@@ -31,7 +31,7 @@ namespace ShadowsTester
 
         private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
-            if(GLThread.WindowAdapter.IsCursorVisible)
+            if(GLThread.DisplayAdapter.IsCursorVisible)
                 return;
             Cam.Pitch += (float)e.XDelta / 100.0f;
             if(Cam.Pitch > MathHelper.TwoPi)

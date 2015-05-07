@@ -10,6 +10,8 @@ namespace VEngine
 {
     public class ShaderProgram
     {
+        private static List<ShaderProgram> AllPrograms = new List<ShaderProgram>();
+
         private string VertexFile;
         private string FragmentFile;
         private string GeometryFile;
@@ -23,6 +25,12 @@ namespace VEngine
             TessControlFile = tesscontrolFile;
             TessEvalFile = tessevalFile;
             Recompile();
+            AllPrograms.Add(this);
+        }
+
+        public static void RecompileAll()
+        {
+            AllPrograms.ForEach(a => a.Recompile());
         }
 
         public void Recompile()
@@ -278,7 +286,9 @@ namespace VEngine
             }
 
             GL.LinkProgram((uint)Handle);
-            Console.WriteLine(GL.GetProgramInfoLog(Handle));
+            var ostr = GL.GetProgramInfoLog(Handle).Trim();
+            if(ostr.Length > 0)
+                Console.WriteLine(ostr);
 
             int status_code;
             GL.GetProgram(Handle, GetProgramParameterName.LinkStatus, out status_code);
@@ -287,7 +297,9 @@ namespace VEngine
 
             GL.UseProgram(Handle);
 
-            Console.WriteLine(GL.GetProgramInfoLog(Handle));
+            ostr = GL.GetProgramInfoLog(Handle).Trim();
+            if(ostr.Length > 0)
+                Console.WriteLine(ostr);
 
             Compiled = true;
         }
@@ -308,7 +320,9 @@ namespace VEngine
 
             GL.CompileShader(shader);
 
-            Console.WriteLine(GL.GetShaderInfoLog(shader));
+            var ostr = GL.GetShaderInfoLog(shader).Trim();
+            if(ostr.Length > 0)
+                Console.WriteLine(ostr);
             int status_code;
             GL.GetShader(shader, ShaderParameter.CompileStatus, out status_code);
             if(status_code != 1)

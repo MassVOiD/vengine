@@ -27,16 +27,16 @@ namespace VEngine
 
         static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw, OnLoad;
 
-        static public VEngineWindowAdapter WindowAdapter;
+        static public AbsDisplayAdapter DisplayAdapter;
         static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
 
         static public void CheckErrors()
         {
-           /* var error = GL.GetError();
+            var error = GL.GetError();
             if(error != ErrorCode.NoError)
             {
                 Console.WriteLine(error.ToString());
-            }*/
+            }
         }
 
         static public System.Timers.Timer CreateTimer(Action func, int interval)

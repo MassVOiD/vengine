@@ -40,6 +40,7 @@ namespace VEngine
         private Texture AlphaMask = null;
         public bool DrawOddOnly = false;
         public static bool IsOddframe = false;
+        public bool PostProcessingUniformsOnly = false;
 
         class LodLevelData{
             public Object3dInfo Info3d;
@@ -148,8 +149,8 @@ namespace VEngine
 
         public void Draw(bool ignoreDisableDepthWriteFlag = false)
         {
-            if(IsOddframe && DrawOddOnly)
-                return;
+            //if(IsOddframe && DrawOddOnly)
+            //    return;
             if(Transformation.HasBeenModified())
             {
                 UpdateMatrix();
@@ -180,15 +181,36 @@ namespace VEngine
 
         public void SetUniforms()
         {
-            ShaderProgram shader = ShaderProgram.Current;
             bool shaderSwitchResult = GetCurrentMaterial().Use();
+            ShaderProgram shader = ShaderProgram.Current;
 
             // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
             GLThread.GraphicsSettings.SetUniforms(shader);
-            shader.SetUniform("SpecularComponent", SpecularComponent);
-            shader.SetUniform("DiffuseComponent", DiffuseComponent);
-            shader.SetUniform("SpecularSize", SpecularSize);
-            shader.SetUniform("IgnoreLighting", IgnoreLighting);
+            if(!PostProcessingUniformsOnly)
+            {
+                shader.SetUniform("SpecularComponent", SpecularComponent);
+                shader.SetUniform("DiffuseComponent", DiffuseComponent);
+                shader.SetUniform("SpecularSize", SpecularSize);
+                shader.SetUniform("IgnoreLighting", IgnoreLighting);
+                shader.SetUniform("ColoredID", MeshColoredID); //magic
+                shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
+                shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
+                if(AlphaMask != null)
+                {
+                    shader.SetUniform("UseAlphaMask", 1);
+                    AlphaMask.Use(OpenTK.Graphics.OpenGL4.TextureUnit.Texture2);
+                }
+                else
+                {
+                    shader.SetUniform("UseAlphaMask", 0);
+                }
+            }
+            else
+            {
+                shader.SetUniform("ViewMatrix", Camera.MainDisplayCamera.ViewMatrix);
+                shader.SetUniform("ProjectionMatrix", Camera.MainDisplayCamera.ProjectionMatrix);
+            }
+
             shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());
@@ -199,7 +221,6 @@ namespace VEngine
             shader.SetUniform("RandomSeed8", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed9", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
-            shader.SetUniform("ColoredID", MeshColoredID); //magic
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             /*if(LastMaterialHash == 0)
                 LastMaterialHash = Material.GetShaderProgram().GetHashCode();
@@ -208,22 +229,12 @@ namespace VEngine
                 //LastMaterialHash = Material.GetShaderProgram().GetHashCode();
                 // per world
                 shader.SetUniform("Instances", 1);
-                shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
-                shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
                 shader.SetUniform("LogEnchacer", 0.01f);
-                if(AlphaMask != null)
-                {
-                    shader.SetUniform("UseAlphaMask", 1);
-                    AlphaMask.Use(OpenTK.Graphics.OpenGL4.TextureUnit.Texture2);
-                }
-                else
-                {
-                    shader.SetUniform("UseAlphaMask", 0);
-                }
+
                 shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
-                shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
-                shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
-                shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
+                //shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+                //shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+                //shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
                 shader.SetUniform("FarPlane", Camera.Current.Far);
                 shader.SetUniform("resolution", GLThread.Resolution);
            // }

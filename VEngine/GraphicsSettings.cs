@@ -102,7 +102,7 @@ namespace VEngine
             SimpleLightAttentuation = 200.0f;
             FogContribution = 1.0f;
             FogSamples = 50;
-            GISamples = 100;
+            GISamples = 1;
             HBAOSamples = 12.5f;
             ShadowsBlur = 1.0f;
             ShadowsSamples = 6;

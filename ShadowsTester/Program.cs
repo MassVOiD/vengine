@@ -40,7 +40,7 @@ namespace ShadowsTester
             {
                 window.Resize += (o, e) =>
                 {
-                    float aast = window.Height > window.Width ? window.Height / window.Width : window.Width / window.Height;
+                    float aast = window.Height > window.Width ? window.Height + 1 / window.Width + 1 : window.Width + 1 / window.Height + 1;
                     freeCamera = new FreeCamera(aast, MathHelper.PiOver3);
                     FreeCam = freeCamera;
                     GLThread.Resolution.X = window.Width;
@@ -58,10 +58,10 @@ namespace ShadowsTester
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
              water.DiffuseComponent = 0.2f;
-            World.Root.Add(water);
+           // World.Root.Add(water);
 
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 1.0f, 10000.0f);
-            redConeLight.LightColor = new Vector4(1, 1, 1, 20);
+             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.PiOver3, 1.0f, 10000.0f);
+            redConeLight.LightColor = new Vector4(1, 1, 1, 200);
 
             LightPool.Add(redConeLight);
             
@@ -122,21 +122,26 @@ namespace ShadowsTester
 
             //new SculptScene().Create();
             //new SponzaScene().Create();
-            new OldCityScene().Create();
+            //new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
-            //new LucyScene().Create();
-            //new BoxesScene().Create();
+            new ManyCubesScene
+().Create();
+            //new CarScene().Create();
 
             //new HallScene().Create();
+            //new RoadScene().Create();
             //new HomeScene().Create();
 
             World.Root.SortByDepthMasking();
 
             System.Threading.Thread.Sleep(500);
             window.PostProcessor.UseFog = false;
-            window.PostProcessor.UseSimpleGI = true;
+            window.PostProcessor.UseBloom = false;
+            window.PostProcessor.UseLightPoints = false;
+            window.PostProcessor.UseMSAA = false;
+            window.PostProcessor.UseSimpleGI = false;
             window.PostProcessor.UseBilinearGI = false;
 
             var sphere3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
@@ -210,17 +215,18 @@ namespace ShadowsTester
                 }
             };
 
-            System.Timers.Timer lensFocusTimer = new System.Timers.Timer();
+            /*System.Timers.Timer lensFocusTimer = new System.Timers.Timer();
             lensFocusTimer.Interval = 300;
             lensFocusTimer.Elapsed += (o, e) =>
             {
                 window.PostProcessor.UpdateCameraFocus(freeCamera.Cam);
+                Console.WriteLine(Camera.MainDisplayCamera.LensBlurAmount);
             };
-            lensFocusTimer.Start();
+            lensFocusTimer.Start();*/
 
             
             Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("skydome.obj"));
-            var skydomeMaterial = new SolidColorMaterial(Color.White);
+            var skydomeMaterial = SingleTextureMaterial.FromMedia("sky_povray.jpg");
             var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
             skydome.Transformation.Scale(1000);
             skydome.IgnoreLighting = true;
@@ -251,6 +257,10 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Tab)
                 {
                     window.IsCursorVisible = !window.IsCursorVisible;
+                }
+                if(e.Key == OpenTK.Input.Key.Pause)
+                {
+                    ShaderProgram.RecompileAll();
                 }
                 if(e.Key == OpenTK.Input.Key.T)
                 {

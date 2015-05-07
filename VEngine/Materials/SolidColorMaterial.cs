@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using OpenTK.Graphics;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
@@ -20,19 +21,33 @@ namespace VEngine
         }
 
         protected static ShaderProgram Program;
+        private Texture NormalMap;
         public Vector4 Color;
+        public void SetNormalMapFromMedia(string bumpmapKey)
+        {
+            NormalMap = new Texture(Media.Get(bumpmapKey));
+        }
 
         public ShaderProgram GetShaderProgram()
         {
             return Program;
         }
 
+        public float NormalMapScale = 1.0f;
+
         public bool Use()
         {
             bool res = Program.Use();
             if(!ShaderProgram.Lock)
                 Program.SetUniform("input_Color", Color);
-            Program.SetUniform("UseNormalMap", 0);
+            if(NormalMap != null)
+            {
+                Program.SetUniform("UseNormalMap", 1);
+                Program.SetUniform("NormalMapScale", NormalMapScale);
+                NormalMap.Use(TextureUnit.Texture1);
+            }
+            else
+                Program.SetUniform("UseNormalMap", 0);
             Program.SetUniform("UseBumpMap", 0);
             return res;
         }

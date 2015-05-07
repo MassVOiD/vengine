@@ -25,27 +25,16 @@ namespace ShadowsTester
                // ob.Material = new SolidColorMaterial(new Vector4(1, 1, 1, 0.1f));
                 this.Add(ob);
             }
-            //var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
-            /*var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("drops.obj"));
-            dragon3dInfo.ScaleUV(10);
-            var dragon = new Mesh3d(dragon3dInfo, new SolidColorMaterial(new Vector4(1, 1, 1, 0.1f)));
-            //var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("hearts.png"));
-            dragon.Transformation.Scale(0.2f);
-            //dragon.Translate(0, 5, 0);
-            //dragon.DrawOddOnly = true;
-            dragon.DisableDepthWrite = true;
-            dragon.DiffuseComponent = 0.5f;
-            dragon.SpecularSize = 28.0f;
-            //dragon.SetCollisionShape(new BulletSharp.BoxShape(1.6308f*2));
-            Add(dragon);
-            */
-             
+            var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);
+            foreach(var o in protagonist)
+                Add(o);
+             /*
             var fountainWaterObj = Object3dInfo.LoadFromObjSingle(Media.Get("glass.obj"));
-            var water = new Mesh3d(fountainWaterObj, new SolidColorMaterial(new Vector4(10, 10, 10, 0.2f)));
+            var water = new Mesh3d(fountainWaterObj, new SolidColorMaterial(new Vector4(0, 0, 0, 0.02f)));
             water.DisableDepthWrite = true;
             water.Transformation.Scale(0.4f);
 
-            Add(water);
+            Add(water);*/
 
         }
 

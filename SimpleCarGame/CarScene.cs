@@ -23,12 +23,36 @@ namespace SimpleCarGame
             Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
 
 
-            var color = SingleTextureMaterial.FromMedia("177.jpg", "177_norm.JPG");
+            var color = SingleTextureMaterial.FromMedia("checked.png", "183_norm.JPG");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.Translate(0, -10, 0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
             World.Root.Add(water);
+
+            var lod1 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod1.vbo.raw"), Media.Get("lucy_lod1.indices.raw"));
+            var mat = new SolidColorMaterial(new Vector4(0, 0, 1, 1f));
+            var dragon = new Mesh3d(lod1, mat);
+            dragon.Transformation.Scale(2);
+            Add(dragon);
+
+            var rand = new Random();
+            var grasslod0 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
+            var grasslod1 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
+            var grasslod2 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod2.obj"));
+            var grasslod3 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod3.obj"));
+            var grasscolor = new SolidColorMaterial(Color.DarkGreen);
+            var grassInstanced = new InstancedMesh3d(grasslod2, grasscolor);
+            for(int x = -15; x < 15; x++)
+            {
+                for(int y = -15; y < 15; y++)
+                {
+                    grassInstanced.Transformations.Add(new TransformationManager(new Vector3(x, 0, y), Quaternion.FromAxisAngle(Vector3.UnitY, (float)rand.NextDouble() * MathHelper.Pi), new Vector3(1, 1, 1)));
+                    grassInstanced.Instances++;
+                }
+            }
+            grassInstanced.UpdateMatrix();
+            Add(grassInstanced);
 
             ProjectionLight redConeLight = new ProjectionLight(new Vector3(1, 25, 1), Quaternion.Identity, 5000, 5000, MathHelper.PiOver2, 1.0f, 10000.0f);
             redConeLight.LightColor = new Vector4(1, 1, 1, 1);
@@ -46,6 +70,9 @@ namespace SimpleCarGame
             //car.Translate(0, 3.76f, 0);
             car.SetCollisionShape(new BoxShape(0.5f, 0.5f, 0.5f));
             car.CreateRigidBody(new Vector3(0, -25, 0), true);
+            car.PhysicalBody.SetSleepingThresholds(0, 0);
+            car.PhysicalBody.ContactProcessingThreshold = 0;
+            car.PhysicalBody.CcdMotionThreshold = 0;
             CurrentCar = car;
             World.Root.Add(car);
 
@@ -80,6 +107,27 @@ namespace SimpleCarGame
             wheelRR.SetCollisionShape(shape);
             wheelRR.CreateRigidBody();
             World.Root.Add(wheelRR);
+
+
+            wheelLF.PhysicalBody.SetSleepingThresholds(0, 0);
+            wheelLF.PhysicalBody.ContactProcessingThreshold = 0;
+            wheelLF.PhysicalBody.CcdMotionThreshold = 0;
+
+            wheelRF.PhysicalBody.SetSleepingThresholds(0, 0);
+            wheelRF.PhysicalBody.ContactProcessingThreshold = 0;
+            wheelRF.PhysicalBody.CcdMotionThreshold = 0;
+
+            wheelLR.PhysicalBody.SetSleepingThresholds(0, 0);
+            wheelLR.PhysicalBody.ContactProcessingThreshold = 0;
+            wheelLR.PhysicalBody.CcdMotionThreshold = 0;
+
+            wheelLR.PhysicalBody.SetSleepingThresholds(0, 0);
+            wheelLR.PhysicalBody.ContactProcessingThreshold = 0;
+            wheelLR.PhysicalBody.CcdMotionThreshold = 0;
+
+            wheelRR.PhysicalBody.SetSleepingThresholds(0, 0);
+            wheelRR.PhysicalBody.ContactProcessingThreshold = 0;
+            wheelRR.PhysicalBody.CcdMotionThreshold = 0;
 
             wheelLF.PhysicalBody.Friction = 1200;
             wheelRF.PhysicalBody.Friction = 1200;

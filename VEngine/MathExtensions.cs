@@ -1,4 +1,7 @@
-﻿using OpenTK;
+﻿using System.Xml.Linq;
+using System.Linq;
+using OpenTK;
+using System.Collections.Generic;
 
 namespace VEngine
 {
@@ -43,6 +46,14 @@ namespace VEngine
         public static Vector3 ToDirection(this Quaternion quaternion)
         {
             return Vector3.Transform(-Vector3.UnitZ, quaternion);
+        }
+        public static XElement SelectSingle(this XElement element, string localname)
+        {
+            return element.Elements().First((a) => a.Name.LocalName.Trim() == localname);
+        }
+        public static IEnumerable<XElement> SelectMany(this XElement element, string localname)
+        {
+            return element.Elements().Where((a) => a.Name.LocalName.Trim() == localname);
         }
     }
 }

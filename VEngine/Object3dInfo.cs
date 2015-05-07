@@ -4,7 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-
+using System.Xml.Linq;
 //using BEPUutilities;
 using BulletSharp;
 using OpenTK;
@@ -115,7 +115,10 @@ namespace VEngine
 
         public static void CompressAndSaveSingle(Object3dInfo element, string outfile)
         {
-            MemoryStream memstream = new MemoryStream();
+            if(File.Exists(outfile + ".o3i"))
+                File.Delete(outfile + ".o3i");
+
+            FileStream memstream = File.Create(outfile + ".o3i");
             memstream.Write(BitConverter.GetBytes(element.VBO.Count), 0, 4);
             memstream.Write(BitConverter.GetBytes(element.Indices.Count), 0, 4);
             foreach(float v in element.VBO)
@@ -123,9 +126,79 @@ namespace VEngine
             foreach(uint v in element.Indices)
                 memstream.Write(BitConverter.GetBytes(v), 0, 4);
             memstream.Flush();
-            if(File.Exists(outfile + ".o3i"))
-                File.Delete(outfile + ".o3i");
-            File.WriteAllBytes(outfile + ".o3i", memstream.ToArray());
+            memstream.Close();
+            //File.WriteAllBytes(outfile + ".o3i", memstream.ToArray());
+        }
+
+
+        public static List<Mesh3d> LoadSceneFromCollada(string infile)
+        {
+            List<Mesh3d> infos = new List<Mesh3d>();
+
+            XDocument xml = XDocument.Load(infile);
+            var colladaNode = xml.Elements().First();
+            var lib = colladaNode.SelectSingle("library_geometries");
+            var geometries = lib.SelectMany("geometry");
+
+            foreach(var geom in geometries)
+            {
+                try
+                {
+                    string geoID = geom.Attribute("id").Value;
+                    string geoName = geom.Attribute("name").Value;
+                    List<float> xyzs = geom.SelectSingle("mesh").SelectMany("source").ElementAt(0).SelectSingle("float_array").Value.Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+                    List<float> normals = geom.SelectSingle("mesh").SelectMany("source").ElementAt(1).SelectSingle("float_array").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+
+                    List<float> uvs = null;
+                    try
+                    {
+                        uvs = geom.SelectSingle("mesh").SelectMany("source").ElementAt(2).SelectSingle("float_array").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+                    }
+                    catch
+                    {
+                        uvs = new List<float>();
+                    }
+                    List<int> indices = geom.SelectSingle("mesh").SelectSingle("polylist").SelectSingle("p").Value.Trim().Split(new char[] { ' ' }).Select<string, int>((a) => int.Parse(a)).ToList();
+                    List<float> VBO = new List<float>();
+                    List<uint> indicesNew = new List<uint>();
+                    uint vcount = 0;
+                    for(int i = 0; i < indices.Count;)
+                    {
+                        int vid = indices[i] * 3;
+                        int nid = indices[i + 1] * 3;
+                        int uid = indices[i + 2] * 2;
+                        indicesNew.Add(vcount++);
+                        VBO.AddRange(new float[] { -xyzs[vid + 1], xyzs[vid + 2], -xyzs[vid] });
+                        if(uvs.Count > 0)
+                        {
+                            VBO.AddRange(new float[] { uvs[uid], uvs[uid + 1] });
+                            i += 3;
+                        }
+                        else
+                        {
+                            VBO.AddRange(new float[] { 0, 0 });
+                            i += 2;
+                        }
+                        VBO.AddRange(new float[] { -normals[nid + 1], normals[nid + 2], -normals[nid] });
+                    }
+                    var objinfo = new Object3dInfo(VBO, indicesNew);
+                    var transformationNode = colladaNode.SelectSingle("library_visual_scenes").SelectSingle("visual_scene").SelectMany("node").First((a) => a.SelectSingle("instance_geometry").Attribute("url").Value == "#" + geoID);
+                    var mesh = new Mesh3d(objinfo, new SolidColorMaterial(Color.White));
+                    List<float> transVector = transformationNode.SelectMany("translate").First((a) => a.Attribute("sid").Value == "location").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+                    List<List<float>> rots = transformationNode.SelectMany("rotate").Select<XElement, List<float>>((a) => a.Value.Trim().Split(new char[] { ' ' }).Select<string, float>((ax) => float.Parse(ax, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList()).ToList();
+                    List<float> scale = transformationNode.SelectMany("scale").First((a) => a.Attribute("sid").Value == "scale").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+                    mesh.Translate(-transVector[1], transVector[2], -transVector[0]);
+                    foreach(var r in rots)
+                        mesh.Rotate(Quaternion.FromAxisAngle(new Vector3(-r[1], r[2], -r[0]), MathHelper.DegreesToRadians(r[3])));
+                    mesh.Scale(scale[1], scale[2], scale[0]);
+                    infos.Add(mesh);
+                }
+                catch
+                {
+                }
+            }
+
+            return infos;
         }
 
         public static Object3dInfo LoadFromCompressed(string infile)
@@ -284,12 +357,12 @@ namespace VEngine
                 if(line.StartsWith("map_Kd"))
                 {
                     match = Regex.Match(line, @"map_Kd (.+)");
-                    currentMaterial.TextureName = match.Groups[1].Value;
+                    currentMaterial.TextureName = Path.GetFileName(match.Groups[1].Value);
                 }
                 if(line.StartsWith("map_d"))
                 {
                     match = Regex.Match(line, @"map_d (.+)");
-                    currentMaterial.AlphaMask = match.Groups[1].Value;
+                    currentMaterial.AlphaMask = Path.GetFileName(match.Groups[1].Value);
                 }
             }
             if(currentName != "")
@@ -458,7 +531,7 @@ namespace VEngine
                 var crs2 = Vector3.Cross(pos2, pos3);
                 var crs3 = Vector3.Cross(pos3, pos1);
                 var cross = Vector3.Cross(pos1, pos2).Normalized();
-                if((cross - crs1).Length < 1.0f)
+                if((cross - crs1).Length >= 1.0f)
                 {
                     uint tmp = Indices[i + 2];
                     Indices[i + 2] = Indices[i];

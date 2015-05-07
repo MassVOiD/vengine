@@ -7,7 +7,7 @@ in vec2 UV;
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
 layout(binding = 30) uniform sampler2D worldPosTex;
-//layout(binding = 31) uniform sampler2D normalsTex;
+layout(binding = 31) uniform sampler2D normalsTex;
 
 out vec4 outColor;
 
@@ -39,15 +39,43 @@ uniform int SimpleLightsCount;
 uniform vec3 SimpleLightsPos[MAX_SIMPLE_LIGHTS];
 uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
 
-#include noise4D.glsl
+#include noise3D.glsl
 
-//#define ENABLE_FOG_NOISE
+#define ENABLE_FOG_NOISE
 
-void main()
-{
+float raymarchReflection(vec2 uvstart, vec2 uvend, int i){
+	float fogDensity = 0;
+	/*for(float m = 0.0; m< 1.0;m+= 0.05){
+		vec2 pos = mix(uvstart, uvend, m);
+		float att = 1.0 / pow(((distance(uvstart, pos)/1.0) + 1.0), 2.0) * 16.0;
+		#ifdef ENABLE_FOG_NOISE
+		//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
+		float fogNoise = (snoise(vec4(pos * 4, Time)) + 1.0) / 2.0;
+		#else
+		float fogNoise = 1.0;
+		#endif
+		fogDensity += (1.0 / 100.0 * fogNoise * att) / (distance(UV, pos)*100 + 1.0);
+	}*/
+	return fogDensity;
+}
+
+mat4 PVMatrix = ProjectionMatrix * ViewMatrix;
+
+float reflectPoint(vec3 point, vec3 dir, float dist, int i){
+	vec4 pclip = PVMatrix * vec4(point, 1.0);
+	vec2 pcspace = ((pclip.xyz / pclip.w).xy + 1.0) / 2.0;
+	vec3 norm = texture(normalsTex, pcspace).rgb;
+	vec3 reflected = reflect(dir, norm);
+	vec3 newpoint = point + reflected * dist;
+	vec4 p2clip = PVMatrix * vec4(newpoint, 1.0);
+	vec2 p2cspace = ((p2clip.xyz / p2clip.w).xy + 1.0) / 2.0;
+	return raymarchReflection(pcspace, p2cspace, i);
+}
+
+vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 	vec3 color1 = vec3(0);
 
-	vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;	
+	//vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;	
 	
 	for(int i=0;i<LightsCount;i++){
 	
@@ -55,20 +83,20 @@ void main()
 		
 		
 		float fogDensity = 0.0;
-		float fogMultiplier = 0.4;
+		float fogMultiplier = 2.4;
 		
-		for(float m = 0.0; m< 1.0;m+= FogSamples){
-			vec3 pos = mix(CameraPosition, fragmentPosWorld3d, m);
-			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * 390.0;
+		for(float m = 0.0; m< 1.0;m+= sampling){
+			vec3 pos = mix(start, end, m);
+			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
 			vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
 			#ifdef ENABLE_FOG_NOISE
 			//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
-			float fogNoise = (snoise(vec4(pos * 4, Time)) + 1.0) / 2.0;
+			float fogNoise = (snoise(vec3(pos.x*15, pos.y / 2 + Time*7, pos.z*15)) + 1.0) / 2.0;
 			#else
 			float fogNoise = 1.0;
 			#endif
-			//float idle = 1.0 / 250.0 * fogNoise * fogMultiplier;
-			float idle = 0.0;
+			float idle = 1.0 / 1000.0 * fogNoise * fogMultiplier;
+			//float idle = 0.0;
 			if(lightClipSpace.z < 0.0){ 
 				fogDensity += idle;
 				continue;
@@ -86,46 +114,15 @@ void main()
 				fogDensity += idle;
 			}
 		}
-		color1 += LightsColors[i].xyz * LightsColors[i].a * fogDensity;
+		color1 += LightsColors[i].xyz * fogDensity;
 		
 	}
+	return color1;
+}
+
+void main()
+{
 	
-/*
-	for(int i=0;i<SimpleLightsCount;i++){
-
-		float fogDensity = 0.0;
-		float fogMultiplier = 0.4;
-		
-		for(float m = 0.0; m< 1.0;m+= 0.030){
-			vec3 pos = mix(CameraPosition, fragmentPosWorld3d, m);
-			float att = 1.0 / pow(((distance(pos, SimpleLightsPos[i])/1.0) + 1.0), 2.0) * 40.0;
-			
-			#ifdef ENABLE_FOG_NOISE
-			//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
-			float fogNoise = (snoise(vec4(pos * 4, Time)) + 1.0) / 2.0;
-			#else
-			float fogNoise = 1.0;
-			#endif
-			//float idle = 1.0 / 250.0 * fogNoise * fogMultiplier;
-			float idle = 0.0;
-			
-			vec4 clipspace1 = (ProjectionMatrix * ViewMatrix) * vec4(SimpleLightsPos[i], 1.0);
-			vec2 sspace1 = ((clipspace1.xyz / clipspace1.w).xy + 1.0) / 2.0;
-			
-			vec4 clipspace2 = (ProjectionMatrix * ViewMatrix) * vec4(pos, 1.0);
-			vec2 sspace2 = ((clipspace2.xyz / clipspace2.w).xy + 1.0) / 2.0;
-			
-			float vis = testVisibility(sspace2, sspace1, SimpleLightsPos[i]);			
-
-			if(vis > 0.1) {
-				fogDensity += idle + 1.0 / 200.0 * fogNoise * fogMultiplier * att * vis;
-			} else {
-				fogDensity += idle;
-			}
-		}
-		color1 += SimpleLightsColors[i].xyz * fogDensity;
-		
-	}	
-	*/
-    outColor = vec4(color1, 1);
+	vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;
+    outColor = vec4(raymarchFog(CameraPosition, fragmentPosWorld3d, FogSamples), 1);
 }
