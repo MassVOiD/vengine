@@ -84,7 +84,7 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
 vec3 lookupBloomBlurred(vec2 buv, float radius){
 	vec3 outc = vec3(0);
 	int counter = 0;
-	for(float g = 0; g < mPI2 * 2; g+=0.4)
+	for(float g = 0; g < mPI2 * 2; g+=0.6)
 	{ 
 		for(float g2 = 0; g2 < 1.0; g2+=0.15)
 		{ 
@@ -138,11 +138,11 @@ vec3 motionBlurExperiment(){
 	vec2 nearestUV = UV;
 	float worldDistance = 999999;
 	
-	for(float g = 0; g < mPI2 * 2; g+=0.3)
+	for(float g = 0; g < mPI2 * 2; g+=0.9)
 	{ 
-		for(float g2 = 0.0; g2 < 6.0; g2+=0.3)
+		for(float g2 = 0.0; g2 < 4.0; g2+=0.3)
 		{ 
-			vec2 dsplc = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.004);
+			vec2 dsplc = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.002);
 			vec3 pos = texture(lastworldPos, UV + dsplc).rgb;
 			float ds = distance(pos, centerPos);
 			if(worldDistance > ds){
@@ -154,8 +154,8 @@ vec3 motionBlurExperiment(){
 	//if(distance(nearestUV, UV) < 0.001) return outc;
 	int counter = 0;
 	outc = vec3(0);
-	vec2 direction = nearestUV - UV;
-	for(float g = 0; g < 1; g+=0.04)
+	vec2 direction = (nearestUV - UV);
+	for(float g = 0; g < 1; g+=0.1)
 	{ 
 		outc += texture(color, mix(UV - direction, UV + direction, g)).rgb;
 		counter++;

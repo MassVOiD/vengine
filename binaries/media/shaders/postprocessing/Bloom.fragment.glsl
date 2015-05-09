@@ -17,18 +17,18 @@ vec3 blurWhitening(){
 	int counter = 0;
 	vec3 color = texture(texColor, UV).rgb;
 	float luminance = length(color); // luminance from 1.4 to 1.7320
-	if(luminance > 1.4)
+	if(luminance > 1.0)
 	{
 		//luminance = (luminance - 1.0) / 0.320;
 		outc += color;
 		//outc.a = (luminance - 1.0) / 0.320;
 	}	
-	for(float g2 = -1.0; g2 < 1.0; g2+=0.008)
+	for(float g2 = -1.0; g2 < 1.0; g2+=0.02)
 	{ 
 		vec2 gauss = vec2(g2 * 0.5, 0);
 		vec4 color = texture(texColor, UV + gauss).rgba;
 		float luminance = length(color); // luminance from 1.4 to 1.7320
-		if(luminance > 1.4)
+		if(luminance > 1.2)
 		{
 			outc += (color.rgb * color.a * vec3(0.13, 0.13, 0.54)) * (1.0 - sin(abs(g2)));
 		}			

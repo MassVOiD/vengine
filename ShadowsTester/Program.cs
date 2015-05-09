@@ -121,12 +121,12 @@ namespace ShadowsTester
             };
 
             //new SculptScene().Create();
-            //new SponzaScene().Create();
+            new SponzaScene().Create();
             //new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
-            new ManyCubesScene().Create();
+            //new ManyCubesScene().Create();
             //new CarScene().Create();
 
             //new HallScene().Create();
@@ -273,7 +273,7 @@ namespace ShadowsTester
                 {
                     //redConeLight.SetPosition(freeCamera.Cam.Transformation.GetPosition(), freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection());
                     redConeLight.GetTransformationManager().SetPosition(freeCamera.Cam.Transformation.GetPosition());
-                    redConeLight.GetTransformationManager().SetOrientation(freeCamera.Cam.Transformation.GetOrientation().Inverted());
+                    redConeLight.GetTransformationManager().SetOrientation(freeCamera.Cam.Transformation.GetOrientation());
                 }
                 if(e.Key == OpenTK.Input.Key.Number2)
                 {

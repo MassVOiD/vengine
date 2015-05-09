@@ -91,7 +91,14 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 			vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
 			#ifdef ENABLE_FOG_NOISE
 			//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
+			
+			// rain
 			float fogNoise = (snoise(vec3(pos.x*15, pos.y / 2 + Time*7, pos.z*15)) + 1.0) / 2.0;
+			
+			// snow
+			//float fogNoise = (snoise(vec3(pos.x*5, pos.y * 5 + Time, pos.z*5)) + 1.0) / 2.0;
+			//fogNoise = clamp((fogNoise - 0.8) * 20, 0, 1);
+			
 			#else
 			float fogNoise = 1.0;
 			#endif

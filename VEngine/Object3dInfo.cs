@@ -546,9 +546,10 @@ namespace VEngine
             //if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
             List<Vector3> vectors = new List<Vector3>();
             for(int i = 0; i < VBO.Count; i += 8)
-                vectors.Add(new Vector3(VBO[i] * scale, VBO[i + 1] * scale, VBO[i + 2] * scale));
+                vectors.Add(new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]) * scale);
             var smesh = new TriangleIndexVertexArray(Indices.Select<uint, int>(a => (int)a).ToArray(), vectors.ToArray());
             CachedBvhTriangleMeshShape = new BvhTriangleMeshShape(smesh, false);
+            //CachedBvhTriangleMeshShape.LocalScaling = new Vector3(scale);
             return CachedBvhTriangleMeshShape;
         }
 

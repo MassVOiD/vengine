@@ -266,8 +266,9 @@ vec3 directional() {
 #define SEED 0
 #endif
 
-const float seeds[] = {RandomSeed1, RandomSeed2, RandomSeed3, RandomSeed4, RandomSeed5,
-					   RandomSeed6, RandomSeed7, RandomSeed8, RandomSeed9, RandomSeed10};
+//const float seeds[] = {RandomSeed1, RandomSeed2, RandomSeed3, RandomSeed4, RandomSeed5,
+//					   RandomSeed6, RandomSeed7, RandomSeed8, RandomSeed9, RandomSeed10};
+uniform float Seeds[256];
 
 // afl_ext (Adrian Chlubek) global illumination explained
 vec3 GlobalIlluminationVersion1() 
@@ -287,12 +288,12 @@ vec3 GlobalIlluminationVersion1()
 	// We are going to sample the scene 256 times per frame.
 	//float seeduv = rand(UV);
 	#define samplesCount 100
-	//float fullrandom = rand(UV);
+	float fullrandom = rand(UV);
 	for(float g = 1; g < GISamples; g += 1) 
 	{ 			
-		for(int z = 0; z < 10; z++){
+		for(int z = 0; z < 256; z++){
 			// Calculate 1D seed unique for every loop iteration
-			float random = seeds[z] * g;
+			float random = Seeds[z] * g;
 			// Performance trick to get unique vec2 :)
 			// This vec2 is in range [0,1] so use it for random UV lookup
 			vec2 coord = vec2(fract(random), fract(random * 12.545));
@@ -343,11 +344,11 @@ void main() {
 	//color1 *= ambientRadiosity(UV) * 0.8;
 	color1 = clamp(color1, 0, 1);
 	centerDepth = texture(depth, UV).r;
-	vec3 lgi = texture(lastGi, UV).rgb;
+	//vec3 lgi = texture(lastGi, UV).rgb;
 	
-	if(length(lgi) > 0.001 && !(lgi.x == 1.0 && lgi.y == 1.0 && lgi.z == 1.0)){
-		color1 = (lgi * BUFFER + color1) / BUFFER1;
-	}
+	//if(length(lgi) > 0.001 && !(lgi.x == 1.0 && lgi.y == 1.0 && lgi.z == 1.0)){
+	//	color1 = (lgi * BUFFER + color1) / BUFFER1;
+	//}
 	gl_FragDepth = centerDepth;
 	outColor = vec4(color1, 1);
 }

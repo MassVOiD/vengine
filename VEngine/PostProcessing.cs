@@ -78,7 +78,7 @@ namespace VEngine
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
             LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth /1, initialHeight /1);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight /2);
             //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 
@@ -160,14 +160,15 @@ namespace VEngine
             ShaderProgram.Lock = false;
         }
         bool GIPassOdd = false;
+        static Random Rand = new Random();
         private void GlobalIllumination()
         {
-            GIPassOdd = !GIPassOdd;
-            if(GIPassOdd)
-                GlobalIlluminationShaderX.Use();
-            else
-                GlobalIlluminationShaderY.Use();
+            GlobalIlluminationShaderX.Use();
             ShaderProgram.Lock = true;
+            float[] seeds = new float[256];
+            for(int i = 0; i < 256; i++)
+                seeds[i] = (float)Rand.NextDouble();
+            GlobalIlluminationShaderX.SetUniformArray("Seeds", seeds);
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
         }

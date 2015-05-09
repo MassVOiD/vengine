@@ -56,9 +56,9 @@ namespace VEngine
                     lock(PhysicalWorld)
                     {
                         CollisionObjects.Add(renderable, mesh.CreateRigidBody());
-                        //mesh.PhysicalBody.SetSleepingThresholds(0, 0);
-                       // mesh.PhysicalBody.ContactProcessingThreshold = 0;
-                        //mesh.PhysicalBody.CcdMotionThreshold = 0;
+                        mesh.PhysicalBody.SetSleepingThresholds(0, 0);
+                        mesh.PhysicalBody.ContactProcessingThreshold = 0;
+                        mesh.PhysicalBody.CcdMotionThreshold = 0;
                         PhysicalWorld.AddRigidBody(mesh.PhysicalBody);
                     }
                 }

@@ -26,7 +26,7 @@ namespace ShadowsTester
             water.SetMass(0);
             water.Translate(0, -10, 0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
-            World.Root.Add(water);
+            Add(water);
 
             /*
             var lod1 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod1.vbo.raw"), Media.Get("lucy_lod1.indices.raw"));
@@ -61,6 +61,9 @@ namespace ShadowsTester
             LightPool.Add(redConeLight);
 
             */
+
+
+
             var wheel3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("vmwheel.obj"));
             var car3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("vmbody.obj"));
 
@@ -73,7 +76,7 @@ namespace ShadowsTester
             car.PhysicalBody.ContactProcessingThreshold = 0;
             car.PhysicalBody.CcdMotionThreshold = 0;
             CurrentCar = car;
-            World.Root.Add(car);
+            Add(car);
 
             ProjectionLight carLightLeft = new ProjectionLight(new Vector3(1, 25, 1), Quaternion.Identity, 256, 256, MathHelper.PiOver2, 1.0f, 10000.0f);
             carLightLeft.LightColor = new Vector4(0.90f, 0.90f, 1, 11);
@@ -100,25 +103,25 @@ namespace ShadowsTester
             wheelLF.Translate(axis, suspension, -side);
             wheelLF.SetCollisionShape(shape);
             wheelLF.CreateRigidBody();
-            World.Root.Add(wheelLF);
+            Add(wheelLF);
             var wheelRF = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
             wheelRF.SetMass(100);
             wheelRF.Translate(axis, suspension, side);
             wheelRF.SetCollisionShape(shape);
             wheelRF.CreateRigidBody();
-            World.Root.Add(wheelRF);
+            Add(wheelRF);
             var wheelLR = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
             wheelLR.SetMass(100);
             wheelLR.Translate(-axis, suspension, -side);
             wheelLR.SetCollisionShape(shape);
             wheelLR.CreateRigidBody();
-            World.Root.Add(wheelLR);
+            Add(wheelLR);
             var wheelRR = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
             wheelRR.SetMass(100);
             wheelRR.Translate(-axis, suspension, side);
             wheelRR.SetCollisionShape(shape);
             wheelRR.CreateRigidBody();
-            World.Root.Add(wheelRR);
+            Add(wheelRR);
 
 
             wheelLF.PhysicalBody.SetSleepingThresholds(0, 0);
@@ -218,7 +221,7 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Left)
                 {
-                    float angle = 1.6f / (car.PhysicalBody.LinearVelocity.Length * 0.1f  + 1.0f);
+                    float angle = 0.6f / (car.PhysicalBody.LinearVelocity.Length * 0.1f  + 1.0f);
                     centerAxis3.SetFrames(Matrix4.CreateRotationY(angle) * Matrix4.CreateTranslation(new Vector3(-axis, -suspension, side)), Matrix4.CreateTranslation(new Vector3(0)));
                     centerAxis4.SetFrames(Matrix4.CreateRotationY(angle) * Matrix4.CreateTranslation(new Vector3(-axis, -suspension, -side)), Matrix4.CreateTranslation(new Vector3(0)));
                     //centerAxis3.SetAxis(new Vector3(1, 0, 1));
@@ -226,7 +229,7 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Right)
                 {
-                    float angle = 1.6f / (car.PhysicalBody.LinearVelocity.Length * 0.1f + 1.0f);
+                    float angle = 0.6f / (car.PhysicalBody.LinearVelocity.Length * 0.1f + 1.0f);
                     centerAxis3.SetFrames(Matrix4.CreateRotationY(-angle) * Matrix4.CreateTranslation(new Vector3(-axis, -suspension, side)), Matrix4.CreateTranslation(new Vector3(0)));
                     centerAxis4.SetFrames(Matrix4.CreateRotationY(-angle) * Matrix4.CreateTranslation(new Vector3(-axis, -suspension, -side)), Matrix4.CreateTranslation(new Vector3(0)));
                     //centerAxis3.SetAxis(new Vector3(-1, 0, 1));
@@ -262,6 +265,13 @@ namespace ShadowsTester
                     //centerAxis4.SetAxis(new Vector3(0, 0, 1));
                 }
             };
+
+            var track3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("track.obj"));
+            var track = new Mesh3d(track3dInfo, new SolidColorMaterial(Color.Blue));
+            track.SetMass(0);
+            track.SetCollisionShape(track3dInfo.GetAccurateCollisionShape());
+            //track.Translate(0, 0, 0);
+            Add(track);
 
         }
 
