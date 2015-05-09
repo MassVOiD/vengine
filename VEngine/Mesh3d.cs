@@ -34,6 +34,9 @@ namespace VEngine
         private static Random Randomizer = new Random();
         private Vector3 MeshColoredID;
 
+        public float ReflectionStrength = 0;
+        public float RefractionStrength = 0;
+
         public bool CastShadows = true;
         public bool ReceiveShadows = true;
         public bool IgnoreLighting = false;
@@ -191,6 +194,8 @@ namespace VEngine
                 shader.SetUniform("SpecularComponent", SpecularComponent);
                 shader.SetUniform("DiffuseComponent", DiffuseComponent);
                 shader.SetUniform("SpecularSize", SpecularSize);
+                shader.SetUniform("ReflectionStrength", ReflectionStrength);
+                shader.SetUniform("RefractionStrength", RefractionStrength);
                 shader.SetUniform("IgnoreLighting", IgnoreLighting);
                 shader.SetUniform("ColoredID", MeshColoredID); //magic
                 shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
@@ -232,9 +237,9 @@ namespace VEngine
                 shader.SetUniform("LogEnchacer", 0.01f);
 
                 shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
-                //shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
-                //shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
-                //shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
+                shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+                shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+                shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
                 shader.SetUniform("FarPlane", Camera.Current.Far);
                 shader.SetUniform("resolution", GLThread.Resolution);
            // }

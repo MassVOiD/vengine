@@ -14,6 +14,13 @@ namespace ShadowsTester
     {
         public SponzaScene()
         {
+            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048, -2048), new Vector2(2048, 2048), new Vector2(496, 496), Vector3.UnitY);
+            var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
+            waterMat.SetNormalMapFromMedia("waternormal.png");
+            var water = new Mesh3d(waterInfo, waterMat);
+            water.Transformation.Translate(0, 1, 0);
+            //water.DisableDepthWrite = true;
+            Add(water);
             var scene = Object3dInfo.LoadSceneFromObj(Media.Get("desertcity.obj"), Media.Get("desertcity.mtl"), 1f);
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in scene)

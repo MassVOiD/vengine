@@ -47,7 +47,8 @@ namespace ShadowsTester
             var water = new Mesh3d(waterInfo, waterMat);
             water.Transformation.Translate(0, 10, 0);
             //water.DisableDepthWrite = true;
-            //Add(water);
+            water.ReflectionStrength = 1;
+            Add(water);
             
 
             var daetest = Object3dInfo.LoadFromObjSingle(Media.Get("carreragt.obj"));

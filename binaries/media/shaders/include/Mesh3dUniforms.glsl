@@ -38,6 +38,8 @@ uniform vec3 ColoredID;
 uniform float DiffuseComponent;
 uniform float SpecularComponent;
 uniform float SpecularSize;
+uniform float ReflectionStrength;
+uniform float RefractionStrength;
 uniform vec2 resolution;
 float ratio = resolution.y/resolution.x;
 

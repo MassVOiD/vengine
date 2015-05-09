@@ -78,7 +78,7 @@ namespace VEngine
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
             LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight /2);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight /1);
             //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 
@@ -359,12 +359,13 @@ namespace VEngine
 
                 SwitchToFB(GlobalIlluminationFrameBuffer);
                 p1.UseTexture(0);
+                MRT.UseTextureDepth(1);
                 MRT.UseTextureDiffuseColor(2);
                 MRT.UseTextureWorldPosition(3);
                 MRT.UseTextureNormals(4);
                 p2.UseTexture(5);
                 //ScreenSpaceMRT.UseTextureNormals(7);
-                //BackDiffuseFrameBuffer.UseTexture(8);
+                MRT.UseTextureMeshData(8);
                 //BackDiffuseFrameBuffer.UseTexture(7);
                 //BackMRT.UseTextureNormals(9);
                 GlobalIllumination();

@@ -73,7 +73,7 @@ void finishFragment(vec4 color){
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normal;
 		if(UseNormalMap == 1){
-			//normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
+			normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
 			
 		}
 		
@@ -81,6 +81,14 @@ void finishFragment(vec4 color){
 	} else {
 		outNormals = vec4(0, 0, 0, 0);
 	}	
-	outMeshData = vec4(0, 0, 0, 0);
+	// mesh data is packed as follows:
+	/*
+	outColor.a - transpacency
+	outWorldPos.a - specular component
+	outNormals.a - specular size
+	outMeshData.r - reflection strength
+	outMeshData.g - refraction strength
+	*/
+	outMeshData = vec4(ReflectionStrength, RefractionStrength, 0, 1);
 	updateDepth();
 }

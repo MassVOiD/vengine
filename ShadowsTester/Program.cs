@@ -121,9 +121,9 @@ namespace ShadowsTester
             };
 
             //new SculptScene().Create();
-            new SponzaScene().Create();
+            //new SponzaScene().Create();
             //new OldCityScene().Create();
-            //new NatureScene().Create();
+            new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new ManyCubesScene().Create();
@@ -228,7 +228,8 @@ namespace ShadowsTester
             var skydomeMaterial = SingleTextureMaterial.FromMedia("sky_povray.jpg");
             var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
             skydome.Transformation.Scale(1000);
-            skydome.IgnoreLighting = true;
+            //skydome.IgnoreLighting = true;
+            skydome.DiffuseComponent = 999;
             World.Root.Add(skydome);
             
             GLThread.OnMouseWheel += (o, e) =>
