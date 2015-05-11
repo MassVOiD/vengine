@@ -60,8 +60,9 @@ namespace ShadowsTester
              water.DiffuseComponent = 0.2f;
            // World.Root.Add(water);
 
-             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.PiOver3, 1.0f, 10000.0f);
-            redConeLight.LightColor = new Vector4(1, 1, 1, 200);
+             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver3, 0.000001f, 10000.0f);
+            redConeLight.LightColor = new Vector4(1, 1, 1, 210);
+            //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
             LightPool.Add(redConeLight);
             
@@ -123,13 +124,13 @@ namespace ShadowsTester
             //new SculptScene().Create();
             //new SponzaScene().Create();
             //new OldCityScene().Create();
-            new NatureScene().Create();
+            //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new ManyCubesScene().Create();
             //new CarScene().Create();
 
-            //new HallScene().Create();
+            new HallScene().Create();
             //new RoadScene().Create();
             //new HomeScene().Create();
 
@@ -224,12 +225,13 @@ namespace ShadowsTester
             lensFocusTimer.Start();*/
 
             
-            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("skydome.obj"));
-            var skydomeMaterial = SingleTextureMaterial.FromMedia("sky_povray.jpg");
+            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
+            var skydomeMaterial = SingleTextureMaterial.FromMedia("skyreal.png");
             var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
-            skydome.Transformation.Scale(1000);
-            //skydome.IgnoreLighting = true;
-            skydome.DiffuseComponent = 999;
+            skydome.Transformation.Scale(55000);
+            skydome.Transformation.Translate(0, -100, 0);
+            skydome.IgnoreLighting = true;
+            skydome.DiffuseComponent = 1;
             World.Root.Add(skydome);
             
             GLThread.OnMouseWheel += (o, e) =>

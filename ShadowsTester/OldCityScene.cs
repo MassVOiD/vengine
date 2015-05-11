@@ -21,6 +21,7 @@ namespace ShadowsTester
                 ob.SetMass(0);
                 //ob.SetCollisionShape(ob.MainObjectInfo.GetAccurateCollisionShape());
                 //ob.SpecularComponent = 0.1f;
+                ob.ReflectionStrength = 1;
                 //ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
                // ob.Material = new SolidColorMaterial(new Vector4(1, 1, 1, 0.1f));
                 this.Add(ob);

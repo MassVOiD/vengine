@@ -187,8 +187,8 @@ void main()
 	if(UseBloom == 1) color1 += lookupBloomBlurred(nUV, 0.1).rgb * BloomContribution;
 	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
 	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
-	//if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.001) * GIContribution;
-	if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * GIContribution;
+	if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.001) * GIContribution;
+	//if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * GIContribution;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;

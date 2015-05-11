@@ -14,14 +14,14 @@ namespace ShadowsTester
     {
         public NatureScene()
         {
+            int scale = 1;
             /*
             var protagonist = Object3dInfo.LoadSceneFromObj(Media"protagonist.obj", "protagonist.mtl", 1.0f);
             foreach(var o in protagonist)
                 Add(o);*/
-            
+            /*
             var hmap = System.IO.File.ReadAllBytes(Media.Get("pearlharbor.raw"));
             int count = 0;
-            int scale = 1;
             Func<uint, uint, float> terrainGen = (x, y) =>
             {
                 int yy = (int)(((double)y / (750.0 / scale)) * 5425);
@@ -35,26 +35,33 @@ namespace ShadowsTester
             Object3dGenerator.UseCache = false;
             Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1830 / scale, -1600 / scale), new Vector2(1830 / scale, 1600 / scale), new Vector2(4096, 4096), Vector3.UnitY, 1024 / scale, terrainGen);
             hmap = null;
-            GC.Collect();
+            GC.Collect();*/
 
-            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048 / scale, -2048 / scale), new Vector2(2048 / scale, 2048 / scale), new Vector2(496, 496), Vector3.UnitY);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-18300 / scale, -16000 / scale), new Vector2(18300 / scale, 16000 / scale), new Vector2(4096, 4096), Vector3.UnitY, 11 / scale, (x, y) => 0);
 
-            var terrain = new Mesh3d(terrainInfo, new SolidColorMaterial(Color.Green));
+            var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
+            terrainInfo.ScaleUV(100);
+            var terrain = new Mesh3d(terrainInfo, SingleTextureMaterial.FromMedia("151.JPG", "151_norm.JPG"));
+            terrain.Scale(5);
             Add(terrain);
 
             var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
             waterMat.SetNormalMapFromMedia("waternormal.png");
             var water = new Mesh3d(waterInfo, waterMat);
-            water.Transformation.Translate(0, 10, 0);
+            water.Transformation.Translate(0, 5, 0);
             //water.DisableDepthWrite = true;
             water.ReflectionStrength = 1;
             Add(water);
-            
-
-            var daetest = Object3dInfo.LoadFromObjSingle(Media.Get("carreragt.obj"));
-            daetest.CorrectFacesByNormals();
-            var car = new Mesh3d(daetest, new SolidColorMaterial(Color.Red));
-            Add(car);
+            /*
+            var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucyhires.vbo.raw"), Media.Get("lucyhires.indices.raw"));
+            dragon3dInfo.ScaleUV(0.1f);
+            var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("180.jpg", "180_norm.jpg"));
+            Add(dragon);
+            */
+           // var daetest = Object3dInfo.LoadFromObjSingle(Media.Get("carreragt.obj"));
+          //  daetest.CorrectFacesByNormals();
+           // var car = new Mesh3d(daetest, new SolidColorMaterial(Color.Red));
+           // Add(car);
             var rand = new Random();
             /*
             var scene1 = Object3dInfo.LoadSceneFromObj(Media.Get("tree1.obj"), Media.Get("tree1.mtl"), 12);

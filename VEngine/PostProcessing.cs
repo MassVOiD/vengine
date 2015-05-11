@@ -384,6 +384,7 @@ namespace VEngine
 
 
             p1.UseTexture(0);
+            MRT.UseTextureDepth(1);
             FogFramebuffer.UseTexture(2);
             LightPointsFrameBuffer.UseTexture(4);
             BloomFrameBuffer.UseTexture(5);

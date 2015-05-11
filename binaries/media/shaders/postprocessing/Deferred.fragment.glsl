@@ -125,6 +125,7 @@ void main()
 		
 			float distanceToLight = distance(fragmentPosWorld3d.xyz, LightsPos[i]);
 			float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5;
+			//float att = 1;
             if(att < 0.002) continue;
 			
 			
@@ -185,5 +186,5 @@ void main()
 			}
 		
 	}
-    outColor = vec4(color1, 1);
+    outColor = clamp(vec4(color1, 1), 0, 1);
 }

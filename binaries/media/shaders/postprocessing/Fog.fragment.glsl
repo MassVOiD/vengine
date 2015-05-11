@@ -41,7 +41,7 @@ uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
 
 #include noise3D.glsl
 
-#define ENABLE_FOG_NOISE
+//#define ENABLE_FOG_NOISE
 
 float raymarchReflection(vec2 uvstart, vec2 uvend, int i){
 	float fogDensity = 0;
@@ -87,7 +87,8 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 		
 		for(float m = 0.0; m< 1.0;m+= sampling){
 			vec3 pos = mix(start, end, m);
-			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
+			//float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
+			float att = 1;
 			vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
 			#ifdef ENABLE_FOG_NOISE
 			//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
@@ -102,8 +103,8 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 			#else
 			float fogNoise = 1.0;
 			#endif
-			float idle = 1.0 / 1000.0 * fogNoise * fogMultiplier;
-			//float idle = 0.0;
+			//float idle = 1.0 / 1000.0 * fogNoise * fogMultiplier;
+			float idle = 0.0;
 			if(lightClipSpace.z < 0.0){ 
 				fogDensity += idle;
 				continue;
@@ -131,5 +132,5 @@ void main()
 {
 	
 	vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;
-    outColor = vec4(raymarchFog(CameraPosition, fragmentPosWorld3d, FogSamples), 1);
+    outColor = clamp(vec4(raymarchFog(CameraPosition, fragmentPosWorld3d, FogSamples), 1), 0, 1);
 }

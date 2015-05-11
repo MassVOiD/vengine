@@ -83,6 +83,7 @@
     <Compile Include="ComputeShader.cs" />
     <Compile Include="CubeMapFramebuffer.cs" />
     <Compile Include="DeferredPipeline.cs" />
+    <Compile Include="Materials\GenericMaterial.cs" />
     <Compile Include="MRTFramebuffer.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="GameConsole\GameConsole.cs" />

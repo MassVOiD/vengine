@@ -13,7 +13,7 @@ layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
 
 vec3 blurWhitening(){
-	vec3 outc = vec3(0);
+	vec3 outc = vec3(0.01);
 	int counter = 0;
 	vec3 color = texture(texColor, UV).rgb;
 	float luminance = length(color); // luminance from 1.4 to 1.7320
@@ -49,5 +49,5 @@ vec3 blurWhitening(){
 
 void main()
 {
-    outColor = vec4(blurWhitening(), 1);
+    outColor = clamp(vec4(blurWhitening(), 1), 0, 1);
 }

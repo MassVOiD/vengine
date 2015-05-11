@@ -259,7 +259,7 @@ uniform float Seeds[256];
 // afl_ext (Adrian Chlubek) global illumination explained
 vec3 GlobalIlluminationVersion1() 
 {
-	vec3 originalColor = (texture(color, UV).rgb * 12 + texture(diffuseColor, UV).rgb * GIDiffuseComponent) * 0.7;
+	vec3 originalColor = (texture(color, UV).rgb * 70 + texture(diffuseColor, UV).rgb * GIDiffuseComponent) * 0.7;
 	//if(length(originalColor) > 0.8) discard;
 	// Get some basic data for processed pixel, like normal, original color, position in world space
 	// distance to camera, and precalculate some used data too.
@@ -276,17 +276,17 @@ vec3 GlobalIlluminationVersion1()
 	#define samplesCount 100
 	float fullrandom = rand(UV);
 	for(float g = 1; g < GISamples; g += 1) 
-	{ 			
-		// Calculate 1D seed unique for every loop iteration
+	{ 				
 		float random = g * Seeds[0] * fullrandom;
 		// Performance trick to get unique vec2 :)
 		// This vec2 is in range [0,1] so use it for random UV lookup
-		vec2 coord = vec2(fract(random), fract(random*12.545));
-		// Let's test visibility
+		vec2 coord = vec2(fract(random), fract(random*12.545));		
 		if(testVisibility(coord, UV)) 
 		{
+			// Calculate 1D seed unique for every loop iteration
+			// Let's test visibility
 			// Get pixel color
-			vec3 c = ((texture(color, coord).rgb * 12 + texture(diffuseColor, coord).rgb * GIDiffuseComponent)  * 9);
+			vec3 c = ((texture(color, coord).rgb * 70 + texture(diffuseColor, coord).rgb * GIDiffuseComponent)  * 9);
 			if(length(c) < 0.05) continue;
 			// Pixels see each other.
 			// Get pixel world position and calculate attentuation based on pixels' distance
@@ -294,21 +294,27 @@ vec3 GlobalIlluminationVersion1()
 			float worldDistance = distance(positionCenter, worldPosition);
 			//if(worldDistance < 0.12) continue;
 			//if(worldDistance > 8.2) continue;
-			float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 80.0;
+			float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 140.0;
 			if(attentuation < 0.07) continue;
 			// Get last GI result so we can bounce infinitely now! That color gets mixed with selected pixel
 			vec3 giLastResult = texture(lastGi, coord).rgb;
 			// Get normal of that random pixel
 			vec3 normalThere = texture(normals, coord).rgb;
 			// calculate diffuse component and add it
-			outBuffer += (c + giLastResult * 1.7) * attentuation * 1.0 - clamp(dot(normalCenter, normalThere), 0.0, 1.0);
+			vec3 res = vec3(0);
+			res += (c + giLastResult * 1.7) * attentuation * 1.0 - clamp(dot(normalCenter, normalThere), 0.0, 1.0);
 			// calculate specular component and add it
 			vec3 lightRelativeToVPos = worldPosition - positionCenter;
 			vec3 R = reflect(lightRelativeToVPos, normal.xyz);
 			float cosAlpha = max(0, -dot(normalize(cameraSpace), normalize(R)));
 			float specularComponent = pow(cosAlpha, 80.0 / specSize) * speccomp;
-			outBuffer += c * 10 * specularComponent;
+			res += c * 10 * specularComponent;
+			if(length(res) > 0.05){
+
+				outBuffer += res;
+			}
 		}
+	
 	
 		
 	}	
@@ -317,13 +323,25 @@ vec3 GlobalIlluminationVersion1()
 	vec3 result = originalColor * ((outBuffer / (samplesCount*10))) * (distanceToCamera / 16);
 	vec3 giLastResult = texture(lastGi, UV).rgb;
 	float giLastDepth = texture(lastGiDepth, UV).r;
-	//if(abs(giLastDepth - centerDepth) > 0.01) return result;
+	if(abs(giLastDepth - centerDepth) > 0.001) return result;
 	return length(result) > length(giLastResult) ? result : giLastResult;
 }
 
 vec2 projectDirection(vec3 dir){
 	vec3 rf = normalize(dir);
-	return normalize(vec2(dot(rf, CameraTangentLeft), dot(rf, CameraTangentUp)));
+	return normalize(vec2(-dot(rf, CameraTangentLeft), dot(rf, CameraTangentUp)));
+}
+
+vec2 getProjNormal(){
+	vec3 positionCenter = texture(worldPos, UV).rgb; 
+	vec3 normalCenter = texture(normals, UV).rgb;
+	vec3 dirPosition = positionCenter + normalCenter * 0.05;
+	
+	vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(normalize(positionCenter), 1.0);
+	vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+	clipspace = (ProjectionMatrix * ViewMatrix) * vec4(normalize(dirPosition), 1.0);
+	vec2 sspace2 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+	return normalize(sspace2 - sspace1);
 }
 
 vec3 DamnReflections() 
@@ -338,35 +356,34 @@ vec3 DamnReflections()
 	float specSize = texture(normals, UV).a;
 	// Good to mix direct light color with diffuse color
 	vec3 positionCenter = texture(worldPos, UV).rgb;  
-	vec2 ssnormaldir = projectDirection(normalCenter);
+	vec2 ssnormaldir = getProjNormal();
 	float speccomp = texture(worldPos, UV).a;  
 	float distanceToCamera = distance(CameraPosition, positionCenter);
 	vec3 outBuffer = vec3(0);
-	vec3 cameraSpace = CameraPosition - positionCenter;
+	vec3 cameraSpace = positionCenter - CameraPosition;
 	// We are going to sample the scene 256 times per frame.
 	//float seeduv = rand(UV);
 	#define samplesCount 100
 	float specmax = -998790;
 	vec3 speccolor = vec3(0);
-	for(float g = 0.01; g < 1.0; g += 0.005) 
-	{ 			
+	for(float g = 0.0; g < 1.0; g += 1.0 / (resolution.x) ) 
+	{ 	
+	
 		vec2 coord = UV + (ssnormaldir * g);
-		coord = clamp(coord, 0, 1);
+		//coord.x = (((coord.x - 0.5) * 2) * 1.05 / 2) + 0.5;
+		if(coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1) break;
 		// Let's test visibility
-		if(testVisibilityUnrolled(coord, UV)) 
-		{
-			vec3 c = texture(color, coord).rgb;
-			//if(length(c) < 0.05) continue;
-			vec3 worldPosition = texture(worldPos, coord).rgb;
-			vec3 lightRelativeToVPos = worldPosition - positionCenter;
-			vec3 R = reflect(lightRelativeToVPos, normal.xyz);
-			float cosAlpha = max(0, -dot(normalize(cameraSpace), normalize(R)));
-			float specularComponent = cosAlpha * speccomp;
-			float specres = specularComponent;
-			if(specmax < specres){
-				specmax = specres;
-				speccolor = c;
-			} else return speccolor;
+
+		vec3 c = texture(color, coord).rgb;
+		vec3 worldPosition = texture(worldPos, coord).rgb;
+		vec3 lightRelativeToVPos = worldPosition - positionCenter;
+		vec3 R = reflect(cameraSpace, normalCenter.xyz);
+		float cosAlpha = dot(normalize(R), normalize(lightRelativeToVPos));
+		if(cosAlpha > 0.981){		
+			if(testVisibilityUnrolled(coord, UV)) 
+			{
+				return c;
+			}
 		}
 	
 		
@@ -378,14 +395,14 @@ vec3 DamnReflections()
 #define BUFFER1 (3.2)
 void main() {
 	vec3 color1 = vec3(0);
-	color1 = DamnReflections();
+	centerDepth = texture(depth, UV).r;
+	color1 = GlobalIlluminationVersion1();
 	//color1 = BruteForceGI();
 	//color1 = GoodHBAO();
 	//color1 += directional();
 	//color1 = bruteForceGIBounce1(UV);
 	//color1 *= ambientRadiosity(UV) * 0.8;
 	color1 = clamp(color1, 0, 1);
-	centerDepth = texture(depth, UV).r;
 	//vec3 lgi = texture(lastGi, UV).rgb;
 	
 	//if(length(lgi) > 0.001 && !(lgi.x == 1.0 && lgi.y == 1.0 && lgi.z == 1.0)){

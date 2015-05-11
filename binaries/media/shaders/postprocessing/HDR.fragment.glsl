@@ -156,6 +156,6 @@ void main()
                   pow(color1.g, gamma.g),
                   pow(color1.b, gamma.b));
 				  
-    outColor = (color1);
+    outColor = clamp(color1, 0, 1);
 	
 }
