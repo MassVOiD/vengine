@@ -48,6 +48,14 @@ namespace VEngine
         {
             return Lights.Select<ILight, float>(a => a.GetFarPlane()).ToArray();
         }
+        public static Vector2[] GetRanges()
+        {
+            return Lights.Select<ILight, Vector2>(a => new Vector2(a.GetMixRange().Start, a.GetMixRange().End)).ToArray();
+        }
+        public static int[] GetMixModes()
+        {
+            return Lights.Select<ILight, int>(a => (int)a.GetMixMode()).ToArray();
+        }
 
         public static Matrix4[] GetPMatrices()
         {
@@ -56,7 +64,7 @@ namespace VEngine
 
         public static Vector3[] GetPositions()
         {
-            return Lights.Select<ILight, Vector3>(a => a.GetPosition()).ToArray();
+            return Lights.Select<ILight, Vector3>(a => a is ProjectionLight && (a as ProjectionLight).FakePosition != Vector3.Zero ? (a as ProjectionLight).FakePosition : a.GetPosition()).ToArray();
         }
 
         public static Matrix4[] GetVMatrices()

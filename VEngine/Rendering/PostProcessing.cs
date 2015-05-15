@@ -424,6 +424,8 @@ namespace VEngine
             shader.SetUniformArray("LightsPos", LightPool.GetPositions());
             shader.SetUniformArray("LightsFarPlane", LightPool.GetFarPlanes());
             shader.SetUniformArray("LightsColors", LightPool.GetColors());
+            shader.SetUniformArray("LightsRanges", LightPool.GetRanges());
+            shader.SetUniformArray("LightsMixModes", LightPool.GetMixModes());
             shader.SetUniform("LightsCount", LightPool.GetPositions().Length);
         }
 

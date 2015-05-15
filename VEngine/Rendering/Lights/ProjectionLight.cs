@@ -16,6 +16,14 @@ namespace VEngine
             ViewPort = new Size(mapwidth, mapheight);
         }
 
+        public MixRange LightMixRange = new MixRange()
+        {
+            Start = 0,
+            End = 100000.0f
+        };
+
+        public LightMixMode LightMixMode = LightMixMode.Additive;
+
         public Camera camera;
         public Framebuffer FBO;
         public Vector4 LightColor = new Vector4(1, 1, 1, 1);
@@ -34,6 +42,11 @@ namespace VEngine
             camera.ProjectionMatrix = Matrix4.CreateOrthographic(width, height, near, far);
             camera.Update();
         }
+        public void BuildOrthographicProjection(float left, float right, float bottom, float top, float near, float far)
+        {
+            camera.ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, near, far);
+            camera.Update();
+        }
 
         public Vector4 GetColor()
         {
@@ -45,11 +58,22 @@ namespace VEngine
             return FarPlane;
         }
 
+        public MixRange GetMixRange()
+        {
+            return LightMixRange;
+        }
+
+        public LightMixMode GetMixMode()
+        {
+            return LightMixMode;
+        }
+
         public Matrix4 GetPMatrix()
         {
             return camera.ProjectionMatrix;
         }
 
+        public Vector3 FakePosition = Vector3.Zero;
         public Vector3 GetPosition()
         {
             return camera.Transformation.GetPosition();
@@ -104,6 +128,11 @@ namespace VEngine
             camera.Transformation.SetPosition(position);
             camera.Transformation.SetOrientation(orientation);
             camera.Update();
+        }
+
+        public void UpdateInverse()
+        {
+            camera.UpdateInverse();
         }
 
         public void SetProjection(Matrix4 matrix)

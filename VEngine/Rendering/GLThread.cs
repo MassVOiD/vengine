@@ -30,12 +30,12 @@ namespace VEngine
         static public AbsDisplayAdapter DisplayAdapter;
         static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
 
-        static public void CheckErrors()
+        static public void CheckErrors(string message = "Global")
         {
             var error = GL.GetError();
             if(error != ErrorCode.NoError)
             {
-                Console.WriteLine(error.ToString());
+                Console.WriteLine(message + ":: " + error.ToString());
             }
         }
 

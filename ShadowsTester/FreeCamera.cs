@@ -51,6 +51,8 @@ namespace ShadowsTester
 
         private void UpdateSterring(object o, EventArgs e)
         {
+            if(GLThread.DisplayAdapter.IsCursorVisible)
+                return;
             var keyboard = OpenTK.Input.Keyboard.GetState();
             KeyboardHandler.Process();
 

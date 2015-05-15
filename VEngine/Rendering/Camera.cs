@@ -113,6 +113,11 @@ namespace VEngine
             RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());
             ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
         }
+        public void UpdateInverse()
+        {
+            RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
+            ViewMatrix = RotationMatrix * Matrix4.CreateTranslation(Transformation.GetPosition());
+        }
 
         public void UpdateFromRollPitch()
         {

@@ -10,6 +10,11 @@ uniform mat4 LightsVs[MAX_LIGHTS];
 uniform vec3 LightsPos[MAX_LIGHTS];
 uniform float LightsFarPlane[MAX_LIGHTS];
 uniform vec4 LightsColors[MAX_LIGHTS];
+uniform vec2 LightsRanges[MAX_LIGHTS];
+uniform int LightsMixModes[MAX_LIGHTS];
+#define LIGHT_MIX_MODE_ADDITIVE 0
+#define LIGHT_MIX_MODE_EXCLUSIVE 1
+#define LIGHT_MIX_MODE_SUN_CASCADE 2
 
 
 const int MAX_INSTANCES = 1500;

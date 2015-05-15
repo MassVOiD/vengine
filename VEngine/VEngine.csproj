@@ -74,79 +74,76 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AbsMesh.cs" />
-    <Compile Include="Camera.cs" />
+    <Compile Include="Rendering\AbsMesh.cs" />
+    <Compile Include="Rendering\Camera.cs" />
     <Content Include="Config.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Compile Include="ColladaScene.cs" />
-    <Compile Include="ComputeShader.cs" />
-    <Compile Include="CubeMapFramebuffer.cs" />
-    <Compile Include="DeferredPipeline.cs" />
-    <Compile Include="Materials\GenericMaterial.cs" />
-    <Compile Include="MRTFramebuffer.cs" />
-    <Compile Include="Game.cs" />
-    <Compile Include="GameConsole\GameConsole.cs" />
-    <Compile Include="Debugger.cs" />
-    <Compile Include="Fog\FogDensitySphere.cs" />
-    <Compile Include="Fog\FogPool.cs" />
-    <Compile Include="GraphicsSettings.cs" />
-    <Compile Include="Interpolator.cs" />
-    <Compile Include="IntHashGenerator.cs" />
-    <Compile Include="KeyframeAnimatedMesh3d.cs" />
-    <Compile Include="Lights\PointLight.cs" />
-    <Compile Include="Lights\ProjectionLight.cs" />
-    <Compile Include="Framebuffer.cs" />
-    <Compile Include="Generators\MeshGenerator.cs" />
-    <Compile Include="Generators\Object3dGenerator.cs" />
-    <Compile Include="GLThread.cs" />
-    <Compile Include="Lights\SimplePointLight.cs" />
-    <Compile Include="Line2d.cs" />
-    <Compile Include="Line2dPool.cs" />
-    <Compile Include="Materials\IMaterial.cs" />
-    <Compile Include="Lights\LightPool.cs" />
-    <Compile Include="MathExtensions.cs" />
-    <Compile Include="InstancedMesh3d.cs" />
-    <Compile Include="MeshLinker.cs" />
-    <Compile Include="Particles\ParticleGenerator.cs" />
-    <Compile Include="Particles\ParticleSystem.cs" />
-    <Compile Include="PostProcessing.cs" />
-    <Compile Include="RenderableInterfaces.cs" />
-    <Compile Include="Media.cs" />
-    <Compile Include="Mesh3d.cs" />
-    <Compile Include="Object3dInfo.cs" />
-    <Compile Include="Materials\PostProcessLoadingMaterial.cs" />
-    <Compile Include="Scene.cs" />
+    <Compile Include="Compute\ComputeShader.cs" />
+    <Compile Include="Rendering\CubeMapFramebuffer.cs" />
+    <Compile Include="Rendering\DeferredPipeline.cs" />
+    <Compile Include="Rendering\Materials\GenericMaterial.cs" />
+    <Compile Include="Rendering\MRTFramebuffer.cs" />
+    <Compile Include="Game\Game.cs" />
+    <Compile Include="Game\GameConsole\GameConsole.cs" />
+    <Compile Include="Internals\Debugger.cs" />
+    <Compile Include="Rendering\Fog\FogDensitySphere.cs" />
+    <Compile Include="Rendering\Fog\FogPool.cs" />
+    <Compile Include="Rendering\GraphicsSettings.cs" />
+    <Compile Include="Internals\Interpolator.cs" />
+    <Compile Include="Internals\IntHashGenerator.cs" />
+    <Compile Include="Rendering\KeyframeAnimatedMesh3d.cs" />
+    <Compile Include="Rendering\Lights\PointLight.cs" />
+    <Compile Include="Rendering\Lights\ProjectionLight.cs" />
+    <Compile Include="Rendering\Framebuffer.cs" />
+    <Compile Include="Utilities\Generators\MeshGenerator.cs" />
+    <Compile Include="Utilities\Generators\Object3dGenerator.cs" />
+    <Compile Include="Rendering\GLThread.cs" />
+    <Compile Include="Rendering\Lights\SimplePointLight.cs" />
+    <Compile Include="Rendering\Line2d.cs" />
+    <Compile Include="Rendering\Line2dPool.cs" />
+    <Compile Include="Rendering\Materials\IMaterial.cs" />
+    <Compile Include="Rendering\Lights\LightPool.cs" />
+    <Compile Include="Internals\MathExtensions.cs" />
+    <Compile Include="Rendering\InstancedMesh3d.cs" />
+    <Compile Include="Rendering\MeshLinker.cs" />
+    <Compile Include="Rendering\Particles\ParticleGenerator.cs" />
+    <Compile Include="Rendering\Particles\ParticleSystem.cs" />
+    <Compile Include="Rendering\PostProcessing.cs" />
+    <Compile Include="Rendering\RenderableInterfaces.cs" />
+    <Compile Include="Utilities\Media.cs" />
+    <Compile Include="Rendering\Mesh3d.cs" />
+    <Compile Include="Rendering\Object3dInfo.cs" />
+    <Compile Include="Rendering\Materials\PostProcessLoadingMaterial.cs" />
+    <Compile Include="Rendering\Scene.cs" />
     <Compile Include="SettingsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="SettingsWindow.Designer.cs">
       <DependentUpon>SettingsWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="ShaderCache.cs" />
-    <Compile Include="ShaderPreparser.cs" />
-    <Compile Include="SharpScript.cs" />
-    <Compile Include="Skybox.cs" />
-    <Compile Include="Materials\ManualShaderMaterial.cs" />
-    <Compile Include="Materials\SkyboxMaterial.cs" />
-    <Compile Include="Materials\SingleTextureMaterial.cs" />
-    <Compile Include="ShaderStorageBuffer.cs" />
-    <Compile Include="BufferTexture.cs" />
-    <Compile Include="TransformationManager.cs" />
-    <Compile Include="UI\AbsUIElement.cs" />
-    <Compile Include="UI\Picture.cs" />
-    <Compile Include="UI\Rectangle.cs" />
-    <Compile Include="UI\Text.cs" />
-    <Compile Include="UI\UIRenderer.cs" />
-    <Compile Include="ValuePointer.cs" />
-    <Compile Include="VEngineInvisibleAdapter.cs" />
-    <Compile Include="World.cs" />
-    <Compile Include="ShaderProgram.cs" />
-    <Compile Include="Materials\SolidColorMaterial.cs" />
-    <Compile Include="Sun.cs" />
-    <Compile Include="Texture.cs" />
-    <Compile Include="VEngineDisplayAdapter.cs" />
-    <Compile Include="VEngineWindowAdapter.cs" />
+    <Compile Include="Internals\ShaderCache.cs" />
+    <Compile Include="Internals\ShaderPreparser.cs" />
+    <Compile Include="Rendering\Materials\ManualShaderMaterial.cs" />
+    <Compile Include="Rendering\Materials\SkyboxMaterial.cs" />
+    <Compile Include="Rendering\Materials\SingleTextureMaterial.cs" />
+    <Compile Include="Rendering\ShaderStorageBuffer.cs" />
+    <Compile Include="Rendering\BufferTexture.cs" />
+    <Compile Include="Internals\TransformationManager.cs" />
+    <Compile Include="Rendering\UI\AbsUIElement.cs" />
+    <Compile Include="Rendering\UI\Picture.cs" />
+    <Compile Include="Rendering\UI\Rectangle.cs" />
+    <Compile Include="Rendering\UI\Text.cs" />
+    <Compile Include="Rendering\UI\UIRenderer.cs" />
+    <Compile Include="Internals\ValuePointer.cs" />
+    <Compile Include="Rendering\VEngineInvisibleAdapter.cs" />
+    <Compile Include="Rendering\World.cs" />
+    <Compile Include="Rendering\ShaderProgram.cs" />
+    <Compile Include="Rendering\Materials\SolidColorMaterial.cs" />
+    <Compile Include="Rendering\Sun.cs" />
+    <Compile Include="Rendering\Texture.cs" />
+    <Compile Include="Rendering\VEngineDisplayAdapter.cs" />
+    <Compile Include="Rendering\VEngineWindowAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -156,6 +153,9 @@
     <EmbeddedResource Include="SettingsWindow.resx">
       <DependentUpon>SettingsWindow.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Utilities\Formats\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

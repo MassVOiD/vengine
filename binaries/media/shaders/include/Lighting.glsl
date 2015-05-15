@@ -5,28 +5,8 @@ Part of: https://github.com/achlubek/vengine
 @author Adrian Chlubek
 */
 
-float specular(vec3 normalin, uint index){
-	vec3 lightRelativeToVPos = LightsPos[index] - positionWorldSpace.xyz;
-	vec3 cameraRelativeToVPos = CameraPosition - positionWorldSpace.xyz;
-	vec3 R = reflect(lightRelativeToVPos, normalin);
-	float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
-	return clamp(pow(cosAlpha, 80.0 / SpecularSize), 0.0, 1.0);
-}
-
-float diffuse(vec3 normalin, uint index){
-	vec3 lightRelativeToVPos = LightsPos[index] - positionWorldSpace.xyz;
-	float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normalin));
-	float angle = clamp(dotdiffuse, 0.0, 1.0);
-	return (angle);
-}
-
-const float gaussKernel[14] = float[14](-0.028, -0.024,-0.020,-0.016,-0.012,-0.008,-0.004,.004,.008,.012,0.016,0.020,0.024,0.028); 
-float getGaussianKernel(int i){
-	return gaussKernel[i];
-}
-
 float lookupDepthFromLight(uint i, vec2 uv){
-	mediump float distance1 = 0.0;
+	float distance1 = 0.0;
 	if(i==0)distance1 = texture(lightDepth0, uv).r;
 	else if(i==1)distance1 = texture(lightDepth1, uv).r;
 	else if(i==2)distance1 = texture(lightDepth2, uv).r;
@@ -79,32 +59,42 @@ float getBlurAmount(vec2 uv, uint i, float distance2){
 			maxv = max(maxv, bval);
 		}
 	}
-	return clamp(maxv - minv - 0.001, 0, 0.01);
+	return clamp(clamp(maxv - minv, 0, 0.02) - 0.002, 0, 1.01 * 33);
 }
 
 
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 1.0;
+	
+	
+	
 	float distance2 = distance(pos, LightsPos[i]);
+	//float badass_depth = toLogDepth(distance2);
+	mat4 lightPV = (LightsPs[i] * LightsVs[i]);
+	vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
+	if(lightClipSpace.z <= 0.0) return 0;
+	float badass_depth = (lightClipSpace.z / lightClipSpace.w) * 0.5 + 0.5;	
+	
+	
 	float AInv = 1.0 / ((distance2) + 1.0);
 	float bval = distance2 - reverseLog(lookupDepthFromLight(i, uv));
 	//float distanceCam = distance(positionWorldSpace.xyz, CameraPosition);
 	float distance1 = 0.0;
 	vec2 fakeUV = vec2(0.0);
-	float badass_depth = log(LogEnchacer*distance2 + 1.0) / log(LogEnchacer*FarPlane + 1.0f);
+	
 	//float centerDiff = abs(badass_depth - lookupDepthFromLight(i, uv)) * 10000.0;
 		
 	int counter = 0;
 	//distance1 = lookupDepthFromLight(i, uv);
 	float pssblur = (getBlurAmount(uv, i, distance2)) * ShadowsBlur;
-	//float pssblur = 0.2;
-    for(float x = 0; x < mPI2 * 1.5; x+=GOLDEN_RATIO){ 
+	//float pssblur = 0.04;
+    for(float x = 0; x < mPI2; x+=0.7){ 
         for(float y=0;y<4;y+= ShadowsSamples ){  
-			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 0.1 * AInv;
+			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 1.1 * AInv;
 			fakeUV = uv + crd;
 			distance1 = lookupDepthFromLight(i, fakeUV);
 			float diff = abs(distance1 -  badass_depth);
-			if(diff > 0.0003) accum += 1.0;
+			if(diff > 0.0001) accum += 1.0;
 			counter++;
 		}
 	}

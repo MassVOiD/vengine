@@ -16,10 +16,18 @@ namespace ShadowsTester
     {
         public static FreeCamera FreeCam;
 
+        class Config
+        {
+            public static string MediaPath = "media";
+            public static int Width = 1200;
+            public static int Height = 700;
+        }
+
         private static void Main(string[] args)
         {
             VEngineWindowAdapter window = null;
-            var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
+            //var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
+
             Media.SearchPath = Config.MediaPath;
 
             GLThread.SetCurrentThreadCores(1);
@@ -58,9 +66,10 @@ namespace ShadowsTester
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
              water.DiffuseComponent = 0.2f;
-           // World.Root.Add(water);
+             // World.Root.Add(water);
+             var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.94f, 0.90f, 1212.0f), 1.0f);
 
-             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 6000, 6000, MathHelper.PiOver3, 0.000001f, 10000.0f);
+             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 0.1f, 1000.0f);
             redConeLight.LightColor = new Vector4(1, 1, 1, 210);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
@@ -101,38 +110,39 @@ namespace ShadowsTester
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.U))
                 {
-                    var quat = Quaternion.FromAxisAngle(redConeLight.camera.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
-                    redConeLight.camera.Transformation.Rotate(quat);
+                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.J))
                 {
-                    var quat = Quaternion.FromAxisAngle(redConeLight.camera.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
-                    redConeLight.camera.Transformation.Rotate(quat);
+                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.H))
                 {
                     var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
-                    redConeLight.camera.Transformation.Rotate(quat);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.K))
                 {
                     var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
-                    redConeLight.camera.Transformation.Rotate(quat);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
                 }
             };
 
             //new SculptScene().Create();
             //new SponzaScene().Create();
-            //new OldCityScene().Create();
+            new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new ManyCubesScene().Create();
             //new CarScene().Create();
 
-            new HallScene().Create();
+            //new HallScene().Create();
             //new RoadScene().Create();
             //new HomeScene().Create();
+
 
             World.Root.SortByDepthMasking();
 

@@ -175,7 +175,7 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.UniformMatrix4(location, data.Length, false, floats.ToArray());
-                GLThread.CheckErrors();
+                GLThread.CheckErrors(name);
             }
         }
 
@@ -192,7 +192,22 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.Uniform3(location, data.Length, floats.ToArray());
-                GLThread.CheckErrors();
+                GLThread.CheckErrors(name);
+            }
+        }
+        public void SetUniformArray(string name, Vector2[] data)
+        {
+            int location = GetUniformLocation(name);
+            List<float> floats = new List<float>();
+            foreach(var v in data)
+            {
+                floats.Add(v.X);
+                floats.Add(v.Y);
+            }
+            if(location >= 0)
+            {
+                GL.Uniform2(location, data.Length, floats.ToArray());
+                GLThread.CheckErrors(name);
             }
         }
 
@@ -210,7 +225,7 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.Uniform4(location, data.Length, floats.ToArray());
-                GLThread.CheckErrors();
+                GLThread.CheckErrors(name);
             }
         }
 
@@ -220,7 +235,16 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.Uniform1(location, data.Length, data);
-                GLThread.CheckErrors();
+                GLThread.CheckErrors(name);
+            }
+        }
+        public void SetUniformArray(string name, int[] data)
+        {
+            int location = GetUniformLocation(name);
+            if(location >= 0)
+            {
+                GL.Uniform1(location, data.Length, data);
+                GLThread.CheckErrors(name);
             }
         }
 
@@ -246,7 +270,7 @@ namespace VEngine
             //if(UniformLocationsCache.ContainsKey(name) && !Lock)
             //    return UniformLocationsCache[name];
             int location = GL.GetUniformLocation(Current.Handle, name);
-            GLThread.CheckErrors();
+            GLThread.CheckErrors("Locating " + name);
             //if(!Lock)
             //    UniformLocationsCache.Add(name, location);
             //if(Lock && name == "Time")

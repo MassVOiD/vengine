@@ -73,7 +73,7 @@ void finishFragment(vec4 color){
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normal;
 		if(UseNormalMap == 1){
-			normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
+			//normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
 			
 		}
 		

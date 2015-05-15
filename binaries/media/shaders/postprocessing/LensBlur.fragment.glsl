@@ -31,7 +31,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
             if(distance(coord, UV.xy) < max_radius){  
                 float depth = texture(texDepth, coord).r;
-				if(centerDepth - depth < 0.05 || centerDepthDistance > 0.4 || depth > 0.99 || centerDepth > 0.99){
+				if(abs(centerDepth - depth) < 0.005 || centerDepthDistance > 0.4 || depth > 0.99 || centerDepth > 0.99){
 					vec3 texel = texture(texColor, coord).rgb;
 					float w = length(texel)+0.1;
 					weight+=w;
@@ -51,8 +51,22 @@ void main()
 	centerDepth = depth;
 	if(LensBlurAmount > 0.001){
 		float focus = CameraCurrentDepth;
-		float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);
-		color1 = lensblur(avdepth, focus, 0.03, 7.0);
+		float adepth = reverseLog(depth);
+		float fDepth = reverseLog(CameraCurrentDepth);
+		//float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
+		float f = 16.0 / LensBlurAmount; //focal length in mm
+		float d = fDepth*1000.0; //focal plane in mm
+		float o = adepth*1000.0; //depth in mm
+		
+		float fstop = 4.0;
+		float CoC = 0.03;
+		float a = (o*f)/(o-f); 
+		float b = (d*f)/(d-f); 
+		float c = (d-f)/(d*fstop*CoC); 
+		
+		float blur = abs(a-b)*c;
+		blur = clamp(blur,0.0,1.0) * 50;
+		color1 = lensblur(blur, focus, 0.03, 7.0);
 	
 	}
 	gl_FragDepth = depth;

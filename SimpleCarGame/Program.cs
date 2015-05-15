@@ -18,7 +18,7 @@ namespace SimpleCarGame
         public static CarCamera FreeCam;
         static void Main(string[] args)
         {
-            VEngineWindowAdapter window = null;
+            /*VEngineWindowAdapter window = null;
             var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
             Media.SearchPath = Config.MediaPath;
 
@@ -95,7 +95,7 @@ namespace SimpleCarGame
 
             GLThread.Invoke(() => window.StartPhysicsThread());
             renderThread.Wait();
-
+            */
         }
     }
 }

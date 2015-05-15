@@ -259,7 +259,7 @@ uniform float Seeds[256];
 // afl_ext (Adrian Chlubek) global illumination explained
 vec3 GlobalIlluminationVersion1() 
 {
-	vec3 originalColor = (texture(color, UV).rgb * 70 + texture(diffuseColor, UV).rgb * GIDiffuseComponent) * 0.7;
+	vec3 originalColor = (texture(diffuseColor, UV).rgb * GIDiffuseComponent) * 0.7;
 	//if(length(originalColor) > 0.8) discard;
 	// Get some basic data for processed pixel, like normal, original color, position in world space
 	// distance to camera, and precalculate some used data too.
@@ -275,12 +275,12 @@ vec3 GlobalIlluminationVersion1()
 	//float seeduv = rand(UV);
 	#define samplesCount 100
 	float fullrandom = rand(UV);
-	for(float g = 1; g < GISamples; g += 1) 
+	for(float g = 1; g < GISamples; g += 1) for(int xa = 0; xa < 16; xa += 1) 
 	{ 				
-		float random = g * Seeds[0] * fullrandom;
+		float random = g * Seeds[xa] * fullrandom;
 		// Performance trick to get unique vec2 :)
 		// This vec2 is in range [0,1] so use it for random UV lookup
-		vec2 coord = vec2(fract(random), fract(random*12.545));		
+		vec2 coord = vec2(fract(random), fract(random*1.145123));		
 		if(testVisibility(coord, UV)) 
 		{
 			// Calculate 1D seed unique for every loop iteration
@@ -292,9 +292,9 @@ vec3 GlobalIlluminationVersion1()
 			// Get pixel world position and calculate attentuation based on pixels' distance
 			vec3 worldPosition = texture(worldPos, coord).rgb;
 			float worldDistance = distance(positionCenter, worldPosition);
-			//if(worldDistance < 0.12) continue;
+			if(worldDistance < 0.12) continue;
 			//if(worldDistance > 8.2) continue;
-			float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 140.0;
+			float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 10.0;
 			if(attentuation < 0.07) continue;
 			// Get last GI result so we can bounce infinitely now! That color gets mixed with selected pixel
 			vec3 giLastResult = texture(lastGi, coord).rgb;
@@ -307,7 +307,7 @@ vec3 GlobalIlluminationVersion1()
 			vec3 lightRelativeToVPos = worldPosition - positionCenter;
 			vec3 R = reflect(lightRelativeToVPos, normal.xyz);
 			float cosAlpha = max(0, -dot(normalize(cameraSpace), normalize(R)));
-			float specularComponent = pow(cosAlpha, 80.0 / specSize) * speccomp;
+			float specularComponent = pow(cosAlpha, 20.0 / specSize);
 			res += c * 10 * specularComponent;
 			if(length(res) > 0.05){
 
@@ -325,6 +325,7 @@ vec3 GlobalIlluminationVersion1()
 	float giLastDepth = texture(lastGiDepth, UV).r;
 	if(abs(giLastDepth - centerDepth) > 0.001) return result;
 	return length(result) > length(giLastResult) ? result : giLastResult;
+	//return result;
 }
 
 vec2 projectDirection(vec3 dir){

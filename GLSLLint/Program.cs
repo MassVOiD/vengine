@@ -7,6 +7,12 @@ namespace GLSLLint
 {
     internal class Program
     {
+        class Config
+        {
+            public static string MediaPath = "media";
+            public static int Width = 1200;
+            public static int Height = 700;
+        }
         private static void Main(string[] args)
         {
             string source = null;
@@ -52,7 +58,7 @@ namespace GLSLLint
 
             int shader = GL.CreateShader(type);
             System.IO.Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
-            var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
+            //var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
             Media.SearchPath = Config.MediaPath;
             string src = ShaderPreparser.Preparse(source);
             GL.ShaderSource(shader, src);
