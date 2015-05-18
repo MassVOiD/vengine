@@ -60,6 +60,7 @@
     <Compile Include="OldCityScene.cs" />
     <Compile Include="BoxesScene.cs" />
     <Compile Include="IndirectTestScene.cs" />
+    <Compile Include="ComputeBallsScene.cs" />
     <Compile Include="SponzaScene.cs" />
     <Compile Include="SculptScene.cs" />
     <Compile Include="KeyboardHandler.cs" />

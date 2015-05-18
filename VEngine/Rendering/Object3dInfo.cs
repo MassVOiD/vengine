@@ -183,7 +183,7 @@ namespace VEngine
                     }
                     var objinfo = new Object3dInfo(VBO, indicesNew);
                     var transformationNode = colladaNode.SelectSingle("library_visual_scenes").SelectSingle("visual_scene").SelectMany("node").First((a) => a.SelectSingle("instance_geometry").Attribute("url").Value == "#" + geoID);
-                    var mesh = new Mesh3d(objinfo, new SolidColorMaterial(Color.White));
+                    var mesh = new Mesh3d(objinfo, new GenericMaterial(Color.White));
                     List<float> transVector = transformationNode.SelectMany("translate").First((a) => a.Attribute("sid").Value == "location").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
                     List<List<float>> rots = transformationNode.SelectMany("rotate").Select<XElement, List<float>>((a) => a.Value.Trim().Split(new char[] { ' ' }).Select<string, float>((ax) => float.Parse(ax, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList()).ToList();
                     List<float> scale = transformationNode.SelectMany("scale").First((a) => a.Attribute("sid").Value == "scale").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
@@ -380,7 +380,7 @@ namespace VEngine
             Dictionary<Color, IMaterial> colorCache = new Dictionary<Color, IMaterial>();
             Dictionary<IMaterial, MaterialInfo> mInfos = new Dictionary<IMaterial, MaterialInfo>();
             Dictionary<IMaterial, List<Object3dInfo>> linkCache = new Dictionary<IMaterial, List<Object3dInfo>>();
-            var colorPink = new SolidColorMaterial(Color.Pink);
+            var colorPink = new GenericMaterial(Color.Pink);
             mInfos = new Dictionary<IMaterial, MaterialInfo>();
             foreach(var obj in objs)
             {
@@ -395,14 +395,14 @@ namespace VEngine
                     }
                     else
                     {
-                        var m = SingleTextureMaterial.FromMedia(Path.GetFileName(mat.TextureName));
+                        var m = GenericMaterial.FromMedia(Path.GetFileName(mat.TextureName));
                         m.NormalMapScale = 10;
                         material = m;
                         mInfos[material] = mat;
                         texCache.Add(mat.TextureName + mat.AlphaMask, material);
                        // material = colorPink;
                     }
-                    //material = new SolidColorMaterial(Color.Pink);
+                    //material = new GenericMaterial(Color.Pink);
                 }
                 else if(mat != null)
                 {
@@ -413,7 +413,7 @@ namespace VEngine
                     }
                     else
                     {
-                        material = new SolidColorMaterial(Color.White);
+                        material = new GenericMaterial(Color.White);
                         mInfos[material] = mat;
                         colorCache.Add(mat.DiffuseColor, material);
                     }
@@ -478,6 +478,7 @@ namespace VEngine
         public void Draw()
         {
             DrawPrepare();
+            GLThread.CheckErrors();
             GL.DrawElements(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, Indices.Count,
                     DrawElementsType.UnsignedInt, IntPtr.Zero);
             //GLThread.CheckErrors();

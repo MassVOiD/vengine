@@ -11,7 +11,16 @@ uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
 const int MAX_INSTANCES = 2000;
 uniform int Instances;
-uniform mat4 ModelMatrixes[MAX_INSTANCES];
+uniform mat4 ModelMatrix;
+uniform mat4 RotationMatrix;
+layout (std430, binding = 0) buffer MMBuffer
+{
+  mat4 ModelMatrixes[]; 
+}; 
+layout (std430, binding = 1) buffer RMBuffer
+{
+  mat4 RotationMatrixes[]; 
+}; 
 smooth out vec2 UV;
 
 //out vec3 normal;
@@ -20,9 +29,15 @@ smooth out vec3 vertexWorldSpace;
 void main(){
 	vec4 v = vec4(in_position,1);
 
-	mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrixes[gl_InstanceID];
-	vertexWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
-	gl_Position = mvp * v;
+	if(Instances == 1){
+		mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrix;
+		vertexWorldSpace = (ModelMatrix * v).xyz;
+		gl_Position = mvp * v;
+	} else {
+		mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrixes[gl_InstanceID];
+		vertexWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
+		gl_Position = mvp * v;
+	}
 	UV = vec2(in_uv.x, -in_uv.y);
 
 }

@@ -38,7 +38,7 @@ namespace ShadowsTester
             GC.Collect();*/
 
             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-18300 / scale, -16000 / scale), new Vector2(18300 / scale, 16000 / scale), new Vector2(4096, 4096), Vector3.UnitY, 11 / scale, (x, y) => 0);
-
+            
             var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
             terrainInfo.ScaleUV(100);
             var terrain = new Mesh3d(terrainInfo, SingleTextureMaterial.FromMedia("151.JPG", "151_norm.JPG"));
@@ -63,15 +63,16 @@ namespace ShadowsTester
            // var car = new Mesh3d(daetest, new SolidColorMaterial(Color.Red));
            // Add(car);
             var rand = new Random();
-            /*
+            
             var scene1 = Object3dInfo.LoadSceneFromObj(Media.Get("tree1.obj"), Media.Get("tree1.mtl"), 12);
             List<Mesh3d> trees = new List<Mesh3d>();
-            for(int i = 0; i < 50; i++)
+            for(int i = 0; i < 44; i++)
             {
                 foreach(var ob in scene1)
                 {
                     var copy = new Mesh3d(ob.MainObjectInfo, ob.MainMaterial);
                     copy.Translate(rand.Next(-40, 40), 10, rand.Next(-40, 40));
+                    copy.Scale((float)rand.NextDouble() + 1.0f);
                     trees.Add(copy);
                 }
             }
@@ -79,15 +80,15 @@ namespace ShadowsTester
             {
                 a.UpdateMatrix();
                 Add(a);
-            });*/
-            /*var grasslod0 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
+            });
+            var grasslod0 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
             var grasslod1 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
             var grasslod2 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod2.obj"));
             var grasslod3 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod3.obj"));
             //var grassBlock3dInfo = Object3dInfo.LoadFromRaw(Media.Get("grassblock2.vbo.raw"), Media.Get("grassblock2.indices.raw"));
             //grassBlock3dInfo.MakeDoubleFaced();
             var grasscolor = new SolidColorMaterial(Color.DarkGreen);
-            var grassInstanced = new InstancedMesh3d(grasslod0, grasscolor);
+            var grassInstanced = new InstancedMesh3d(grasslod3, grasscolor);
             //grassInstanced.AddLodLevel(15, grasslod0, grasscolor);
             //grassInstanced.AddLodLevel(60, grasslod1, grasscolor);
             //grassInstanced.AddLodLevel(200, grasslod2, grasscolor);
@@ -96,9 +97,9 @@ namespace ShadowsTester
             //{
             //    grassInstanced.RecalculateLod();
             //}, 100).Start();
-            for(int x = -15; x < 15; x++)
+            /*for(int x = -500; x < 500; x++)
             {
-                for(int y = -15; y < 15; y++)
+                for(int y = -500; y < 500; y++)
                 {
                     grassInstanced.Transformations.Add(new TransformationManager(new Vector3(x, 0, y), Quaternion.FromAxisAngle(Vector3.UnitY, (float)rand.NextDouble() * MathHelper.Pi), new Vector3(1, 1, 1)));
                     grassInstanced.Instances++;

@@ -12,7 +12,7 @@ namespace VEngine
         public AbsDisplayAdapter(string title, int width, int height)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(8, 0, 0, 0), title, GameWindowFlags.Default,
-                DisplayDevice.Default, 4, 4,
+                DisplayDevice.Default, 4, 3,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             Width = width;

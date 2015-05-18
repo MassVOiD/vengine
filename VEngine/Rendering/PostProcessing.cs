@@ -47,11 +47,15 @@ namespace VEngine
 
         private MRTFramebuffer MRT;
 
+        private ShaderStorageBuffer TestBuffer;
+
         private Mesh3d PostProcessingMesh;
 
         private static uint[] postProcessingPlaneIndices = {
                 0, 1, 2, 3, 2, 1
             };
+
+        private ComputeShader CShader;
 
         private static float[] postProcessingPlaneVertices = {
                 -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -62,6 +66,16 @@ namespace VEngine
 
         public PostProcessing(int initialWidth, int initialHeight)
         {
+            TestBuffer = new ShaderStorageBuffer();
+            CShader = new ComputeShader("Blur.compute.glsl");
+            GLThread.Invoke(() =>
+            {
+                TestBuffer.MapData(new Vector3[4]{
+                    new Vector3(1, 0.25f, 1), new Vector3(0, 0.55f, 0.75f),
+                    new Vector3(1, 0.25f, 0), new Vector3(0.55f, 0, 0.75f)
+                });
+
+            });
             Width = initialWidth;
             Height = initialHeight;
             MSAAResolvingFrameBuffer = new Framebuffer(initialWidth, initialHeight);
@@ -78,7 +92,7 @@ namespace VEngine
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
             LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 
-            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight /1);
+            GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight /2);
             //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 
 
@@ -255,6 +269,7 @@ namespace VEngine
             CombinerShader.SetUniform("UseDeferred", UseDeferred);
             CombinerShader.SetUniform("UseBilinearGI", UseBilinearGI);
             ShaderProgram.Lock = true;
+            TestBuffer.Use(2);
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
         }
@@ -397,19 +412,37 @@ namespace VEngine
 
             
 
-            Combine();
+            //Combine();
 
 
-            SwitchToFB(SmallFrameBuffer);
-            MRT.UseTextureDiffuseColor(0);
-            MRT.UseTextureDepth(1);
-            Blit();
+           // SwitchToFB(SmallFrameBuffer);
+           // MRT.UseTextureDiffuseColor(0);
+           // MRT.UseTextureDepth(1);
+           // Blit();
 
            // SwitchBetweenFB();
            // if(World.Root.SkyDome != null) World.Root.SkyDome.Draw();
             //LensBlur();
 
             SwitchToFB0();
+            CShader.Use();
+            MRT.UseTextureDiffuseColor(1);
+            MRT.UseTextureDepth(2);
+            MRT.UseTextureWorldPosition(3);
+            MRT.UseTextureNormals(4);
+            p1.UseTexture(5);
+            MRT.UseTextureDepth(6);
+            FogFramebuffer.UseTexture(7);
+            LightPointsFrameBuffer.UseTexture(8);
+            BloomFrameBuffer.UseTexture(9);
+            GlobalIlluminationFrameBuffer.UseTexture(10);
+            GL.BindImageTexture(0, LastFrameBuffer.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba16f);
+            CShader.SetUniform("PASS", 0);
+            CShader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+            CShader.SetUniform("HBAOStrength", GLThread.GraphicsSettings.HBAOStrength);
+            CShader.SetUniform("HBAOContribution", GLThread.GraphicsSettings.HBAOContribution);
+            CShader.Dispatch(Width / 32, Height / 32);
+            GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
             
             HDR();
             if(World.Root != null && World.Root.UI != null)

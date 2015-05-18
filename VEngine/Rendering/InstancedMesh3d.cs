@@ -10,6 +10,8 @@ namespace VEngine
     {
         public InstancedMesh3d(Object3dInfo objectInfo, IMaterial material)
         {
+            ModelMatricesBuffer = new ShaderStorageBuffer();
+            RotationMatricesBuffer = new ShaderStorageBuffer();
             Randomizer = new Random();
             Transformations = new List<TransformationManager>();
             Instances = 0;
@@ -24,8 +26,10 @@ namespace VEngine
         public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
         private Object3dInfo ObjectInfo;
         private Random Randomizer;
-        private const int MaxInstances = 1500;
+        //private const int MaxInstances = 1500;
         private List<Matrix4[]> ModelMatrices, RotationMatrices;
+        public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
+
         class LodLevelData
         {
             public Object3dInfo Info3d;
@@ -99,16 +103,13 @@ namespace VEngine
             {
 
                 SetUniforms(Material);
-                for(int i = 0; i < ModelMatrices.Count; i++)
-                {
-                    Material.GetShaderProgram().SetUniformArray("ModelMatrixes", ModelMatrices[i]);
-                    Material.GetShaderProgram().SetUniformArray("RotationMatrixes", RotationMatrices[i]);
-                    if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
-                        OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
-                    ObjectInfo.DrawInstanced(ModelMatrices[i].Length);
-                    if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
-                        OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
-                }
+                if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
+                    OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
+
+                ObjectInfo.DrawInstanced(Instances);
+
+                if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
+                    OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
             }
             else
             {
@@ -141,6 +142,9 @@ namespace VEngine
         {
             ShaderProgram shader = material.GetShaderProgram();
             bool shaderSwitchResult = Material.Use();
+
+            ModelMatricesBuffer.Use(0);
+            RotationMatricesBuffer.Use(1);
 
             // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
 
@@ -205,13 +209,11 @@ namespace VEngine
                 RotationMatrix.Add(Matrix4.CreateFromQuaternion(Transformations[i].GetOrientation()));
                 Matrix.Add(Matrix4.CreateScale(Transformations[i].GetScale()) * RotationMatrix[i] * Matrix4.CreateTranslation(Transformations[i].GetPosition()));
             }
-            ModelMatrices = new List<Matrix4[]>();
-            RotationMatrices = new List<Matrix4[]>();
-            for(int i = 0; i < Instances; i += MaxInstances)
+            GLThread.Invoke(() =>
             {
-                ModelMatrices.Add(Matrix.Skip(i).Take(MaxInstances).ToArray());
-                RotationMatrices.Add(RotationMatrix.Skip(i).Take(MaxInstances).ToArray());
-            }
+                ModelMatricesBuffer.MapData(Matrix.ToArray());
+                RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
+            });
         }
 
         // this is gonna be awesome

@@ -17,10 +17,19 @@ uniform int LightsMixModes[MAX_LIGHTS];
 #define LIGHT_MIX_MODE_SUN_CASCADE 2
 
 
-const int MAX_INSTANCES = 1500;
 uniform int Instances;
-uniform mat4 ModelMatrixes[MAX_INSTANCES];
-uniform mat4 RotationMatrixes[MAX_INSTANCES];
+uniform mat4 ModelMatrix;
+uniform mat4 RotationMatrix;
+
+layout (std430, binding = 0) buffer MMBuffer
+{
+  mat4 ModelMatrixes[]; 
+}; 
+layout (std430, binding = 1) buffer RMBuffer
+{
+  mat4 RotationMatrixes[]; 
+}; 
+
 
 uniform float RandomSeed1;
 uniform float RandomSeed2;

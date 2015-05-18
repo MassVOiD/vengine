@@ -21,10 +21,15 @@ void main(){
 
 	normal = in_normal;
 	UV = vec2(in_uv.x, -in_uv.y);
-
-	gl_Position = (ProjectionMatrix  * ViewMatrix * ModelMatrixes[gl_InstanceID]) * v;	
-	positionWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
-
+	
+	if(Instances == 1){
+		gl_Position = (ProjectionMatrix  * ViewMatrix * ModelMatrix) * v;	
+		positionWorldSpace = (ModelMatrix * v).xyz;
+	} else {
+		gl_Position = (ProjectionMatrix  * ViewMatrix * ModelMatrixes[gl_InstanceID]) * v;	
+		positionWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
+	}
+	
 	instanceId = gl_InstanceID;
 
 	positionModelSpace = v.xyz;	

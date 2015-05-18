@@ -18,10 +18,11 @@ namespace ShadowsTester
         {
 
 
-            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
 
 
-            var color = SingleTextureMaterial.FromMedia("checked.png", "nmaphires.jpg");
+            var color = GenericMaterial.FromMedia("checked.png");
+            color.SetBumpMapFromMedia("lightref.png");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.Translate(0, -10, 0);
@@ -67,7 +68,7 @@ namespace ShadowsTester
             var wheel3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("vmwheel.obj"));
             var car3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("vmbody.obj"));
 
-            var car = new Mesh3d(car3dInfo, new SolidColorMaterial(Color.LightGreen));
+            var car = new Mesh3d(car3dInfo, new GenericMaterial(Color.LightGreen));
             car.SetMass(800);
             //car.Translate(0, 3.76f, 0);
             car.SetCollisionShape(new BoxShape(car3dInfo.GetAxisAlignedBox()));
@@ -77,7 +78,7 @@ namespace ShadowsTester
             car.PhysicalBody.CcdMotionThreshold = 0;
             CurrentCar = car;
             Add(car);
-
+            /*
             ProjectionLight carLightLeft = new ProjectionLight(new Vector3(1, 25, 1), Quaternion.Identity, 256, 256, MathHelper.PiOver2, 1.0f, 10000.0f);
             carLightLeft.LightColor = new Vector4(0.90f, 0.90f, 1, 11);
             LightPool.Add(carLightLeft);
@@ -85,7 +86,7 @@ namespace ShadowsTester
             carLightRight.LightColor = new Vector4(0.90f, 0.90f, 1, 11);
             LightPool.Add(carLightRight);
 
-
+            */
 
             float axis = 5.240539f;
             float side = 2.94906f;
@@ -93,30 +94,30 @@ namespace ShadowsTester
 
             var lightrot = Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2);
 
-            MeshLinker.Link(car, carLightLeft, new Vector3(-axis - 4, 0, side), lightrot);
-            MeshLinker.Link(car, carLightRight, new Vector3(-axis - 4, 0, -side), lightrot);
+           // MeshLinker.Link(car, carLightLeft, new Vector3(-axis - 4, 0, side), lightrot);
+            //MeshLinker.Link(car, carLightRight, new Vector3(-axis - 4, 0, -side), lightrot);
 
             var shape = new SphereShape(wheel3dInfo.GetAxisAlignedBox().X);
             //var shape = wheel3dInfo.GetAccurateCollisionShape();
-            var wheelLF = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
+            var wheelLF = new Mesh3d(wheel3dInfo, new GenericMaterial(Color.White));
             wheelLF.SetMass(100);
             wheelLF.Translate(axis, suspension, -side);
             wheelLF.SetCollisionShape(shape);
             wheelLF.CreateRigidBody();
             Add(wheelLF);
-            var wheelRF = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
+            var wheelRF = new Mesh3d(wheel3dInfo, new GenericMaterial(Color.White));
             wheelRF.SetMass(100);
             wheelRF.Translate(axis, suspension, side);
             wheelRF.SetCollisionShape(shape);
             wheelRF.CreateRigidBody();
             Add(wheelRF);
-            var wheelLR = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
+            var wheelLR = new Mesh3d(wheel3dInfo, new GenericMaterial(Color.White));
             wheelLR.SetMass(100);
             wheelLR.Translate(-axis, suspension, -side);
             wheelLR.SetCollisionShape(shape);
             wheelLR.CreateRigidBody();
             Add(wheelLR);
-            var wheelRR = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
+            var wheelRR = new Mesh3d(wheel3dInfo, new GenericMaterial(Color.White));
             wheelRR.SetMass(100);
             wheelRR.Translate(-axis, suspension, side);
             wheelRR.SetCollisionShape(shape);
@@ -265,13 +266,13 @@ namespace ShadowsTester
                     //centerAxis4.SetAxis(new Vector3(0, 0, 1));
                 }
             };
-
+            /*
             var track3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("track.obj"));
             var track = new Mesh3d(track3dInfo, new SolidColorMaterial(Color.Blue));
             track.SetMass(0);
             track.SetCollisionShape(track3dInfo.GetAccurateCollisionShape());
             //track.Translate(0, 0, 0);
-            Add(track);
+            Add(track);*/
 
         }
 

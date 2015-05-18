@@ -61,13 +61,16 @@ namespace ShadowsTester
             Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
 
 
-            var color = SingleTextureMaterial.FromMedia("151.jpg", "151_norm.JPG");
+            // compute shade test
+
+
+            var color = GenericMaterial.FromMedia("151.jpg", "151_norm.JPG");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
              water.DiffuseComponent = 0.2f;
              // World.Root.Add(water);
-             var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.94f, 0.90f, 1212.0f), 1.0f);
+             //var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.94f, 0.90f, 1212.0f), 0, 5, 10, 20, 80, 400, 1000);
 
              ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 0.1f, 1000.0f);
             redConeLight.LightColor = new Vector4(1, 1, 1, 210);
@@ -108,7 +111,7 @@ namespace ShadowsTester
                     var pos = redConeLight.camera.Transformation.GetPosition();
                     redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitY / 12.0f);
                 }
-                if(kb.IsKeyDown(OpenTK.Input.Key.U))
+                /*if(kb.IsKeyDown(OpenTK.Input.Key.U))
                 {
                     var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
@@ -127,19 +130,19 @@ namespace ShadowsTester
                 {
                     var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
+                }*/
             };
 
             //new SculptScene().Create();
             //new SponzaScene().Create();
-            new OldCityScene().Create();
+            //new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new ManyCubesScene().Create();
-            //new CarScene().Create();
+            //new ComputeBallsScene().Create();
 
-            //new HallScene().Create();
+            new HallScene().Create();
             //new RoadScene().Create();
             //new HomeScene().Create();
 
@@ -236,7 +239,7 @@ namespace ShadowsTester
 
             
             Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
-            var skydomeMaterial = SingleTextureMaterial.FromMedia("skyreal.png");
+            var skydomeMaterial = GenericMaterial.FromMedia("skyreal.png");
             var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
             skydome.Transformation.Scale(55000);
             skydome.Transformation.Translate(0, -100, 0);

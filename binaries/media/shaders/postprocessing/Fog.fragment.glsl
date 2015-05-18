@@ -43,6 +43,7 @@ uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
 
 //#define ENABLE_FOG_NOISE
 
+
 float raymarchReflection(vec2 uvstart, vec2 uvend, int i){
 	float fogDensity = 0;
 	/*for(float m = 0.0; m< 1.0;m+= 0.05){

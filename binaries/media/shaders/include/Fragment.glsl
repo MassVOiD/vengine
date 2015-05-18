@@ -73,11 +73,14 @@ void finishFragment(vec4 color){
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normal;
 		if(UseNormalMap == 1){
-			//normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
+			normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
 			
 		}
-		
-		outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, SpecularSize);
+		if(Instances == 1){
+			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, SpecularSize);
+		} else {
+			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, SpecularSize);
+		}
 	} else {
 		outNormals = vec4(0, 0, 0, 0);
 	}	

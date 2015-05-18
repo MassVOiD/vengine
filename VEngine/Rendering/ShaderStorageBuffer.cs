@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
@@ -9,15 +11,54 @@ namespace VEngine
         {
         }
 
-        private byte[] data;
         private bool Generated;
         private int Handle = -1;
 
         public void MapData(byte[] buffer)
         {
-            Handle = GL.GenBuffer();
+            if(!Generated)
+            {
+                Handle = GL.GenBuffer();
+                Generated = true;
+            }
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, BufferUsageHint.DynamicCopy);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, BufferUsageHint.DynamicDraw);
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
+        }
+        public void MapData(dynamic structure)
+        {
+            if(structure.GetType().IsArray)
+            {
+                var objs = structure;
+                var buf = new List<byte>();
+                for(int i = 0; i < objs.Length; i++)
+                {
+
+                    int size = Marshal.SizeOf(structure[i]);
+                    byte[] arr = new byte[size];
+                    IntPtr ptr = Marshal.AllocHGlobal(size);
+
+                    Marshal.StructureToPtr(structure[i], ptr, true);
+                    Marshal.Copy(ptr, arr, 0, size);
+                    Marshal.FreeHGlobal(ptr);
+
+                    buf.AddRange(arr);
+                }
+                MapData(buf.ToArray());
+            }
+            else
+            {
+
+                int size = Marshal.SizeOf(structure);
+                byte[] arr = new byte[size];
+                IntPtr ptr = Marshal.AllocHGlobal(size);
+
+                Marshal.StructureToPtr(structure, ptr, true);
+                Marshal.Copy(ptr, arr, 0, size);
+                Marshal.FreeHGlobal(ptr);
+
+                MapData(arr);
+            }
         }
 
         public void Use(uint point)

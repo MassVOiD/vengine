@@ -124,18 +124,30 @@ vec3 subsurfaceScatteringExperiment(){
 	);
 }*/
 
+vec2 proj(vec3 dir){
+	vec3 positionCenter = texture(worldPos, UV).rgb; 
+	vec3 dirPosition = positionCenter + dir * 0.05;
+	
+	vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(normalize(positionCenter), 1.0);
+	vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+	clipspace = (ProjectionMatrix * ViewMatrix) * vec4(normalize(dirPosition), 1.0);
+	vec2 sspace2 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+	return normalize(sspace2 - sspace1);
+}
+
 vec2 refractUV(){
 	vec3 rdir = normalize(texture(worldPos, UV).rgb - CameraPosition);
 	vec3 crs1 = normalize(cross(CameraPosition, texture(worldPos, UV).rgb));
 	vec3 crs2 = normalize(cross(crs1, rdir));
 	vec3 rf = refract(rdir, texture(normals, UV).rgb, 0.02);
-	return UV + vec2(dot(rf, crs1), dot(rf, crs2)) * 0.3;
+	return UV + proj(rf) * 0.3;
 }
 
-vec3 motionBlurExperiment(){
-	vec3 outc = texture(color, UV).rgb;
-	vec3 centerPos = texture(worldPos, UV).rgb;
-	vec2 nearestUV = UV;
+
+vec3 motionBlurExperiment(vec2 uv){
+	vec3 outc = texture(color, uv).rgb;
+	vec3 centerPos = texture(worldPos, uv).rgb;
+	vec2 nearestUV = uv;
 	float worldDistance = 999999;
 	
 	for(float g = 0; g < mPI2 * 2; g+=0.9)
@@ -143,21 +155,21 @@ vec3 motionBlurExperiment(){
 		for(float g2 = 0.0; g2 < 4.0; g2+=0.3)
 		{ 
 			vec2 dsplc = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.002);
-			vec3 pos = texture(lastworldPos, UV + dsplc).rgb;
+			vec3 pos = texture(lastworldPos, uv + dsplc).rgb;
 			float ds = distance(pos, centerPos);
 			if(worldDistance > ds){
 				worldDistance = ds;
-				nearestUV = UV + dsplc;
+				nearestUV = uv + dsplc;
 			}
 		}
 	}	
-	//if(distance(nearestUV, UV) < 0.001) return outc;
+	//if(distance(nearestUV, uv) < 0.001) return outc;
 	int counter = 0;
 	outc = vec3(0);
-	vec2 direction = (nearestUV - UV);
+	vec2 direction = (nearestUV - uv);
 	for(float g = 0; g < 1; g+=0.1)
 	{ 
-		outc += texture(color, mix(UV - direction, UV + direction, g)).rgb;
+		outc += texture(color, mix(uv - direction, uv + direction, g)).rgb;
 		counter++;
 	}
 	return outc / counter;
@@ -171,6 +183,11 @@ uniform int UseBloom;
 uniform int UseDeferred;
 uniform int UseBilinearGI;
 
+layout (std430, binding = 2) buffer SSBOTest
+{
+  vec3 BufValues[]; 
+}; 
+
 void main()
 {
 	vec2 nUV = UV;
@@ -180,18 +197,23 @@ void main()
 	   //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
 	}
 	//if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
-	if(UseDeferred == 1) color1 += motionBlurExperiment();
+	if(UseDeferred == 1) color1 += motionBlurExperiment(nUV);
 	//if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 	if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
 	if(UseBloom == 1) color1 += lookupBloomBlurred(nUV, 0.1).rgb * BloomContribution;
 	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
 	if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
-	//if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.001) * GIContribution;
-	if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * GIContribution;
+	if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.002) * GIContribution;
+	//if(UseSimpleGI == 1) color1 += lookupGISimple(nUV) * GIContribution;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;
 	
+	/*if(UV.x > 0 && UV.x < 0.05) color1 = (BufValues[0]);
+	if(UV.x > 0.05 && UV.x < 0.1) color1 = (BufValues[1]);
+	if(UV.x > 0.1 && UV.x < 0.15) color1 = (BufValues[2]);
+	if(UV.x > 0.15 && UV.x < 0.2) color1 = (BufValues[3]);
+	*/
     outColor = vec4(color1, 1);
 }

@@ -277,12 +277,11 @@ vec3 GlobalIlluminationVersion1()
 	float fullrandom = rand(UV);
 	for(float g = 1; g < GISamples; g += 1) for(int xa = 0; xa < 16; xa += 1) 
 	{ 				
-		float random = g * Seeds[xa] * fullrandom;
+		float random = g * fullrandom;
 		// Performance trick to get unique vec2 :)
 		// This vec2 is in range [0,1] so use it for random UV lookup
-		vec2 coord = vec2(fract(random), fract(random*1.145123));		
-		if(testVisibility(coord, UV)) 
-		{
+		vec2 coord = vec2(fract(random * Seeds[xa * 2]), fract(random * Seeds[xa * 2 + 1]));		
+		
 			// Calculate 1D seed unique for every loop iteration
 			// Let's test visibility
 			// Get pixel color
@@ -294,7 +293,7 @@ vec3 GlobalIlluminationVersion1()
 			float worldDistance = distance(positionCenter, worldPosition);
 			if(worldDistance < 0.12) continue;
 			//if(worldDistance > 8.2) continue;
-			float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 10.0;
+			float attentuation = 1.0 / pow(((worldDistance) + 1.0), 2.0) * 50.0;
 			if(attentuation < 0.07) continue;
 			// Get last GI result so we can bounce infinitely now! That color gets mixed with selected pixel
 			vec3 giLastResult = texture(lastGi, coord).rgb;
@@ -309,11 +308,12 @@ vec3 GlobalIlluminationVersion1()
 			float cosAlpha = max(0, -dot(normalize(cameraSpace), normalize(R)));
 			float specularComponent = pow(cosAlpha, 20.0 / specSize);
 			res += c * 10 * specularComponent;
-			if(length(res) > 0.05){
-
+			//outBuffer += res;
+			if(testVisibilityUnrolled(coord, UV)) 
+			{
 				outBuffer += res;
+				
 			}
-		}
 	
 	
 		

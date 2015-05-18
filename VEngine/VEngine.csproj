@@ -82,6 +82,7 @@
     <Compile Include="Compute\ComputeShader.cs" />
     <Compile Include="Rendering\CubeMapFramebuffer.cs" />
     <Compile Include="Rendering\DeferredPipeline.cs" />
+    <Compile Include="Rendering\Materials\AbsMaterial.cs" />
     <Compile Include="Rendering\Materials\GenericMaterial.cs" />
     <Compile Include="Rendering\MRTFramebuffer.cs" />
     <Compile Include="Game\Game.cs" />

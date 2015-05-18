@@ -10,6 +10,8 @@ namespace VEngine
     {
         public Mesh3d(Object3dInfo objectInfo, IMaterial material)
         {
+           // ModelMatricesBuffer = new ShaderStorageBuffer();
+           // RotationMatricesBuffer = new ShaderStorageBuffer();
             DisableDepthWrite = false;
             Instances = 1;
             MainObjectInfo = objectInfo;
@@ -26,6 +28,7 @@ namespace VEngine
         public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
         public TransformationManager Transformation;
         public bool DisableDepthWrite;
+        //public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
 
         private static int LastMaterialHash = 0;
         private float Mass = 1.0f;
@@ -157,14 +160,17 @@ namespace VEngine
             if(Transformation.HasBeenModified())
             {
                 UpdateMatrix();
+
+                //ModelMatricesBuffer.MapData(Matrix);
+                //RotationMatricesBuffer.MapData(RotationMatrix);
                 Transformation.ClearModifiedFlag();
             }
             if(Camera.Current == null)
                 return;
 
             SetUniforms();
-            GetCurrentMaterial().GetShaderProgram().SetUniformArray("ModelMatrixes", new Matrix4[] { Matrix });
-            GetCurrentMaterial().GetShaderProgram().SetUniformArray("RotationMatrixes", new Matrix4[] { RotationMatrix });
+            GetCurrentMaterial().GetShaderProgram().SetUniform("ModelMatrix",  Matrix);
+            GetCurrentMaterial().GetShaderProgram().SetUniform("RotationMatrix",  RotationMatrix);
 
             if(!ignoreDisableDepthWriteFlag)
             {
@@ -186,6 +192,9 @@ namespace VEngine
         {
             bool shaderSwitchResult = GetCurrentMaterial().Use();
             ShaderProgram shader = ShaderProgram.Current;
+
+            //ModelMatricesBuffer.Use(0);
+            //RotationMatricesBuffer.Use(1);
 
             // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
             GLThread.GraphicsSettings.SetUniforms(shader);

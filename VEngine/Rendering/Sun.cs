@@ -9,24 +9,21 @@ namespace VEngine
     {
         Dictionary<float, ProjectionLight> Cascades;
         public Quaternion Orientation;
-        public float Brightness;
         public Vector4 LightColor;
         public static Sun Current;
 
-        public Sun(Quaternion orientation, Vector4 color, float brightness)
+        public Sun(Quaternion orientation, Vector4 color, params float[] levels)
         {
             Current = this;
             LightColor = color;
-            Brightness = brightness;
             Orientation = orientation;
             Cascades = new Dictionary<float, ProjectionLight>();
-            float[] levels = {0, 2, 4, 8, 40, 100};
 
             for(int i = 0; i < levels.Length - 1; i++)
             {
                 float start = levels[i];
                 float end = levels[i + 1];
-                var casc = new ProjectionLight(Camera.MainDisplayCamera.GetPosition(), orientation, 1024, 1024, MathHelper.PiOver3, 0.00001f, 10000.0f);
+                var casc = new ProjectionLight(Camera.MainDisplayCamera.GetPosition(), orientation, 2048, 2048, MathHelper.PiOver3, 0.00001f, 10000.0f);
                 casc.LightColor = color;
 
                 casc.FBO.DepthPixelType = OpenTK.Graphics.OpenGL4.PixelType.Float;
@@ -63,7 +60,7 @@ namespace VEngine
                 var right = Orientation.GetTangent(MathExtensions.TangentDirection.Right);
                 var newlocationAbstract = Vector3.Zero - dir * 300;
                 var newlocationCamera = Camera.MainDisplayCamera.GetPosition();
-                newlocationCamera.Y += 55;
+                newlocationCamera.Y = 20;
                 //newlocationCamera.Z *= -1;
                 //newlocationCamera -= c.Key * (Orientation.GetTangent(MathExtensions.TangentDirection.Up));
                 //newlocationCamera += c.Key * right;

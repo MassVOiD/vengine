@@ -6,13 +6,12 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
-    internal class ComputeShader
+    public class ComputeShader
     {
-        public ComputeShader(string source, string fragment)
+        public ComputeShader(string file)
         {
             UniformLocationsCache = new Dictionary<string, int>();
-
-            ComputeSource = source;
+            ComputeSource = ShaderPreparser.Preparse(file, Media.ReadAllText(file));
             Compiled = false;
         }
 
@@ -33,6 +32,12 @@ namespace VEngine
             int location = GetUniformLocation(name);
             if(location >= 0)
                 GL.UniformMatrix4(location, false, ref data);
+        }
+        public void SetUniform(string name, bool data)
+        {
+            int location = GetUniformLocation(name);
+            if(location >= 0)
+                GL.Uniform1(location, data ? 1 : 0);
         }
 
         public void SetUniform(string name, float data)
@@ -79,56 +84,125 @@ namespace VEngine
 
         public void SetUniformArray(string name, Matrix4[] data)
         {
-            for(int i = 0; i < data.Length; i++)
+            int location = GetUniformLocation(name);
+            List<float> floats = new List<float>();
+            foreach(var v in data)
             {
-                int location = GetUniformLocation(name + "_" + i);
-                if(location >= 0)
-                {
-                    GL.UniformMatrix4(location, false, ref data[i]);
-                    GLThread.CheckErrors();
-                }
+                floats.Add(v.Row0.X);
+                floats.Add(v.Row0.Y);
+                floats.Add(v.Row0.Z);
+                floats.Add(v.Row0.W);
+
+                floats.Add(v.Row1.X);
+                floats.Add(v.Row1.Y);
+                floats.Add(v.Row1.Z);
+                floats.Add(v.Row1.W);
+
+                floats.Add(v.Row2.X);
+                floats.Add(v.Row2.Y);
+                floats.Add(v.Row2.Z);
+                floats.Add(v.Row2.W);
+
+                floats.Add(v.Row3.X);
+                floats.Add(v.Row3.Y);
+                floats.Add(v.Row3.Z);
+                floats.Add(v.Row3.W);
+            }
+            if(location >= 0)
+            {
+                GL.UniformMatrix4(location, data.Length, false, floats.ToArray());
+                GLThread.CheckErrors(name);
             }
         }
 
         public void SetUniformArray(string name, Vector3[] data)
         {
-            for(int i = 0; i < data.Length; i++)
+            int location = GetUniformLocation(name);
+            List<float> floats = new List<float>();
+            foreach(var v in data)
             {
-                int location = GetUniformLocation(name + "_" + i);
-                if(location >= 0)
-                {
-                    GL.Uniform3(location, data[i]);
-                    GLThread.CheckErrors();
-                }
+                floats.Add(v.X);
+                floats.Add(v.Y);
+                floats.Add(v.Z);
+            }
+            if(location >= 0)
+            {
+                GL.Uniform3(location, data.Length, floats.ToArray());
+                GLThread.CheckErrors(name);
+            }
+        }
+        public void SetUniformArray(string name, Vector2[] data)
+        {
+            int location = GetUniformLocation(name);
+            List<float> floats = new List<float>();
+            foreach(var v in data)
+            {
+                floats.Add(v.X);
+                floats.Add(v.Y);
+            }
+            if(location >= 0)
+            {
+                GL.Uniform2(location, data.Length, floats.ToArray());
+                GLThread.CheckErrors(name);
+            }
+        }
+
+        public void SetUniformArray(string name, Vector4[] data)
+        {
+            int location = GetUniformLocation(name);
+            List<float> floats = new List<float>();
+            foreach(var v in data)
+            {
+                floats.Add(v.X);
+                floats.Add(v.Y);
+                floats.Add(v.Z);
+                floats.Add(v.W);
+            }
+            if(location >= 0)
+            {
+                GL.Uniform4(location, data.Length, floats.ToArray());
+                GLThread.CheckErrors(name);
+            }
+        }
+
+        public void SetUniformArray(string name, float[] data)
+        {
+            int location = GetUniformLocation(name);
+            if(location >= 0)
+            {
+                GL.Uniform1(location, data.Length, data);
+                GLThread.CheckErrors(name);
+            }
+        }
+        public void SetUniformArray(string name, int[] data)
+        {
+            int location = GetUniformLocation(name);
+            if(location >= 0)
+            {
+                GL.Uniform1(location, data.Length, data);
+                GLThread.CheckErrors(name);
             }
         }
 
         public void Use()
         {
-            if(!Lock)
-            {
-                if(Current == this)
-                    return;
-                if(!Compiled)
-                    Compile();
-                if(!Lock)
-                    GL.UseProgram(Handle);
-                Current = this;
-            }
+            if(!Compiled)
+                Compile();
+            GL.UseProgram(Handle);
+            Current = this;
+        }
+        public void Dispatch(int x, int y = 1, int z = 1)
+        {
+            GL.DispatchCompute(x, y, z);
+            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
         }
 
         private static int GetUniformLocation(string name)
         {
             if(Current.Handle == -1)
                 return -1;
-            if(Current.UniformLocationsCache.ContainsKey(name) && !Lock)
-                return Current.UniformLocationsCache[name];
             int location = GL.GetUniformLocation(Current.Handle, name);
             GLThread.CheckErrors();
-            if(!Lock)
-                Current.UniformLocationsCache.Add(name, location);
-            if(Lock && name == "Time")
-                return -1;
             return location;
         }
 
@@ -144,6 +218,7 @@ namespace VEngine
 
             int status_code;
             GL.GetProgram(Handle, GetProgramParameterName.LinkStatus, out status_code);
+            Console.WriteLine(GL.GetProgramInfoLog(Handle));
             if(status_code != 1)
                 throw new ApplicationException("Linking error");
 
