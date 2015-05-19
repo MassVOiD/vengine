@@ -1,4 +1,5 @@
 in vec2 UV;
+in vec3 tangent;
 uniform vec4 input_Color;
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outWorldPos;
@@ -6,6 +7,8 @@ layout(location = 2) out vec4 outNormals;
 layout(location = 3) out vec4 outMeshData;
 #include LogDepth.glsl
 #include Lighting.glsl
+
+layout(binding = 16) uniform sampler2D bumpMap;
 
 vec3 rotate_vector_by_quat( vec4 quat, vec3 vec )
 {
@@ -71,10 +74,16 @@ void finishFragment(vec4 color){
 	outColor = vec4((color.xyz) * DiffuseComponent, color.a);
 	outWorldPos = vec4(positionWorldSpace.xyz, SpecularComponent);
 	if(IgnoreLighting == 0){
-		vec3 normalNew  = normal;
+		vec3 normalNew  = normalize(normal);
 		if(UseNormalMap == 1){
 			normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
-			
+    
+		}
+		if(UseBumpMap == 1){
+            float factor = (texture(bumpMap, UV).r - 0.5);
+            //vec3 bitan = cross(normal, tangent);
+			normalNew = normalize(normalNew - (tangent * factor));
+    
 		}
 		if(Instances == 1){
 			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, SpecularSize);

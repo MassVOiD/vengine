@@ -364,6 +364,11 @@ namespace VEngine
                     match = Regex.Match(line, @"map_d (.+)");
                     currentMaterial.AlphaMask = Path.GetFileName(match.Groups[1].Value);
                 }
+                if(line.StartsWith("map_Bump"))
+                {
+                    match = Regex.Match(line, @"map_Bump (.+)");
+                    currentMaterial.BumpMapName = Path.GetFileName(match.Groups[1].Value);
+                }
             }
             if(currentName != "")
                 materials.Add(currentName, currentMaterial);
@@ -452,7 +457,10 @@ namespace VEngine
                 Mesh3d mesh = new Mesh3d(o3di, kv.Key);
                 mesh.SpecularComponent = mInfos[kv.Key].SpecularStrength + 0.01f;
                 mesh.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
-                if(mInfos[kv.Key].AlphaMask.Length > 1) mesh.UseAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
+                if(mInfos[kv.Key].AlphaMask.Length > 1)
+                    mesh.UseAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
+                if(mInfos[kv.Key].BumpMapName.Length > 1)
+                    ((GenericMaterial)kv.Key).SetBumpMapFromMedia(mInfos[kv.Key].BumpMapName);
                // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 mesh.Transformation.Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(), 1.0f, 1.0f));
@@ -919,8 +927,113 @@ namespace VEngine
             Current = this;
         }
 
+        private Vector3 CalculateTangent(Vector3 normal, Vector3 v1, Vector3 v2, Vector2 st1, Vector2 st2)
+        {
+            float coef = 1.0f / (st1.X * st2.Y - st2.X * st1.Y);
+            var tangent = Vector3.Zero;
+
+            tangent.X = coef * ((v1.X * st2.Y) + (v2.X * -st1.X));
+            tangent.Y = coef * ((v1.Y * st2.Y) + (v2.Y * -st1.X));
+            tangent.Z = coef * ((v1.Z * st2.Y) + (v2.Z * -st1.X));
+
+            //float3 binormal = normal.crossProduct(tangent);
+            return tangent;
+        }
+
+        public void UpdateTangents()
+	    {
+            var floats = new List<float>();
+            for(int i = 0; i < Indices.Count; i += 3)
+            {
+                // 8 vbo stride
+                int vboIndex1 = (int)Indices[i] * 8;
+                int vboIndex2 = (int)Indices[(i + 1)] * 8;
+                int vboIndex3 = (int)Indices[(i + 2)] * 8;
+                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
+                var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
+                var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
+                var uv1 = new Vector2(VBO[vboIndex1 + 3], VBO[vboIndex1 + 4]);
+                var uv2 = new Vector2(VBO[vboIndex2 + 3], VBO[vboIndex2 + 4]);
+                var uv3 = new Vector2(VBO[vboIndex3 + 3], VBO[vboIndex3 + 4]);
+                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                var nor2 = new Vector3(VBO[vboIndex2 + 5], VBO[vboIndex2 + 6], VBO[vboIndex2 + 7]);
+                var nor3 = new Vector3(VBO[vboIndex3 + 5], VBO[vboIndex3 + 6], VBO[vboIndex3 + 7]);
+
+
+                var tan1 = Vector3.Zero;
+
+                Indices[i] = i == 0 ? 0 : Indices[i - 1] + 1;
+                floats.AddRange(new float[]{
+                    pos1.X, pos1.Y, pos1.Z, uv1.X, uv1.Y, nor1.X, nor1.Y, nor1.Z, tan1.X, tan1.Y, tan1.Z
+                });
+                Indices[i + 1] = Indices[i] + 1;
+                floats.AddRange(new float[]{
+                    pos2.X, pos2.Y, pos2.Z, uv2.X, uv2.Y, nor2.X, nor2.Y, nor2.Z, tan1.X, tan1.Y, tan1.Z
+                });
+                Indices[i + 2] = Indices[i + 1] + 1;
+                floats.AddRange(new float[]{
+                    pos3.X, pos3.Y, pos3.Z, uv3.X, uv3.Y, nor3.X, nor3.Y, nor3.Z, tan1.X, tan1.Y, tan1.Z
+                });
+
+            }
+            VBO = floats;
+            for(int i = 0; i < Indices.Count; i += 3)
+            {
+                // 8 vbo stride
+                int vboIndex1 = (int)Indices[i] * 11;
+                int vboIndex2 = (int)Indices[(i + 1)] * 11;
+                int vboIndex3 = (int)Indices[(i + 2)] * 11;
+                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
+                var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
+                var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
+                var uv1 = new Vector2(VBO[vboIndex1 + 3], VBO[vboIndex1 + 4]);
+                var uv2 = new Vector2(VBO[vboIndex2 + 3], VBO[vboIndex2 + 4]);
+                var uv3 = new Vector2(VBO[vboIndex3 + 3], VBO[vboIndex3 + 4]);
+                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                var nor2 = new Vector3(VBO[vboIndex2 + 5], VBO[vboIndex2 + 6], VBO[vboIndex2 + 7]);
+                var nor3 = new Vector3(VBO[vboIndex3 + 5], VBO[vboIndex3 + 6], VBO[vboIndex3 + 7]);
+                float x1 = pos2.X - pos1.X;
+                float x2 = pos3.X - pos1.X;
+                float y1 = pos2.Y - pos1.Y;
+                float y2 = pos3.Y - pos1.Y;
+                float z1 = pos2.Z - pos1.Z;
+                float z2 = pos3.Z - pos1.Z;
+
+                float s1 = uv2.X - uv1.X;
+                float s2 = uv3.X - uv1.X;
+                float t1 = uv2.Y - uv1.Y;
+                float t2 = uv3.Y - uv1.Y;
+
+                float r = 1.0F / (s1 * t2 - s2 * t1);
+                Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
+                        (t2 * z1 - t1 * z2) * r);
+                VBO[vboIndex1 + 8] += sdir.X;
+                VBO[vboIndex1 + 9] += sdir.Y;
+                VBO[vboIndex1 + 10] += sdir.Z;
+                VBO[vboIndex2 + 8] += sdir.X;
+                VBO[vboIndex2 + 9] += sdir.Y;
+                VBO[vboIndex2 + 10] += sdir.Z;
+                VBO[vboIndex3 + 8] += sdir.X;
+                VBO[vboIndex3 + 9] += sdir.Y;
+                VBO[vboIndex3 + 10] += sdir.Z;
+            }
+            for(int i = 0; i < Indices.Count; i ++)
+            {
+                // 8 vbo stride
+                int vboIndex1 = (int)Indices[i] * 11;
+                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                var tan1 = new Vector3(VBO[vboIndex1 + 8], VBO[vboIndex1 + 9], VBO[vboIndex1 + 10]);
+                var tan = (tan1 - nor1 * Vector3.Dot(nor1, tan1)).Normalized();
+                VBO[vboIndex1 + 8] = tan.X;
+                VBO[vboIndex1 + 9] = tan.Y;
+                VBO[vboIndex1 + 10] = tan.Z;
+            }
+        }
+	
+
         private void GenerateBuffers()
         {
+            UpdateTangents();
             // Here I create VAO handle
             VAOHandle = GL.GenVertexArray();
             // Here I bind this VAO
@@ -945,17 +1058,22 @@ namespace VEngine
             //Enabling 0 location in shaders - There will be vertex model space positions
             GL.EnableVertexAttribArray(0);
             // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride 0 bytes
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 4 * 8, 0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 4 * 11, 0);
 
             //Enabling 1 location in shaders - There will be UVs
             GL.EnableVertexAttribArray(1);
             // config for 0 location for shader, vec2, float, not normalized, 32 bytes total, stride 12 bytes
-            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * 8, 4 * 3);
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * 11, 4 * 3);
 
             //Enabling 2 location in shaders
             GL.EnableVertexAttribArray(2);
             // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride 12 bytes
-            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 4 * 8, 4 * 5);
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 4 * 11, 4 * 5);
+
+            //Enabling 3 location in shaders
+            GL.EnableVertexAttribArray(3);
+            // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride 12 bytes
+            GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, 4 * 11, 4 * 8);
 
             //Unbind VAO
             GL.BindVertexArray(0);
@@ -976,11 +1094,14 @@ namespace VEngine
                 Transparency = 1.0f;
                 SpecularStrength = 1.0f;
                 TextureName = "";
+                BumpMapName = "";
+                NormapMapName = "";
+                SpecularMapName = "";
                 AlphaMask = "";
             }
 
             public Color DiffuseColor, SpecularColor, AmbientColor;
-            public string TextureName;
+            public string TextureName, BumpMapName, NormapMapName, SpecularMapName;
             public string AlphaMask;
             public float Transparency, SpecularStrength;
         }

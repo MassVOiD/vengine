@@ -3,6 +3,7 @@
 #include Mesh3dUniforms.glsl
 
 smooth out vec3 normal;
+smooth out vec3 tangent;
 smooth out vec3 positionWorldSpace;
 smooth out vec3 positionModelSpace;
 smooth out vec2 UV;
@@ -20,6 +21,7 @@ void main(){
 	if(vid == 2)barycentric = vec3(0, 0, 1);
 
 	normal = in_normal;
+	tangent = (in_tangent);
 	UV = vec2(in_uv.x, -in_uv.y);
 	
 	if(Instances == 1){

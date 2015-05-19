@@ -5,8 +5,7 @@ in vec2 UV;
 #include Lighting.glsl
 
 layout(binding = 0) uniform sampler2D textureIn;
-layout(binding = 1) uniform sampler2D texDepth2;
-layout(binding = 3) uniform sampler2D texDepth;
+layout(binding = 2) uniform sampler2D texDepth;
 
 
 uniform float Brightness;
@@ -128,8 +127,8 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 				if(centerDepth - depth < 0.05 || centerDepthDistance > 0.4 || depth > 0.99 || centerDepth > 0.99){
 					vec3 texel = texture(textureIn, coord).rgb;
 					float w = length(texel) + 0.1;
-					weight+=w;
-					finalColor += texel*w;
+					weight+=1;
+					finalColor += texel;
 				}
             }
         }
@@ -145,11 +144,23 @@ void main()
 	float depth = texture(texDepth, UV).r;
 	centerDepth = depth;
 	if(LensBlurAmount > 0.001){
-		//float focus = CameraCurrentDepth;
-		float focus = texture(texDepth2, vec2(0.5, 0.5)).r;
-		float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount - 0.2, 0.0, 0.5);
-		if(avdepth > 0.001) color1.rgb = lensblur(avdepth, focus, 1.0, 18.0);
-	
+		float focus = CameraCurrentDepth;
+		float adepth = reverseLog(depth);
+		float fDepth = reverseLog(CameraCurrentDepth);
+		//float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
+		float f = 16.0 / LensBlurAmount; //focal length in mm
+		float d = fDepth*1000.0; //focal plane in mm
+		float o = adepth*1000.0; //depth in mm
+		
+		float fstop = 4.0;
+		float CoC = 0.03;
+		float a = (o*f)/(o-f); 
+		float b = (d*f)/(d-f); 
+		float c = (d-f)/(d*fstop*CoC); 
+		
+		float blur = abs(a-b)*c;
+		blur = clamp(blur,0.0,1.0) * 50;
+		color1.xyz = lensblur(blur, focus, 0.03, 7.0);
 	}
 	vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
 	color1.rgb = vec3(pow(color1.r, gamma.r),

@@ -203,7 +203,7 @@ void main()
         //nUV = refractUV();
     }
     vec3 colorOriginal = texture(texColor, nUV).rgb;
-    vec3 color1 = LameHBAO();// * GoodHBAO();
+    vec3 color1 = vec3(0);// * GoodHBAO();
     if(texture(texColor, UV).a < 0.99){
         color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
     }

@@ -20,7 +20,7 @@ namespace ShadowsTester
         {
             public static string MediaPath = "media";
             public static int Width = 1200;
-            public static int Height = 700;
+            public static int Height = 600;
         }
 
         private static void Main(string[] args)
@@ -64,12 +64,12 @@ namespace ShadowsTester
             // compute shade test
 
 
-            var color = GenericMaterial.FromMedia("151.jpg", "151_norm.JPG");
+            var color = GenericMaterial.FromMedia("177.jpg", "177_norm.jpg");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
              water.DiffuseComponent = 0.2f;
-             // World.Root.Add(water);
+              World.Root.Add(water);
              //var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.94f, 0.90f, 1212.0f), 0, 5, 10, 20, 80, 400, 1000);
 
              ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 0.1f, 1000.0f);
@@ -135,14 +135,14 @@ namespace ShadowsTester
 
             //new SculptScene().Create();
             //new SponzaScene().Create();
-            //new OldCityScene().Create();
+            new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new ManyCubesScene().Create();
             //new ComputeBallsScene().Create();
 
-            new HallScene().Create();
+            //new HallScene().Create();
             //new RoadScene().Create();
             //new HomeScene().Create();
 

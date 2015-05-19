@@ -26,14 +26,14 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
-            return BumpMap != null ? TesselatedProgram : Program;
+            return Program;
         }
 
         public virtual bool Use()
         {
             var prg = GetShaderProgram();
             bool res = prg.Use();
-            Program.SetUniform("TesselationMultiplier", TesselationMultiplier);
+            prg.SetUniform("TesselationMultiplier", TesselationMultiplier);
             if(NormalMap != null)
             {
                 prg.SetUniform("UseNormalMap", 1);
