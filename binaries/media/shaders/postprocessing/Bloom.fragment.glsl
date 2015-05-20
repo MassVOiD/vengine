@@ -49,5 +49,5 @@ vec3 blurWhitening(){
 
 void main()
 {
-    outColor = clamp(vec4(blurWhitening(), 1), 0, 1);
+    outColor = clamp(vec4(blurWhitening(), 1.0), 0.0, 1.0);
 }

@@ -28,6 +28,7 @@ namespace ShadowsTester
                     ob.SetMass(3.0f);
                     ob.SetCollisionShape(ob.ObjectInfo.GetConvexHull());
                 }*/
+                ob.Translate(0, 0.5f, 0);
                 this.Add(ob);
             }
         }

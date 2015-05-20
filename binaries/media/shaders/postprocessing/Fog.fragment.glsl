@@ -81,16 +81,18 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 	for(int i=0;i<LightsCount;i++){
 	
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
+        vec4 lightClipSpace = lightPV * vec4(end, 1.0);
 		
 		
 		float fogDensity = 0.0;
 		float fogMultiplier = 2.4;
+        vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
 		
 		for(float m = 0.0; m< 1.0;m+= sampling){
 			vec3 pos = mix(start, end, m);
 			//float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
 			float att = 1;
-			vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
+			lightClipSpace = lightPV * vec4(pos, 1.0);
 			#ifdef ENABLE_FOG_NOISE
 			//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
 			
@@ -109,14 +111,12 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 			if(lightClipSpace.z < 0.0){ 
 				fogDensity += idle;
 				continue;
-			}
-			vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
-			if(lightScreenSpace.x < 0.0 || lightScreenSpace.x > 1.0 || lightScreenSpace.y < 0.0 || lightScreenSpace.y > 1.0){ 
-				fogDensity += idle;
-				continue;
-			}
-			if(toLogDepth(distance(pos, LightsPos[i])) < lookupDepthFromLight(i,lightScreenSpace)) {
-				float culler = clamp(1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0, 0.0, 1.0);
+            }
+            vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
+            float badass_depth = (lightClipSpace.z / lightClipSpace.w) * 0.5 + 0.5;	
+            float diff = (badass_depth - lookupDepthFromLight(i, frfuv));
+			if(diff < 0) {
+				float culler = clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float fogNoise = 1.0;
 				fogDensity += idle + 1.0 / 200.0 * culler * fogNoise * fogMultiplier * att;
 			} else {
@@ -133,5 +133,5 @@ void main()
 {
 	
 	vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;
-    outColor = clamp(vec4(raymarchFog(CameraPosition, fragmentPosWorld3d, FogSamples), 1), 0, 1);
+    outColor = clamp(vec4(raymarchFog(CameraPosition, fragmentPosWorld3d, FogSamples), 1), 0.0, 1.0);
 }

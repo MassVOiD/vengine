@@ -65,7 +65,7 @@ void main()
 		float c = (d-f)/(d*fstop*CoC); 
 		
 		float blur = abs(a-b)*c;
-		blur = clamp(blur,0.0,1.0) * 50;
+		blur = clamp(blur,0.0,1.0) * 50.0;
 		color1 = lensblur(blur, focus, 0.03, 7.0);
 	
 	}

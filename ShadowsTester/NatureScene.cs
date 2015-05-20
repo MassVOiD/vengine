@@ -41,11 +41,11 @@ namespace ShadowsTester
             
             var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
             terrainInfo.ScaleUV(100);
-            var terrain = new Mesh3d(terrainInfo, SingleTextureMaterial.FromMedia("151.JPG", "151_norm.JPG"));
+            var terrain = new Mesh3d(terrainInfo, GenericMaterial.FromMedia("151.JPG", "151_norm.JPG"));
             terrain.Scale(5);
             Add(terrain);
 
-            var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
+            var waterMat = new GenericMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
             waterMat.SetNormalMapFromMedia("waternormal.png");
             var water = new Mesh3d(waterInfo, waterMat);
             water.Transformation.Translate(0, 5, 0);
@@ -87,7 +87,7 @@ namespace ShadowsTester
             var grasslod3 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod3.obj"));
             //var grassBlock3dInfo = Object3dInfo.LoadFromRaw(Media.Get("grassblock2.vbo.raw"), Media.Get("grassblock2.indices.raw"));
             //grassBlock3dInfo.MakeDoubleFaced();
-            var grasscolor = new SolidColorMaterial(Color.DarkGreen);
+            var grasscolor = new GenericMaterial(Color.DarkGreen);
             var grassInstanced = new InstancedMesh3d(grasslod3, grasscolor);
             //grassInstanced.AddLodLevel(15, grasslod0, grasscolor);
             //grassInstanced.AddLodLevel(60, grasslod1, grasscolor);

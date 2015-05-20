@@ -116,7 +116,7 @@ namespace VEngine
             //ReflectShader = ShaderProgram.Compile(Media.ReadAllText("PostProcess.vertex.glsl"), Media.ReadAllText("Reflect.fragment.glsl"));
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
-            PostProcessingMesh = new Mesh3d(postPlane3dInfo, new SolidColorMaterial(Color.Pink));
+            PostProcessingMesh = new Mesh3d(postPlane3dInfo, new GenericMaterial(Color.Pink));
         }
 
         private Framebuffer LastFrameBuffer;
@@ -358,7 +358,7 @@ namespace VEngine
 
             var p1 = SwitchBetweenFB();
             var p2 = p1 == Pass1FrameBuffer ? Pass2FrameBuffer : Pass1FrameBuffer;
-            SwitchToFB(FogFramebuffer);
+            SwitchToFB0();
             //p2.UseTexture(0);
             //Blit();
             //SwitchBetweenFB();
@@ -369,13 +369,11 @@ namespace VEngine
                 //GlobalIlluminationFrameBuffer.Use();
                 GL.BindImageTexture(0, p2.TexColor, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba16f);
                 GL.BindImageTexture(1, p1.TexColor, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
-
-
+                //GL.BindImageTexture(3, MRT.TexDepth, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32f);
                 GL.BindImageTexture(2, MRT.TexDiffuse, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba8);
-                GL.BindImageTexture(3, MRT.TexDepth, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32f);
                 GL.BindImageTexture(4, MRT.TexWorldPos, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
                 GL.BindImageTexture(5, MRT.TexNormals, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
-                CShader.SetUniform("PASS", 0);
+                //CShader.SetUniform("PASS", 0);
                 CShader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
                 CShader.SetUniform("HBAOStrength", GLThread.GraphicsSettings.HBAOStrength);
                 CShader.SetUniform("HBAOContribution", GLThread.GraphicsSettings.HBAOContribution);
@@ -395,12 +393,13 @@ namespace VEngine
             ShaderProgram.Lock = false;*/
 
 
-            p1.UseTexture(0);
+            SwitchToFB(GlobalIlluminationFrameBuffer);
+            p2.UseTexture(0);
             MRT.UseTextureDepth(1);
             FogFramebuffer.UseTexture(2);
             LightPointsFrameBuffer.UseTexture(4);
             BloomFrameBuffer.UseTexture(5);
-            p2.UseTexture(6);
+            p1.UseTexture(6);
             MRT.UseTextureDiffuseColor(7);
             MRT.UseTextureNormals(8);
             MRT.UseTextureWorldPosition(9);
@@ -431,7 +430,7 @@ namespace VEngine
             LightPointsFrameBuffer.UseTexture(8);
             BloomFrameBuffer.UseTexture(9);
             GlobalIlluminationFrameBuffer.UseTexture(10);*/
-
+            GlobalIlluminationFrameBuffer.UseTexture(0);
             MRT.UseTextureDepth(2);
             HDR();
             if(World.Root != null && World.Root.UI != null)

@@ -19,8 +19,8 @@ namespace ShadowsTester
         class Config
         {
             public static string MediaPath = "media";
-            public static int Width = 1200;
-            public static int Height = 600;
+            public static int Width = 1920;
+            public static int Height = 1010;
         }
 
         private static void Main(string[] args)
@@ -69,7 +69,7 @@ namespace ShadowsTester
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
              water.DiffuseComponent = 0.2f;
-              World.Root.Add(water);
+             // World.Root.Add(water);
              //var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.94f, 0.90f, 1212.0f), 0, 5, 10, 20, 80, 400, 1000);
 
              ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 0.1f, 1000.0f);
@@ -135,12 +135,12 @@ namespace ShadowsTester
 
             //new SculptScene().Create();
             //new SponzaScene().Create();
-            new OldCityScene().Create();
+            //new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new ManyCubesScene().Create();
-            //new ComputeBallsScene().Create();
+            new ComputeBallsScene().Create();
 
             //new HallScene().Create();
             //new RoadScene().Create();
@@ -150,11 +150,12 @@ namespace ShadowsTester
             World.Root.SortByDepthMasking();
 
             System.Threading.Thread.Sleep(500);
+            window.PostProcessor.UseDeferred = true;
             window.PostProcessor.UseFog = false;
             window.PostProcessor.UseBloom = false;
             window.PostProcessor.UseLightPoints = false;
             window.PostProcessor.UseMSAA = false;
-            window.PostProcessor.UseSimpleGI = false;
+            window.PostProcessor.UseSimpleGI = true;
             window.PostProcessor.UseBilinearGI = false;
 
             var sphere3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
@@ -175,7 +176,7 @@ namespace ShadowsTester
                 if(e.Button == OpenTK.Input.MouseButton.Left)
                 {
                     var sphere = new BulletSharp.SphereShape(0.3f);
-                    Mesh3d m = new Mesh3d(sphere3dInfo, new SolidColorMaterial(new Vector4(1,1,1,0.1f)));
+                    Mesh3d m = new Mesh3d(sphere3dInfo, new GenericMaterial(new Vector4(1, 1, 1, 0.1f)));
                     m.SetScale(0.3f);
                     m.Transformation.SetPosition(freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 2.0f);
                     m.SetMass(11.0f);

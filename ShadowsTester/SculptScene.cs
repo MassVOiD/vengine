@@ -16,7 +16,7 @@ namespace ShadowsTester
         {
             var obj = Object3dInfo.LoadFromObjSingle(Media.Get("sculpture.obj"));
             obj.ScaleUV(100, 100);
-            Mesh3d mesh = new Mesh3d(obj, SingleTextureMaterial.FromMedia("183.JPG", "183_norm.JPG"));
+            Mesh3d mesh = new Mesh3d(obj, GenericMaterial.FromMedia("183.JPG", "183_norm.JPG"));
             //mesh.Transformation.SetScale(0.1f);
             //mesh.DiffuseComponent = 0.3f;
             //mesh.SpecularComponent = 1;
@@ -25,7 +25,7 @@ namespace ShadowsTester
             Add(mesh);
 
             var scale_1meterboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("1m_sized_cube.obj"));
-            var box = new Mesh3d(scale_1meterboxInfo, SingleTextureMaterial.FromMedia("boxtex.png"));
+            var box = new Mesh3d(scale_1meterboxInfo, GenericMaterial.FromMedia("boxtex.png"));
             box.Transformation.Translate(new Vector3(0, scale_1meterboxInfo.GetAxisAlignedBox().Y, 0));
             Add(box);
 

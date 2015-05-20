@@ -124,7 +124,7 @@ vec3 bruteForceGIBounce1(vec2 centerUV) {
 			vec3 normalThere = texture(normals, coord).rgb;
 			outc += c * 1.0 - clamp(dot(normalCenter, normalThere), 0.0, 1.0);
 			vec3 R = reflect(wpos - positionCenter, normalCenter);
-			outc += c * 3 * smoothstep(0.88, 0.9999, clamp(-dot(normalize(CRel), normalize(R)), 0, 1));
+			outc += c * 3 * smoothstep(0.88, 0.9999, clamp(-dot(normalize(CRel), normalize(R)), 0.0, 1.0));
 		}
 	}	
 	return original * ((outc / samplesx / 2)) * (distanceToCamera / 16 * (texture(ssnormals, centerUV).a));
@@ -403,7 +403,7 @@ void main() {
 	//color1 += directional();
 	//color1 = bruteForceGIBounce1(UV);
 	//color1 *= ambientRadiosity(UV) * 0.8;
-	color1 = clamp(color1, 0, 1);
+	color1 = clamp(color1, 0.0, 1.0);
 	//vec3 lgi = texture(lastGi, UV).rgb;
 	
 	//if(length(lgi) > 0.001 && !(lgi.x == 1.0 && lgi.y == 1.0 && lgi.z == 1.0)){

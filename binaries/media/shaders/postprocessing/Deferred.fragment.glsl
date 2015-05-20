@@ -9,7 +9,7 @@ layout(binding = 1) uniform sampler2D texDepth;
 layout(binding = 30) uniform sampler2D worldPosTex;
 layout(binding = 31) uniform sampler2D normalsTex;
 
-const int MAX_SIMPLE_LIGHTS = 7500;
+const int MAX_SIMPLE_LIGHTS = 20;
 uniform int SimpleLightsCount;
 uniform vec3 SimpleLightsPos[MAX_SIMPLE_LIGHTS];
 uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
@@ -42,7 +42,7 @@ vec2 refractUV(){
 #define mPI (3.14159265)
 #define mPIo2 (3.14159265*0.5)
 #define mPIo4 (3.14159265*0.25)
-#define mPI2 (2*3.14159265)
+#define mPI2 (2.0*3.14159265)
 // fast hbao by Adrian Chlubek (afl_ext) @ 25.04.2015
 vec3 GoodHBAO() 
 {
@@ -79,9 +79,9 @@ vec3 GoodHBAO()
             // skip too far away pixels
             if(C > 1.9) continue;
             // because 3 triangle sides are known, calculate free horizon angle 
-            float angle = acos( (C*C + A*A - B*B ) / (2 * C * A) );
+            float angle = acos( (C*C + A*A - B*B ) / (2.0 * C * A) );
             // fix too bright outer corners
-            angle = clamp(angle, 0, mPIo2);
+            angle = clamp(angle, 0.0, mPIo2);
             //if(angle > mPIo2)angle = mPIo2;
             // add color multiplied by angle, adjusted by powering 
             if(angle > 0){
@@ -93,7 +93,7 @@ vec3 GoodHBAO()
     // return final color
     minval = minval / counter;
     float factor = pow(minval / mPIo2, HBAOStrength);
-    factor = clamp(factor, 0.4, 1);
+    factor = clamp(factor, 0.4, 1.0);
     return (originalColor * factor) * HBAOContribution;
 }
 vec3 LameHBAO() 
@@ -141,8 +141,8 @@ vec3 LameHBAO()
     }
     // return final color
     minval =  minval / counter;
-    float factor = pow(minval / mPIo2, 3);
-    factor = clamp(factor, 0.0, 1);
+    float factor = pow(minval / mPIo2, 3.0);
+    factor = clamp(factor, 0.0, 1.0);
     return (originalColor * factor) * HBAOContribution;
 }
 bool testVisibility(vec2 uv1, vec2 uv2) {
@@ -191,7 +191,7 @@ vec3 Radiosity()
     // return final color
     minval = 1.0 - minval / counter;
     float factor = pow(minval / mPIo2, 3);
-    factor = clamp(factor, 0.0, 1);
+    factor = clamp(factor, 0.0, 1.0);
     return (originalColor * factor) * HBAOContribution;
 }
 

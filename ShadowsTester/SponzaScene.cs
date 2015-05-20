@@ -21,13 +21,14 @@ namespace ShadowsTester
             water.Transformation.Translate(0, 1, 0);
             //water.DisableDepthWrite = true;
             Add(water);*/
-            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("desertcity.obj"), Media.Get("desertcity.mtl"), 1f);
+            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("sibenik.obj"), Media.Get("sibenik.mtl"), 1f);
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in scene)
             {
                 //ob.SetMass(0);
                 // ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
                 //ob.SpecularComponent = 0.1f;
+                ob.Translate(0, 10, 0);
                 ob.MainObjectInfo.MakeDoubleFaced();
                 this.Add(ob);
             }

@@ -91,7 +91,6 @@ uniform float CameraCurrentDepth;
 
 	
 float centerDepth;
-#define mPI2 (2*3.14159265)
 #define mPI (3.14159265)
 
 float ngonsides = 5;
@@ -167,6 +166,6 @@ void main()
                   pow(color1.g, gamma.g),
                   pow(color1.b, gamma.b));
 				  
-    outColor = clamp(color1, 0, 1);
+    outColor = clamp(color1, 0.0, 1.0);
 	
 }

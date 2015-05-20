@@ -127,7 +127,6 @@
     <Compile Include="Internals\ShaderPreparser.cs" />
     <Compile Include="Rendering\Materials\ManualShaderMaterial.cs" />
     <Compile Include="Rendering\Materials\SkyboxMaterial.cs" />
-    <Compile Include="Rendering\Materials\SingleTextureMaterial.cs" />
     <Compile Include="Rendering\ShaderStorageBuffer.cs" />
     <Compile Include="Rendering\BufferTexture.cs" />
     <Compile Include="Internals\TransformationManager.cs" />
@@ -140,7 +139,6 @@
     <Compile Include="Rendering\VEngineInvisibleAdapter.cs" />
     <Compile Include="Rendering\World.cs" />
     <Compile Include="Rendering\ShaderProgram.cs" />
-    <Compile Include="Rendering\Materials\SolidColorMaterial.cs" />
     <Compile Include="Rendering\Sun.cs" />
     <Compile Include="Rendering\Texture.cs" />
     <Compile Include="Rendering\VEngineDisplayAdapter.cs" />

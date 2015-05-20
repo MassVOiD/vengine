@@ -20,7 +20,7 @@ namespace ShadowsTester
             var dragon = new Mesh3d(dragon3dInfo, SingleTextureMaterial.FromMedia("180.jpg", "180_norm.jpg"));
             Add(dragon);*/
             var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("kamaz.obj"));
-            var dragon = new Mesh3d(dragon3dInfo, new SolidColorMaterial(Color.PapayaWhip));
+            var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(Color.PapayaWhip));
             dragon.Transformation.Scale(4);
             Add(dragon);
             

@@ -16,7 +16,7 @@ namespace ShadowsTester
         {
             var obj = Object3dInfo.LoadFromObjSingle(Media.Get("head.obj"));
             //obj.MakeDoubleFaced();
-            var mat = SingleTextureMaterial.FromMedia("lambertian.jpg");
+            var mat = GenericMaterial.FromMedia("lambertian.jpg");
             //mat.SetBumpMapFromMedia("bumplow.png");
             var head = new Mesh3d(obj, mat);
             head.SpecularComponent = 0f;

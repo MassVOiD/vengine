@@ -2,9 +2,9 @@
 
 in vec2 UV;
 #include LogDepth.glsl
-#include Lighting.glsl
+
 #define mPI (3.14159265)
-#define mPI2 (2*3.14159265)
+#define mPI2 (2.0*3.14159265)
 #define GOLDEN_RATIO (1.6180339)
 out vec4 outColor;
 

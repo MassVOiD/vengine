@@ -23,7 +23,7 @@ namespace SimpleCarGame
             Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
 
 
-            var color = SingleTextureMaterial.FromMedia("checked.png", "183_norm.JPG");
+            var color = GenericMaterial.FromMedia("checked.png", "183_norm.JPG");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.Translate(0, -10, 0);
@@ -31,7 +31,7 @@ namespace SimpleCarGame
             World.Root.Add(water);
 
             var lod1 = Object3dInfo.LoadFromRaw(Media.Get("lucy_lod1.vbo.raw"), Media.Get("lucy_lod1.indices.raw"));
-            var mat = new SolidColorMaterial(new Vector4(0, 0, 1, 1f));
+            var mat = new GenericMaterial(new Vector4(0, 0, 1, 1f));
             var dragon = new Mesh3d(lod1, mat);
             dragon.Transformation.Scale(2);
             Add(dragon);
@@ -41,7 +41,7 @@ namespace SimpleCarGame
             var grasslod1 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod1.obj"));
             var grasslod2 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod2.obj"));
             var grasslod3 = Object3dInfo.LoadFromObjSingle(Media.Get("grasslod3.obj"));
-            var grasscolor = new SolidColorMaterial(Color.DarkGreen);
+            var grasscolor = new GenericMaterial(Color.DarkGreen);
             var grassInstanced = new InstancedMesh3d(grasslod2, grasscolor);
             for(int x = -15; x < 15; x++)
             {
@@ -65,7 +65,7 @@ namespace SimpleCarGame
             var wheel3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("fcarwheel.obj"));
             var car3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("fcarbody.obj"));
 
-            var car = new Mesh3d(car3dInfo, new SolidColorMaterial(Color.LightGreen));
+            var car = new Mesh3d(car3dInfo, new GenericMaterial(Color.LightGreen));
             car.SetMass(200);
             //car.Translate(0, 3.76f, 0);
             car.SetCollisionShape(new BoxShape(0.5f, 0.5f, 0.5f));
@@ -83,25 +83,25 @@ namespace SimpleCarGame
 
             var shape = new SphereShape(0.5f);
             //var shape = wheel3dInfo.GetAccurateCollisionShape();
-            var wheelLF = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
+            var wheelLF = new Mesh3d(wheel3dInfo, new GenericMaterial(Color.White));
             wheelLF.SetMass(100);
             wheelLF.Translate(1.640539f, 0.48866f, -1.94906f);
             wheelLF.SetCollisionShape(shape);
             wheelLF.CreateRigidBody();
             World.Root.Add(wheelLF);
-            var wheelRF = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
+            var wheelRF = new Mesh3d(wheel3dInfo, new GenericMaterial(Color.White));
             wheelRF.SetMass(100);
             wheelRF.Translate(1.640539f, 0.48866f, 1.94906f);
             wheelRF.SetCollisionShape(shape);
             wheelRF.CreateRigidBody();
             World.Root.Add(wheelRF);
-            var wheelLR = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
+            var wheelLR = new Mesh3d(wheel3dInfo, new GenericMaterial(Color.White));
             wheelLR.SetMass(100);
             wheelLR.Translate(-1.640539f, 0.48866f, -1.94906f);
             wheelLR.SetCollisionShape(shape);
             wheelLR.CreateRigidBody();
             World.Root.Add(wheelLR);
-            var wheelRR = new Mesh3d(wheel3dInfo, new SolidColorMaterial(Color.White));
+            var wheelRR = new Mesh3d(wheel3dInfo, new GenericMaterial(Color.White));
             wheelRR.SetMass(100);
             wheelRR.Translate(-1.640539f, 0.48866f, 1.94906f);
             wheelRR.SetCollisionShape(shape);

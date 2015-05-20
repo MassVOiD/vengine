@@ -44,8 +44,8 @@ namespace VEngine
                 i ^= VBO.Count;
                 foreach(var v in VBO)
                     i ^= v.GetHashCode();
-                foreach(var v in Indices)
-                    i ^= v.GetHashCode();
+                for(int ix=0;ix<Indices.Count;ix++)
+                    i ^= Indices[ix].GetHashCode();
                 CachedHash = i;
             }
             return CachedHash;
@@ -547,6 +547,18 @@ namespace VEngine
                     Indices[i] = tmp;
                 }
             }
+        }
+        public List<Vector3> GetOrderedVertices()
+        {
+            var ot = new List<Vector3>();
+            for(int i = 0; i < Indices.Count; i ++)
+            {
+                // for 1
+                int vboIndex1 = i * 8;
+                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
+                ot.Add(pos1);
+            }
+            return ot;
         }
 
 

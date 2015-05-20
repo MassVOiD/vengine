@@ -16,7 +16,7 @@ namespace ShadowsTester
         {
 
             Object3dInfo wall = Object3dGenerator.CreateCube(new Vector3(10.0f, 10.0f, 1.0f), new Vector2(1, 1));
-            InstancedMesh3d wallsInst = new InstancedMesh3d(wall, new SolidColorMaterial(Color.Red));
+            InstancedMesh3d wallsInst = new InstancedMesh3d(wall, new GenericMaterial(Color.Red));
             wallsInst.Transformations.Add(new TransformationManager(new Vector3(0, 5, 10), Quaternion.Identity, 1));
             wallsInst.Transformations.Add(new TransformationManager(new Vector3(0, 5, -10), Quaternion.Identity, 1));
             wallsInst.Transformations.Add(new TransformationManager(new Vector3(10, 5, 0), Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2), 1));
@@ -32,7 +32,7 @@ namespace ShadowsTester
             World.Root.CreateRigidBody(0, Matrix4.Identity, new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0), null);
 
             var roadtile = Object3dGenerator.CreateGround(new Vector2(-0.47f, -0.5f) * 20, new Vector2(0.47f, 0.5f) * 20, new Vector2(1, 1), Vector3.UnitY);
-            var roadsInstances = new InstancedMesh3d(roadtile, SingleTextureMaterial.FromMedia("roadtex.png", "roadnormaltex.png"));
+            var roadsInstances = new InstancedMesh3d(roadtile, GenericMaterial.FromMedia("roadtex.png", "roadnormaltex.png"));
             var advancer = new Vector3(0, 0, (roadtile.GetAxisAlignedBox() * 2).Z);
             roadsInstances.Transformations.Add(new TransformationManager(new Vector3(0, 0.1f, 0)));
             for(int i = 0; i < 120; i++)
@@ -43,7 +43,7 @@ namespace ShadowsTester
             Add(roadsInstances);
 
             Object3dInfo cube = Object3dGenerator.CreateCube(new Vector3(1, 1, 1), new Vector2(1, 1));
-            IMaterial material = new SolidColorMaterial(new Vector4(1, 0, 1, 1.000f));
+            IMaterial material = new GenericMaterial(new Vector4(1, 0, 1, 1.000f));
             int allCount = 0;
             var meshes = new List<Mesh3d>();
             Mesh3d lastmesh = null;
@@ -80,7 +80,7 @@ namespace ShadowsTester
             Add(inst);
             var daetest = Object3dInfo.LoadFromObjSingle(Media.Get("carreragt.obj"));
             daetest.CorrectFacesByNormals();
-            var car = new Mesh3d(daetest, new SolidColorMaterial(Color.Red));
+            var car = new Mesh3d(daetest, new GenericMaterial(Color.Red));
             Add(car);
             Console.WriteLine("allCount " + allCount);
         }

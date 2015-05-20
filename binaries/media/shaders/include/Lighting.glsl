@@ -38,7 +38,7 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	return distance1;
 }
 #define mPI (3.14159265)
-#define mPI2 (2*3.14159265)
+#define mPI2 (2.0*3.14159265)
 #define GOLDEN_RATIO (1.6180339)
 
 float getBlurAmount(vec2 uv, uint i, float distance2){
@@ -50,7 +50,7 @@ float getBlurAmount(vec2 uv, uint i, float distance2){
 	vec2 fakeUV;
 	int counter = 0;
     for(float x = 0; x < mPI2 * 1.5; x+=GOLDEN_RATIO){ 
-        for(float y=0.1;y<1;y+= 0.2){  
+        for(float y=0.1;y<1.0;y+= 0.2){  
 			vec2 crd = vec2(sin(x), cos(x)) * (y * 0.05);
 			fakeUV = uv + crd;
 			float bval = (lookupDepthFromLight(i, fakeUV));
@@ -59,7 +59,7 @@ float getBlurAmount(vec2 uv, uint i, float distance2){
 			maxv = max(maxv, bval);
 		}
 	}
-	return clamp(clamp(maxv - minv, 0, 0.02) - 0.002, 0, 1.01 * 33);
+	return clamp(clamp(maxv - minv, 0.0, 0.02) - 0.002, 0.0, 1.01 * 33.0);
 }
 
 
@@ -89,7 +89,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float pssblur = (getBlurAmount(uv, i, distance2)) * ShadowsBlur;
 	//float pssblur = 0.04;
     for(float x = 0; x < mPI2; x+=0.7){ 
-        for(float y=0;y<4;y+= ShadowsSamples ){  
+        for(float y=0.0;y<4.0;y+= ShadowsSamples ){  
 			vec2 crd = vec2(sin(x), cos(x)) * y * pssblur * 1.1 * AInv;
 			fakeUV = uv + crd;
 			distance1 = lookupDepthFromLight(i, fakeUV);

@@ -15,7 +15,7 @@ namespace ShadowsTester
         public DragonScene()
         {
             var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("dragon.vbo.raw"), Media.Get("dragon.indices.raw"));
-            var dragon = new Mesh3d(dragon3dInfo, new SolidColorMaterial(Color.White));
+            var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(Color.White));
             Add(dragon);
         }
 

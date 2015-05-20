@@ -11,6 +11,7 @@ namespace VEngine
         public ComputeShader(string file)
         {
             UniformLocationsCache = new Dictionary<string, int>();
+            ComputeFile = file;
             ComputeSource = ShaderPreparser.Preparse(file, Media.ReadAllText(file));
             Compiled = false;
         }
@@ -18,7 +19,7 @@ namespace VEngine
         public static ComputeShader Current = null;
         static public bool Lock = false;
         private bool Compiled;
-        private string ComputeSource;
+        private string ComputeSource, ComputeFile;
         private int Handle = -1;
         private Dictionary<string, int> UniformLocationsCache;
 
@@ -233,6 +234,7 @@ namespace VEngine
         {
             int shader = GL.CreateShader(type);
 
+            Console.WriteLine("Compiling compute shader {0}", ComputeFile);
             GL.ShaderSource(shader, source);
 
             GL.CompileShader(shader);
