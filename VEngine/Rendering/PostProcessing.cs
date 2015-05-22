@@ -313,10 +313,13 @@ namespace VEngine
             Blit();
 
             DisableBlending();
+
             Mesh3d.PostProcessingUniformsOnly = false;
             MRT.Use();
             World.Root.Draw();
             Mesh3d.PostProcessingUniformsOnly = true;
+
+            DisableBlending();
 
             if(UseLightPoints)
             {
@@ -404,6 +407,7 @@ namespace VEngine
             MRT.UseTextureNormals(8);
             MRT.UseTextureWorldPosition(9);
             LastWorldPositionFramebuffer.UseTexture(10);
+            MRT.UseTextureMeshData(11);
             //BackDepthFrameBuffer.UseTexture(6);
 
             

@@ -14,22 +14,17 @@ namespace ShadowsTester
     {
         public SculptScene()
         {
-            var obj = Object3dInfo.LoadFromObjSingle(Media.Get("sculpture.obj"));
-            obj.ScaleUV(100, 100);
-            Mesh3d mesh = new Mesh3d(obj, GenericMaterial.FromMedia("183.JPG", "183_norm.JPG"));
-            //mesh.Transformation.SetScale(0.1f);
-            //mesh.DiffuseComponent = 0.3f;
-            //mesh.SpecularComponent = 1;
-            //mesh.SpecularSize = 1.2f;
-            mesh.Transformation.Translate(new Vector3(0, 0, 10));
-            Add(mesh);
-
-            var scale_1meterboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("1m_sized_cube.obj"));
-            var box = new Mesh3d(scale_1meterboxInfo, GenericMaterial.FromMedia("boxtex.png"));
-            box.Transformation.Translate(new Vector3(0, scale_1meterboxInfo.GetAxisAlignedBox().Y, 0));
-            Add(box);
-
-            new HomeScene().Create();
+            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("sponzasimple.obj"), Media.Get("sponzasimple.mtl"), 1f);
+            //var instances = InstancedMesh3d.FromMesh3dList(testroom);
+            foreach(var ob in scene)
+            {
+                //ob.SetMass(0);
+                // ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
+                //ob.SpecularComponent = 0.1f;
+                ob.Translate(0, 10, 0);
+                //ob.MainObjectInfo.MakeDoubleFaced();
+                this.Add(ob);
+            }
         }
 
     }

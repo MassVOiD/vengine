@@ -12,7 +12,7 @@ namespace VEngine
             {
                 string includeFile = Preparse(match.Groups[1].Value.Trim(), Media.ReadAllText(match.Groups[1].Value.Trim()));
                 source = source.Remove(match.Index, match.Length);
-                source = source.Insert(match.Index, "#line 1\r\n" + includeFile + "\r\n");
+                source = source.Insert(match.Index, includeFile + "\r\n");
                 match = includeMatcher.Match(source);
             }
             return PrependWithInfo(filename, source);
@@ -26,7 +26,7 @@ namespace VEngine
             {
                 string includeFile = Preparse(match.Groups[1].Value.Trim(), Media.ReadAllText(match.Groups[1].Value.Trim()));
                 source = source.Remove(match.Index, match.Length);
-                source = source.Insert(match.Index, "#line 1\r\n" + includeFile + "\r\n");
+                source = source.Insert(match.Index, includeFile + "\r\n");
                 match = includeMatcher.Match(source);
             }
             return PrependWithInfo("Main file", source);

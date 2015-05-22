@@ -19,8 +19,8 @@ namespace ShadowsTester
         class Config
         {
             public static string MediaPath = "media";
-            public static int Width = 1920;
-            public static int Height = 1010;
+            public static int Width = 1366;
+            public static int Height = 768;
         }
 
         private static void Main(string[] args)
@@ -41,7 +41,7 @@ namespace ShadowsTester
             World.Root = new World();
 
             float aspect = Config.Height > Config.Width ? Config.Height / Config.Width : Config.Width / Config.Height;
-            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver3);
+            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver2);
             FreeCam = freeCamera;
 
             GLThread.Invoke(() =>
@@ -49,7 +49,7 @@ namespace ShadowsTester
                 window.Resize += (o, e) =>
                 {
                     float aast = window.Height > window.Width ? window.Height + 1 / window.Width + 1 : window.Width + 1 / window.Height + 1;
-                    freeCamera = new FreeCamera(aast, MathHelper.PiOver3);
+                    freeCamera = new FreeCamera(aast, MathHelper.PiOver2);
                     FreeCam = freeCamera;
                     GLThread.Resolution.X = window.Width;
                     GLThread.Resolution.Y = window.Height;
@@ -69,7 +69,7 @@ namespace ShadowsTester
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
              water.DiffuseComponent = 0.2f;
-             // World.Root.Add(water);
+              World.Root.Add(water);
              //var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.94f, 0.90f, 1212.0f), 0, 5, 10, 20, 80, 400, 1000);
 
              ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 0.1f, 1000.0f);
@@ -133,14 +133,14 @@ namespace ShadowsTester
                 }*/
             };
 
-            //new SculptScene().Create();
+            new SculptScene().Create();
             //new SponzaScene().Create();
             //new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new ManyCubesScene().Create();
-            new ComputeBallsScene().Create();
+            //new ComputeBallsScene().Create();
 
             //new HallScene().Create();
             //new RoadScene().Create();
@@ -245,7 +245,7 @@ namespace ShadowsTester
             skydome.Transformation.Scale(55000);
             skydome.Transformation.Translate(0, -100, 0);
             skydome.IgnoreLighting = true;
-            skydome.DiffuseComponent = 1;
+            skydome.DiffuseComponent = 0.1f;
             World.Root.Add(skydome);
             
             GLThread.OnMouseWheel += (o, e) =>

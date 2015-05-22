@@ -16,7 +16,7 @@ namespace ShadowsTester
 
         public ComputeBallsScene()
         {
-            int instancesAxis = 4;
+            int instancesAxis = 10;
             int instances = instancesAxis * instancesAxis * instancesAxis;
             var ballInfo = Object3dInfo.LoadFromObjSingle(Media.Get("star3d.obj"));
            // var cb = Object3dGenerator.CreateCube(new Vector3(1000, 1000, 1000), new Vector2(1, 1));
@@ -24,15 +24,16 @@ namespace ShadowsTester
            // var sky = new Mesh3d(cb, new GenericMaterial(Color.Black));
            // Add(sky);
             ballInfo.Normalize();
-            var instanced = new InstancedMesh3d(ballInfo, new GenericMaterial(Color.White));
+            var instanced = new InstancedMesh3d(ballInfo, new GenericMaterial(new Vector4(0, 1, 0, 1)));
             var instanced2 = new InstancedMesh3d(ballInfo, new GenericMaterial(Color.Green));
-            var model = Object3dInfo.LoadFromObjSingle(Media.Get("monkey.obj"));
-            var vrts = model.GetOrderedVertices();
-            vrts = vrts.Distinct().ToList();
+            //var model = Object3dInfo.LoadFromObjSingle(Media.Get("monkey.obj"));
+            //var vrts = model.GetOrderedVertices();
+            //vrts = vrts.Distinct().ToList();
             var bts3 = new List<Vector4>();
-            for(int i = 0; i < vrts.Count; i++)
+            for(int x = 0; x < 20; x++)
+                for(int y = 60; y > 0; y--)
             {
-                bts3.Add(new Vector4(vrts[i] * 40, 1));
+                bts3.Add(new Vector4(x, y, 0, 1));
             }
             instanced2.UpdateMatrix();
             Add(instanced2);
@@ -48,18 +49,16 @@ namespace ShadowsTester
                 var bts2 = new List<Vector4>();
                 var rand = new Random();
                 PBuffer.MapData(bts3.ToArray());
-                for(int x = 0; x < instancesAxis; x++)
+                for(int x = 0; x < 200; x++)
                 {
-                    for(int y = 0; y < instancesAxis; y++)
+                    for(int y = 0; y < 200; y++)
                     {
-                        for(int z = 0; z < instancesAxis; z++)
-                        {
-                            instanced.Transformations.Add(new TransformationManager(new Vector3(x - instancesAxis / 2, y + 1 - instancesAxis / 2, z - instancesAxis / 2) * 4, Quaternion.Identity, 5));
-                            bts.Add(new Vector4(x - instancesAxis / 2, y + 1 - instancesAxis / 2, z - instancesAxis / 2, 1) * 4);
-                            bts2.Add((new Vector4((float)rand.NextDouble(), (float)rand.NextDouble(), (float)rand.NextDouble(), 1) - new Vector4(0.5f)) * 60);
-                        }
+                        instanced.Transformations.Add(new TransformationManager(new Vector3(x, y + 300, 0), Quaternion.Identity,1.5f));
+                        bts.Add(new Vector4(x, y + 300, 0, 1));
+                        bts2.Add(new Vector4(0, 0, (new Vector2(100, 100) - new Vector2(x, y)).Length *2, 1));
                     }
                 }
+                
                 SBuffer.MapData(bts.ToArray());
                 VBuffer.MapData(bts2.ToArray());
                 instanced.UpdateMatrix();
@@ -72,7 +71,7 @@ namespace ShadowsTester
                     PBuffer.Use(3);
                     cshader.SetUniform("BallsCount", instances);
                     cshader.SetUniform("PathPointsCount", bts3.Count);
-                    cshader.Dispatch(instancesAxis, instancesAxis, instancesAxis);
+                    cshader.Dispatch(200, 200, 1);
                 };
             });
             Add(instanced);

@@ -256,7 +256,7 @@ void main()
                     vec3 abc = LightsPos[i];
 
                     float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5;
+                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5.0;
                     if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
                     if(att < 0.002) continue;
                     
