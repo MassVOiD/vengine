@@ -26,16 +26,17 @@ namespace ShadowsTester
                // ob.Material = new SolidColorMaterial(new Vector4(1, 1, 1, 0.1f));
                 this.Add(ob);
             }
-            var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);
-            foreach(var o in protagonist)
-                Add(o);
-             /*
-            var fountainWaterObj = Object3dInfo.LoadFromObjSingle(Media.Get("glass.obj"));
-            var water = new Mesh3d(fountainWaterObj, new SolidColorMaterial(new Vector4(0, 0, 0, 0.02f)));
+            //var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);
+            //foreach(var o in protagonist)
+            //    Add(o);
+             
+            var fountainWaterObj = Object3dInfo.LoadFromObjSingle(Media.Get("cylinder.obj"));
+            var water = new Mesh3d(fountainWaterObj, new GenericMaterial(new Vector4(1, 1, 0, 1)));
             water.DisableDepthWrite = true;
-            water.Transformation.Scale(0.4f);
+            water.UseAlphaMaskFromMedia("alphamask.png");
+            water.Transformation.Scale(1.0f);
 
-            Add(water);*/
+            Add(water);
 
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BulletSharp;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
@@ -213,10 +214,14 @@ namespace VEngine
                 {
                     shader.SetUniform("UseAlphaMask", 1);
                     AlphaMask.Use(OpenTK.Graphics.OpenGL4.TextureUnit.Texture2);
+                    //GL.DepthFunc(DepthFunction.Always);
+                    GL.Disable(EnableCap.CullFace);
                 }
                 else
                 {
                     shader.SetUniform("UseAlphaMask", 0);
+                    GL.Enable(EnableCap.CullFace);
+                    //GL.DepthFunc(DepthFunction.Lequal);
                 }
             }
             else

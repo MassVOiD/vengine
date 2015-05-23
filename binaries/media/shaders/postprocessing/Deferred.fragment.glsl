@@ -157,42 +157,72 @@ bool testVisibility(vec2 uv1, vec2 uv2) {
     }
     return true;
 }
+vec2 projdir(vec3 start, vec3 end){
+	//vec3 dirPosition = start + end;
+	
+	vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4((start), 1.0);
+	vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+	clipspace = (ProjectionMatrix * ViewMatrix) * vec4((end), 1.0);
+	vec2 sspace2 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+	return (sspace2 - sspace1);
+}
+bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
+    //vec3 direction = normalize(w2 - w1);
+    float d3d1 = distance(w1, CameraPosition);
+    float d3d2 = distance(w2, CameraPosition);
+    vec2 sdir = projdir(w1, w2);
+    for(float i=0;i<1.0;i+= 0.1) { 
+        vec2 ruv = mix(cuv, cuv + sdir, i);
+        vec3 wd = texture(worldPosTex, ruv).rgb; 
+        float rd3d = distance(wd, CameraPosition) + 0.01;
+        if(rd3d < mix(d3d1, d3d2, i) && mix(d3d1, d3d2, i) - rd3d < 1.01) {
+            return false;
+        }
+    }
+    return true;
+}
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 vec3 Radiosity() 
 {
-    // get original diffuse color
-    vec3 originalColor = texture(texColor, UV).rgb * 0.6;
-    // get center pixel world position
-    vec3 centerPosition = texture(worldPosTex, UV).rgb;  
-    // get a position 'above' the surface, by adding multiplied normal to world position
-    // this could also be a directional light inverted direction + world pos
-    vec3 lookupPosition = CameraPosition;
-    // get distance from center position to sampling (above) position
-    float A = distance(lookupPosition, centerPosition);
-    // calculate how big area of texture should be sampled
-    float AInv = 1.0 / (distance(CameraPosition, centerPosition) + 1.0);
-    // create some boring variables
-    vec3 outc = vec3(0);
-    int counter = 0;
-    float minval = 0;
-    vec3 normalCenter = texture(normalsTex, UV).rgb;
-    // two loops, one for doing circles, and second for circle radius
-    for(float g = 0.05; g < mPI2; g += 0.3) 
-    {
-        //minval = 2;
-        for(float g2 = 0.02; g2 < 1; g2 += 0.05) 
-        {           
-            // calculate lookup UV
-            vec2 coord = UV + (vec2(sin(g + g2), cos(g + g2)) * ((g2) * 0.1 * AInv));
-            if(UV.x < 0 || UV.x > 1 || UV.y < 0 || UV.y > 1) continue;
-            if(testVisibility(coord, UV)) minval += 1;
-            counter++;
-        }   
+    vec3 posCenter = texture(worldPosTex, UV).rgb;
+    vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
+    vec3 ambient = vec3(0);
+    const int samples = 33;
+    //float randomizer = 138.345341 * RandomSeed1 * rand(UV);
+    const float randomizer = 138.345341;
+    for(int i=0;i<samples;i++){
+        float rd = randomizer * float(i);
+        vec3 displace = vec3(
+            fract(rd) * 2 - 1, 
+            fract(rd*12.2562), 
+            fract(rd*7.121214) * 2 - 1
+        ) * 2;
+        if(testVisibility3d(UV, posCenter, posCenter + displace)){
+            float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
+            //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
+            ambient += vec3(1,1,1) * dotdiffuse;
+        }
+        /*rd = randomizer * float(i);
+        displace = vec3(
+            fract(rd * 1.53413) * 2 - 1, 
+            fract(rd*31.123756), 
+            fract(rd*3.2342456) * 2 - 1
+        ) * 0.2;*/
+        displace = displace * 0.1;
+        if(testVisibility3d(UV, posCenter, posCenter + displace)){
+            float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
+            //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
+            ambient += vec3(1,1,1) * dotdiffuse;
+        }        
     }
-    // return final color
-    minval = 1.0 - minval / counter;
-    float factor = pow(minval / mPIo2, 3);
-    factor = clamp(factor, 0.0, 1.0);
-    return (originalColor * factor) * HBAOContribution;
+    vec3 rs = (ambient / (samples * 2));
+    //rs = clamp(rs, 0, 1.5);
+    //rs.x = pow(rs.x, 2);
+  //  rs.y = pow(rs.y, 2);
+    //rs.z = pow(rs.z, 2);
+    return rs;
 }
 
 void main()
@@ -203,7 +233,7 @@ void main()
         //nUV = refractUV();
     }
     vec3 colorOriginal = texture(texColor, nUV).rgb;
-    vec3 color1 = vec3(0);// * GoodHBAO();
+    vec3 color1 = colorOriginal * Radiosity();
     if(texture(texColor, UV).a < 0.99){
         color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
     }
@@ -330,5 +360,5 @@ void main()
         }
         
     }
-    outColor = clamp(vec4(color1, 1), 0, 1);
+    outColor = clamp(vec4(color1, 1), 0, 10);
 }

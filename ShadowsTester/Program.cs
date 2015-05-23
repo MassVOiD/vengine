@@ -64,11 +64,11 @@ namespace ShadowsTester
             // compute shade test
 
 
-            var color = GenericMaterial.FromMedia("177.jpg", "177_norm.jpg");
+            var color = GenericMaterial.FromMedia("mramor6x6-bump.png", "177_norm.jpg");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
-             water.DiffuseComponent = 0.2f;
+             water.DiffuseComponent = 1.0f;
               World.Root.Add(water);
              //var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.94f, 0.90f, 1212.0f), 0, 5, 10, 20, 80, 400, 1000);
 
@@ -245,7 +245,7 @@ namespace ShadowsTester
             skydome.Transformation.Scale(55000);
             skydome.Transformation.Translate(0, -100, 0);
             skydome.IgnoreLighting = true;
-            skydome.DiffuseComponent = 0.1f;
+            skydome.DiffuseComponent = 0.2f;
             World.Root.Add(skydome);
             
             GLThread.OnMouseWheel += (o, e) =>

@@ -195,10 +195,10 @@ void finishFragment(vec4 color){
 			normalNew = normalize(normalNew - (tangent * factor));
     
 		} else {
-            float factor = (length(vec3(1)) - length(color.xyz)) * 0.09;
+            //float factor = (length(vec3(1)) - length(color.xyz)) * 0.09;
            // factor = getwater(UV * 2) / 3;
             //vec3 bitan = cross(normal, tangent);
-			normalNew = normalize(normalNew - (tangent * factor));
+			//normalNew = normalize(normalNew - (tangent * factor));
     
 		}
 		if(Instances == 1){

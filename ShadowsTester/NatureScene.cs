@@ -14,43 +14,43 @@ namespace ShadowsTester
     {
         public NatureScene()
         {
-            int scale = 1;
+            int scale = 2;
             /*
             var protagonist = Object3dInfo.LoadSceneFromObj(Media"protagonist.obj", "protagonist.mtl", 1.0f);
             foreach(var o in protagonist)
                 Add(o);*/
-            /*
-            var hmap = System.IO.File.ReadAllBytes(Media.Get("pearlharbor.raw"));
+            
+            var hmap = System.IO.File.ReadAllBytes(Media.Get("map1.raw"));
             int count = 0;
             Func<uint, uint, float> terrainGen = (x, y) =>
             {
-                int yy = (int)(((double)y / (750.0 / scale)) * 5425);
-                int xx = (int)(((double)x / (750.0 / scale)) * 6804);
-                int ix = (int)(yy * 6804  + xx) * 3;
+                int yy = (int)(((double)y / (1024.0 / scale)) * 2000);
+                int xx = (int)(((double)x / (1024.0 / scale)) * 3000);
+                int ix = (int)(yy * 3000  + xx) * 3;
                 count++;
                 if(count % 1000 == 0)
-                    Console.WriteLine(count * 100 / hmap.Length);
-                return ix < hmap.Length ? hmap[ix] * 0.5f : 0;
+                    Console.WriteLine(count * 100 / ((1024 / scale) * (1024 / scale)));
+                return ix < hmap.Length ? hmap[ix] * 0.3f : 0;
             };
             Object3dGenerator.UseCache = false;
-            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1830 / scale, -1600 / scale), new Vector2(1830 / scale, 1600 / scale), new Vector2(4096, 4096), Vector3.UnitY, 1024 / scale, terrainGen);
+            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500 / scale, -1000 / scale), new Vector2(1500 / scale, 1000 / scale), new Vector2(1096, 1096), Vector3.UnitY, 1024 / scale, terrainGen);
             hmap = null;
-            GC.Collect();*/
+            GC.Collect();
 
-            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-18300 / scale, -16000 / scale), new Vector2(18300 / scale, 16000 / scale), new Vector2(4096, 4096), Vector3.UnitY, 11 / scale, (x, y) => 0);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500 / scale, -1000 / scale), new Vector2(1500 / scale, 1000 / scale), new Vector2(1096, 1096), Vector3.UnitY, 55 / scale, (x, y) => 0);
             
-            var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
-            terrainInfo.ScaleUV(100);
+            //var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
+            //terrainInfo.ScaleUV(100);
             var terrain = new Mesh3d(terrainInfo, GenericMaterial.FromMedia("151.JPG", "151_norm.JPG"));
-            terrain.Scale(5);
+           // terrain.Scale(5);
             Add(terrain);
 
             var waterMat = new GenericMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
             waterMat.SetNormalMapFromMedia("waternormal.png");
             var water = new Mesh3d(waterInfo, waterMat);
-            water.Transformation.Translate(0, 5, 0);
+            water.Transformation.Translate(0, 15, 0);
             //water.DisableDepthWrite = true;
-            water.ReflectionStrength = 1;
+            //water.ReflectionStrength = 1;
             Add(water);
             /*
             var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucyhires.vbo.raw"), Media.Get("lucyhires.indices.raw"));
@@ -62,7 +62,7 @@ namespace ShadowsTester
           //  daetest.CorrectFacesByNormals();
            // var car = new Mesh3d(daetest, new SolidColorMaterial(Color.Red));
            // Add(car);
-            var rand = new Random();
+           /* var rand = new Random();
             
             var scene1 = Object3dInfo.LoadSceneFromObj(Media.Get("tree1.obj"), Media.Get("tree1.mtl"), 12);
             List<Mesh3d> trees = new List<Mesh3d>();
