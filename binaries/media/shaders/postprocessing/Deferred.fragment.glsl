@@ -3,7 +3,7 @@
 in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
-
+#include UsefulIncludes.glsl
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
 layout(binding = 30) uniform sampler2D worldPosTex;
@@ -168,13 +168,13 @@ vec2 projdir(vec3 start, vec3 end){
 }
 bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     //vec3 direction = normalize(w2 - w1);
-    float d3d1 = distance(w1, CameraPosition);
-    float d3d2 = distance(w2, CameraPosition);
-    vec2 sdir = projdir(w1, w2);
+    float d3d1 = length(w1);
+    float d3d2 = length(w2);
+    vec2 sdir = projdir(FromCameraSpace(w1), FromCameraSpace(w2));
     for(float i=0;i<1.0;i+= 0.1) { 
         vec2 ruv = mix(cuv, cuv + sdir, i);
         vec3 wd = texture(worldPosTex, ruv).rgb; 
-        float rd3d = distance(wd, CameraPosition) + 0.01;
+        float rd3d = length(wd) + 0.01;
         if(rd3d < mix(d3d1, d3d2, i) && mix(d3d1, d3d2, i) - rd3d < 1.01) {
             return false;
         }
@@ -189,16 +189,17 @@ vec3 Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 33;
+    const int samples = 23;
     //float randomizer = 138.345341 * RandomSeed1 * rand(UV);
     const float randomizer = 138.345341;
+    uint counter = 0;
     for(int i=0;i<samples;i++){
         float rd = randomizer * float(i);
         vec3 displace = vec3(
             fract(rd) * 2 - 1, 
             fract(rd*12.2562), 
             fract(rd*7.121214) * 2 - 1
-        ) * 2;
+        ) * 2.0;
         if(testVisibility3d(UV, posCenter, posCenter + displace)){
             float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
             //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
@@ -210,14 +211,21 @@ vec3 Radiosity()
             fract(rd*31.123756), 
             fract(rd*3.2342456) * 2 - 1
         ) * 0.2;*/
-        displace = displace * 0.1;
+        displace = -displace;
         if(testVisibility3d(UV, posCenter, posCenter + displace)){
             float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
             //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
             ambient += vec3(1,1,1) * dotdiffuse;
-        }        
+        } 
+        displace = -displace * 0.1;
+        if(testVisibility3d(UV, posCenter, posCenter + displace)){
+            float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
+            //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
+            ambient += vec3(1,1,1) * dotdiffuse;
+        }  
+        counter+=3;
     }
-    vec3 rs = (ambient / (samples * 2));
+    vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
     //rs = clamp(rs, 0, 1.5);
     //rs.x = pow(rs.x, 2);
   //  rs.y = pow(rs.y, 2);
@@ -233,12 +241,13 @@ void main()
         //nUV = refractUV();
     }
     vec3 colorOriginal = texture(texColor, nUV).rgb;
-    vec3 color1 = colorOriginal * Radiosity();
+    vec3 color1 = colorOriginal * Radiosity() * HBAOContribution;
     if(texture(texColor, UV).a < 0.99){
         color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
     }
     gl_FragDepth = texture(texDepth, nUV).r;
     vec4 fragmentPosWorld3d = texture(worldPosTex, nUV);
+    fragmentPosWorld3d.xyz = FromCameraSpace(fragmentPosWorld3d.xyz);
     vec4 normal = texture(normalsTex, nUV);
     if(normal.a == 0.0){
         color1 = colorOriginal;
@@ -305,20 +314,20 @@ void main()
                     + (LightsColors[i].rgb * specularComponent)) * colorOriginal *percent;
                     foundSun = 1;
                 } else {
-
-                    float distanceToLight = distance(fragmentPosWorld3d.xyz, LightsPos[i]);
+                    vec3 abc = LightsPos[i];
+                    float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
                     float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5;
                     if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
                     if(att < 0.002) continue;
                     
                     
-                    vec3 lightRelativeToVPos = LightsPos[i] - fragmentPosWorld3d.xyz;
+                    vec3 lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
                     vec3 R = reflect(lightRelativeToVPos, normal.xyz);
                     float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
                     float specularComponent = clamp(pow(cosAlpha, 80.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
 
 
-                    lightRelativeToVPos = LightsPos[i] - fragmentPosWorld3d.xyz;
+                    lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
                     float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal.xyz));
                     float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
                     

@@ -7,6 +7,13 @@ layout(location = 2) out vec4 outNormals;
 layout(location = 3) out vec4 outMeshData;
 #include LogDepth.glsl
 #include Lighting.glsl
+#include UsefulIncludes.glsl
+
+uniform int MaterialType;
+#define MaterialTypeSolid 0
+#define MaterialTypeRandomlyDisplaced 1
+#define MaterialTypeWater 2
+#define MaterialTypeSky 3
 
 layout(binding = 16) uniform sampler2D bumpMap;
 
@@ -169,21 +176,21 @@ float sns(vec2 p, float scale, float tscale){
 float getwater( vec2 position ) {
 
     float color = 0.0;
-    color += sns(position, 1., 0.2) * 2.;
-    color += sns(position, 3., 1.);
-    color += sns(position, 6., 1.);
-    color += sns(position, 12., 1.);
-    color += sns(position, 66., 2.);
-    color += sns(position, 128., 4.);
-    color += sns(position, 256., 6.);
-    return clamp(color / 6.0 + 0.5, 0, 1);
+    color += sns(position, 1., 0.2);
+    color += sns(position, 3., 2.);
+    color += sns(position, 12., 3.);
+    color += sns(position, 33., 2.);
+    color += sns(position, 66., 6.);
+    color += sns(position, 128., 2.);
+    color += sns(position, 256., 2.) * 2.;
+    return clamp(color / 7.0 + 0.5, 0, 1) * 2 - 1;
 
 }
 uniform float NormalMapScale;
 
 void finishFragment(vec4 color){
 	outColor = vec4((color.xyz) * DiffuseComponent, color.a);
-	outWorldPos = vec4(positionWorldSpace.xyz, 1);
+	outWorldPos = vec4(ToCameraSpace(positionWorldSpace.xyz), 1);
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normalize(normal);
 		if(UseNormalMap == 1){
@@ -201,6 +208,11 @@ void finishFragment(vec4 color){
 			//normalNew = normalize(normalNew - (tangent * factor));
     
 		}
+        if(MaterialType == MaterialTypeWater){
+            float factor = getwater(UV * 5);
+			normalNew = normalize(normalNew - (tangent * factor));
+            outColor.xyz *= (factor + 1) / 8 + 0.75;
+        }
 		if(Instances == 1){
 			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, 1);
 		} else {

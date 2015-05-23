@@ -46,7 +46,8 @@ namespace ShadowsTester
             Add(terrain);
 
             var waterMat = new GenericMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
-            waterMat.SetNormalMapFromMedia("waternormal.png");
+            //waterMat.SetNormalMapFromMedia("waternormal.png");
+            waterMat.Type = GenericMaterial.MaterialType.Water;
             var water = new Mesh3d(waterInfo, waterMat);
             water.Transformation.Translate(0, 15, 0);
             //water.DisableDepthWrite = true;

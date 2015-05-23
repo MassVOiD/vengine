@@ -133,10 +133,10 @@ namespace ShadowsTester
                 }*/
             };
 
-            new SculptScene().Create();
+            //new SculptScene().Create();
             //new SponzaScene().Create();
             //new OldCityScene().Create();
-            //new NatureScene().Create();
+            new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
             //new ManyCubesScene().Create();

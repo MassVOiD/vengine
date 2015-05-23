@@ -15,7 +15,17 @@ namespace VEngine
             TextureMultipleColor,
             OneMinusColorOverTexture
         }
+
+        public enum MaterialType
+        {
+            Solid,
+            RandomlyDisplaced,
+            Water,
+            Sky
+        }
+
         public DrawMode Mode;
+        public MaterialType Type;
 
         void CompileShaders()
         {
@@ -68,6 +78,7 @@ namespace VEngine
 
             GetShaderProgram().SetUniform("input_Color", Color);
             GetShaderProgram().SetUniform("DrawMode", (int)Mode);
+            GetShaderProgram().SetUniform("MaterialType", (int)Type);
 
             return res;
         }
