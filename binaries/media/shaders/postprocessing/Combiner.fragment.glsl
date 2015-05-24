@@ -499,7 +499,7 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
             counter++;
 		}
 	}
-	vec3 rs = (outc / counter * texture(diffuseColor, giuv).rgb ) * 1.7 + texture(diffuseColor, giuv).rgb * 0.05;
+	vec3 rs = (outc / counter * texture(color, giuv).rgb ) * 2.7;
     return VignettePass(TonemapPass(TechnicolorPass(rs)), UV);
 }
 void main()

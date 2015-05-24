@@ -194,7 +194,7 @@ void finishFragment(vec4 color){
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normalize(normal);
 		if(UseNormalMap == 1){
-			normalNew = perturb_normal(normal, positionWorldSpace, UV * NormalMapScale);
+			normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);
     
 		} else if(UseBumpMap == 1){
             float factor = (texture(bumpMap, UV).r - 0.5);
@@ -216,10 +216,10 @@ void finishFragment(vec4 color){
 		if(Instances == 1){
 			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, 1);
 		} else {
-			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, SpecularSize);
+			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, 1);
 		}
 	} else {
-		outNormals = vec4(0, 0, 0, 0);
+		outNormals = vec4(0, 0, 0, 1);
 	}	
 	// mesh data is packed as follows:
 	/*
