@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commons.cs" />
     <Compile Include="LucyScene.cs" />
     <Compile Include="HallScene.cs" />
     <Compile Include="CarScene.cs" />

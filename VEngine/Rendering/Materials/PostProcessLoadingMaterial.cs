@@ -1,4 +1,5 @@
-﻿namespace VEngine
+﻿using OpenTK;
+namespace VEngine
 {
     public class PostProcessLoadingMaterial : IMaterial
     {
@@ -17,7 +18,7 @@
         public bool Use()
         {
             bool res = Program.Use();
-            Program.SetUniform("resolution", GLThread.Resolution);
+            Program.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
             return res;
         }
     }

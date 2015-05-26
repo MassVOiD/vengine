@@ -13,7 +13,6 @@ layout(binding = 1) uniform sampler2D depth;
 layout(binding = 2) uniform sampler2D fog;
 layout(binding = 3) uniform sampler2D fogDepth;
 layout(binding = 4) uniform sampler2D lightpoints;
-layout(binding = 5) uniform sampler2D bloom;
 layout(binding = 6) uniform sampler2D globalIllumination;
 layout(binding = 7) uniform sampler2D diffuseColor;
 layout(binding = 8) uniform sampler2D normals;
@@ -63,21 +62,6 @@ vec3 lookupFog(vec2 fuv){
 }*/
 
 
-vec3 lookupBloomBlurred(vec2 buv, float radius){
-	vec3 outc = vec3(0);
-	int counter = 0;
-	for(float g = 0; g < mPI2 * 2; g+=0.6)
-	{ 
-		for(float g2 = 0; g2 < 1.0; g2+=0.15)
-		{ 
-			vec2 gauss = vec2(sin(g)*ratio, cos(g)) * (g2 * radius);
-			vec4 color = texture(bloom, buv + gauss).rgba;
-			outc += (color.rgb * color.a) * (1.0 - g2);
-			counter++;
-		}
-	}
-	return outc / counter;
-}
 
 
 vec3 lookupGIBilinearDepthNearest(vec2 giuv){
@@ -161,7 +145,6 @@ uniform int UseSimpleGI;
 uniform int UseFog;
 uniform int UseLightPoints;
 uniform int UseDepth;
-uniform int UseBloom;
 uniform int UseDeferred;
 uniform int UseBilinearGI;
 
@@ -205,10 +188,10 @@ vec3 TechnicolorPass( vec3 colorInput )
     return colorInput;
 }
 
-#define Gamma      	    0.942           //[0.000 to 2.000] Adjust midtones. 1.000 is neutral. This setting does exactly the same as the one in Lift Gamma Gain, only with less control.
-#define Exposure           -0.045           //[-1.000 to 1.000] Adjust exposure
-#define Saturation 	   -0.038           //[-1.000 to 1.000] Adjust saturation
-#define Bleach              0.000           //[0.000 to 1.000] Brightens the shadows and fades the colors
+#define Gamma      	    0.8           //[0.000 to 2.000] Adjust midtones. 1.000 is neutral. This setting does exactly the same as the one in Lift Gamma Gain, only with less control.
+#define Exposure           0.0           //[-1.000 to 1.000] Adjust exposure
+#define Saturation 	   -0.9          //[-1.000 to 1.000] Adjust saturation
+#define Bleach              1.000           //[0.000 to 1.000] Brightens the shadows and fades the colors
 #define Defog               0.000           //[0.000 to 1.000] How much of the color tint to remove
 
 #define FogColor vec3(-0.51, 0.65, -0.65) 
@@ -500,7 +483,7 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
 		}
 	}
 	vec3 rs = (outc / counter * texture(color, giuv).rgb ) * 2.7;
-    return VignettePass(TonemapPass(TechnicolorPass(rs)), UV);
+    return rs;
 }
 void main()
 {
@@ -510,12 +493,11 @@ void main()
 		nUV = refractUV();
 	   //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
 	}
-	if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
+	if(UseDeferred == 1 && UseSimpleGI == 0) color1 += texture(color, nUV).rgb;
 	//if(UseDeferred == 1) color1 += motionBlurExperiment(nUV);
 	//if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 	if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
-	if(UseBloom == 1) color1 += lookupBloomBlurred(nUV, 0.1).rgb * BloomContribution;
 	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
 	//if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
 	if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * GIContribution;

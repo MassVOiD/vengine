@@ -141,7 +141,7 @@
     <Compile Include="Rendering\ShaderProgram.cs" />
     <Compile Include="Rendering\Sun.cs" />
     <Compile Include="Rendering\Texture.cs" />
-    <Compile Include="Rendering\VEngineDisplayAdapter.cs" />
+    <Compile Include="Rendering\AbsDisplayAdapter.cs" />
     <Compile Include="Rendering\VEngineWindowAdapter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -14,7 +14,6 @@ namespace VEngine
         public VEngineWindowAdapter(string title, int width, int height)
             : base(title, width, height)
         {
-            Initialize();
             var settings = new GraphicsSettings();
             new SettingsWindow(settings).Show();
 
@@ -61,7 +60,7 @@ namespace VEngine
             //LightPool.UseTextures(2);
             // this is here so you can issue draw calls from there if you want
             GLThread.InvokeOnBeforeDraw();
-            PostProcessor.ExecutePostProcessing();
+            Pipeline.PostProcessor.ExecutePostProcessing();
             //DrawAll();
             GLThread.InvokeOnAfterDraw();
             

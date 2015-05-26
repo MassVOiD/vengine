@@ -13,6 +13,7 @@ in vec3 WorldPos_CS_in[];
 in vec2 TexCoord_CS_in[];
 in vec3 Normal_CS_in[];
 in vec3 Barycentric_CS_in[];
+in vec3 Tangent_CS_in[];
 
 // attributes of the output CPs
 out int instanceId_ES_in[];
@@ -21,15 +22,16 @@ out vec3 WorldPos_ES_in[];
 out vec2 TexCoord_ES_in[];
 out vec3 Normal_ES_in[];
 out vec3 Barycentric_ES_in[];
+out vec3 Tangent_ES_in[];
 
 float GetTessLevel(float Distance0, float Distance1)
 {
-	float rd = round((Distance0 +Distance1)/2);
-	 if(rd < 90.0) return 19.0;
-	else if(rd < 170.0) return 12.0;
-	else if(rd < 277.0) return 8.0;
-	else if(rd < 800.0) return 6.0;
-	else return 4.0;
+	float rd = ((Distance0 +Distance1)/2);
+    if(rd < 150.0) 
+        return 33.0;
+	else if(rd < 280.0) 
+        return 8.0;
+    return 4.0;
 }
 
 uniform float TesselationMultiplier;
@@ -41,21 +43,20 @@ void main()
     Normal_ES_in[gl_InvocationID] = Normal_CS_in[gl_InvocationID];
     WorldPos_ES_in[gl_InvocationID] = WorldPos_CS_in[gl_InvocationID];
     ModelPos_ES_in[gl_InvocationID] = ModelPos_CS_in[gl_InvocationID];
-    //Barycentric_ES_in[gl_InvocationID] = Barycentric_CS_in[gl_InvocationID];
+    Barycentric_ES_in[gl_InvocationID] = Barycentric_CS_in[gl_InvocationID];
+    Tangent_ES_in[gl_InvocationID] = Tangent_CS_in[gl_InvocationID];
+    instanceId_ES_in[gl_InvocationID] = instanceId_CS_in[gl_InvocationID];
    	//Barycentric_ES_in = Barycentric_ES_in[0];
-	int vid = int(floor(mod(gl_InvocationID, 3)));
-	if(vid == 0)Barycentric_ES_in[gl_InvocationID] = vec3(1, 0, 0);
-	if(vid == 1)Barycentric_ES_in[gl_InvocationID] = vec3(0, 1, 0);
-	if(vid == 2)Barycentric_ES_in[gl_InvocationID] = vec3(0, 0, 1);
 	
 	// Calculate the distance from the camera to the three control points
-    float EyeToVertexDistance0 = distance(CameraPosition, WorldPos_ES_in[0]);
-    float EyeToVertexDistance1 = distance(CameraPosition, WorldPos_ES_in[1]);
-    float EyeToVertexDistance2 = distance(CameraPosition, WorldPos_ES_in[2]);
+    float EyeToVertexDistance0 = distance(CameraPosition, WorldPos_CS_in[0]);
+    float EyeToVertexDistance1 = distance(CameraPosition, WorldPos_CS_in[1]);
+    float EyeToVertexDistance2 = distance(CameraPosition, WorldPos_CS_in[2]);
 
     // Calculate the tessellation levels
     gl_TessLevelOuter[0] = GetTessLevel(EyeToVertexDistance1, EyeToVertexDistance2) * TesselationMultiplier;
     gl_TessLevelOuter[1] = GetTessLevel(EyeToVertexDistance2, EyeToVertexDistance0) * TesselationMultiplier;
     gl_TessLevelOuter[2] = GetTessLevel(EyeToVertexDistance0, EyeToVertexDistance1) * TesselationMultiplier;
     gl_TessLevelInner[0] = gl_TessLevelOuter[2];
+    gl_TessLevelInner[1] = gl_TessLevelOuter[2];
 }

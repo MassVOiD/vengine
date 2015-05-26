@@ -5,7 +5,9 @@ in vec2 UV;
 #include Lighting.glsl
 
 layout(binding = 0) uniform sampler2D textureIn;
-layout(binding = 2) uniform sampler2D texDepth;
+layout(binding = 3) uniform sampler2D texDepth;
+layout(binding = 4) uniform sampler2D bloom;
+layout(binding = 5) uniform sampler2D worldPosTex;
 
 
 uniform float Brightness;
@@ -101,7 +103,7 @@ float PIOverSidesOver2 = PIOverSides/2;
 float triangleHeight = 0.85;
 
 vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
-	vec3 finalColor = texture(textureIn, UV).rgb;  
+	vec3 finalColor = vec3(0);  
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
     float radius = max_radius;  
 	float centerDepthDistance = abs((centerDepth) - (depthfocus));
@@ -116,23 +118,39 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 			ndist /= PIOverSidesOver2;
 			float rat = mix(1, triangleHeight, ndist);
 		
-			vec2 crd = vec2(sin(x) * ratio, cos(x)) * (y * 0.25 * rat);
+			vec2 crd = vec2(sin(x) * ratio, cos(x)) * (y * 0.025 * rat);
 			//if(length(crd) > 1.0) continue;
             vec2 coord = UV+crd * 0.01 * amount;  
 			//coord.x = clamp(abs(coord.x), 0.0, 1.0);
 			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
             if(distance(coord, UV.xy) < max_radius){  
                 float depth = texture(texDepth, coord).r;
-				if(centerDepth - depth < 0.05 || centerDepthDistance > 0.4 || depth > 0.99 || centerDepth > 0.99){
 					vec3 texel = texture(textureIn, coord).rgb;
-					float w = length(texel) + 0.1;
+					float w = length(texel) + 0.2;
 					weight+=1;
-					finalColor += texel;
-				}
+					finalColor += texel * w;
+				
             }
         }
     }
 	return finalColor/weight;
+}
+
+uniform int UseBloom;
+vec3 lookupBloomBlurred(vec2 buv, float radius){
+	vec3 outc = vec3(0);
+	int counter = 0;
+	for(float g = 0; g < mPI2 * 2; g+=0.6)
+	{ 
+		for(float g2 = 0; g2 < 1.0; g2+=0.15)
+		{ 
+			vec2 gauss = vec2(sin(g)*ratio, cos(g)) * (g2 * radius);
+			vec4 color = texture(bloom, buv + gauss).rgba;
+			outc += (color.rgb * color.a) * (1.0 - g2);
+			counter++;
+		}
+	}
+	return outc / counter;
 }
 
 void main()
@@ -144,10 +162,11 @@ void main()
 	centerDepth = depth;
 	if(LensBlurAmount > 0.001){
 		float focus = CameraCurrentDepth;
-		float adepth = reverseLog(depth);
-		float fDepth = reverseLog(CameraCurrentDepth);
+		float adepth = length(texture(worldPosTex, UV).xyz);
+		//float fDepth = reverseLog(CameraCurrentDepth);
+        float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).xyz);
 		//float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-		float f = 16.0 / LensBlurAmount; //focal length in mm
+		float f = 1.0 * LensBlurAmount; //focal length in mm
 		float d = fDepth*1000.0; //focal plane in mm
 		float o = adepth*1000.0; //depth in mm
 		
@@ -158,14 +177,14 @@ void main()
 		float c = (d-f)/(d*fstop*CoC); 
 		
 		float blur = abs(a-b)*c;
-		blur = clamp(blur,0.0,1.0) * 50;
+		blur = clamp(blur * 50,0.0,4.0) * 10;
 		color1.xyz = lensblur(blur, focus, 0.03, 7.0);
 	}
-	vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
-	color1.rgb = vec3(pow(color1.r, gamma.r),
-                  pow(color1.g, gamma.g),
-                  pow(color1.b, gamma.b));
-				  
+	//vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
+	//color1.rgb = vec3(pow(color1.r, gamma.r),
+    //              pow(color1.g, gamma.g),
+    //              pow(color1.b, gamma.b));
+				
+	if(UseBloom == 1) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb * BloomContribution;  
     outColor = clamp(color1, 0.0, 1.0);
-	
 }

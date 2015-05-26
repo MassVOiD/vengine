@@ -255,7 +255,7 @@ namespace VEngine
                 shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
                 shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
                 shader.SetUniform("FarPlane", Camera.Current.Far);
-                shader.SetUniform("resolution", GLThread.Resolution);
+                shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
            // }
         }
 

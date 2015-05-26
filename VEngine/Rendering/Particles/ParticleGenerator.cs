@@ -101,7 +101,7 @@ namespace VEngine.Particles
                 Program.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
                 Program.SetUniform("FarPlane", Camera.Current.Far);
                 Program.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-                Program.SetUniform("Resolution", GLThread.Resolution);
+                Program.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
                 Program.SetUniform("LogEnchacer", 0.01f);
 
                 Program.SetUniform("GeneratorMode", (int)Mode);

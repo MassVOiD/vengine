@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenTK;
 
 namespace VEngine
 {
@@ -75,7 +76,7 @@ namespace VEngine
 
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
             shader.SetUniform("FarPlane", Camera.Current.Far);
-            shader.SetUniform("resolution", GLThread.Resolution);
+            shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
 
         }
     }

@@ -22,7 +22,7 @@ namespace VEngine.UI
 
         public static Vector2 PixelsToScreenSpace(Vector2 pos)
         {
-            return new Vector2(pos.X / GLThread.Resolution.X, pos.Y / GLThread.Resolution.Y);
+            return new Vector2(pos.X / GLThread.Resolution.Width, pos.Y / GLThread.Resolution.Height);
         }
     }
 }

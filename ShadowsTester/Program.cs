@@ -29,113 +29,34 @@ namespace ShadowsTester
             //var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
 
             Media.SearchPath = Config.MediaPath;
+            GLThread.Resolution = new Size(Config.Width, Config.Height);
 
             GLThread.SetCurrentThreadCores(1);
 
             var renderThread = Task.Factory.StartNew(() =>
             {
                 window = new VEngineWindowAdapter("Test", Config.Width, Config.Height);
+
+                GLThread.GraphicsSettings.UseDeferred = true;
+                GLThread.GraphicsSettings.UseFog = false;
+                GLThread.GraphicsSettings.UseBloom = false;
+                GLThread.GraphicsSettings.UseLightPoints = false;
+                GLThread.GraphicsSettings.UseMSAA = false;
+                GLThread.GraphicsSettings.UseSimpleGI = true;
+                GLThread.GraphicsSettings.UseBilinearGI = false;
+
                 window.Run(60);
                 GLThread.SetCurrentThreadCores(2);
             });
             World.Root = new World();
 
-            float aspect = Config.Height > Config.Width ? Config.Height / Config.Width : Config.Width / Config.Height;
-            var freeCamera = new FreeCamera((float)Config.Width / (float)Config.Height, MathHelper.PiOver2);
-            FreeCam = freeCamera;
+            var freeCamera = Commons.SetUpFreeCamera();
+            Commons.AddControllableLight();
 
-            GLThread.Invoke(() =>
-            {
-                window.Resize += (o, e) =>
-                {
-                    float aast = window.Height > window.Width ? window.Height + 1 / window.Width + 1 : window.Width + 1 / window.Height + 1;
-                    freeCamera = new FreeCamera(aast, MathHelper.PiOver2);
-                    FreeCam = freeCamera;
-                    GLThread.Resolution.X = window.Width;
-                    GLThread.Resolution.Y = window.Height;
-                };
-            });
-
-            Random rand = new Random();
-           
-            Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
-
-
-            // compute shade test
-
-
-            var color = GenericMaterial.FromMedia("mramor6x6-bump.png", "177_norm.jpg");
-            Mesh3d water = new Mesh3d(waterInfo, color);
-            water.SetMass(0);
-            water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
-             water.DiffuseComponent = 1.0f;
-              World.Root.Add(water);
-             //var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.94f, 0.90f, 1212.0f), 0, 5, 10, 20, 80, 400, 1000);
-
-             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 0.1f, 1000.0f);
-            redConeLight.LightColor = new Vector4(1, 1, 1, 210);
-            //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
-
-            LightPool.Add(redConeLight);
-            
-            GLThread.OnUpdate += (o, e) =>
-            {
-                var kb = OpenTK.Input.Keyboard.GetState();
-                if(kb.IsKeyDown(OpenTK.Input.Key.Left))
-                {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitX / 12.0f);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.Right))
-                {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitX / 12.0f);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.Up))
-                {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitZ / 12.0f);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.Down))
-                {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitZ / 12.0f);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.PageUp))
-                {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitY / 12.0f);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.PageDown))
-                {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitY / 12.0f);
-                }
-                /*if(kb.IsKeyDown(OpenTK.Input.Key.U))
-                {
-                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.J))
-                {
-                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.H))
-                {
-                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.K))
-                {
-                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }*/
-            };
 
             //new SculptScene().Create();
-            new SponzaScene().Create();
-            //new OldCityScene().Create();
+            //new SponzaScene().Create();
+            new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
@@ -149,177 +70,13 @@ namespace ShadowsTester
 
             World.Root.SortByDepthMasking();
 
-            System.Threading.Thread.Sleep(500);
-            window.PostProcessor.UseDeferred = true;
-            window.PostProcessor.UseFog = false;
-            window.PostProcessor.UseBloom = false;
-            window.PostProcessor.UseLightPoints = false;
-            window.PostProcessor.UseMSAA = false;
-            window.PostProcessor.UseSimpleGI = true;
-            window.PostProcessor.UseBilinearGI = false;
+            System.Threading.Thread.Sleep(1000);
 
-            var sphere3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
-            sphere3dInfo.Normalize();
+            Commons.SetUpInputBehaviours();
             
-            GLThread.OnMouseUp += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Middle)
-                {
-                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
-                    if(mesh != null && mesh.GetCollisionShape() != null)
-                    {
-                        Console.WriteLine(mesh.GetCollisionShape().ToString());
-                        mesh.PhysicalBody.LinearVelocity += (Camera.Current.GetDirection() * 120.0f);
-
-                    }
-                }
-                if(e.Button == OpenTK.Input.MouseButton.Left)
-                {
-                    var sphere = new BulletSharp.SphereShape(0.3f);
-                    Mesh3d m = new Mesh3d(sphere3dInfo, new GenericMaterial(new Vector4(1, 1, 1, 0.1f)));
-                    m.SetScale(0.3f);
-                    m.Transformation.SetPosition(freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 2.0f);
-                    m.SetMass(11.0f);
-                    m.SetCollisionShape(sphere);
-                    var sl = new SimplePointLight(m.Transformation.GetPosition(), 
-                        Color.FromArgb(
-                        rand.Next(33, 66), rand.Next(33, 66), rand.Next(33, 66)));
-                    LightPool.Add(sl);
-                    World.Root.Add(m);
-                    MeshLinker.Link(m, sl, Vector3.Zero, Quaternion.Identity);
-                    m.PhysicalBody.LinearVelocity = freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 10.0f;
-        
-                }
-            };
-
-            MeshLinker.LinkInfo pickedLink = null;
-            bool inPickingMode = false;
-            GLThread.OnMouseDown += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Right)
-                {
-                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
-                    if(mesh != null && mesh != water && mesh.GetCollisionShape() != null && !inPickingMode)
-                    {
-                        Console.WriteLine(mesh.GetCollisionShape().ToString());
-                        pickedLink = MeshLinker.Link(freeCamera.Cam, mesh, new Vector3(0, 0, -(freeCamera.Cam.Transformation.GetPosition() - mesh.Transformation.GetPosition()).Length),
-                            Quaternion.Identity);
-                        pickedLink.UpdateRotation = false;
-                        inPickingMode = true;
-                    }
-                }
-            };
-            GLThread.OnMouseUp += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Right)
-                {
-                    MeshLinker.Unlink(pickedLink);
-                    pickedLink = null;
-                    inPickingMode = false;
-                }
-            };
-
-            GLThread.OnMouseWheel += (o, e) =>
-            {
-                if(e.Delta != 0 && inPickingMode)
-                {
-                    pickedLink.Offset.Z -= e.Delta * 3.0f;
-                    if(pickedLink.Offset.Z > -5)
-                        pickedLink.Offset.Z = -5;
-                }
-            };
-
-            /*System.Timers.Timer lensFocusTimer = new System.Timers.Timer();
-            lensFocusTimer.Interval = 300;
-            lensFocusTimer.Elapsed += (o, e) =>
-            {
-                window.PostProcessor.UpdateCameraFocus(freeCamera.Cam);
-                Console.WriteLine(Camera.MainDisplayCamera.LensBlurAmount);
-            };
-            lensFocusTimer.Start();*/
-
-            
-            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
-            var skydomeMaterial = GenericMaterial.FromMedia("skyreal.png");
-            var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
-            skydome.Transformation.Scale(55000);
-            skydome.Transformation.Translate(0, -100, 0);
-            skydome.IgnoreLighting = true;
-            skydome.DiffuseComponent = 0.2f;
-            World.Root.Add(skydome);
-            
-            GLThread.OnMouseWheel += (o, e) =>
-            {
-                if(!inPickingMode)
-                    Camera.Current.LensBlurAmount -= e.Delta / 20.0f;
-            };
-
-            World.Root.SimulationSpeed = 1.0f;
-
-            GLThread.OnKeyDown += (o, e) =>
-            {
-                if(e.Key == OpenTK.Input.Key.T)
-                {
-                    World.Root.SimulationSpeed = 0.4f;
-                }
-                if(e.Key == OpenTK.Input.Key.Y)
-                {
-                    World.Root.SimulationSpeed = 0.10f;
-                }
-
-            };
-            GLThread.OnKeyUp += (o, e) =>
-            {
-                if(e.Key == OpenTK.Input.Key.Tab)
-                {
-                    window.IsCursorVisible = !window.IsCursorVisible;
-                }
-                if(e.Key == OpenTK.Input.Key.Pause)
-                {
-                    ShaderProgram.RecompileAll();
-                }
-                if(e.Key == OpenTK.Input.Key.T)
-                {
-                    World.Root.SimulationSpeed = 1.0f;
-                }
-                if(e.Key == OpenTK.Input.Key.Y)
-                {
-                    World.Root.SimulationSpeed = 1.0f;
-                }
-                if(e.Key == OpenTK.Input.Key.Number1)
-                {
-                    //redConeLight.SetPosition(freeCamera.Cam.Transformation.GetPosition(), freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection());
-                    redConeLight.GetTransformationManager().SetPosition(freeCamera.Cam.Transformation.GetPosition());
-                    redConeLight.GetTransformationManager().SetOrientation(freeCamera.Cam.Transformation.GetOrientation());
-                }
-                if(e.Key == OpenTK.Input.Key.Number2)
-                {
-                    freeCamera.Cam.LookAt(new Vector3(0));
-                }
-                if(e.Key == OpenTK.Input.Key.Number3)
-                {
-                    Interpolator.Interpolate<Vector3>(redConeLight.GetTransformationManager().Position, redConeLight.GetTransformationManager().Position.R, freeCamera.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
-                }
-                if(e.Key == OpenTK.Input.Key.Number0)
-                    window.PostProcessor.UseBilinearGI = !window.PostProcessor.UseBilinearGI;
-                if(e.Key == OpenTK.Input.Key.Number9)
-                    window.PostProcessor.UseBloom = !window.PostProcessor.UseBloom;
-                if(e.Key == OpenTK.Input.Key.Number8)
-                    window.PostProcessor.UseDeferred = !window.PostProcessor.UseDeferred;
-                if(e.Key == OpenTK.Input.Key.Number7)
-                    window.PostProcessor.UseDepth = !window.PostProcessor.UseDepth;
-                if(e.Key == OpenTK.Input.Key.Number6)
-                    window.PostProcessor.UseFog = !window.PostProcessor.UseFog;
-                if(e.Key == OpenTK.Input.Key.Number5)
-                    window.PostProcessor.UseLightPoints = !window.PostProcessor.UseLightPoints;
-                if(e.Key == OpenTK.Input.Key.Number4)
-                    window.PostProcessor.UseSimpleGI = !window.PostProcessor.UseSimpleGI;
-            };
-
             World.Root.SortByObject3d();
 
             GLThread.Invoke(() => window.StartPhysicsThread());
-            //GLThread.Invoke(() => window.SetDefaultPostProcessingMaterial());
             renderThread.Wait();
         }
     }

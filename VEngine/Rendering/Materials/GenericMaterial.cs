@@ -16,16 +16,8 @@ namespace VEngine
             OneMinusColorOverTexture
         }
 
-        public enum MaterialType
-        {
-            Solid,
-            RandomlyDisplaced,
-            Water,
-            Sky
-        }
 
         public DrawMode Mode;
-        public MaterialType Type;
 
         void CompileShaders()
         {

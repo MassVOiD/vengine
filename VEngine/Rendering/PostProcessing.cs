@@ -51,6 +51,8 @@ namespace VEngine
 
         private Mesh3d PostProcessingMesh;
 
+        private Texture TestTexture1, TestTexture2;
+
         private static uint[] postProcessingPlaneIndices = {
                 0, 1, 2, 3, 2, 1
             };
@@ -67,6 +69,8 @@ namespace VEngine
         public PostProcessing(int initialWidth, int initialHeight)
         {
             TestBuffer = new ShaderStorageBuffer();
+            TestTexture1 = new Texture(Media.Get("tt1.jpg"));
+            TestTexture2 = new Texture(Media.Get("tt2.jpg"));
             CShader = new ComputeShader("Blur.compute.glsl");
             GLThread.Invoke(() =>
             {
@@ -227,6 +231,7 @@ namespace VEngine
         {
             HDRShader.Use();
             HDRShader.SetUniform("Brightness", Camera.Current.Brightness);
+            CombinerShader.SetUniform("UseBloom", GLThread.GraphicsSettings.UseBloom);
             if(Camera.MainDisplayCamera != null)
             {
                 LensBlurShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
@@ -246,6 +251,7 @@ namespace VEngine
                 LensBlurShader.SetUniform("CameraCurrentDepth", Camera.Current.CurrentDepthFocus);
                 LensBlurShader.SetUniform("LensBlurAmount", Camera.Current.LensBlurAmount);
             }
+            MRT.UseTextureDepth(2);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
@@ -261,13 +267,12 @@ namespace VEngine
         private void Combine()
         {
             CombinerShader.Use();
-            CombinerShader.SetUniform("UseSimpleGI", UseSimpleGI);
-            CombinerShader.SetUniform("UseFog", UseFog);
-            CombinerShader.SetUniform("UseLightPoints", UseLightPoints);
-            CombinerShader.SetUniform("UseDepth", UseDepth);
-            CombinerShader.SetUniform("UseBloom", UseBloom);
-            CombinerShader.SetUniform("UseDeferred", UseDeferred);
-            CombinerShader.SetUniform("UseBilinearGI", UseBilinearGI);
+            CombinerShader.SetUniform("UseSimpleGI", GLThread.GraphicsSettings.UseSimpleGI);
+            CombinerShader.SetUniform("UseFog", GLThread.GraphicsSettings.UseFog);
+            CombinerShader.SetUniform("UseLightPoints", GLThread.GraphicsSettings.UseLightPoints);
+            CombinerShader.SetUniform("UseDepth", GLThread.GraphicsSettings.UseDepth);
+            CombinerShader.SetUniform("UseDeferred", GLThread.GraphicsSettings.UseDeferred);
+            CombinerShader.SetUniform("UseBilinearGI", GLThread.GraphicsSettings.UseBilinearGI);
             ShaderProgram.Lock = true;
             //TestBuffer.Use(2);
             PostProcessingMesh.Draw();
@@ -282,14 +287,7 @@ namespace VEngine
                 return SwitchToFB1();
         }
 
-        public bool UseSimpleGI = false;
-        public bool UseFog = false;
-        public bool UseLightPoints = false;
-        public bool UseDepth = false;
-        public bool UseBloom = false;
-        public bool UseDeferred = false;
-        public bool UseBilinearGI = false;
-        public bool UseMSAA = false;
+
 
         public void ExecutePostProcessing()
         {
@@ -321,7 +319,7 @@ namespace VEngine
 
             DisableBlending();
 
-            if(UseLightPoints)
+            if(GLThread.GraphicsSettings.UseLightPoints)
             {
                 SwitchToFB(LightPointsFrameBuffer);
                 MRT.UseTextureDiffuseColor(0);
@@ -329,7 +327,7 @@ namespace VEngine
                 LightsPoints();
             }
 
-            if(UseFog)
+            if(GLThread.GraphicsSettings.UseFog)
             {
                 SwitchToFB(FogFramebuffer);
                 MRT.UseTextureDiffuseColor(0);
@@ -340,7 +338,7 @@ namespace VEngine
             //SwitchBetweenFB();
             //SSAO();
 
-            if(UseDeferred)
+            if(GLThread.GraphicsSettings.UseDeferred)
             {
                 SwitchBetweenFB();
                 MRT.UseTextureDiffuseColor(0);
@@ -351,12 +349,6 @@ namespace VEngine
                 Deferred();
             }
 
-            if(UseBloom)
-            {
-                SwitchToFB(BloomFrameBuffer);
-                LastFrameBuffer.UseTexture(0);
-                Bloom();
-            }
 
 
             var p1 = SwitchBetweenFB();
@@ -365,7 +357,7 @@ namespace VEngine
             //p2.UseTexture(0);
             //Blit();
             //SwitchBetweenFB();
-            if(UseBilinearGI || UseSimpleGI)
+            if(GLThread.GraphicsSettings.UseBilinearGI || GLThread.GraphicsSettings.UseSimpleGI)
             {
 
                 CShader.Use();
@@ -401,7 +393,7 @@ namespace VEngine
             MRT.UseTextureDepth(1);
             FogFramebuffer.UseTexture(2);
             LightPointsFrameBuffer.UseTexture(4);
-            BloomFrameBuffer.UseTexture(5);
+           // BloomFrameBuffer.UseTexture(5);
             p1.UseTexture(6);
             MRT.UseTextureDiffuseColor(7);
             MRT.UseTextureNormals(8);
@@ -423,6 +415,12 @@ namespace VEngine
            // if(World.Root.SkyDome != null) World.Root.SkyDome.Draw();
             //LensBlur();
 
+            if(GLThread.GraphicsSettings.UseBloom)
+            {
+                SwitchToFB(BloomFrameBuffer);
+                GlobalIlluminationFrameBuffer.UseTexture(0);
+                Bloom();
+            }
             SwitchToFB0();
             /*MRT.UseTextureDiffuseColor(1);
             MRT.UseTextureDepth(2);
@@ -436,6 +434,10 @@ namespace VEngine
             GlobalIlluminationFrameBuffer.UseTexture(10);*/
             GlobalIlluminationFrameBuffer.UseTexture(0);
             MRT.UseTextureDepth(2);
+            BloomFrameBuffer.UseTexture(4);
+            MRT.UseTextureWorldPosition(5);
+            TestTexture1.Use(TextureUnit.Texture9);
+            TestTexture2.Use(TextureUnit.Texture10);
             HDR();
             if(World.Root != null && World.Root.UI != null)
                 World.Root.UI.DrawAll();

@@ -33,11 +33,11 @@ namespace ShadowsTester
                 return ix < hmap.Length ? hmap[ix] * 0.3f : 0;
             };
             Object3dGenerator.UseCache = false;
-            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500 / scale, -1000 / scale), new Vector2(1500 / scale, 1000 / scale), new Vector2(1096, 1096), Vector3.UnitY, 1024 / scale, terrainGen);
+            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500, -1000), new Vector2(1500, 1000), new Vector2(1096, 1096), Vector3.UnitY, 1024 / scale, terrainGen);
             hmap = null;
             GC.Collect();
 
-            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500 / scale, -1000 / scale), new Vector2(1500 / scale, 1000 / scale), new Vector2(1096, 1096), Vector3.UnitY, 55 / scale, (x, y) => 0);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500, -1000), new Vector2(1500, 1000), new Vector2(1096, 1096), Vector3.UnitY, 121, (x, y) => 0);
             
             //var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
             //terrainInfo.ScaleUV(100);
@@ -46,7 +46,7 @@ namespace ShadowsTester
             Add(terrain);
 
             var waterMat = new GenericMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
-            //waterMat.SetNormalMapFromMedia("waternormal.png");
+            waterMat.SetNormalMapFromMedia("151_norm.JPG");
             waterMat.Type = GenericMaterial.MaterialType.Water;
             var water = new Mesh3d(waterInfo, waterMat);
             water.Transformation.Translate(0, 15, 0);
@@ -131,7 +131,15 @@ namespace ShadowsTester
                 //ob.SpecularComponent = 0.1f;
                 this.Add(ob);
             }*/
-            
+
+            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
+            var skydomeMaterial = GenericMaterial.FromMedia("skyreal.png");
+            var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
+            skydome.Transformation.Scale(55000);
+            skydome.Transformation.Translate(0, -100, 0);
+            skydome.IgnoreLighting = true;
+            skydome.DiffuseComponent = 0.2f;
+            World.Root.Add(skydome);
         }
 
     }

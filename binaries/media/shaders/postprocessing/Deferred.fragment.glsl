@@ -205,8 +205,8 @@ vec3 Radiosity()
             //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
             ambient += vec3(1,1,1) * dotdiffuse;
         }
-        /*rd = randomizer * float(i);
-        displace = vec3(
+        rd = randomizer * float(i);
+        /*displace = vec3(
             fract(rd * 1.53413) * 2 - 1, 
             fract(rd*31.123756), 
             fract(rd*3.2342456) * 2 - 1
@@ -226,7 +226,10 @@ vec3 Radiosity()
         counter+=3;
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    //rs = clamp(rs, 0, 1.5);
+    float maxc = max(max(rs.x, rs.y), rs.z);
+    float cmp = clamp(maxc, 0, 0.25);
+    if(maxc > 0) rs *= cmp / maxc;
+    //rs = clamp(rs, 0, 0.2);
     //rs.x = pow(rs.x, 2);
   //  rs.y = pow(rs.y, 2);
     //rs.z = pow(rs.z, 2);
@@ -290,7 +293,7 @@ void main()
 
             // do shadows
             if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0){ 
-                float percent = clamp(getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i), 0.0, 1.0);
+                float percent = getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i);
                 if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE){
                     vec3 abc = LightsPos[i];
 
@@ -311,7 +314,7 @@ void main()
                     float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
                     
                     color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
-                    + (LightsColors[i].rgb * specularComponent)) * colorOriginal *percent;
+                    + (LightsColors[i].rgb * specularComponent)) * colorOriginal *max(0, percent);
                     foundSun = 1;
                 } else {
                     vec3 abc = LightsPos[i];
@@ -324,7 +327,7 @@ void main()
                     vec3 lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
                     vec3 R = reflect(lightRelativeToVPos, normal.xyz);
                     float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
-                    float specularComponent = clamp(pow(cosAlpha, 80.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
+                    float specularComponent = clamp(pow(cosAlpha, 160.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
 
 
                     lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
@@ -335,7 +338,14 @@ void main()
 
                     color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
                     + (LightsColors[i].rgb * specularComponent))
-                    * att * culler * percent;
+                    * att * culler * max(0, percent);
+                    if(percent < 0){
+                        //is in shadow! lets try subsufrace scattering
+                        float amount = 0.01 + percent;
+                        float dotdiffuse2 = dot(normalize(lightRelativeToVPos), normalize (-normal.xyz));
+                        float diffuseComponent2 = clamp(dotdiffuse2, 0.0, 1.0);                        
+                        if(diffuseComponent2 > 0) color1 += colorOriginal * culler * 10 * dotdiffuse2 * LightsColors[i].rgb *  att*  max(0, amount);
+                    }
                     
                 }
             }

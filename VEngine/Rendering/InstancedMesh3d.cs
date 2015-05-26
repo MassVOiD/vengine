@@ -177,7 +177,7 @@ namespace VEngine
 
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
             shader.SetUniform("FarPlane", Camera.Current.Far);
-            shader.SetUniform("resolution", GLThread.Resolution);
+            shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
 
         }
 

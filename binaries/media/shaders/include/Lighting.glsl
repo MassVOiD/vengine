@@ -77,7 +77,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	
 	
 	float AInv = 1.0 / ((distance2) + 1.0);
-	float bval = distance2 - reverseLog(lookupDepthFromLight(i, uv));
+	float bval = badass_depth - lookupDepthFromLight(i, uv);
 	//float distanceCam = distance(positionWorldSpace.xyz, CameraPosition);
 	float distance1 = 0.0;
 	vec2 fakeUV = vec2(0.0);
@@ -98,5 +98,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 			counter++;
 		}
 	}
-	return 1.0 - (accum / counter);
+    float rs = 1.0 - (accum / counter);
+	if(rs > 0) return rs;
+    else return -abs(bval);
 }

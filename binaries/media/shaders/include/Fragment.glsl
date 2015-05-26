@@ -176,11 +176,7 @@ float sns(vec2 p, float scale, float tscale){
 float getwater( vec2 position ) {
 
     float color = 0.0;
-    color += sns(position, 1., 0.2);
-    color += sns(position, 3., 2.);
-    color += sns(position, 12., 3.);
-    color += sns(position, 33., 2.);
-    color += sns(position, 66., 6.);
+    color += sns(position, 64., 4.);
     color += sns(position, 128., 2.);
     color += sns(position, 256., 2.) * 2.;
     return clamp(color / 7.0 + 0.5, 0, 1) * 2 - 1;
@@ -209,9 +205,9 @@ void finishFragment(vec4 color){
     
 		}
         if(MaterialType == MaterialTypeWater){
-            float factor = getwater(UV * 5);
+            float factor = getwater(UV * 5) * 0.3;
 			normalNew = normalize(normalNew - (tangent * factor));
-            outColor.xyz *= (factor + 1) / 8 + 0.75;
+           // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
 		if(Instances == 1){
 			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, 1);

@@ -3,11 +3,12 @@
 in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
+#include UsefulIncludes.glsl
 
 layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
 
-out vec4 outColor;
+out vec4 outColor; 
 
 vec3 ball(vec3 colour, float sizec, float xc, float yc){
 	float xdist = (abs(UV.x - xc));
@@ -29,22 +30,18 @@ void main()
 	
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 
-		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(LightsPos[i], 1.0);
+		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(FromCameraSpace(LightsPos[i]), 1.0);
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
 		
-		vec4 clipspace2 = lightPV * vec4(CameraPosition, 1.0);
-		if(clipspace2.z >= 0.0) {
-			vec2 sspace = ((clipspace2.xyz / clipspace2.w).xy + 1.0) / 2.0;
-			float dist = distance(CameraPosition, LightsPos[i]);
-			float lndist = toLogDepth(dist);
-			float logg = texture(texDepth, sspace1).r;
-
-			if(logg - lndist > -0.01) {
-				color += ball(vec3(LightsColors[i]*20.0 * abs(logg - lndist)),LightPointSize * (0.8/ dist), sspace1.x, sspace1.y);
-				//color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
-			}
-		}
+        float badass_depth = (clipspace.z / clipspace.w) * 0.5 + 0.5;	
+        float logg = texture(texDepth, sspace1).r;
+        
+        if(logg > badass_depth) {
+            color += ball(vec3(LightsColors[i]*20.0),LightPointSize * (0.08/ badass_depth), sspace1.x, sspace1.y);
+            //color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
+        }
+    
 	}
 	
 	for(int i=0;i<SimpleLightsCount;i++){

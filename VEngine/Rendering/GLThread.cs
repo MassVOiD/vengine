@@ -7,11 +7,12 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Threading;
 using System.Timers;
+using System.Drawing;
 namespace VEngine
 {
     public class GLThread
     {
-        static public Vector2 Resolution;
+        static public Size Resolution;
         static public DateTime StartTime;
         private static Queue<Action> ActionQueue = new Queue<Action>();
 

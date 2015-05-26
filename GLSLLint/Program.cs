@@ -9,7 +9,7 @@ namespace GLSLLint
     {
         class Config
         {
-            public static string MediaPath = "media";
+            public static string MediaPath = @"C:\Users\Aerofly\Documents\Visual Studio 2013\Projects\VEngine\binaries\media";
             public static int Width = 1200;
             public static int Height = 700;
         }
@@ -17,6 +17,7 @@ namespace GLSLLint
         {
             string source = null;
             ShaderType type = ShaderType.VertexShader;
+            Media.SearchPath = Config.MediaPath;
             if(args.Length == 2)
             {
                 string typestr = args[0];

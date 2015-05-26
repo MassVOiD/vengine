@@ -14,6 +14,14 @@ namespace VEngine
         public float NormalMapScale = 1.0f;
         public float TesselationMultiplier = 1.0f;
 
+        public enum MaterialType
+        {
+            Solid,
+            RandomlyDisplaced,
+            Water,
+            Sky
+        }
+        public MaterialType Type;
 
         public void SetBumpMapFromMedia(string bumpmapKey)
         {
@@ -26,7 +34,7 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
-            return Program;
+            return Type == MaterialType.Water ? TesselatedProgram : Program;
         }
 
         public virtual bool Use()
