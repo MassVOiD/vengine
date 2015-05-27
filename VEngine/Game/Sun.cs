@@ -60,7 +60,7 @@ namespace VEngine
                 var right = Orientation.GetTangent(MathExtensions.TangentDirection.Right);
                 var newlocationAbstract = Vector3.Zero - dir * 300;
                 var newlocationCamera = Camera.MainDisplayCamera.GetPosition();
-                newlocationCamera.Y = 20;
+                //newlocationCamera.Y = 20;
                 //newlocationCamera.Z *= -1;
                 //newlocationCamera -= c.Key * (Orientation.GetTangent(MathExtensions.TangentDirection.Up));
                 //newlocationCamera += c.Key * right;
@@ -69,7 +69,7 @@ namespace VEngine
                 c.Value.BuildOrthographicProjection(
                     -c.Key, c.Key,
                     -c.Key, c.Key,
-                    -1000, 1000);
+                    -c.Key, c.Key);
                 c.Value.LightColor = LightColor;
                 c.Value.SetOrientation(Orientation);
                // c.Value.camera.UpdateInverse();

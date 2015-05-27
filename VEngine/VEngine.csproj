@@ -74,6 +74,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Game\Water.cs" />
     <Compile Include="Rendering\AbsMesh.cs" />
     <Compile Include="Rendering\Camera.cs" />
     <Content Include="Config.css">
@@ -139,7 +140,7 @@
     <Compile Include="Rendering\VEngineInvisibleAdapter.cs" />
     <Compile Include="Rendering\World.cs" />
     <Compile Include="Rendering\ShaderProgram.cs" />
-    <Compile Include="Rendering\Sun.cs" />
+    <Compile Include="Game\Sun.cs" />
     <Compile Include="Rendering\Texture.cs" />
     <Compile Include="Rendering\AbsDisplayAdapter.cs" />
     <Compile Include="Rendering\VEngineWindowAdapter.cs" />

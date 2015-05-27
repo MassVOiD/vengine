@@ -14,6 +14,7 @@ uniform int MaterialType;
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2
 #define MaterialTypeSky 3
+#define MaterialTypeWetDrops 4
 
 layout(binding = 16) uniform sampler2D bumpMap;
 
@@ -198,15 +199,19 @@ void finishFragment(vec4 color){
 			normalNew = normalize(normalNew - (tangent * factor));
     
 		} else {
-            //float factor = (length(vec3(1)) - length(color.xyz)) * 0.09;
-           // factor = getwater(UV * 2) / 3;
-            //vec3 bitan = cross(normal, tangent);
-			//normalNew = normalize(normalNew - (tangent * factor));
+            float factor = (length(vec3(0.5)) - length(color.xyz)) * 0.2;
+			normalNew = normalize(normalNew - (tangent * factor));
     
 		}
         if(MaterialType == MaterialTypeWater){
             float factor = getwater(UV * 5) * 0.3;
 			normalNew = normalize(normalNew - (tangent * factor));
+           // outColor.xyz *= (factor + 1) / 8 + 0.75;
+        }
+        if(MaterialType == MaterialTypeWetDrops){
+            float pn = snoise(positionWorldSpace* 13.)  * 2 - 1;
+            //pn = clamp(pow(pn, 3.0), 0.5, 1.0);
+			normalNew = normalize(normalNew - (tangent * pn * 0.05));
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
 		if(Instances == 1){

@@ -14,6 +14,13 @@ namespace ShadowsTester
     {
         public SponzaScene()
         {
+            var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
+            dragon3dInfo.ScaleUV(0.1f);
+            var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(new Vector4(0.2f, 0, 0.2f, 1)));
+            dragon.Translate(0, 10, 0);
+            dragon.Scale(0.3f);
+            dragon.Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2));
+            Add(dragon);
           /*  Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048, -2048), new Vector2(2048, 2048), new Vector2(496, 496), Vector3.UnitY);
             var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
             waterMat.SetNormalMapFromMedia("waternormal.png");
@@ -32,13 +39,6 @@ namespace ShadowsTester
                 //ob.MainObjectInfo.MakeDoubleFaced();
                 this.Add(ob);
             }
-            var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucymidres.vbo.raw"), Media.Get("lucymidres.indices.raw"));
-            dragon3dInfo.ScaleUV(0.1f);
-            var dragon = new Mesh3d(dragon3dInfo, GenericMaterial.FromMedia("180.jpg", "180_norm.jpg"));
-            dragon.Translate(0, 10, 0);
-            dragon.Scale(30);
-            dragon.Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2));
-            Add(dragon);
         }
 
     }

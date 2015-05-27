@@ -189,7 +189,7 @@ vec3 TechnicolorPass( vec3 colorInput )
 }
 
 #define Gamma      	    0.8           //[0.000 to 2.000] Adjust midtones. 1.000 is neutral. This setting does exactly the same as the one in Lift Gamma Gain, only with less control.
-#define Exposure           0.0           //[-1.000 to 1.000] Adjust exposure
+#define Exposure           -1.0           //[-1.000 to 1.000] Adjust exposure
 #define Saturation 	   -0.9          //[-1.000 to 1.000] Adjust saturation
 #define Bleach              1.000           //[0.000 to 1.000] Brightens the shadows and fades the colors
 #define Defog               0.000           //[0.000 to 1.000] How much of the color tint to remove
@@ -482,7 +482,7 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
             counter++;
 		}
 	}
-	vec3 rs = (outc / counter * texture(color, giuv).rgb ) * 2.7;
+	vec3 rs = (outc / counter * texture(diffuseColor, giuv).rgb ) * 2.7;
     return rs;
 }
 void main()
@@ -493,7 +493,7 @@ void main()
 		nUV = refractUV();
 	   //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
 	}
-	if(UseDeferred == 1 && UseSimpleGI == 0) color1 += texture(color, nUV).rgb;
+	if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
 	//if(UseDeferred == 1) color1 += motionBlurExperiment(nUV);
 	//if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 	if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;

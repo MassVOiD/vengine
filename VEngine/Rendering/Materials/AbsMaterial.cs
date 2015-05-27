@@ -19,7 +19,8 @@ namespace VEngine
             Solid,
             RandomlyDisplaced,
             Water,
-            Sky
+            Sky,
+            WetDrops
         }
         public MaterialType Type;
 

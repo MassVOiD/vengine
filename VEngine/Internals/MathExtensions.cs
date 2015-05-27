@@ -49,7 +49,7 @@ namespace VEngine
         }
         public static Quaternion ToQuaternion(this Vector3 direction, Vector3 up)
         {
-            return Matrix4.LookAt(Vector3.Zero, -direction, up).ExtractRotation(true);
+            return Matrix4.LookAt(Vector3.Zero, direction, up).ExtractRotation(true);
         }
         public static XElement SelectSingle(this XElement element, string localname)
         {

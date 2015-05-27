@@ -14,6 +14,31 @@ namespace ShadowsTester
     {
         public NatureScene()
         {
+            var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.98f, 0.92f, 10.0f), 5, 20, 40, 200, 10000);
+            GLThread.OnUpdate += (o, e) =>
+            {
+                var kb = OpenTK.Input.Keyboard.GetState();
+                if(kb.IsKeyDown(OpenTK.Input.Key.U))
+                {
+                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.J))
+                {
+                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.H))
+                {
+                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.K))
+                {
+                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                }
+            };
             int scale = 2;
             /*
             var protagonist = Object3dInfo.LoadSceneFromObj(Media"protagonist.obj", "protagonist.mtl", 1.0f);
@@ -33,11 +58,11 @@ namespace ShadowsTester
                 return ix < hmap.Length ? hmap[ix] * 0.3f : 0;
             };
             Object3dGenerator.UseCache = false;
-            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500, -1000), new Vector2(1500, 1000), new Vector2(1096, 1096), Vector3.UnitY, 1024 / scale, terrainGen);
+            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-15000, -10000), new Vector2(15000, 10000), new Vector2(1096, 1096), Vector3.UnitY, 1024 / scale, terrainGen);
             hmap = null;
             GC.Collect();
 
-            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500, -1000), new Vector2(1500, 1000), new Vector2(1096, 1096), Vector3.UnitY, 121, (x, y) => 0);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-15000, -10000), new Vector2(15000, 10000), new Vector2(1096, 1096), Vector3.UnitY, 121, (x, y) => 0);
             
             //var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
             //terrainInfo.ScaleUV(100);

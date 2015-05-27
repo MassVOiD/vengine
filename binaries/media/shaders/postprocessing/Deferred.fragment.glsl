@@ -189,8 +189,8 @@ vec3 Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 23;
-    //float randomizer = 138.345341 * RandomSeed1 * rand(UV);
+    const int samples = 33;
+    //float randomizer = 138.345341 * rand(UV);
     const float randomizer = 138.345341;
     uint counter = 0;
     for(int i=0;i<samples;i++){
@@ -199,13 +199,13 @@ vec3 Radiosity()
             fract(rd) * 2 - 1, 
             fract(rd*12.2562), 
             fract(rd*7.121214) * 2 - 1
-        ) * 2.0;
+        ) * clamp(length(posCenter), 0.1, 2.0);
         if(testVisibility3d(UV, posCenter, posCenter + displace)){
             float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
             //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
             ambient += vec3(1,1,1) * dotdiffuse;
         }
-        rd = randomizer * float(i);
+        //rd = randomizer * float(i);
         /*displace = vec3(
             fract(rd * 1.53413) * 2 - 1, 
             fract(rd*31.123756), 
@@ -226,9 +226,9 @@ vec3 Radiosity()
         counter+=3;
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    float maxc = max(max(rs.x, rs.y), rs.z);
-    float cmp = clamp(maxc, 0, 0.25);
-    if(maxc > 0) rs *= cmp / maxc;
+    //float maxc = max(max(rs.x, rs.y), rs.z);
+    //float cmp = clamp(maxc, 0, 0.25);
+    //if(maxc > 0) rs *= cmp / maxc;
     //rs = clamp(rs, 0, 0.2);
     //rs.x = pow(rs.x, 2);
   //  rs.y = pow(rs.y, 2);
@@ -296,11 +296,12 @@ void main()
                 float percent = getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i);
                 if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE){
                     vec3 abc = LightsPos[i];
+                    if(percent <= 0) continue;
 
-                    float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5.0;
-                    if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
-                    if(att < 0.002) continue;
+                   // float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
+                    //float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5.0;
+                    //if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
+                    //if(att < 0.002) continue;
                     
                     
                     vec3 lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
@@ -314,7 +315,7 @@ void main()
                     float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
                     
                     color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
-                    + (LightsColors[i].rgb * specularComponent)) * colorOriginal *max(0, percent);
+                    + (LightsColors[i].rgb * specularComponent)) * colorOriginal;
                     foundSun = 1;
                 } else {
                     vec3 abc = LightsPos[i];
