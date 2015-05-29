@@ -166,7 +166,7 @@ void main()
 		//float fDepth = reverseLog(CameraCurrentDepth);
         float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).xyz);
 		//float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-		float f = 1.0 * LensBlurAmount; //focal length in mm
+		float f = 55.0 * LensBlurAmount; //focal length in mm
 		float d = fDepth*1000.0; //focal plane in mm
 		float o = adepth*1000.0; //depth in mm
 		

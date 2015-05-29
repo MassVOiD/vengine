@@ -49,13 +49,16 @@ namespace ShadowsTester
                 var bts2 = new List<Vector4>();
                 var rand = new Random();
                 PBuffer.MapData(bts3.ToArray());
-                for(int x = 0; x < 420; x++)
+                for(int x = 0; x < 12; x++)
                 {
-                    for(int y = 0; y < 20; y++)
+                    for(int y = 0; y < 90; y++)
                     {
-                        instanced.Transformations.Add(new TransformationManager(new Vector3(x, y + 300, 0), Quaternion.Identity,1.5f));
-                        bts.Add(new Vector4(x, y + 300, 0, 1));
-                        bts2.Add(new Vector4(0, 0, (new Vector2(100, 100) - new Vector2(x, y)).Length *0.1f, 1));
+                        for(int z = 0; z < 12; z++)
+                        {
+                            instanced.Transformations.Add(new TransformationManager(new Vector3(x * 5, y + 300, z * 5), Quaternion.Identity, 1.5f));
+                            bts.Add(new Vector4(x * 5, y + 300, z * 5, 1));
+                            bts2.Add(new Vector4(0, 0, 0, 1));
+                        }
                     }
                 }
                 
@@ -72,7 +75,7 @@ namespace ShadowsTester
                     cshader.SetUniform("BallsCount", instances);
                     cshader.SetUniform("PathPointsCount", bts3.Count);
                     cshader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-                    cshader.Dispatch(420, 60, 1);
+                    cshader.Dispatch(12, 90, 12);
                 };
             });
             Add(instanced);

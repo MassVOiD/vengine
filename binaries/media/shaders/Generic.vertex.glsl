@@ -10,6 +10,7 @@ smooth out vec2 UV;
 out flat int instanceId;
 smooth out vec3 barycentric;
 
+#include Bones.glsl
 
 void main(){
 
@@ -20,17 +21,26 @@ void main(){
 	if(vid == 1)barycentric = vec3(0, 1, 0);
 	if(vid == 2)barycentric = vec3(0, 0, 1);
 
-	normal = in_normal;
 	tangent = (in_tangent);
 	UV = vec2(in_uv.x, -in_uv.y);
+    
+    vec3 inorm = in_normal;
 	
 	if(Instances == 1){
-		gl_Position = (ProjectionMatrix  * ViewMatrix * ModelMatrix) * v;	
+        vec3 mspace = v.xyz;
+        if(UseBoneSystem == 1){
+            int bone = determineBone(mspace);
+            mspace = applyBoneRotationChain(mspace, bone);
+            inorm = applyBoneRotationChainNormal(inorm, bone);
+        }
+        v = vec4(mspace, 1);
 		positionWorldSpace = (ModelMatrix * v).xyz;
+		gl_Position = (ProjectionMatrix  * ViewMatrix) * vec4(positionWorldSpace, 1);	
 	} else {
 		gl_Position = (ProjectionMatrix  * ViewMatrix * ModelMatrixes[gl_InstanceID]) * v;	
 		positionWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
 	}
+	normal = inorm;
 	
 	instanceId = gl_InstanceID;
 

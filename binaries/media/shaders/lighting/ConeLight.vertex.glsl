@@ -23,6 +23,7 @@ layout (std430, binding = 1) buffer RMBuffer
   mat4 RotationMatrixes[]; 
 }; 
 smooth out vec2 UV;
+#include Bones.glsl
 
 //out vec3 normal;
 smooth out vec3 vertexWorldSpace;
@@ -31,6 +32,13 @@ void main(){
 	vec4 v = vec4(in_position,1);
 
 	if(Instances == 1){
+        vec3 mspace = v.xyz;
+        if(UseBoneSystem == 1){
+            int bone = determineBone(mspace);
+            mspace = applyBoneRotationChain(mspace, bone);
+            //inorm = applyBoneRotationChainNormal(inorm, bone);
+        }
+        v = vec4(mspace, 1);    
 		mat4 mvp = ProjectionMatrix * ViewMatrix * ModelMatrix;
 		vertexWorldSpace = (ModelMatrix * v).xyz;
 		gl_Position = mvp * v;

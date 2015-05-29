@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using BulletSharp;
+using System.IO;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
+using System.Text.RegularExpressions;
 
 namespace VEngine
 {
@@ -241,22 +243,102 @@ namespace VEngine
             shader.SetUniform("RandomSeed9", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-            /*if(LastMaterialHash == 0)
-                LastMaterialHash = Material.GetShaderProgram().GetHashCode();
-            if(LastMaterialHash != Material.GetShaderProgram().GetHashCode())
-            {*/
-                //LastMaterialHash = Material.GetShaderProgram().GetHashCode();
-                // per world
-                shader.SetUniform("Instances", 1);
-                shader.SetUniform("LogEnchacer", 0.01f);
+ 
+            shader.SetUniform("Instances", 1);
+            shader.SetUniform("LogEnchacer", 0.01f);
 
-                shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
-                shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
-                shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
-                shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
-                shader.SetUniform("FarPlane", Camera.Current.Far);
-                shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
-           // }
+            shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+            shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+            shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+            shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
+            shader.SetUniform("FarPlane", Camera.Current.Far);
+            shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
+
+            if(Bones != null)
+            {
+                shader.SetUniform("UseBoneSystem", 1);
+                shader.SetUniform("BonesCount", Bones.Count);
+                shader.SetUniformArray("BonesHeads", Bones.Select<Bone, Vector3>((a) => a.Head).ToArray());
+                shader.SetUniformArray("BonesTails", Bones.Select<Bone, Vector3>((a) => a.Tail).ToArray());
+                shader.SetUniformArray("BonesRotationMatrices", Bones.Select<Bone, Matrix4>((a) => Matrix4.CreateFromQuaternion(a.Orientation)).ToArray());
+                shader.SetUniformArray("BonesParents", Bones.Select<Bone, int>((a) =>
+                {
+                    if(a.Parent == null)
+                        return -1;
+                    return Bones.IndexOf(a.Parent);
+                }).ToArray());
+            }
+            else
+            {
+                shader.SetUniform("UseBoneSystem", 0);
+            }
+        }
+
+        public class Bone
+        {
+            public string Name, ParentName;
+            public Vector3 Head, Tail;
+            public Bone Parent;
+            public Quaternion Orientation = Quaternion.Identity;
+        }
+
+        public List<Bone> Bones = null;
+
+        public void LoadSkeleton(string file)
+        {
+            var lines = File.ReadAllLines(file);
+            Match match;
+            List<Bone> bones = new List<Bone>();
+            Bone current = null;
+            Vector3 offset = Vector3.Zero;
+            foreach(var l in lines)
+            {
+                if(l.StartsWith("offset"))
+                {
+                    match = Regex.Match(l, @"offset ([e0-9.-]+) ([e0-9.-]+) ([e0-9.-]+)");
+                    float x = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    float y = float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    float z = float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    offset = new Vector3(x, z, -y);
+                }
+                if(l.StartsWith("bone"))
+                {
+                    if(current != null)
+                        bones.Add(current);
+                    match = Regex.Match(l, @"bone (.+)");
+                    current = new Bone()
+                    {
+                        Name = match.Groups[1].Value
+                    };
+                }
+                if(l.StartsWith("head"))
+                {
+                    match = Regex.Match(l, @"head ([e0-9.-]+) ([e0-9.-]+) ([e0-9.-]+)");
+                    float x = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    float y = float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    float z = float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    current.Head = new Vector3(x, z, -y) + offset;
+                }
+                if(l.StartsWith("tail"))
+                {
+                    match = Regex.Match(l, @"tail ([e0-9.-]+) ([e0-9.-]+) ([e0-9.-]+)");
+                    float x = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    float y = float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    float z = float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    current.Tail = new Vector3(x, z, -y) + offset;
+                }
+                if(l.StartsWith("parent"))
+                {
+                    match = Regex.Match(l, @"parent (.+)");
+                    current.ParentName = match.Groups[1].Value;
+                }
+            }
+            bones.Add(current);
+            foreach(var b in bones)
+            {
+                b.Parent = b.ParentName == "null" ? null : bones.First((a) => a.Name == b.ParentName);
+            }
+            Bones = bones;
         }
 
         public CollisionShape GetCollisionShape()

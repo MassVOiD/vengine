@@ -188,9 +188,9 @@ vec3 TechnicolorPass( vec3 colorInput )
     return colorInput;
 }
 
-#define Gamma      	    0.8           //[0.000 to 2.000] Adjust midtones. 1.000 is neutral. This setting does exactly the same as the one in Lift Gamma Gain, only with less control.
-#define Exposure           -1.0           //[-1.000 to 1.000] Adjust exposure
-#define Saturation 	   -0.9          //[-1.000 to 1.000] Adjust saturation
+#define Gamma      	   1           //[0.000 to 2.000] Adjust midtones. 1.000 is neutral. This setting does exactly the same as the one in Lift Gamma Gain, only with less control.
+#define Exposure           1.0           //[-1.000 to 1.000] Adjust exposure
+#define Saturation 	   -0.6          //[-1.000 to 1.000] Adjust saturation
 #define Bleach              1.000           //[0.000 to 1.000] Brightens the shadows and fades the colors
 #define Defog               0.000           //[0.000 to 1.000] How much of the color tint to remove
 
@@ -511,5 +511,10 @@ void main()
 	if(UV.x > 0.1 && UV.x < 0.15) color1 = (BufValues[2]);
 	if(UV.x > 0.15 && UV.x < 0.2) color1 = (BufValues[3]);
 	*/
-    outColor = vec4(DPXPass(CurvesPass(VignettePass(TonemapPass(TechnicolorPass(color1)), UV))), 1);
+    //color1 = TechnicolorPass(color1);
+    /*color1 = VignettePass(color1, UV);
+    color1 = CurvesPass(color1);
+    color1 = DPXPass(color1);
+    color1 = TonemapPass(color1);*/
+    outColor = vec4(clamp(color1, 0, 1), 1);
 }

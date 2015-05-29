@@ -342,10 +342,10 @@ void main()
                     * att * culler * max(0, percent);
                     if(percent < 0){
                         //is in shadow! lets try subsufrace scattering
-                        float amount = 0.01 + percent;
+                        float amount = 0.02 + percent * 0.01;
                         float dotdiffuse2 = dot(normalize(lightRelativeToVPos), normalize (-normal.xyz));
                         float diffuseComponent2 = clamp(dotdiffuse2, 0.0, 1.0);                        
-                        if(diffuseComponent2 > 0) color1 += colorOriginal * culler * 10 * dotdiffuse2 * LightsColors[i].rgb *  att*  max(0, amount);
+                        color1 += colorOriginal * culler * 10 * dotdiffuse2 * LightsColors[i].rgb *  att*  max(0, amount);
                     }
                     
                 }
@@ -380,5 +380,5 @@ void main()
         }
         
     }
-    outColor = clamp(vec4(color1, 1), 0, 10);
+    outColor = vec4(color1, 1);
 }

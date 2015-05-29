@@ -30,14 +30,23 @@ namespace ShadowsTester
             //var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);
             //foreach(var o in protagonist)
             //    Add(o);
-             
+             /*
             var fountainWaterObj = Object3dInfo.LoadFromObjSingle(Media.Get("cylinder.obj"));
             var water = new Mesh3d(fountainWaterObj, new GenericMaterial(new Vector4(1, 1, 0, 1)));
             water.DisableDepthWrite = true;
             water.UseAlphaMaskFromMedia("alphamask.png");
             water.Transformation.Scale(1.0f);
+            Add(water);*/
 
-            Add(water);
+
+            var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucymidres.vbo.raw"), Media.Get("lucymidres.indices.raw"));
+            dragon3dInfo.ScaleUV(0.1f);
+            var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(Color.White));
+            //dragon.Translate(0, 0, 20);
+            dragon.Scale(80);
+            Add(dragon);
+
+           
 
         }
 
