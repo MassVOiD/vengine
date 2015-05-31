@@ -512,9 +512,11 @@ void main()
 	if(UV.x > 0.15 && UV.x < 0.2) color1 = (BufValues[3]);
 	*/
     //color1 = TechnicolorPass(color1);
-    /*color1 = VignettePass(color1, UV);
-    color1 = CurvesPass(color1);
-    color1 = DPXPass(color1);
-    color1 = TonemapPass(color1);*/
+    //color1 = VignettePass(color1, UV);
+    //color1 = CurvesPass(color1);
+    //color1 = DPXPass(color1);
+    //color1 = TonemapPass(color1);
+    //float ddot = dot(normalize(texture(diffuseColor, UV).rgb), normalize(color1));
+    //if(ddot < 0.4) color1.rgb = vec3(1.0 - abs(ddot))*5 + texture(diffuseColor, UV).rgb;
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

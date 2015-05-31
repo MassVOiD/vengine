@@ -200,7 +200,7 @@ void finishFragment(vec4 color){
     
 		} else {
             float factor = (length(vec3(0.5)) - length(color.xyz)) * 0.2;
-			normalNew = normalize(normalNew - (tangent * factor));
+			//normalNew = normalize(normalNew - (tangent * factor));
     
 		}
         if(MaterialType == MaterialTypeWater){

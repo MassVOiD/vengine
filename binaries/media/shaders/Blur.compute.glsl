@@ -19,7 +19,7 @@ uniform vec3 CameraPosition;
 
 #define mPI2 (2*3.14159265)
 
-float testVisibility(ivec2 uv1, ivec2 uv2) {
+bool testVisibility(ivec2 uv1, ivec2 uv2) {
     vec3 w1 = imageLoad(worldPosTex, uv1).rgb; 
     vec3 w2 = imageLoad(worldPosTex, uv2).rgb;  
     float d3d1 = length(w1);
@@ -32,12 +32,12 @@ float testVisibility(ivec2 uv1, ivec2 uv2) {
         ivec2 iruv = ivec2(int(ruv.x), int(ruv.y));
         vec3 wd = imageLoad(worldPosTex, iruv).rgb; 
         float rd3d = length(wd) + 0.01;
-        //if(rd3d < mix(d3d1, d3d2, i)) {
-        //    return false;
-        //}
-        result = min(result, max(0, sign(rd3d - mix(d3d1, d3d2, i))));
+        if(rd3d < mix(d3d1, d3d2, i)) {
+            return false;
+        }
+        //result = min(result, max(0, sign(rd3d - mix(d3d1, d3d2, i))));
     }
-    return result;
+    return true;
 }
 vec3 Radiosity() 
 {
@@ -63,9 +63,9 @@ vec3 Radiosity()
 	vec3 outBuffer = vec3(0);
 	vec3 cameraSpace = -positionCenter;
     float frand = 2.2356451 * float(gl_GlobalInvocationID.x) * float(gl_GlobalInvocationID.y) + centerPosition.x + centerPosition.y + centerPosition.z;
-    for(float g = 0.05; g < mPI2; g += 2.5) 
+    for(float g = 0.05; g < mPI2; g += 1.5) 
     {
-        for(float g2 = 0.02; g2 < 1; g2 += 0.24) 
+        for(float g2 = 0.02; g2 < 1; g2 += 0.1) 
         {           
             float rd = (g * g2 * frand);
             vec2 coord = (vec2(sin(g + g2 + frand), cos(g + g2 + frand)) * ((g2) * 10.1 * AInv)) * fract(rd);
@@ -73,15 +73,14 @@ vec3 Radiosity()
             ivec2 cUV = iUV + ivec2(int(coord.x), int(coord.y));
             //if(cUV.x < 0 || cUV.x > txs.x || cUV.y < 0 || cUV.y > txs.y) continue;
             
-            float vis = testVisibility(cUV, iUV);
-            if(vis == 1){
+            if(testVisibility(cUV, iUV)){
                 vec3 worldPosition = imageLoad(worldPosTex, cUV).rgb;
                 vec3 normalThere = imageLoad(normalsTex, cUV).rgb;
                 
                 float worldDistance = distance(positionCenter, worldPosition);
                 if(worldDistance < 0.12) continue;
 
-                float attentuation = 1.0 / (pow(((worldDistance)), 2.0) + 1.0) * 40.0;
+                float attentuation = 1.0 / (pow(((worldDistance)), 2.0) + 1.0) * 10.0;
                 
                 vec3 lightRelativeToVPos = worldPosition - positionCenter;
                 float diffuse = 1.0 - clamp(dot(normalCenter, normalThere), 0.0, 1.0);
@@ -93,7 +92,7 @@ vec3 Radiosity()
                 vec3 col = imageLoad(colorTex, cUV).rgb * 7;
                 col = col * diffuse * 15 * attentuation +  col * specularComponent * 74;
                 
-                outc += col * vis;
+                outc += col;
             }
             counter+=2;
         }   

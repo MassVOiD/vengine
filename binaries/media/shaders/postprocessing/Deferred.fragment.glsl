@@ -189,7 +189,7 @@ vec3 Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 33;
+    const int samples = 24;
     //float randomizer = 138.345341 * rand(UV);
     const float randomizer = 138.345341;
     uint counter = 0;
@@ -211,13 +211,13 @@ vec3 Radiosity()
             fract(rd*31.123756), 
             fract(rd*3.2342456) * 2 - 1
         ) * 0.2;*/
-        displace = -displace;
+        displace = displace * 0.5;
         if(testVisibility3d(UV, posCenter, posCenter + displace)){
             float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
             //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
             ambient += vec3(1,1,1) * dotdiffuse;
-        } 
-        displace = -displace * 0.1;
+        }  
+        displace = displace * 0.5;
         if(testVisibility3d(UV, posCenter, posCenter + displace)){
             float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
             //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
@@ -245,6 +245,7 @@ void main()
     }
     vec3 colorOriginal = texture(texColor, nUV).rgb;
     vec3 color1 = colorOriginal * Radiosity() * HBAOContribution;
+    //vec3 color1 = colorOriginal * 0.0;
     if(texture(texColor, UV).a < 0.99){
         color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
     }
@@ -320,7 +321,7 @@ void main()
                 } else {
                     vec3 abc = LightsPos[i];
                     float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5;
+                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 40;
                     if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
                     if(att < 0.002) continue;
                     
@@ -342,10 +343,10 @@ void main()
                     * att * culler * max(0, percent);
                     if(percent < 0){
                         //is in shadow! lets try subsufrace scattering
-                        float amount = 0.02 + percent * 0.01;
+                        /*float amount = 0.02 + percent * 0.01;
                         float dotdiffuse2 = dot(normalize(lightRelativeToVPos), normalize (-normal.xyz));
                         float diffuseComponent2 = clamp(dotdiffuse2, 0.0, 1.0);                        
-                        color1 += colorOriginal * culler * 10 * dotdiffuse2 * LightsColors[i].rgb *  att*  max(0, amount);
+                        color1 += colorOriginal * culler * 10 * dotdiffuse2 * LightsColors[i].rgb *  att*  max(0, amount);*/
                     }
                     
                 }

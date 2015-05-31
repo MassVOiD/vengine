@@ -14,11 +14,11 @@ namespace ShadowsTester
     {
         public SculptScene()
         {
-            var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucymidres.vbo.raw"), Media.Get("lucymidres.indices.raw"));
+            var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("shadowtest.obj"));
             dragon3dInfo.ScaleUV(0.1f);
-            var dragon = new Mesh3d(dragon3dInfo, GenericMaterial.FromMedia("180.jpg", "180_norm.jpg"));
+            var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(Color.WhiteSmoke));
             dragon.Translate(0, 0, 20);
-            dragon.Scale(80);
+            dragon.Scale(5);
             Add(dragon);
         }
 

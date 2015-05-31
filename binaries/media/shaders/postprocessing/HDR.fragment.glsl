@@ -108,8 +108,9 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float radius = max_radius;  
 	float centerDepthDistance = abs((centerDepth) - (depthfocus));
 	//float centerDepth = texture(texDepth, UV).r;
+    float focus = texture(texDepth, vec2(0.5)).r;
     for(float x = 0; x < mPI2; x+=0.2){ 
-        for(float y=0;y<samples;y+= 1.0){  
+        for(float y=0.1;y<1.0;y+= 0.07){  
 			
 			//ngon
 			float xt = x;
@@ -118,18 +119,19 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 			ndist /= PIOverSidesOver2;
 			float rat = mix(1, triangleHeight, ndist);
 		
-			vec2 crd = vec2(sin(x) * ratio, cos(x)) * (y * 0.025 * rat);
+			vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (y * 0.125 * rat);
 			//if(length(crd) > 1.0) continue;
             vec2 coord = UV+crd * 0.01 * amount;  
 			//coord.x = clamp(abs(coord.x), 0.0, 1.0);
 			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
             if(distance(coord, UV.xy) < max_radius){  
                 float depth = texture(texDepth, coord).r;
-					vec3 texel = texture(textureIn, coord).rgb;
-					float w = length(texel) + 0.2;
-					weight+=1;
-					finalColor += texel * w;
-				
+               // if(-(depth - focus) > 0.05) continue;
+                vec3 texel = texture(textureIn, coord).rgb;
+                float w = length(texel) + 0.2;
+                weight+=w;
+                finalColor += texel * w;
+            
             }
         }
     }
@@ -166,7 +168,7 @@ void main()
 		//float fDepth = reverseLog(CameraCurrentDepth);
         float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).xyz);
 		//float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-		float f = 55.0 * LensBlurAmount; //focal length in mm
+		float f = 5.0 * LensBlurAmount; //focal length in mm
 		float d = fDepth*1000.0; //focal plane in mm
 		float o = adepth*1000.0; //depth in mm
 		
