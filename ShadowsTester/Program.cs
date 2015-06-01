@@ -42,7 +42,7 @@ namespace ShadowsTester
                 GLThread.GraphicsSettings.UseBloom = false;
                 GLThread.GraphicsSettings.UseLightPoints = false;
                 GLThread.GraphicsSettings.UseMSAA = false;
-                GLThread.GraphicsSettings.UseSimpleGI = true;
+                GLThread.GraphicsSettings.UseSimpleGI = false;
                 GLThread.GraphicsSettings.UseBilinearGI = false;
 
                 window.Run(60);

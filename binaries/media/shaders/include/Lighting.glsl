@@ -41,9 +41,9 @@ float lookupDepthFromLight(uint i, vec2 uv){
 #define mPI2 (2.0*3.14159265)
 #define GOLDEN_RATIO (1.6180339)
 
-float getBlurAmount(vec2 uv, uint i, float distance2){
+float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	float distanceCenter = distance2;
-	float AInv = 1.0 / ((distanceCenter) + 1.0);
+	float AInv = 1.0 / ((ainvd) + 1.0);
 	float average = 0.0;
 	int counter = 0;
     float abcd = lookupDepthFromLight(i, uv);
@@ -51,16 +51,16 @@ float getBlurAmount(vec2 uv, uint i, float distance2){
     float maxval = 0;
     for(float x = 0; x < mPI2 * 1.5; x+=GOLDEN_RATIO){ 
         for(float y=0.1;y<1.0;y+= 0.2){  
-			vec2 crd = vec2(sin(x + y), cos(x + y)) * (y * AInv);
+			vec2 crd = vec2(sin(x + y), cos(x + y)) * (y * AInv * 0.2);
 			vec2 fakeUV = uv + crd;
 			float bval = (lookupDepthFromLight(i, fakeUV));
-            minval = min(minval, bval);
-            maxval = max(maxval, bval);
+            if(bval < distance2) average += bval;
+            counter++;
 		}
 	}
-    //if(counter == 0) return 0.0;
-   // float bbb = average/counter;
-	return clamp(abs(maxval - minval) * 211, 1, 11);
+    if(counter == 0) return 0.0;
+    float bbb = average/counter;
+	return clamp((distance2 - bbb) * 21, 0, 11);
 }
 
 
@@ -70,6 +70,8 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	
 	
 	float distance2 = distance(pos, LightsPos[i]);
+    
+	float distance3 = toLogDepth(distance2);
 	//float badass_depth = toLogDepth(distance2);
 	mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 	vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
@@ -87,15 +89,15 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 		
 	int counter = 0;
 	//distance1 = lookupDepthFromLight(i, uv);
-	float pssblur = (getBlurAmount(uv, i, distance2)) * ShadowsBlur;
-	//float pssblur = 22;
+	float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
+	//float pssblur = 0;
     for(float x = 0; x < mPI2; x+=1.23){ 
         for(float y=0.0;y<1.0;y+= 0.2 ){  
 			vec2 crd = vec2(sin(x + y), cos(x + y)) * y * pssblur * 0.005;
 			fakeUV = uv + crd;
 			distance1 = lookupDepthFromLight(i, fakeUV);
-			float diff = abs(distance1 -  badass_depth);
-			if(diff > 0.0001) accum += 1.0;
+			float diff = abs(distance1 -  distance3);
+			if(diff > 0.0003) accum += 1.0;
 			counter++;
 		}
 	}
