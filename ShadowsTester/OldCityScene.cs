@@ -42,7 +42,8 @@ namespace ShadowsTester
 
 
             var color = new GenericMaterial(Color.Green);
-            color.SetBumpMapFromMedia("background_bump.png");
+            color.SetBumpMapFromMedia("grassbump.png");
+            color.Type = AbsMaterial.MaterialType.Grass;
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
             water.Translate(0, 1, 0);

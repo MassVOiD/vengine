@@ -14,7 +14,7 @@ namespace ShadowsTester
     {
         public NatureScene()
         {
-            var sun = new Sun(new Vector3(0.11f, -1, 0.33f).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.98f, 0.92f, 10.0f), 5, 20, 40, 200, 10000);
+            var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 100, 70, 10, 4, 1);
             GLThread.OnUpdate += (o, e) =>
             {
                 var kb = OpenTK.Input.Keyboard.GetState();

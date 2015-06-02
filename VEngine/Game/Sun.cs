@@ -19,21 +19,21 @@ namespace VEngine
             Orientation = orientation;
             Cascades = new Dictionary<float, ProjectionLight>();
 
-            for(int i = 0; i < levels.Length - 1; i++)
+            for(int i = 0; i < levels.Length; i++)
             {
                 float start = levels[i];
-                float end = levels[i + 1];
-                var casc = new ProjectionLight(Camera.MainDisplayCamera.GetPosition(), orientation, 2048, 2048, MathHelper.PiOver3, 0.00001f, 10000.0f);
+                //float end = levels[i + 1];
+                var casc = new ProjectionLight(Camera.MainDisplayCamera.GetPosition(), orientation, 2048, 2048, (MathHelper.PiOver2 - 0.1f) / levels[i], 0.01f, 10000.0f);
                 casc.LightColor = color;
 
                 casc.FBO.DepthPixelType = OpenTK.Graphics.OpenGL4.PixelType.Float;
                 casc.FBO.DepthPixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat.DepthComponent;
                 casc.FBO.DepthInternalFormat = OpenTK.Graphics.OpenGL4.PixelInternalFormat.DepthComponent32f;
 
-                Cascades.Add(end, casc);
+                Cascades.Add(start, casc);
 
                 casc.LightMixRange.Start = start;
-                casc.LightMixRange.End = end;
+                casc.LightMixRange.End = start;
                 casc.LightMixMode = LightMixMode.SunCascade;
                 LightPool.Add(casc);
             }
@@ -58,23 +58,15 @@ namespace VEngine
                 var dir = Orientation.ToDirection();
                 var up = Orientation.GetTangent(MathExtensions.TangentDirection.Up);
                 var right = Orientation.GetTangent(MathExtensions.TangentDirection.Right);
-                var newlocationAbstract = Vector3.Zero - dir * 300;
+                var newlocationAbstract = Camera.MainDisplayCamera.GetPosition() - dir * 1300;
                 var newlocationCamera = Camera.MainDisplayCamera.GetPosition();
                 //newlocationCamera.Y = 20;
                 //newlocationCamera.Z *= -1;
                 //newlocationCamera -= c.Key * (Orientation.GetTangent(MathExtensions.TangentDirection.Up));
                 //newlocationCamera += c.Key * right;
                // newlocationCamera += c.Key * up;
-                c.Value.camera.SetPosition(newlocationCamera);
-                c.Value.BuildOrthographicProjection(
-                    -c.Key, c.Key,
-                    -c.Key, c.Key,
-                    -c.Key, c.Key);
-                c.Value.LightColor = LightColor;
-                c.Value.SetOrientation(Orientation);
-               // c.Value.camera.UpdateInverse();
-                //c.Value.camera.GetTransformationManager().ClearModifiedFlag();
-                //c.Value.FakePosition = newlocationAbstract;
+                c.Value.camera.SetPosition(newlocationAbstract);
+                c.Value.camera.LookAt(newlocationCamera);
             }
         }
 

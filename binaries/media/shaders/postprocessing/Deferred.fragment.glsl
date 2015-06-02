@@ -189,9 +189,9 @@ vec3 Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 55;
-    float randomizer = 138.345341 * rand(UV);
-    //const float randomizer = 138.345341;
+    const int samples = 25;
+    //float randomizer = 138.345341 * rand(UV);
+    const float randomizer = 138.345341;
     uint counter = 0;
     for(int i=0;i<samples;i++){
         float rd = randomizer * float(i);
@@ -322,6 +322,7 @@ void main()
                     vec3 abc = LightsPos[i];
                     float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
                     float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 40;
+                    //att = 1;
                     if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
                     if(att < 0.002) continue;
                     

@@ -20,7 +20,8 @@ namespace VEngine
             RandomlyDisplaced,
             Water,
             Sky,
-            WetDrops
+            WetDrops,
+            Grass
         }
         public MaterialType Type;
 

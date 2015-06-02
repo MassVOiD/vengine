@@ -30,7 +30,7 @@ void main()
 	
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 
-		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(FromCameraSpace(LightsPos[i]), 1.0);
+		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4((LightsPos[i]), 1.0);
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
 		
@@ -38,7 +38,7 @@ void main()
         float logg = texture(texDepth, sspace1).r;
         
         if(logg > badass_depth) {
-            color += ball(vec3(LightsColors[i]*20.0),LightPointSize * (0.08/ badass_depth), sspace1.x, sspace1.y);
+            color += ball(vec3(LightsColors[i]*2.0),LightPointSize / ( badass_depth) * 0.001, sspace1.x, sspace1.y);
             //color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
         }
     

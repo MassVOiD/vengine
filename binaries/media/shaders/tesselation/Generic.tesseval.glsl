@@ -17,6 +17,8 @@ uniform int MaterialType;
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2
 #define MaterialTypeSky 3
+#define MaterialTypeWetDrops 4
+#define MaterialTypeGrass 5
 uniform int UseBumpMap;
 layout(binding = 16) uniform sampler2D bumpMap;
 
@@ -167,8 +169,16 @@ void main()
         normal = normalize(normal - (tangent * factor * 0.05));
     }
     if(UseBumpMap == 1){
-        float factor = (texture(bumpMap, UV).r - 0.5);
-        positionWorldSpace += normal * (factor) * 1.3;
+        if(MaterialType == MaterialTypeGrass){
+            float factor = (texture(bumpMap, UV).r - 0.5);
+            positionWorldSpace += normal * (factor) * 1.0;
+            vec3 binormal = cross(normal, tangent);
+            positionWorldSpace += tangent * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
+            positionWorldSpace += binormal * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
+        } else {
+            float factor = (texture(bumpMap, UV).r - 0.5);
+            positionWorldSpace += normal * (factor) * 1.3;
+        }
     
     }
 	
