@@ -166,6 +166,11 @@ void main()
         positionWorldSpace += normal * (factor) * 0.1;
         normal = normalize(normal - (tangent * factor * 0.05));
     }
+    if(UseBumpMap == 1){
+        float factor = (texture(bumpMap, UV).r - 0.5);
+        positionWorldSpace += normal * (factor) * 1.3;
+    
+    }
 	
    	gl_Position = ProjectionMatrix * ViewMatrix * vec4(positionWorldSpace, 1.0);
 }

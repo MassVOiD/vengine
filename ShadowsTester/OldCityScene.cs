@@ -38,6 +38,16 @@ namespace ShadowsTester
             water.Transformation.Scale(1.0f);
             Add(water);*/
 
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
+
+
+            var color = new GenericMaterial(Color.Green);
+            color.SetBumpMapFromMedia("background_bump.png");
+            Mesh3d water = new Mesh3d(waterInfo, color);
+            water.SetMass(0);
+            water.Translate(0, 1, 0);
+            water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
+            Add(water);
 
             var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucymidres.vbo.raw"), Media.Get("lucymidres.indices.raw"));
             dragon3dInfo.ScaleUV(0.1f);

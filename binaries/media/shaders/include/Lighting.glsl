@@ -49,7 +49,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
     float abcd = lookupDepthFromLight(i, uv);
     float minval = 999;
     float maxval = 0;
-    for(float x = 0; x < mPI2 * 1.5; x+=GOLDEN_RATIO){ 
+    for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0.1;y<1.0;y+= 0.2){  
 			vec2 crd = vec2(sin(x + y), cos(x + y)) * (y * AInv * 0.2);
 			vec2 fakeUV = uv + crd;

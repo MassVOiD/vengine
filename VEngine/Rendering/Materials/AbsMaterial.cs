@@ -35,7 +35,7 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
-            return Type == MaterialType.Water ? TesselatedProgram : Program;
+            return Type == MaterialType.Water || BumpMap != null ? TesselatedProgram : Program;
         }
 
         public virtual bool Use()
