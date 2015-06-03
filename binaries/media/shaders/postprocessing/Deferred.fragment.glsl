@@ -189,7 +189,7 @@ vec3 Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 25;
+    const int samples = 5;
     //float randomizer = 138.345341 * rand(UV);
     const float randomizer = 138.345341;
     uint counter = 0;

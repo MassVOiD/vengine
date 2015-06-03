@@ -42,17 +42,10 @@ float GetTessLevel(float Distance0, float Distance1)
 }
 float GetTessLevelAlternative(float Distance0, float Distance1, float surfaceSize)
 {
-    float factor = surfaceSize;
+    float x = surfaceSize;
 	float rd = ((Distance0 +Distance1)/2);
-    if(rd < 9.0) 
-        factor = surfaceSize * 135;
-    else if(rd < 150.0) 
-        factor = surfaceSize * 10;
-	else if(rd < 280.0) 
-        factor = surfaceSize * 7;
-    else 
-        factor = surfaceSize * 3;
-    return factor;
+   // if(rd > 100) return 2;
+    return 300 / (((Distance0 +Distance1)/2)+1) * surfaceSize;
 }
 
 uniform float TesselationMultiplier;
@@ -74,9 +67,17 @@ void main()
     float EyeToVertexDistance1 = distance(CameraPosition, WorldPos_CS_in[1]);
     float EyeToVertexDistance2 = distance(CameraPosition, WorldPos_CS_in[2]);
     
-    float surfaceSize = (distance(WorldPos_CS_in[0], WorldPos_CS_in[1]) +
+    /*float surfaceSize = (distance(WorldPos_CS_in[0], WorldPos_CS_in[1]) +
         distance(WorldPos_CS_in[1], WorldPos_CS_in[2]) + 
-        distance(WorldPos_CS_in[2], WorldPos_CS_in[0])) * 0.33;
+        distance(WorldPos_CS_in[2], WorldPos_CS_in[0])) * 0.33;*/
+        
+    vec3 a = WorldPos_CS_in[0];
+    vec3 b = WorldPos_CS_in[1];
+    vec3 c = WorldPos_CS_in[2];
+    vec3 hp = mix(a, b, 0.5);
+    float h = distance(hp, c);
+    float p = distance(a, b);
+    float surfaceSize = 0.5 * p * h;
 
     if(MaterialType == MaterialTypeWater){
         gl_TessLevelOuter[0] = GetTessLevel(EyeToVertexDistance1, EyeToVertexDistance2) * TesselationMultiplier;

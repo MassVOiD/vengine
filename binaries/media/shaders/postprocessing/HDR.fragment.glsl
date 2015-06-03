@@ -124,11 +124,13 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             vec2 coord = UV+crd * 0.01 * amount;  
 			//coord.x = clamp(abs(coord.x), 0.0, 1.0);
 			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
+            float depth = length(texture(worldPosTex, coord).xyz);
             if(distance(coord, UV.xy) < max_radius){  
-                float depth = texture(texDepth, coord).r;
-               // if(-(depth - focus) > 0.05) continue;
+               // if(-(depth - focus) > 0.05) continue;     
                 vec3 texel = texture(textureIn, coord).rgb;
                 float w = length(texel) + 0.2;
+                float dpf = depthfocus - depth;
+                w*=dpf;
                 weight+=w;
                 finalColor += texel * w;
             
@@ -180,7 +182,7 @@ void main()
 		
 		float blur = abs(a-b)*c;
 		blur = clamp(blur * 50,0.0,4.0) * 10;
-		color1.xyz = lensblur(blur, focus, 0.03, 7.0);
+		color1.xyz = lensblur(blur, fDepth, 0.03, 7.0);
 	}
 	//vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
 	//color1.rgb = vec3(pow(color1.r, gamma.r),

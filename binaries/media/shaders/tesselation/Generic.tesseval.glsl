@@ -1,6 +1,6 @@
 #version 430 core
 
-layout(triangles, equal_spacing, ccw) in;
+layout(triangles, fractional_odd_spacing, ccw) in;
 
 #include Mesh3dUniforms.glsl
 
@@ -170,14 +170,14 @@ void main()
     }
     if(UseBumpMap == 1){
         if(MaterialType == MaterialTypeGrass){
-            float factor = (texture(bumpMap, UV).r - 0.5);
+            float factor = (texture(bumpMap, UV).r);
             positionWorldSpace += normal * (factor) * 1.0;
             vec3 binormal = cross(normal, tangent);
             positionWorldSpace += tangent * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
             positionWorldSpace += binormal * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
         } else {
             float factor = (texture(bumpMap, UV).r - 0.5);
-            positionWorldSpace += normal * (factor) * 1.3;
+            positionWorldSpace += normal * (factor) * 0.3;
         }
     
     }

@@ -58,15 +58,18 @@ namespace ShadowsTester
                 return ix < hmap.Length ? hmap[ix] * 0.3f : 0;
             };
             Object3dGenerator.UseCache = false;
-            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-15000, -10000), new Vector2(15000, 10000), new Vector2(1096, 1096), Vector3.UnitY, 1024 / scale, terrainGen);
+            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500, -1000), new Vector2(1500, 1000), new Vector2(1096, 1096), Vector3.UnitY, 1024 / scale, terrainGen);
             hmap = null;
             GC.Collect();
 
-            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-15000, -10000), new Vector2(15000, 10000), new Vector2(1096, 1096), Vector3.UnitY, 121, (x, y) => 0);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500, -1000), new Vector2(1500, 1000), new Vector2(1096, 1096), Vector3.UnitY, 121, (x, y) => 0);
             
             //var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
             //terrainInfo.ScaleUV(100);
-            var terrain = new Mesh3d(terrainInfo, GenericMaterial.FromMedia("151.JPG", "151_norm.JPG"));
+            var color = GenericMaterial.FromMedia("151.JPG", "151_norm.JPG");
+            color.SetBumpMapFromMedia("grassbump.png");
+            color.Type = AbsMaterial.MaterialType.Grass;
+            var terrain = new Mesh3d(terrainInfo, color);
            // terrain.Scale(5);
             Add(terrain);
 

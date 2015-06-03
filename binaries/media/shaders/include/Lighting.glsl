@@ -96,7 +96,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 			vec2 crd = vec2(sin(x + y), cos(x + y)) * y * pssblur * 0.005;
 			fakeUV = uv + crd;
 			distance1 = lookupDepthFromLight(i, fakeUV);
-			float diff = abs(distance1 -  distance3);
+			float diff = (distance3 -  distance1);
 			if(diff > 0.0003) accum += 1.0;
 			counter++;
 		}

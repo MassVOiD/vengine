@@ -187,13 +187,14 @@ uniform float NormalMapScale;
 
 void finishFragment(vec4 color){
 	outColor = vec4((color.xyz) * DiffuseComponent, color.a);
+    //outColor = vec4(1);
 	outWorldPos = vec4(ToCameraSpace(positionWorldSpace.xyz), 1);
 	if(IgnoreLighting == 0){
 		vec3 normalNew  = normalize(normal);
 		if(UseNormalMap == 1){
 			normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);
     
-		} else if(UseBumpMap == 1){
+		}/* else if(UseBumpMap == 1){
             float factor = (texture(bumpMap, UV).r - 0.5);
             //vec3 bitan = cross(normal, tangent);
 			normalNew = normalize(normalNew - (tangent * factor));
@@ -202,7 +203,7 @@ void finishFragment(vec4 color){
             float factor = (length(vec3(0.5)) - length(color.xyz)) * 0.2;
 			//normalNew = normalize(normalNew - (tangent * factor));
     
-		}
+		}*/
         if(MaterialType == MaterialTypeWater){
             float factor = getwater(UV * 5) * 0.3;
 			normalNew = normalize(normalNew - (tangent * factor));

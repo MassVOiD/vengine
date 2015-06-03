@@ -31,7 +31,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
             if(distance(coord, UV.xy) < max_radius){  
                 float depth = texture(texDepth, coord).r;
-				if(abs(centerDepth - depth) < 0.005 || centerDepthDistance > 0.4 || depth > 0.99 || centerDepth > 0.99){
+				if(abs(centerDepth - depth) < 0.0005 || centerDepthDistance > 0.4 || depth > 0.99 || centerDepth > 0.99){
 					vec3 texel = texture(texColor, coord).rgb;
 					float w = length(texel)+0.1;
 					weight+=w;
