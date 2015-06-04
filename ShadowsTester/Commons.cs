@@ -26,7 +26,7 @@ namespace ShadowsTester
 
             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 4000, 4000, MathHelper.PiOver3, 0.1f, 10000.0f);
             RedLight = redConeLight;
-            redConeLight.LightColor = new Vector4(1, 1, 1, 210);
+            redConeLight.LightColor = new Vector4(1, 1, 1, 50);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
             LightPool.Add(redConeLight);

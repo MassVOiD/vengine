@@ -23,11 +23,31 @@ namespace ShadowsTester
             rigidBody.SetDamping(0.5f, 0.01f);
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
+            GLThread.OnKeyUp += (o, e) =>
+            {
+                if(e.Key == OpenTK.Input.Key.P)
+                {
+                    GravityEnabled = !GravityEnabled;
+                    if(GravityEnabled)
+                    {
+                        rigidBody.Gravity = new Vector3(0, -9.81f, 0);
+                        rigidBody.ApplyGravity();
+                        rigidBody.SetDamping(0.8f, 0.01f);
+                    }
+                    else
+                    {
+                        rigidBody.Gravity = Vector3.Zero;
+                        rigidBody.ApplyGravity();
+                        rigidBody.SetDamping(0.5f, 0.01f);
+                    }
+                }
+            };
         }
 
         public Camera Cam;
         private SphereShape collisionShape;
         private RigidBody rigidBody;
+        private bool GravityEnabled = false;
 
         private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {

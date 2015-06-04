@@ -14,7 +14,7 @@ namespace ShadowsTester
     {
         public SculptScene()
         {
-            var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 100, 70, 10, 4, 1);
+            var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 300, 100, 70, 40, 10, 1);
             GLThread.OnUpdate += (o, e) =>
             {
                 var kb = OpenTK.Input.Keyboard.GetState();
@@ -43,7 +43,8 @@ namespace ShadowsTester
             dragon3dInfo.ScaleUV(0.1f);
             var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(Color.WhiteSmoke));
             dragon.Translate(0, 0, 20);
-            dragon.Scale(5);
+            //dragon.Scale(5);
+            //dragon.SetCollisionShape(dragon3dInfo.GetAccurateCollisionShape());
             Add(dragon);
         }
 

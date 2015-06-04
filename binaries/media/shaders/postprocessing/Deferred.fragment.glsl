@@ -16,21 +16,6 @@ uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
 
 out vec4 outColor;
 
-float testVisibility(vec2 uv1, vec2 uv2, vec3 lpos) {
-    vec3 d3d1Front = texture(worldPosTex, uv1).rgb;
-    vec3 d3d2 = lpos;
-    float ovis = 1;
-    for(float i=0;i<1.0;i+= 0.01) { 
-        vec2 ruv = mix(uv1, uv2, i);
-        if(ruv.x < 0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1) continue;
-        float rd3dFront = distance(CameraPosition, texture(worldPosTex, ruv).rgb);
-        if(rd3dFront < distance(CameraPosition, mix(d3d1Front, d3d2, i))) {
-            ovis -= 0.09;
-            if(ovis <= 0) return 0;
-        }
-    }
-    return ovis;
-}
 
 vec2 refractUV(){
     vec3 rdir = normalize(CameraPosition - texture(worldPosTex, UV).rgb);
@@ -38,124 +23,6 @@ vec2 refractUV(){
     vec3 crs2 = normalize(cross(crs1, rdir));
     vec3 rf = refract(rdir, texture(normalsTex, UV).rgb, 0.6);
     return UV - vec2(dot(rf, crs1), dot(rf, crs2)) * 0.3;
-}
-#define mPI (3.14159265)
-#define mPIo2 (3.14159265*0.5)
-#define mPIo4 (3.14159265*0.25)
-#define mPI2 (2.0*3.14159265)
-// fast hbao by Adrian Chlubek (afl_ext) @ 25.04.2015
-vec3 GoodHBAO() 
-{
-    // get original diffuse color
-    vec3 originalColor = texture(texColor, UV).rgb * 0.6;
-    // get center pixel world position
-    vec3 centerPosition = texture(worldPosTex, UV).rgb;  
-    // get a position 'above' the surface, by adding multiplied normal to world position
-    // this could also be a directional light inverted direction + world pos
-    vec3 lookupPosition = CameraPosition;
-    // get distance from center position to sampling (above) position
-    float A = distance(lookupPosition, centerPosition);
-    // calculate how big area of texture should be sampled
-    float AInv = 1.0 / (distance(CameraPosition, centerPosition) + 1.0);
-    // create some boring variables
-    vec3 outc = vec3(0);
-    int counter = 0;
-    float minval = 0;
-    // two loops, one for doing circles, and second for circle radius
-    for(float g = 0.05; g < mPI2; g += 0.4) 
-    {
-        //minval = 2;
-        for(float g2 = 0.02; g2 < 1; g2 += 0.06) 
-        {           
-            // calculate lookup UV
-            vec2 coord = UV + (vec2(sin(g), cos(g)) * ((g2) * 1.6 * AInv));
-            if(UV.x < 0 || UV.x > 1 || UV.y < 0 || UV.y > 1) continue;
-            // get position of pixel under that UV
-            vec3 coordPosition = texture(worldPosTex, coord).rgb;  
-            // calculate distance from that position and sampling (above center) position
-            float B = distance(lookupPosition, coordPosition);
-            // calculate distance from that position to center pixel world position
-            float C = distance(coordPosition, centerPosition);
-            // skip too far away pixels
-            if(C > 1.9) continue;
-            // because 3 triangle sides are known, calculate free horizon angle 
-            float angle = acos( (C*C + A*A - B*B ) / (2.0 * C * A) );
-            // fix too bright outer corners
-            angle = clamp(angle, 0.0, mPIo2);
-            //if(angle > mPIo2)angle = mPIo2;
-            // add color multiplied by angle, adjusted by powering 
-            if(angle > 0){
-                minval += angle;
-            }
-            counter++;
-        }   
-    }
-    // return final color
-    minval = minval / counter;
-    float factor = pow(minval / mPIo2, HBAOStrength);
-    factor = clamp(factor, 0.4, 1.0);
-    return (originalColor * factor) * HBAOContribution;
-}
-vec3 LameHBAO() 
-{
-    // get original diffuse color
-    vec3 originalColor = texture(texColor, UV).rgb * 0.6;
-    // get center pixel world position
-    vec3 centerPosition = texture(worldPosTex, UV).rgb;  
-    // get a position 'above' the surface, by adding multiplied normal to world position
-    // this could also be a directional light inverted direction + world pos
-    vec3 lookupPosition = CameraPosition;
-    // get distance from center position to sampling (above) position
-    float A = distance(lookupPosition, centerPosition);
-    // calculate how big area of texture should be sampled
-    float AInv = 1.0 / (distance(CameraPosition, centerPosition) + 1.0);
-    // create some boring variables
-    vec3 outc = vec3(0);
-    int counter = 0;
-    float minval = 0;
-    vec3 normalCenter = texture(normalsTex, UV).rgb;
-    // two loops, one for doing circles, and second for circle radius
-    for(float g = 0.05; g < mPI2; g += 0.6) 
-    {
-        //minval = 2;
-        for(float g2 = 0.02; g2 < 1; g2 += 0.08) 
-        {           
-            // calculate lookup UV
-            vec2 coord = UV + (vec2(sin(g + g2), cos(g + g2)) * ((g2) * 0.9 * AInv));
-            if(UV.x < 0 || UV.x > 1 || UV.y < 0 || UV.y > 1) continue;
-            // get position of pixel under that UV
-            vec3 coordPosition = texture(worldPosTex, coord).rgb;  
-
-            if(distance(CameraPosition, coordPosition) > distance(CameraPosition, centerPosition)) continue;
-            if(distance(centerPosition, coordPosition) > 0.6) continue;
-            
-            vec3 normalThere = texture(normalsTex, coord).rgb;
-            //if(angle > mPIo2)angle = mPIo2;
-            // add color multiplied by angle, adjusted by powering 
-            float angle = (abs(dot(normalCenter, normalThere)));
-            //if(angle > 0){
-            minval += mix(angle, 1.0, distance(centerPosition, coordPosition) / 0.6);
-            //}
-            counter++;
-        }   
-    }
-    // return final color
-    minval =  minval / counter;
-    float factor = pow(minval / mPIo2, 3.0);
-    factor = clamp(factor, 0.0, 1.0);
-    return (originalColor * factor) * HBAOContribution;
-}
-bool testVisibility(vec2 uv1, vec2 uv2) {
-    float d3d1 = texture(texDepth, uv1).r;
-    float d3d2 = texture(texDepth, uv2).r;
-    for(float i=0;i<1.0;i+= 0.05) { 
-        vec2 ruv = mix(uv1, uv2, i);
-        float rd3d = texture(texDepth, ruv).r;
-        if(rd3d < mix(d3d1, d3d2, i)) {
-            return false;
-        }
-    }
-    return true;
 }
 vec2 projdir(vec3 start, vec3 end){
 	//vec3 dirPosition = start + end;
@@ -189,9 +56,13 @@ vec3 Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 5;
+    const int samples = 65;
+    
+    // choose between noisy and slower, but better looking variant
     //float randomizer = 138.345341 * rand(UV);
+    // or faster, non noisy variant, which is also cool looking
     const float randomizer = 138.345341;
+    
     uint counter = 0;
     for(int i=0;i<samples;i++){
         float rd = randomizer * float(i);
@@ -200,40 +71,65 @@ vec3 Radiosity()
             fract(rd*12.2562), 
             fract(rd*7.121214) * 2 - 1
         ) * clamp(length(posCenter), 0.1, 2.0);
-        if(testVisibility3d(UV, posCenter, posCenter + displace)){
-            float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
-            //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
-            ambient += vec3(1,1,1) * dotdiffuse;
+        float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
+        for(int div = 0;div < 2; div++){
+            if(testVisibility3d(UV, posCenter, posCenter + displace)){
+                ambient += vec3(1,1,1) * dotdiffuse;
+            }
+            displace = displace * 0.5;
+            counter++;
         }
-        //rd = randomizer * float(i);
-        /*displace = vec3(
-            fract(rd * 1.53413) * 2 - 1, 
-            fract(rd*31.123756), 
-            fract(rd*3.2342456) * 2 - 1
-        ) * 0.2;*/
-        displace = displace * 0.5;
-        if(testVisibility3d(UV, posCenter, posCenter + displace)){
-            float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
-            //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
-            ambient += vec3(1,1,1) * dotdiffuse;
-        }  
-        displace = displace * 0.5;
-        if(testVisibility3d(UV, posCenter, posCenter + displace)){
-            float dotdiffuse = 1.0 - max(0, dot(normalize(displace),  (normalCenter.xyz)));
-            //float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
-            ambient += vec3(1,1,1) * dotdiffuse;
-        }  
-        counter+=3;
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    //float maxc = max(max(rs.x, rs.y), rs.z);
-    //float cmp = clamp(maxc, 0, 0.25);
-    //if(maxc > 0) rs *= cmp / maxc;
-    //rs = clamp(rs, 0, 0.2);
-    //rs.x = pow(rs.x, 2);
-  //  rs.y = pow(rs.y, 2);
-    //rs.z = pow(rs.z, 2);
     return rs;
+}
+
+float beckmannDistribution(float x, float roughness) {
+  float NdotH = max(x, 0.0001);
+  float cos2Alpha = NdotH * NdotH;
+  float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
+  float roughness2 = roughness * roughness;
+  float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
+  return exp(tan2Alpha / roughness2) / denom;
+}
+
+float beckmannSpecular(
+  vec3 lightDirection,
+  vec3 viewDirection,
+  vec3 surfaceNormal,
+  float roughness) {
+  return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
+}
+
+float cookTorranceSpecular(
+  vec3 lightDirection,
+  vec3 viewDirection,
+  vec3 surfaceNormal,
+  float roughness,
+  float fresnel) {
+
+  float VdotN = max(dot(viewDirection, surfaceNormal), 0.0);
+  float LdotN = max(dot(lightDirection, surfaceNormal), 0.0);
+
+  //Half angle vector
+  vec3 H = normalize(lightDirection + viewDirection);
+
+  //Geometric term
+  float NdotH = max(dot(surfaceNormal, H), 0.0);
+  float VdotH = max(dot(viewDirection, H), 0.000001);
+  float LdotH = max(dot(lightDirection, H), 0.000001);
+  float G1 = (2.0 * NdotH * VdotN) / VdotH;
+  float G2 = (2.0 * NdotH * LdotN) / LdotH;
+  float G = min(1.0, min(G1, G2));
+  
+  //Distribution term
+  float D = beckmannDistribution(NdotH, roughness);
+
+  //Fresnel term
+  float F = pow(1.0 - VdotN, fresnel);
+
+  //Multiply terms and done
+  return  G * F * D / max(3.14159265 * VdotN, 0.000001);
 }
 
 void main()
@@ -297,7 +193,7 @@ void main()
                 float percent = getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i);
                 if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE){
                     vec3 abc = LightsPos[i];
-                    if(percent <= 0) continue;
+                   // if(percent <= 0) continue;
 
                    // float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
                     //float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 5.0;
@@ -308,30 +204,37 @@ void main()
                     vec3 lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
                     vec3 R = reflect(lightRelativeToVPos, normal.xyz);
                     float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
-                    float specularComponent = clamp(pow(cosAlpha, 80.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
+                    float specularComponent = clamp(pow(cosAlpha, 180.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
 
 
                     lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
                     float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal.xyz));
                     float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
-                    
+                    percent = max(0, percent);
                     color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
-                    + (LightsColors[i].rgb * specularComponent)) * colorOriginal;
+                    + (LightsColors[i].rgb * specularComponent)) * percent;
                     foundSun = 1;
                 } else {
                     vec3 abc = LightsPos[i];
                     float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 40;
+                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 10;
                     //att = 1;
                     if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
                     if(att < 0.002) continue;
                     
                     
                     vec3 lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
+                    /*
                     vec3 R = reflect(lightRelativeToVPos, normal.xyz);
                     float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
-                    float specularComponent = clamp(pow(cosAlpha, 160.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
-
+                    float specularComponent = clamp(pow(cosAlpha, 160.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;*/
+                    
+                    float specularComponent = cookTorranceSpecular(
+                        normalize(lightRelativeToVPos),
+                        normalize(cameraRelativeToVPos),
+                        normal.xyz,
+                        1.0, 1.0
+                    );
 
                     lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
                     float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal.xyz));
@@ -361,7 +264,7 @@ void main()
             vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(SimpleLightsPos[i], 1.0);
             vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
             //if(clipspace.z < 0.0) continue;
-            float vis = testVisibility(UV, sspace1, SimpleLightsPos[i]);
+            
             
             float distanceToLight = distance(fragmentPosWorld3d.xyz, SimpleLightsPos[i]);
             //float dist = distance(CameraPosition, SimpleLightsPos[i]);
@@ -378,7 +281,7 @@ void main()
             float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
             color1 += ((colorOriginal * (diffuseComponent * SimpleLightsColors[i].rgb)) 
             + (SimpleLightsColors[i].rgb * specularComponent))
-            *att * vis;
+            *att;
         }
         
     }
