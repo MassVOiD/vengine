@@ -198,9 +198,25 @@ namespace VEngine
             };
         }
 
+        List<Matrix4> Matrix, RotationMatrix;
+
+        public Mesh3d Merge()
+        {
+            if(Matrix == null)
+                UpdateMatrix();
+
+            Object3dInfo main = ObjectInfo.CopyDeep();
+            for(int i = 0; i < Matrix.Count; i++)
+            {
+                Object3dInfo obj = ObjectInfo.CopyDeep();
+                obj.Transform(Matrix[i], RotationMatrix[i]);
+                main.Append(obj);
+            }
+            return new Mesh3d(main, Material);
+        }
+
         public void UpdateMatrix()
         {
-            List<Matrix4> Matrix, RotationMatrix;
             RotationMatrix = new List<Matrix4>();
             Matrix = new List<Matrix4>();
             Instances = Transformations.Count;

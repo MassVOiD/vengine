@@ -21,7 +21,7 @@ namespace VEngine
 
         public static TransformationManager Rotate(this ITransformable o, Quaternion orient)
         {
-            o.GetTransformationManager().Orientation = Quaternion.Multiply(o.GetTransformationManager().Orientation, orient);
+            o.GetTransformationManager().Orientation = Quaternion.Multiply(orient, o.GetTransformationManager().Orientation);
             o.GetTransformationManager().MarkAsModified();
             return o.GetTransformationManager();
         }

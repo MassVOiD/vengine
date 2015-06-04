@@ -47,6 +47,10 @@ namespace VEngine
         {
             return Vector3.Transform(Vector3.UnitZ, quaternion);
         }
+        public static Vector3 ToDirection(this Quaternion quaternion, Vector3 referenceAxis)
+        {
+            return Vector3.Transform(referenceAxis, quaternion);
+        }
         public static Quaternion ToQuaternion(this Vector3 direction, Vector3 up)
         {
             return Matrix4.LookAt(Vector3.Zero, direction, up).ExtractRotation(true);

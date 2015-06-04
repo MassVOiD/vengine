@@ -515,6 +515,22 @@ namespace VEngine
                 VBO[i + 7] *= -1;
             }
         }
+        public void Transform(Matrix4 ModelMatrix, Matrix4 RotationMatrix)
+        {
+            for(int i = 0; i < VBO.Count; i += 8)
+            {
+                var vertex = Vector3.Transform(new Vector3(VBO[i + 0], VBO[i + 1], VBO[i + 2]), ModelMatrix);
+                var normal = Vector3.Transform(new Vector3(VBO[i + 5], VBO[i + 6], VBO[i + 7]), RotationMatrix);
+
+                VBO[i + 0] = vertex.X;
+                VBO[i + 1] = vertex.Y;
+                VBO[i + 2] = vertex.Z;
+
+                VBO[i + 5] = normal.X;
+                VBO[i + 6] = normal.Y;
+                VBO[i + 7] = normal.Z;
+            }
+        }
         public void MakeDoubleFaced()
         {
             var copy = this.CopyDeep();
@@ -680,7 +696,7 @@ namespace VEngine
                 miny = miny > vertex.Y ? vertex.Y : miny;
                 minz = minz > vertex.Z ? vertex.Z : minz;
             }
-            return new Vector3(maxx - minx, maxy - miny, maxz - minz) / 2.0f;
+            return new Vector3(maxx - minx, maxy - miny, maxz - minz);
         }
 
         public ConvexHullShape GetConvexHull(float scale = 1.0f)

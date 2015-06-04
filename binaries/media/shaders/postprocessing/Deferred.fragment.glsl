@@ -56,7 +56,7 @@ vec3 Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 65;
+    const int samples = 35;
     
     // choose between noisy and slower, but better looking variant
     //float randomizer = 138.345341 * rand(UV);
@@ -82,6 +82,28 @@ vec3 Radiosity()
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
     return rs;
+}
+#define PI 3.14159265
+
+float orenNayarDiffuse(
+  vec3 lightDirection,
+  vec3 viewDirection,
+  vec3 surfaceNormal,
+  float roughness,
+  float albedo) {
+  
+  float LdotV = dot(lightDirection, viewDirection);
+  float NdotL = dot(lightDirection, surfaceNormal);
+  float NdotV = dot(surfaceNormal, viewDirection);
+
+  float s = LdotV - NdotL * NdotV;
+  float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));
+
+  float sigma2 = roughness * roughness;
+  float A = 1.0 + sigma2 * (albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
+  float B = 0.45 * sigma2 / (sigma2 + 0.09);
+
+  return albedo * max(0.0, NdotL) * (A + B * s / t) / PI;
 }
 
 float beckmannDistribution(float x, float roughness) {
@@ -170,7 +192,7 @@ void main()
     */
     } else {
         
-        vec3 cameraRelativeToVPos = CameraPosition - fragmentPosWorld3d.xyz;
+        vec3 cameraRelativeToVPos = normalize( CameraPosition - fragmentPosWorld3d.xyz);
         float len = length(cameraRelativeToVPos);
         int foundSun = 0;
         for(int i=0;i<LightsCount;i++){
@@ -202,28 +224,37 @@ void main()
                     
                     
                     vec3 lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
-                    vec3 R = reflect(lightRelativeToVPos, normal.xyz);
-                    float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
-                    float specularComponent = clamp(pow(cosAlpha, 180.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
+                    
+                    float specularComponent = cookTorranceSpecular(
+                        normalize(lightRelativeToVPos),
+                        normalize(cameraRelativeToVPos),
+                        normal.xyz,
+                        0.6, 0.0
+                    );
 
-
-                    lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
-                    float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal.xyz));
-                    float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
+                    float diffuseComponent = orenNayarDiffuse(
+                        normalize(lightRelativeToVPos),
+                        normalize(cameraRelativeToVPos),
+                        normal.xyz,
+                        0.9, 0.5
+                    );
+                    
                     percent = max(0, percent);
                     color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
                     + (LightsColors[i].rgb * specularComponent)) * percent;
+                    
+                    color1 *= LightsColors[i].a * 0.01;
                     foundSun = 1;
                 } else {
                     vec3 abc = LightsPos[i];
                     float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 10;
+                    float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 30;
                     //att = 1;
                     if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
                     if(att < 0.002) continue;
                     
                     
-                    vec3 lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
+                    vec3 lightRelativeToVPos =normalize( abc - fragmentPosWorld3d.xyz);
                     /*
                     vec3 R = reflect(lightRelativeToVPos, normal.xyz);
                     float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
@@ -233,18 +264,23 @@ void main()
                         normalize(lightRelativeToVPos),
                         normalize(cameraRelativeToVPos),
                         normal.xyz,
-                        1.0, 1.0
+                        0.6, 0.0
                     );
 
-                    lightRelativeToVPos = abc - fragmentPosWorld3d.xyz;
-                    float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal.xyz));
-                    float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
+                    float diffuseComponent = orenNayarDiffuse(
+                        normalize(lightRelativeToVPos),
+                        normalize(cameraRelativeToVPos),
+                        normal.xyz,
+                        0.9, 0.5
+                    );
+                    //float diffuseComponent = 0;
                     
                     float culler = LightsMixModes[i] == LIGHT_MIX_MODE_ADDITIVE ? clamp((1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0), 0.0, 1.0) : 1.0;
 
                     color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
                     + (LightsColors[i].rgb * specularComponent))
                     * att * culler * max(0, percent);
+                    color1 *= LightsColors[i].a * 0.01;
                     if(percent < 0){
                         //is in shadow! lets try subsufrace scattering
                         /*float amount = 0.02 + percent * 0.01;

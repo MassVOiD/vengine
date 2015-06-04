@@ -6,6 +6,8 @@ using System.Drawing;
 using System.Threading.Tasks;
 using VEngine;
 using VEngine.Generators;
+using VEngine.Rendering;
+using VEngine.UI;
 using OpenTK;
 
 namespace ShadowsTester
@@ -39,6 +41,7 @@ namespace ShadowsTester
                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
                 }
             };
+            
             var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("desertcity.obj"));
             dragon3dInfo.ScaleUV(0.1f);
             var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(Color.WhiteSmoke));
@@ -46,6 +49,15 @@ namespace ShadowsTester
             //dragon.Scale(5);
             //dragon.SetCollisionShape(dragon3dInfo.GetAccurateCollisionShape());
             Add(dragon);
+
+            //var text = new Text(0.0f, 0.5f, "Hello żółć 汉语 / 漢語; Hànyǔ or 中文; Zhōngwén", "Segoe UI", 24, Color.White);
+            //World.Root.UI.Elements.Add(text);
+
+            /*
+            var tree = TreeGenerator.CreateTree(MathHelper.DegreesToRadians(30), MathHelper.DegreesToRadians(45), 4, 4, 6666);
+            foreach(var t in tree)
+                Add(t);*/
+            
         }
 
     }

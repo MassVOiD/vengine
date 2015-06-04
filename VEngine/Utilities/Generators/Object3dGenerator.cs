@@ -28,7 +28,7 @@ namespace VEngine.Generators
         {
             float[] VBO = {
                 v1.X, v1.Y, v1.Z, 0, 0, normal.X, normal.Y, normal.Z,
-                v2.X, v2.Y, v1.Z, uvScale.Y, normal.X, normal.Y, normal.Z,
+                v2.X, v2.Y, v1.Z, 0, uvScale.Y, normal.X, normal.Y, normal.Z,
                 v3.X, v3.Y, v1.Z, uvScale.X, 0, normal.X, normal.Y, normal.Z,
                 v4.X, v4.Y, v1.Z, uvScale.X, uvScale.Y, normal.X, normal.Y, normal.Z,
             };
