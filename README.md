@@ -5,6 +5,8 @@ The software is licensed under GPLv3. If GPLv3 doesn't satify you - Contact me a
 
 ![A screenshot](http://deferred.pl/wp-content/uploads/2015/04/TdLd86M.jpg "Screenshot")
 
+![A screenshot](http://i.imgur.com/l03L9Xd.png "Screenshot")
+
 ![A screenshot](http://i.imgur.com/g48bBcE.jpg "Screenshot")
 
 ![A screenshot](http://i.imgur.com/pxjinyV.jpg "Screenshot")
