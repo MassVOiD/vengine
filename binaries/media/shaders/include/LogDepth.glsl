@@ -21,6 +21,10 @@ float toLogDepth(float depth){
 	float badass_depth = log(LogEnchacer*depth + 1.0f) / log(LogEnchacer*FarPlane + 1.0f);
 	return badass_depth;
 }
+float toLogDepthEx(float depth, float far){
+	float badass_depth = log(LogEnchacer*depth + 1.0f) / log(LogEnchacer*far + 1.0f);
+	return badass_depth;
+}
 #define MATH_E 2.7182818284
 float reverseLog(float dd){
 	return pow(MATH_E, dd - 1.0) / LogEnchacer;

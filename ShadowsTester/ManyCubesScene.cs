@@ -23,14 +23,14 @@ namespace ShadowsTester
             wallsInst.Transformations.Add(new TransformationManager(new Vector3(-10, 5, 0), Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2), 1));
             wallsInst.Instances = 4;
             wallsInst.UpdateMatrix();
-            World.Root.CreateRigidBody(0, wallsInst.Transformations[0].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox()), null);
-            World.Root.CreateRigidBody(0, wallsInst.Transformations[1].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox()), null);
-            World.Root.CreateRigidBody(0, wallsInst.Transformations[2].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox()), null);
-            World.Root.CreateRigidBody(0, wallsInst.Transformations[3].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox()), null);
+            World.Root.CreateRigidBody(0, wallsInst.Transformations[0].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox()/2), null);
+            World.Root.CreateRigidBody(0, wallsInst.Transformations[1].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+            World.Root.CreateRigidBody(0, wallsInst.Transformations[2].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+            World.Root.CreateRigidBody(0, wallsInst.Transformations[3].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
             Add(wallsInst);
 
             World.Root.CreateRigidBody(0, Matrix4.Identity, new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0), null);
-
+            /*
             var roadtile = Object3dGenerator.CreateGround(new Vector2(-0.47f, -0.5f) * 20, new Vector2(0.47f, 0.5f) * 20, new Vector2(1, 1), Vector3.UnitY);
             var roadsInstances = new InstancedMesh3d(roadtile, GenericMaterial.FromMedia("roadtex.png", "roadnormaltex.png"));
             var advancer = new Vector3(0, 0, (roadtile.GetAxisAlignedBox() * 2).Z);
@@ -40,7 +40,7 @@ namespace ShadowsTester
                 roadsInstances.Transformations.Add(new TransformationManager(new Vector3(0, 0.1f, 0) + advancer * i));
             }
             roadsInstances.UpdateMatrix();
-            Add(roadsInstances);
+            Add(roadsInstances);*/
 
             //Object3dInfo cube = Object3dGenerator.CreateCube(new Vector3(1, 1, 1), new Vector2(1, 1));
             var cube = Object3dInfo.LoadFromObjSingle(Media.Get("portalcube.obj"));
@@ -60,7 +60,7 @@ namespace ShadowsTester
                 Vector3 scaleRand = new Vector3((float)rand.NextDouble() * 6.0f + 5.0f, (float)rand.NextDouble() * 6.0f + 5.0f, (float)rand.NextDouble() * 6.0f + 5.0f);
                 mesh.SetMass(11.0f);
                 mesh.Transformation.Scale(1);
-                mesh.SetCollisionShape(new BulletSharp.BoxShape(cube.GetAxisAlignedBox()));
+                mesh.SetCollisionShape(new BulletSharp.BoxShape(cube.GetAxisAlignedBox() / 2));
                 meshes.Add(mesh);
                 World.Root.PhysicalWorld.AddCollisionObject(mesh.CreateRigidBody());
                 if(lastmesh != null)
@@ -80,10 +80,6 @@ namespace ShadowsTester
                 //wallsInst.UpdateMatrix();
             };
             Add(inst);
-            var daetest = Object3dInfo.LoadFromObjSingle(Media.Get("carreragt.obj"));
-            daetest.CorrectFacesByNormals();
-            var car = new Mesh3d(daetest, new GenericMaterial(Color.Red));
-            Add(car);
             Console.WriteLine("allCount " + allCount);
         }
 

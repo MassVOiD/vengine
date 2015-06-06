@@ -23,15 +23,15 @@ namespace VEngine.Rendering
             return (float)Randomizer.NextDouble();
         }
 
-        public static List<InstancedMesh3d> CreateTree(float minNodesAngle, float maxNodesAngle, int maxNodesCountPerLevel, int iterations, int randomSeed)
+        public static List<InstancedMesh3d> CreateTree(float minNodesAngle, float maxNodesAngle, int maxNodesCountPerLevel, int iterations, int randomSeed, float scaleDescendant, bool addLeaves)
         {
             List<InstancedMesh3d> elements = new List<InstancedMesh3d>();
 
             Randomizer = new Random(DateTime.Now.Millisecond);
 
-            var tree = CreateNode(Vector3.Zero, Quaternion.Identity, minNodesAngle, maxNodesAngle, maxNodesCountPerLevel, 1.0f, iterations);
+            var tree = CreateNode(Vector3.Zero, Quaternion.Identity, minNodesAngle, maxNodesAngle, maxNodesCountPerLevel, 1.0f, iterations, scaleDescendant, addLeaves);
             elements.Add(InstancedMesh3d.FromSimilarMesh3dList(tree.Nodes));
-            elements.Add(InstancedMesh3d.FromSimilarMesh3dList(tree.Leafs));
+            if(addLeaves) elements.Add(InstancedMesh3d.FromSimilarMesh3dList(tree.Leafs));
 
             return elements;
         }
@@ -45,7 +45,7 @@ namespace VEngine.Rendering
         {
             public List<Mesh3d> Nodes, Leafs;
         }
-        private static NodeOut CreateNode(Vector3 origin, Quaternion rotation, float minNodesAngle, float maxNodesAngle, int maxNodesCountPerLevel, float scale, int iterations)
+        private static NodeOut CreateNode(Vector3 origin, Quaternion rotation, float minNodesAngle, float maxNodesAngle, int maxNodesCountPerLevel, float scale, int iterations, float scaleDescendant, bool addLeaves)
         {
             List<Mesh3d> elements = new List<Mesh3d>();
             List<Mesh3d> leafs = new List<Mesh3d>();
@@ -73,12 +73,12 @@ namespace VEngine.Rendering
                     var rotForward = Quaternion.FromAxisAngle(direction, MathHelper.TwoPi * Rand());
 
                     var randomRotation = Quaternion.Multiply(rotForward, Quaternion.Multiply(rotLeft, rotation));
-                    var single = CreateNode(randomOrigin, randomRotation, minNodesAngle, maxNodesAngle, maxNodesCountPerLevel, scale * (Rand() * 0.5f + 0.3f), iterations - 1);
+                    var single = CreateNode(randomOrigin, randomRotation, minNodesAngle, maxNodesAngle, maxNodesCountPerLevel, scale * (Rand() * 0.2f + scaleDescendant), iterations - 1, scaleDescendant, addLeaves);
                     elements.AddRange(single.Nodes);
                     leafs.AddRange(single.Leafs);
                 }
             }
-            if(iterations < 4)
+            if(iterations < 4 && addLeaves)
             {
                 for(int i = 0; i < 20; i++)
                 {

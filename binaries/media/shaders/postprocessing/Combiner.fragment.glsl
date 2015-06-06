@@ -495,8 +495,8 @@ void main()
 	}
 	if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
 	//if(UseDeferred == 1) color1 += motionBlurExperiment(nUV);
-	//if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
-	if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
+	if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
+	//if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
 	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
 	//if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);

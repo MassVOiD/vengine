@@ -23,7 +23,7 @@ namespace VEngine
             {
                 float start = levels[i];
                 //float end = levels[i + 1];
-                var casc = new ProjectionLight(Camera.MainDisplayCamera.GetPosition(), orientation, 2048, 2048, (MathHelper.PiOver2 - 0.1f) / levels[i], 0.01f, 10000.0f);
+                var casc = new ProjectionLight(Camera.MainDisplayCamera.GetPosition(), orientation, 2048, 2048, (MathHelper.PiOver2 - 0.1f) / levels[i], 100f, 3000.0f);
                 casc.LightColor = color;
 
                 casc.FBO.DepthPixelType = OpenTK.Graphics.OpenGL4.PixelType.Float;

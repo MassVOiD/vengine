@@ -35,10 +35,10 @@ void main()
 		if(clipspace.z < 0.0) continue;
 		
         float badass_depth = (clipspace.z / clipspace.w) * 0.5 + 0.5;	
-        float logg = texture(texDepth, sspace1).r;
+        float logg = texture(texDepth, UV).r;
         
         if(logg > badass_depth) {
-            color += ball(vec3(LightsColors[i]*2.0),LightPointSize / ( badass_depth) * 0.001, sspace1.x, sspace1.y);
+            color += ball(vec3(LightsColors[i].rgb*2.0),LightPointSize / ( badass_depth) * 0.001, sspace1.x, sspace1.y);
             //color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
         }
     

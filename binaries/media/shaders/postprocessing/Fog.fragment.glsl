@@ -30,10 +30,16 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 
 	//vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;	
 	
+    bool foundSun = false;
 	for(int i=0;i<LightsCount;i++){
 	
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
         vec4 lightClipSpace = lightPV * vec4(end, 1.0);
+        if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && lightClipSpace.z < 0.0){
+            if(foundSun) continue;
+            else foundSun = true;
+            //att = 1;
+        }
 		
 		
 		float fogDensity = 0.0;
@@ -42,17 +48,18 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 		
 		for(float m = 0.0; m< 1.0;m+= sampling){
 			vec3 pos = mix(start, end, m);
-			//float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
-			float att = 1;
+			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
+			//float att = 1;
+            if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) att = 0.1;
 			lightClipSpace = lightPV * vec4(pos, 1.0);
 			#ifdef ENABLE_FOG_NOISE
 			//float fogNoise = (snoise(pos / 4.0 + vec3(0, -Time*0.2, 0)) + 1.0) / 2.0;
 			
 			// rain
-			float fogNoise = (snoise(vec3(pos.x*15, pos.y / 2 + Time*7, pos.z*15)) + 1.0) / 2.0;
+			//float fogNoise = (snoise(vec3(pos.x*15, pos.y / 2 + Time*7, pos.z*15)) + 1.0) / 2.0;
 			
 			// snow
-			//float fogNoise = (snoise(vec3(pos.x*5, pos.y * 5 + Time, pos.z*5)) + 1.0) / 2.0;
+			float fogNoise = (snoise(vec3(pos.x*5, pos.y * 5 + Time, pos.z*5)) + 1.0) / 2.0;
 			//fogNoise = clamp((fogNoise - 0.8) * 20, 0, 1);
 			
 			#else
@@ -65,7 +72,7 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 				continue;
             }
             vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
-            float badass_depth = (lightClipSpace.z / lightClipSpace.w) * 0.5 + 0.5;	
+            float badass_depth = toLogDepthEx(distance(pos, LightsPos[i]), LightsFarPlane[i]);
             float diff = (badass_depth - lookupDepthFromLight(i, frfuv));
 			if(diff < 0) {
 				float culler = clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);

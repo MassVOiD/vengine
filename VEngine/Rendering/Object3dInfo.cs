@@ -42,9 +42,9 @@ namespace VEngine
             {
                 int i = VBO.Count;
                 i ^= VBO.Count;
-                foreach(var v in VBO)
-                    i ^= v.GetHashCode();
-                for(int ix=0;ix<Indices.Count;ix++)
+                for(int x = 0; x < VBO.Count;x++)
+                    i ^= VBO[x].GetHashCode();
+                for(int ix = 0; ix < Indices.Count; ix++)
                     i ^= Indices[ix].GetHashCode();
                 CachedHash = i;
             }
@@ -55,7 +55,7 @@ namespace VEngine
         public string MaterialName = "";
         public List<float> VBO;
         public bool WireFrameRendering = false;
-        private static Object3dInfo Current = null;
+        //private Object3dInfo Current = null;
         private bool AreBuffersGenerated;
         private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
         private int VertexBuffer, IndexBuffer, VAOHandle;
@@ -162,7 +162,7 @@ namespace VEngine
                     List<float> VBO = new List<float>();
                     List<uint> indicesNew = new List<uint>();
                     uint vcount = 0;
-                    for(int i = 0; i < indices.Count;)
+                    for(int i = 0; i < indices.Count; )
                     {
                         int vid = indices[i] * 3;
                         int nid = indices[i + 1] * 3;
@@ -247,7 +247,7 @@ namespace VEngine
         {
             var vboBytes = File.ReadAllBytes(vboFile);
             var indicesBytes = File.ReadAllBytes(indicesFile);
-            
+
             var vboFloats = new float[vboBytes.Length / 4];
             Buffer.BlockCopy(vboBytes, 0, vboFloats, 0, vboBytes.Length);
 
@@ -405,7 +405,7 @@ namespace VEngine
                         material = m;
                         mInfos[material] = mat;
                         texCache.Add(mat.TextureName + mat.AlphaMask, material);
-                       // material = colorPink;
+                        // material = colorPink;
                     }
                     //material = new GenericMaterial(Color.Pink);
                 }
@@ -461,7 +461,7 @@ namespace VEngine
                     mesh.UseAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
                 if(mInfos[kv.Key].BumpMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetBumpMapFromMedia(mInfos[kv.Key].BumpMapName);
-               // mesh.SpecularComponent = kv.Key.SpecularStrength;
+                // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 mesh.Transformation.Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(), 1.0f, 1.0f));
                 meshes.Add(mesh);
@@ -567,7 +567,7 @@ namespace VEngine
         public List<Vector3> GetOrderedVertices()
         {
             var ot = new List<Vector3>();
-            for(int i = 0; i < Indices.Count; i ++)
+            for(int i = 0; i < Indices.Count; i++)
             {
                 // for 1
                 int vboIndex1 = i * 8;
@@ -826,7 +826,7 @@ namespace VEngine
                             Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                             Vector2 uv = temp_uvs[int.Parse(match.Groups[i++].Value) - 1];
                             Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
-                           
+
                             out_vertex_buffer.AddRange(new float[] { vertex.X, vertex.Y, vertex.Z, uv.X, uv.Y, normal.X, normal.Y, normal.Z });
                             index_buffer.Add(vcount++);
                             if(i >= 9)
@@ -939,20 +939,12 @@ namespace VEngine
 
         private void DrawPrepare()
         {
-            if(Current == null || Current.GetHash() != this.GetHash())
+            if(!AreBuffersGenerated)
             {
-                if(!AreBuffersGenerated)
-                {
-                    GenerateBuffers();
-                }
-                GL.BindVertexArray(VAOHandle);
+                GenerateBuffers();
             }
-            else
-            {
-                //Console.WriteLine("yay cached");
-            }
-            //ShaderProgram.Current.Use();
-            Current = this;
+            GL.BindVertexArray(VAOHandle);
+
         }
 
         private Vector3 CalculateTangent(Vector3 normal, Vector3 v1, Vector3 v2, Vector2 st1, Vector2 st2)
@@ -969,7 +961,7 @@ namespace VEngine
         }
 
         public void UpdateTangents()
-	    {
+        {
             var floats = new List<float>();
             for(int i = 0; i < Indices.Count; i += 3)
             {
@@ -1045,7 +1037,7 @@ namespace VEngine
                 VBO[vboIndex3 + 9] += sdir.Y;
                 VBO[vboIndex3 + 10] += sdir.Z;
             }
-            for(int i = 0; i < Indices.Count; i ++)
+            for(int i = 0; i < Indices.Count; i++)
             {
                 // 8 vbo stride
                 int vboIndex1 = (int)Indices[i] * 11;
@@ -1057,7 +1049,7 @@ namespace VEngine
                 VBO[vboIndex1 + 10] = tan.Z;
             }
         }
-	
+
 
         private void GenerateBuffers()
         {

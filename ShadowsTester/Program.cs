@@ -54,13 +54,13 @@ namespace ShadowsTester
             Commons.AddControllableLight();
 
 
-            new SculptScene().Create();
+            //new SculptScene().Create();
             //new SponzaScene().Create();
             //new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
-            //new ManyCubesScene().Create();
+            new ManyCubesScene().Create();
             //new ComputeBallsScene().Create();
 
             //new HallScene().Create();

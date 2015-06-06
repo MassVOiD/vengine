@@ -33,7 +33,7 @@ namespace VEngine
         public bool DisableDepthWrite;
         //public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
 
-        private static int LastMaterialHash = 0;
+        private static int LastMaterialHash = -989898;
         private float Mass = 1.0f;
         public Object3dInfo MainObjectInfo;
         private CollisionShape PhysicalShape;

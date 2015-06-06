@@ -71,7 +71,6 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	
 	float distance2 = distance(pos, LightsPos[i]);
     
-	float distance3 = toLogDepth(distance2);
 	//float badass_depth = toLogDepth(distance2);
 	mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 	vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
@@ -89,18 +88,32 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 		
 	int counter = 0;
 	//distance1 = lookupDepthFromLight(i, uv);
-	float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
-	//float pssblur = 0;
-    for(float x = 0; x < mPI2; x+=1.23){ 
-        for(float y=0.0;y<1.0;y+= 0.2 ){  
-			vec2 crd = vec2(sin(x + y), cos(x + y)) * y * pssblur * 0.005;
-			fakeUV = uv + crd;
-			distance1 = lookupDepthFromLight(i, fakeUV);
-			float diff = (distance3 -  distance1);
-			if(diff > 0.0003) accum += 1.0;
-			counter++;
-		}
-	}
+    if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE){
+        float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
+        fakeUV = uv;
+        distance1 = lookupDepthFromLight(i, uv);
+        float diff = (distance3 -  distance1);
+        if(diff > 0.00003) {
+            return -abs(bval);
+        }
+        
+        return 1.0;
+    } else {
+        float distance3 = toLogDepth(distance2);
+        float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
+        //float pssblur = 0;
+        for(float x = 0; x < mPI2; x+=1.23){ 
+            for(float y=0.0;y<1.0;y+= 0.2 ){  
+                vec2 crd = vec2(sin(x + y), cos(x + y)) * y * pssblur * 0.005;
+                fakeUV = uv + crd;
+                distance1 = lookupDepthFromLight(i, fakeUV);
+                float diff = (distance3 -  distance1);
+                if(diff > 0.0003) accum += 1.0;
+                counter++;
+            }
+        }
+    }
+	
     float rs = 1.0 - (accum / counter);
 	if(rs > 0) return rs;
     else return -abs(bval);

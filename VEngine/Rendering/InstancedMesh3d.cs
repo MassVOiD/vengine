@@ -27,7 +27,7 @@ namespace VEngine
         private Object3dInfo ObjectInfo;
         private Random Randomizer;
         //private const int MaxInstances = 1500;
-        private List<Matrix4[]> ModelMatrices, RotationMatrices;
+        //private List<Matrix4[]> ModelMatrices, RotationMatrices;
         public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
 
         class LodLevelData
