@@ -2,6 +2,7 @@
 
 in vec2 UV;
 #include LogDepth.glsl
+#include UsefulIncludes.glsl
 
 #define mPI (3.14159265)
 #define mPI2 (2.0*3.14159265)
@@ -485,6 +486,13 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
 	vec3 rs = (outc / counter * texture(diffuseColor, giuv).rgb ) * 2.7;
     return rs;
 }
+
+vec3 emulateSkyWithDepth(vec2 uv){
+    float depth = texture(depth, uv).r;
+    vec3 worldPos = FromCameraSpace(texture(worldPos, uv).rgb);
+    depth = depth * clamp(1.0 / (abs(worldPos.y) * 0.001), 0, 1);
+    return vec3(1) * depth;
+}
 void main()
 {
 	vec2 nUV = UV;
@@ -498,7 +506,7 @@ void main()
 	if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 	//if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
-	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
+	if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
 	//if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
 	//if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * GIContribution;
 	if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb;

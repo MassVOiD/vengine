@@ -41,12 +41,12 @@ namespace ShadowsTester
                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
                 }
             };
-            /*
+            
             var skysphere = Object3dInfo.LoadFromObjSingle(Media.Get("skyicosphere.obj"));
             var skymesh = new Mesh3d(skysphere, new GenericMaterial(Color.SkyBlue));
             skymesh.Scale(8000);
             skymesh.IgnoreLighting = true;
-            Add(skymesh);*/
+            Add(skymesh);
             
             var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("desertcity.obj"));
             dragon3dInfo.ScaleUV(0.1f);
