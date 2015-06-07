@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using VEngine;
 using VEngine.Generators;
 using OpenTK;
+using VEngine.Rendering;
 
 namespace ShadowsTester
 {
@@ -28,32 +29,74 @@ namespace ShadowsTester
             dragon.LoadSkeleton(Media.Get("annie_skeleton.txt"));
             dragon.Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2));
             Add(dragon);
-            Random rand = new Random();
-            GLThread.CreateTimer(() =>
+
+            // (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000
+
+            ArmatureAnimation animation = new ArmatureAnimation();
+
+            ArmatureAnimation.KeyFrame f1 = new ArmatureAnimation.KeyFrame()
             {
-                foreach(var b in dragon.Bones)
+                Duration = 1.0f,
+                Orientations = new Dictionary<string, Quaternion>
                 {
-                    var orient = b.Orientation;
-                    orient = Quaternion.Multiply(orient, Quaternion.FromAxisAngle(
-                        new Vector3((float)rand.NextDouble(), (float)rand.NextDouble(), (float)rand.NextDouble()), (float)rand.NextDouble() * 0.1f));
-                    b.Orientation = orient;
-
+                    { "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+                    { "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+                    { "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.6f)},
+                    { "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
                 }
-                /*var orient = dragon.Bones.First((a) => a.Name == "LegStartRight").Orientation;
-                orient = Quaternion.Multiply(orient, Quaternion.FromAxisAngle(Vector3.UnitX, 0.08f));
-                dragon.Bones.First((a) => a.Name == "LegStartRight").Orientation = orient;
+            };
+            animation.Frames.Add(f1);
 
-                orient = dragon.Bones.First((a) => a.Name == "ArmLeftEnd").Orientation;
-                orient = Quaternion.Multiply(orient, Quaternion.FromAxisAngle(Vector3.UnitZ, 0.08f));
-                dragon.Bones.First((a) => a.Name == "ArmLeftEnd").Orientation = orient;*/
-            }, 100).Start();
-          /*  Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048, -2048), new Vector2(2048, 2048), new Vector2(496, 496), Vector3.UnitY);
-            var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
-            waterMat.SetNormalMapFromMedia("waternormal.png");
-            var water = new Mesh3d(waterInfo, waterMat);
-            water.Transformation.Translate(0, 1, 0);
-            //water.DisableDepthWrite = true;
-            Add(water);*/
+            ArmatureAnimation.KeyFrame f2 = new ArmatureAnimation.KeyFrame()
+            {
+                Duration = 1.0f,
+                Orientations = new Dictionary<string, Quaternion>
+                {
+                    { "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.5f)},
+                    { "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, -0.5f)},
+                    { "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.6f)},
+                    { "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+                }
+            };
+            animation.Frames.Add(f2);
+
+            ArmatureAnimation.KeyFrame f3 = new ArmatureAnimation.KeyFrame()
+            {
+                Duration = 1.0f,
+                Orientations = new Dictionary<string, Quaternion>
+                {
+                    { "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+                    { "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+                    { "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+                    { "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.6f)},
+                }
+            };
+            animation.Frames.Add(f3);
+
+            ArmatureAnimation.KeyFrame f4 = new ArmatureAnimation.KeyFrame()
+            {
+                Duration = 1.0f,
+                Orientations = new Dictionary<string, Quaternion>
+                {
+                    { "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, -0.5f)},
+                    { "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.5f)},
+                    { "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+                    { "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.6f)},
+                }
+            };
+            animation.Frames.Add(f4);
+
+            GLThread.OnUpdate += (o, e) =>
+            {
+                animation.Apply(dragon, (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000, 1);
+            };
+            /*  Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048, -2048), new Vector2(2048, 2048), new Vector2(496, 496), Vector3.UnitY);
+              var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
+              waterMat.SetNormalMapFromMedia("waternormal.png");
+              var water = new Mesh3d(waterInfo, waterMat);
+              water.Transformation.Translate(0, 1, 0);
+              //water.DisableDepthWrite = true;
+              Add(water);*/
             var scene = Object3dInfo.LoadSceneFromObj(Media.Get("sponzasimple.obj"), Media.Get("sponzasimple.mtl"), 1f);
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in scene)

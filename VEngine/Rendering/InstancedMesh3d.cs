@@ -24,7 +24,7 @@ namespace VEngine
         public IMaterial Material;
         public List<TransformationManager> Transformations;
         public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
-        private Object3dInfo ObjectInfo;
+        public Object3dInfo ObjectInfo;
         private Random Randomizer;
         //private const int MaxInstances = 1500;
         //private List<Matrix4[]> ModelMatrices, RotationMatrices;

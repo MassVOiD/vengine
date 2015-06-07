@@ -500,8 +500,8 @@ void main()
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
 	if(UseDepth == 1) color1 += texture(depth, nUV).rrr;
 	//if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
-	if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * GIContribution;
-	//color1 += texture(globalIllumination, nUV ).rgb;
+	//if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * GIContribution;
+	if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;

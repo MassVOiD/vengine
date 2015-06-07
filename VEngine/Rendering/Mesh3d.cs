@@ -58,6 +58,20 @@ namespace VEngine
         }
 
         private List<LodLevelData> LodLevels;
+        public static Mesh3d Merge(List<Mesh3d> meshes)
+        {
+            Object3dInfo main = meshes[0].MainObjectInfo.CopyDeep();
+            meshes[0].UpdateMatrix();
+            main.Transform(meshes[0].Matrix, meshes[0].RotationMatrix);
+            for(int i = 1; i < meshes.Count; i++)
+            {
+                Object3dInfo obj = meshes[i].MainObjectInfo.CopyDeep();
+                meshes[i].UpdateMatrix();
+                obj.Transform(meshes[i].Matrix, meshes[i].RotationMatrix);
+                main.Append(obj);
+            }
+            return new Mesh3d(main, meshes[0].MainMaterial);
+        }
 
         public void AddLodLevel(float distance, Object3dInfo info, IMaterial material)
         {

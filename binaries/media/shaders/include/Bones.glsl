@@ -10,7 +10,7 @@ int determineBone(vec3 modelpos){
 	int index = 0;
 	float maxdist = 99999;
 	for(int i=0;i<BonesCount;i++){
-		float dist = distance(modelpos, (BonesHeads[i] + BonesTails[i]) * 0.5);
+		float dist = distance(modelpos, BonesTails[i]) + distance(modelpos, BonesHeads[i]);
 		if(dist < maxdist){
 			index = i;
 			maxdist = dist;

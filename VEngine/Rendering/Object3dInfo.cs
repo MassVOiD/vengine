@@ -669,6 +669,13 @@ namespace VEngine
             Indices.AddRange(info.Indices.Select(a => (uint)(a + startIndex)));
         }
 
+        public void FreeCPUMemory()
+        {
+            VBO = null;
+            Indices = null;
+            GC.Collect();
+        }
+
         public void ForceRegenerate()
         {
             if(AreBuffersGenerated)

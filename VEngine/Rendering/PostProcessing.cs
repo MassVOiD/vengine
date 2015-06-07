@@ -361,17 +361,17 @@ namespace VEngine
             {
 
                 CShader.Use();
-                //GlobalIlluminationFrameBuffer.Use();
+                //GlobalIlluminationFrameBuffer.Use();  
                 GL.BindImageTexture(0, p1.TexColor, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba16f);
                 GL.BindImageTexture(1, p2.TexColor, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
                 //GL.BindImageTexture(3, MRT.TexDepth, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32f);
-                GL.BindImageTexture(2, MRT.TexDiffuse, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba8);
-                GL.BindImageTexture(4, MRT.TexWorldPos, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
-                GL.BindImageTexture(5, MRT.TexNormals, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
+                //GL.BindImageTexture(2, MRT.TexDiffuse, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba8);
+                GL.BindImageTexture(2, MRT.TexWorldPos, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
+                GL.BindImageTexture(3, MRT.TexNormals, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
                 //CShader.SetUniform("PASS", 0);
-                CShader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
-                CShader.SetUniform("HBAOStrength", GLThread.GraphicsSettings.HBAOStrength);
-                CShader.SetUniform("HBAOContribution", GLThread.GraphicsSettings.HBAOContribution);
+               // CShader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+                //CShader.SetUniform("HBAOStrength", GLThread.GraphicsSettings.HBAOStrength);
+                //CShader.SetUniform("HBAOContribution", GLThread.GraphicsSettings.HBAOContribution);
                 CShader.SetUniform("Rand", (float)Rand.NextDouble());
                 CShader.Dispatch(Width / 32 + 1, Height / 32 + 1);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);

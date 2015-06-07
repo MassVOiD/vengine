@@ -35,6 +35,40 @@ vec2 projdir(vec3 start, vec3 end){
 	vec2 sspace2 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
 	return (sspace2 - sspace1);
 }
+
+struct SampleData
+{
+  bool isInSurface;
+  vec2 sampleUV;
+  vec3 sampleNormal;
+  vec3 sampleWorldPos;
+  vec3 sampleColor;
+};
+
+SampleData getSampleData(vec3 sampl, vec3 displace){
+	vec4 clipspace = (PV) * vec4(sampl, 1.0);
+	vec2 sspace1 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
+    vec3 wd = (texture(worldPosTex, sspace1).rgb);
+    if(length(wd) < distance(CameraPosition, sampl)){
+        // in surface
+        vec3 wpos = FromCameraSpace(texture(worldPosTex, sspace1).rgb);
+        return SampleData(
+            true, 
+            sspace1, 
+            wpos,
+            texture(normalsTex, sspace1).rgb,
+            texture(texColor, sspace1).rgb);
+    } else {
+        // in free air
+        return SampleData(
+            false, 
+            sspace1, 
+            sampl,
+            -displace,
+            vec3(0));
+    }
+}
+
 bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     //vec3 direction = normalize(w2 - w1);
     float d3d1 = length(w1);
@@ -50,21 +84,23 @@ bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     }
     return true;
 }
+
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
+
 vec3 Radiosity() 
 {
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 24;
-    const int octaves = 2;
+    const int samples = 8;
+    const int octaves = 3;
     
     // choose between noisy and slower, but better looking variant
     float randomizer = 138.345341 * rand(UV) + Time;
     // or faster, non noisy variant, which is also cool looking
-    //const float randomizer = 138.345341;
+   // const float randomizer = 138.345341;
     
     vec3 ambientColor = vec3(1,1,1);
     
@@ -79,9 +115,7 @@ vec3 Radiosity()
             fract(rd*12.2562), 
             fract(rd*7.121214) * 2 - 1
         ) * clamp(length(posCenter), 0.1, 2.0);
-        
-        float dotdiffuse =  max(0, dot(normalize(displace),  (normalCenter.xyz)));
-        
+        float dotdiffuse =  max(0, dot(normalize(displace),  (normalCenter)));
         for(int div = 0;div < octaves; div++)
         {
             if(testVisibility3d(UV, posCenter, posCenter + displace))
@@ -227,7 +261,8 @@ void main()
     } else {
         color1 = colorOriginal * Radiosity() * HBAOContribution;
     }
-    //vec3 color1 = colorOriginal * 0.0;
+    
+    //vec3 color1 = colorOriginal * 0.2;
     if(texture(texColor, UV).a < 0.99){
         color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
     }

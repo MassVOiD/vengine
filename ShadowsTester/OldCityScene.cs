@@ -31,14 +31,13 @@ namespace ShadowsTester
             //var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);
             //foreach(var o in protagonist)
             //    Add(o);
-             /*
-            var fountainWaterObj = Object3dInfo.LoadFromObjSingle(Media.Get("cylinder.obj"));
-            var water = new Mesh3d(fountainWaterObj, new GenericMaterial(new Vector4(1, 1, 0, 1)));
-            water.DisableDepthWrite = true;
-            water.UseAlphaMaskFromMedia("alphamask.png");
-            water.Transformation.Scale(1.0f);
-            Add(water);*/
-
+            
+           var fountainWaterObj = Object3dInfo.LoadFromObjSingle(Media.Get("turbinegun.obj"));
+           var water = new Mesh3d(fountainWaterObj, new GenericMaterial(new Vector4(1, 1, 1, 1)));
+           water.Transformation.Scale(1.0f);
+           water.Translate(0, 10, 0);
+           Add(water);
+            /*
             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
 
 
@@ -57,7 +56,7 @@ namespace ShadowsTester
             //dragon.Translate(0, 0, 20);
             dragon.Scale(80);
             Add(dragon);
-
+            */
            
 
         }

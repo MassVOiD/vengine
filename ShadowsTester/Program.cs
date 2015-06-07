@@ -55,13 +55,15 @@ namespace ShadowsTester
 
 
             //new SculptScene().Create();
-            //new SponzaScene().Create();
+            new SponzaScene().Create();
             //new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();
             //new DragonScene().Create();
-            new ManyCubesScene().Create();
+            //new ManyCubesScene().Create();
             //new ComputeBallsScene().Create();
+
+            //new FortressScene().Create();
 
             //new HallScene().Create();
             //new RoadScene().Create();
