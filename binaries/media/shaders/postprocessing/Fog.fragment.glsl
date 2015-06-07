@@ -45,9 +45,11 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 		float fogDensity = 0.0;
 		float fogMultiplier = 2.4;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
-		
+		vec3 lastPos = start - mix(start, end, sampling);
 		for(float m = 0.0; m< 1.0;m+= sampling){
 			vec3 pos = mix(start, end, m);
+            float distanceMult = clamp(distance(lastPos, pos) * 2, 0, 33);
+            lastPos = pos;
 			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
 			//float att = 1;
             if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) att = 0.1;
@@ -77,7 +79,7 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 			if(diff < 0) {
 				float culler = clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float fogNoise = 1.0;
-				fogDensity += idle + 1.0 / 200.0 * culler * fogNoise * fogMultiplier * att;
+				fogDensity += idle + 1.0 / 200.0 * culler * fogNoise * fogMultiplier * att * distanceMult;
 			} else {
 				fogDensity += idle;
 			}
