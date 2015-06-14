@@ -94,13 +94,13 @@ vec3 Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 8;
+    const int samples = 28;
     const int octaves = 3;
     
     // choose between noisy and slower, but better looking variant
     float randomizer = 138.345341 * rand(UV) + Time;
     // or faster, non noisy variant, which is also cool looking
-   // const float randomizer = 138.345341;
+    //const float randomizer = 138.345341;
     
     vec3 ambientColor = vec3(1,1,1);
     
@@ -259,7 +259,7 @@ void main()
         color1 = colorOriginal;
         IgnoreLightingFragment = true;
     } else {
-        color1 = colorOriginal * Radiosity() * HBAOContribution;
+        //color1 = colorOriginal;
     }
     
     //vec3 color1 = colorOriginal * 0.2;
@@ -308,14 +308,14 @@ void main()
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.6, 0.0
+                    0.8, 0.2
                 );
 
                 float diffuseComponent = orenNayarDiffuse(
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.9, 0.5
+                    0.8, 0.2
                 );
                 
                 percent = max(0, percent);
@@ -343,14 +343,14 @@ void main()
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.6, 0.0
+                    0.99, 0.0
                 );
 
                 float diffuseComponent = orenNayarDiffuse(
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.9, 0.5
+                    0.8, 0.9
                 );
                 //float diffuseComponent = 0;
                 
@@ -400,5 +400,8 @@ void main()
         
     }
     color1 += lightPoints();
+   // if(UV.x < 0.4 && UV.y < 0.4){
+   //     color1 = texture(lightDepth0, UV*2.5).rrr*10;
+    //}
     outColor = vec4(color1, 1);
 }

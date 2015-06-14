@@ -89,6 +89,14 @@ namespace ShadowsTester
             {
                 speed *= 0.03f;
             }
+            if(keyboard.IsKeyDown(OpenTK.Input.Key.LBracket))
+            {
+                Camera.MainDisplayCamera.Brightness -= 0.003f;
+            }
+            if(keyboard.IsKeyDown(OpenTK.Input.Key.RBracket))
+            {
+                Camera.MainDisplayCamera.Brightness += 0.003f;
+            }
 
             if(keyboard.IsKeyDown(OpenTK.Input.Key.W))
             {

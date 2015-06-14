@@ -9,6 +9,7 @@ using VEngine.Generators;
 using VEngine.Rendering;
 using VEngine.UI;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 
 namespace ShadowsTester
 {
@@ -16,6 +17,7 @@ namespace ShadowsTester
     {
         public SculptScene()
         {
+
             var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 300, 100, 70, 40, 10, 1);
             GLThread.OnUpdate += (o, e) =>
             {
@@ -50,11 +52,20 @@ namespace ShadowsTester
             
             var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("desertcity.obj"));
             dragon3dInfo.ScaleUV(0.1f);
-            var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(Color.WhiteSmoke));
+            var mat = new GenericMaterial(Color.WhiteSmoke);
+            var dragon = new Mesh3d(dragon3dInfo, mat);
+            //mat.Type = AbsMaterial.MaterialType.WetDrops;
             dragon.Translate(0, 0, 20);
             //dragon.Scale(5);
-            //dragon.SetCollisionShape(dragon3dInfo.GetAccurateCollisionShape());
+            dragon.SetMass(0);
+            dragon.SetCollisionShape(dragon3dInfo.GetAccurateCollisionShape());
             Add(dragon);
+            /*
+            var planeinfo = Object3dGenerator.CreateTerrain(new Vector2(-100, -100), new Vector2(100, 100), new Vector2(50, 50), Vector3.UnitY, 300, (x, y) => 0);
+            var plane = new Mesh3d(planeinfo, new GenericMaterial(Color.Gainsboro));
+
+            (plane.MainMaterial as GenericMaterial).SetBumpMapFromMedia("bumpy.jpg");
+            Add(plane);*/
             
             //var text = new Text(0.0f, 0.5f, "Hello żółć 汉语 / 漢語; Hànyǔ or 中文; Zhōngwén", "Segoe UI", 24, Color.White);
             //World.Root.UI.Elements.Add(text);
@@ -75,11 +86,11 @@ namespace ShadowsTester
                         continue;
                     var orient = b.Orientation;
                     var randomQuat = Quaternion.Multiply(Quaternion.FromAxisAngle(Vector3.UnitX, (float)rand.NextDouble() - 0.5f), Quaternion.FromAxisAngle(Vector3.UnitZ, (float)rand.NextDouble() - 0.5f));
-                    var neworient = Quaternion.Slerp(orient, randomQuat, 0.01f);
+                    var neworient = Quaternion.Slerp(orient, randomQuat, 0.11f);
                     b.Orientation = neworient;
                 }
-            };
-            */
+            };*/
+            
         }
 
     }

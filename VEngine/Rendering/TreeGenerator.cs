@@ -79,15 +79,19 @@ namespace VEngine.Rendering
             List<Mesh3d> elements = new List<Mesh3d>();
             List<Mesh3d> leafs = new List<Mesh3d>();
             float nodeModelHeight = Node.GetAxisAlignedBox().Y * scale;
-            var currentBone = new Mesh3d.Bone()
+            var currentBone = new Mesh3d.Bone();
+            if(boneSystem != null)
             {
-                Head = origin,
-                Tail = origin +  Vector3.Transform(Vector3.UnitY * nodeModelHeight, rotation),
-                Name = boneParent.Name == "rootofroot" ? "root" : "bone" + boneSystem.Count.ToString(),
-                Orientation = Quaternion.Identity,
-                Parent = boneParent,
-                ParentName = boneParent.Name
-            };
+                currentBone = new Mesh3d.Bone()
+                {
+                    Head = origin,
+                    Tail = origin + Vector3.Transform(Vector3.UnitY * nodeModelHeight, rotation),
+                    Name = boneParent.Name == "rootofroot" ? "root" : "bone" + boneSystem.Count.ToString(),
+                    Orientation = Quaternion.Identity,
+                    Parent = boneParent,
+                    ParentName = boneParent.Name
+                };
+            }
             if(iterations > 1)
             {
                 var root = new Mesh3d(Node, NodeMaterial);

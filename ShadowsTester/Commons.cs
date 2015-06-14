@@ -169,6 +169,7 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Pause)
                 {
                     ShaderProgram.RecompileAll();
+                    ComputeShader.RecompileAll();
                 }
                 if(e.Key == OpenTK.Input.Key.T)
                 {

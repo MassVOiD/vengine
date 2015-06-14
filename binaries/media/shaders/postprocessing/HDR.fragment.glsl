@@ -140,18 +140,23 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 	return finalColor/weight;
 }
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 uniform int UseBloom;
 vec3 lookupBloomBlurred(vec2 buv, float radius){
 	vec3 outc = vec3(0);
-	int counter = 0;
-	for(float g = 0; g < mPI2 * 2; g+=0.6)
+	float counter = 0;
+	for(float g = 0; g < mPI2; g+=0.3)
 	{ 
-		for(float g2 = 0; g2 < 1.0; g2+=0.15)
+		for(float g2 = 0; g2 < 1.0; g2+=0.05)
 		{ 
 			vec2 gauss = vec2(sin(g)*ratio, cos(g)) * (g2 * radius);
 			vec4 color = texture(bloom, buv + gauss).rgba;
-			outc += (color.rgb * color.a) * (1.0 - g2);
-			counter++;
+            float w = max(0, (length(color) - 1.3) ) * 0.1;
+            counter += max(w, 0.1);
+			outc += (color.rgb * color.a) * w * (1.0 - g2) * 1.4;
+			//counter++;
 		}
 	}
 	return outc / counter;
@@ -162,6 +167,7 @@ void main()
 	vec2 fragCoord = UV * resolution;
 	texcoords(fragCoord);
 	vec4 color1 = fxaa(textureIn, fragCoord);
+    //vec4 color1 = vec4(0,0,0,1);
 	float depth = texture(texDepth, UV).r;
 	centerDepth = depth;
 	if(LensBlurAmount > 0.001){
@@ -184,10 +190,6 @@ void main()
 		blur = clamp(blur * 50,0.0,4.0) * 10;
 		color1.xyz = lensblur(blur, fDepth, 0.03, 7.0);
 	}
-	//vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
-	//color1.rgb = vec3(pow(color1.r, gamma.r),
-    //              pow(color1.g, gamma.g),
-    //              pow(color1.b, gamma.b));
 				
 	if(UseBloom == 1) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb * BloomContribution;  
     outColor = clamp(color1, 0.0, 1.0);

@@ -576,15 +576,22 @@ namespace VEngine
             }
             return ot;
         }
+        public List<int> GetOrderedIndices()
+        {
+            var ot = new List<int>();
+            for(int i = 0; i < Indices.Count; i++)
+            {
+                ot.Add(i);
+            }
+            return ot;
+        }
 
 
         public BvhTriangleMeshShape GetAccurateCollisionShape(float scale = 1.0f)
         {
             //if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
-            List<Vector3> vectors = new List<Vector3>();
-            for(int i = 0; i < VBO.Count; i += 8)
-                vectors.Add(new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]) * scale);
-            var smesh = new TriangleIndexVertexArray(Indices.Select<uint, int>(a => (int)a).ToArray(), vectors.ToArray());
+            List<Vector3> vectors = GetOrderedVertices();
+            var smesh = new TriangleIndexVertexArray(GetOrderedIndices().ToArray(), vectors.ToArray());
             CachedBvhTriangleMeshShape = new BvhTriangleMeshShape(smesh, false);
             //CachedBvhTriangleMeshShape.LocalScaling = new Vector3(scale);
             return CachedBvhTriangleMeshShape;

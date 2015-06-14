@@ -22,6 +22,7 @@ layout(binding = 10) uniform sampler2D lastworldPos;
 layout(binding = 11) uniform sampler2D meshData;
 
 float centerDepth;
+uniform float Brightness;
 
 
 vec3 lookupFog(vec2 fuv){
@@ -483,7 +484,7 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
             counter++;
 		}
 	}
-	vec3 rs = (outc / counter * texture(diffuseColor, giuv).rgb ) * 2.7;
+	vec3 rs = (outc / counter);
     return rs;
 }
 
@@ -508,8 +509,8 @@ void main()
 	if(UseLightPoints == 1) color1 += texture(lightpoints, nUV).rgb;
 	if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
 	//if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
-	//if(UseSimpleGI == 1) color1 += lookupGIBlurred(nUV, 0.005) * GIContribution;
-	if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb;
+	//if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
+	if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * texture(globalIllumination, nUV ).r;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;
@@ -526,5 +527,9 @@ void main()
     //color1 = TonemapPass(color1);
     //float ddot = dot(normalize(texture(diffuseColor, UV).rgb), normalize(color1));
     //if(ddot < 0.4) color1.rgb = vec3(1.0 - abs(ddot))*5 + texture(diffuseColor, UV).rgb;
+	vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
+	color1.rgb = vec3(pow(color1.r, gamma.r),
+                  pow(color1.g, gamma.g),
+                  pow(color1.b, gamma.b));
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

@@ -16,7 +16,7 @@ uniform int MaterialType;
 #define MaterialTypeSky 3
 #define MaterialTypeWetDrops 4
 
-layout(binding = 16) uniform sampler2D bumpMap;
+layout(binding = 31) uniform sampler2D bumpMap;
 
 vec3 rotate_vector_by_quat( vec4 quat, vec3 vec )
 {
@@ -188,9 +188,15 @@ uniform float NormalMapScale;
 void finishFragment(vec4 color){
 	outColor = vec4((color.xyz) * DiffuseComponent, color.a);
     //outColor = vec4(1);
-	outWorldPos = vec4(ToCameraSpace(positionWorldSpace.xyz), 1);
+    vec3 wpos = positionWorldSpace;
+    vec3 normalNew  = normalize(normal);
+    if(UseBumpMap == 1){
+        float factor = (texture(bumpMap, UV).r - 0.5);
+        wpos += normalNew * factor;
+
+    }
+	outWorldPos = vec4(ToCameraSpace(wpos), 1);
 	if(IgnoreLighting == 0){
-		vec3 normalNew  = normalize(normal);
 		if(UseNormalMap == 1){
 			normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);
     
@@ -201,7 +207,7 @@ void finishFragment(vec4 color){
     
 		} else {
             float factor = (length(vec3(0.5)) - length(color.xyz)) * 0.2;
-			//normalNew = normalize(normalNew - (tangent * factor));
+			normalNew = normalize(normalNew - (tangent * factor));
     
 		}*/
         if(MaterialType == MaterialTypeWater){
@@ -210,7 +216,7 @@ void finishFragment(vec4 color){
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
         if(MaterialType == MaterialTypeWetDrops){
-            float pn = snoise(positionWorldSpace* 13.)  * 2 - 1;
+            float pn = snoise(positionWorldSpace* 13.);
             //pn = clamp(pow(pn, 3.0), 0.5, 1.0);
 			normalNew = normalize(normalNew - (tangent * pn * 0.05));
            // outColor.xyz *= (factor + 1) / 8 + 0.75;

@@ -12,16 +12,22 @@ namespace VEngine
         {
             UniformLocationsCache = new Dictionary<string, int>();
             ComputeFile = file;
-            ComputeSource = ShaderPreparser.Preparse(file, Media.ReadAllText(file));
+            AllComputeShaders.Add(this);
             Compiled = false;
+        }
+
+        public static void RecompileAll()
+        {
+            AllComputeShaders.ForEach((a) => a.Compile());
         }
 
         public static ComputeShader Current = null;
         static public bool Lock = false;
         private bool Compiled;
-        private string ComputeSource, ComputeFile;
+        private string ComputeFile;
         private int Handle = -1;
         private Dictionary<string, int> UniformLocationsCache;
+        private static List<ComputeShader> AllComputeShaders = new List<ComputeShader>();
 
         public void BindAttributeLocation(int index, string name)
         {
@@ -209,7 +215,7 @@ namespace VEngine
 
         private void Compile()
         {
-            int shaderHandle = CompileSingleShader(ShaderType.ComputeShader, ComputeSource);
+            int shaderHandle = CompileSingleShader(ShaderType.ComputeShader, ShaderPreparser.Preparse(ComputeFile, Media.ReadAllText(ComputeFile)));
 
             Handle = GL.CreateProgram();
 

@@ -91,10 +91,14 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 	return color1 * clamp(1.0 / (abs(worldPos.y) * 0.1), 0, 1);
 }
 
-void main()
-{
+vec3 makeFog(){
 	vec3 cspaceEnd = texture(worldPosTex, UV).xyz;
     if(length(cspaceEnd) > 800) cspaceEnd = normalize(cspaceEnd) * 800;
 	vec3 fragmentPosWorld3d = FromCameraSpace(cspaceEnd);
-    outColor = clamp(vec4(raymarchFog(CameraPosition, fragmentPosWorld3d, FogSamples), 1), 0.0, 1.0);
+    return clamp(vec3(raymarchFog(CameraPosition, fragmentPosWorld3d, FogSamples)), 0.0, 1.0);
+}
+
+void main()
+{
+    outColor = vec4(makeFog(), 1);
 }

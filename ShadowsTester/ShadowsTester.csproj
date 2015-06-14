@@ -58,6 +58,7 @@
     <Compile Include="CarScene.cs" />
     <Compile Include="DragonScene.cs" />
     <Compile Include="FortressScene.cs" />
+    <Compile Include="PlanetScene.cs" />
     <Compile Include="RoadScene.cs" />
     <Compile Include="NatureScene.cs" />
     <Compile Include="OldCityScene.cs" />

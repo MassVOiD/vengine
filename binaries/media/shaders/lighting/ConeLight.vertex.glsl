@@ -23,6 +23,7 @@ layout (std430, binding = 1) buffer RMBuffer
   mat4 RotationMatrixes[]; 
 }; 
 smooth out vec2 UV;
+smooth out vec3 normal;
 #include Bones.glsl
 
 //out vec3 normal;
@@ -47,6 +48,7 @@ void main(){
 		vertexWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
 		gl_Position = mvp * v;
 	}
+    normal = in_normal;
 	UV = vec2(in_uv.x, -in_uv.y);
 
 }

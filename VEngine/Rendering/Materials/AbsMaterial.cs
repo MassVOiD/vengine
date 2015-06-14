@@ -21,7 +21,8 @@ namespace VEngine
             Water,
             Sky,
             WetDrops,
-            Grass
+            Grass,
+            PlanetSurface
         }
         public MaterialType Type;
 
@@ -36,13 +37,15 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
-            return Type == MaterialType.Water || BumpMap != null ? TesselatedProgram : Program;
+            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface? TesselatedProgram : Program;
         }
 
         public virtual bool Use()
         {
             var prg = GetShaderProgram();
             bool res = prg.Use();
+            if(res == false)
+                prg = ShaderProgram.Current;
             prg.SetUniform("TesselationMultiplier", TesselationMultiplier);
             if(NormalMap != null)
             {
@@ -56,7 +59,7 @@ namespace VEngine
             if(BumpMap != null)
             {
                 prg.SetUniform("UseBumpMap", 1);
-                BumpMap.Use(TextureUnit.Texture16);
+                BumpMap.Use(TextureUnit.Texture31);
             }
             else
                 prg.SetUniform("UseBumpMap", 0);

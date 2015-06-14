@@ -54,8 +54,9 @@ namespace ShadowsTester
             Commons.AddControllableLight();
 
 
-            new SculptScene().Create();
-            //new SponzaScene().Create();
+            //new PlanetScene().Create();
+            //new SculptScene().Create();
+            new SponzaScene().Create();
             //new OldCityScene().Create();
             //new NatureScene().Create();
             //new IndirectTestScene().Create();

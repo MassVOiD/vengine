@@ -117,15 +117,15 @@ namespace VEngine
                 else
                 {
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.LinearSharpenColorSgis);
-                    //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
-                    //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                     //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.GenerateMipmap, (int)TextureMagFilter.Linear);
                     GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
                     float maxAniso;
                     GL.GetFloat((GetPName)OldGL.ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out maxAniso);
                     GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName)OldGL.ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, maxAniso);
                 }
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
                 Generated = true;
             }
             GL.ActiveTexture(unit);

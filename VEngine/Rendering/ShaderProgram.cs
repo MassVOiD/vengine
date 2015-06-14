@@ -252,8 +252,8 @@ namespace VEngine
         {
             if(!Lock)
             {
-                if(Current == this)
-                    return false;
+                //if(Current == this)
+                //    return false;
                 if(!Compiled)
                     Compile();
                 GL.UseProgram(Handle);

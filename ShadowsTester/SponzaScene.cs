@@ -39,10 +39,10 @@ namespace ShadowsTester
                 Duration = 1.0f,
                 Orientations = new Dictionary<string, Quaternion>
                 {
-                    { "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
-                    { "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
-                    { "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.6f)},
-                    { "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+{ "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(-33))},
+{ "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(33))},
+{ "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(30))},
+{ "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(5))},
                 }
             };
             animation.Frames.Add(f1);
@@ -52,10 +52,10 @@ namespace ShadowsTester
                 Duration = 1.0f,
                 Orientations = new Dictionary<string, Quaternion>
                 {
-                    { "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.5f)},
-                    { "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, -0.5f)},
-                    { "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.6f)},
-                    { "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
+{ "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(-14))},
+{ "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(5))},
+{ "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(11))},
+{ "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(40))},
                 }
             };
             animation.Frames.Add(f2);
@@ -65,10 +65,10 @@ namespace ShadowsTester
                 Duration = 1.0f,
                 Orientations = new Dictionary<string, Quaternion>
                 {
-                    { "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
-                    { "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
-                    { "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
-                    { "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.6f)},
+{ "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(-15))},
+{ "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(15))},
+{ "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(-15))},
+{ "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(80))},
                 }
             };
             animation.Frames.Add(f3);
@@ -78,17 +78,73 @@ namespace ShadowsTester
                 Duration = 1.0f,
                 Orientations = new Dictionary<string, Quaternion>
                 {
-                    { "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, -0.5f)},
-                    { "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.5f)},
-                    { "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, 0.0f)},
-                    { "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, 0.6f)},
+{ "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(15))},
+{ "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(5))},
+{ "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(-32))},
+{ "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(55))},
                 }
             };
             animation.Frames.Add(f4);
+            ArmatureAnimation.KeyFrame f5 = new ArmatureAnimation.KeyFrame()
+            {
+                Duration = 1.0f,
+                Orientations = new Dictionary<string, Quaternion>
+                {
+{ "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(28))},
+{ "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(5))},
+{ "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(-40))},
+{ "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(40))},
+                }
+            };
+            animation.Frames.Add(f5);
+            ArmatureAnimation.KeyFrame f6 = new ArmatureAnimation.KeyFrame()
+            {
+                Duration = 1.0f,
+                Orientations = new Dictionary<string, Quaternion>
+                {
+{ "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(17))},
+{ "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(17))},
+{ "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(-22))},
+{ "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(12))},
+                }
+            };
+            animation.Frames.Add(f6);
+            ArmatureAnimation.KeyFrame f7 = new ArmatureAnimation.KeyFrame()
+            {
+                Duration = 1.0f,
+                Orientations = new Dictionary<string, Quaternion>
+                {
+{ "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(10))},
+{ "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(70))},
+{ "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(-15))},
+{ "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(15))},
+                }
+            };
+            animation.Frames.Add(f7);
+            ArmatureAnimation.KeyFrame f8 = new ArmatureAnimation.KeyFrame()
+            {
+                Duration = 1.0f,
+                Orientations = new Dictionary<string, Quaternion>
+                {
+{ "LegStartRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(19))},
+{ "LegEndRight", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(62))},
+{ "LegStartLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(2))},
+{ "LegEndLeft", Quaternion.FromAxisAngle(Vector3.UnitX, OpenTK.MathHelper.DegreesToRadians(2))},
+                }
+            };
+            animation.Frames.Add(f8);
+
+            foreach(var ax in animation.Frames)
+            {
+                var oa1 = Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(45));
+                var oa2 = Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(-45));
+                ax.Orientations.Add("ArmLeftStart", oa2);
+                ax.Orientations.Add("ArmRightStart", oa1);
+            }
 
             GLThread.OnUpdate += (o, e) =>
             {
-                animation.Apply(dragon, (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000, 1);
+                animation.Apply(dragon, (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000, 7);
             };
             /*  Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048, -2048), new Vector2(2048, 2048), new Vector2(496, 496), Vector3.UnitY);
               var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));

@@ -25,7 +25,7 @@ namespace ShadowsTester
                 //ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
                // ob.Material = new SolidColorMaterial(new Vector4(1, 1, 1, 0.1f));
                 //(ob.MainMaterial as AbsMaterial).Type = AbsMaterial.MaterialType.WetDrops;
-                (ob.MainMaterial as AbsMaterial).BumpMap = null;
+                //(ob.MainMaterial as AbsMaterial).BumpMap = null;
                 this.Add(ob);
             }
             //var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);

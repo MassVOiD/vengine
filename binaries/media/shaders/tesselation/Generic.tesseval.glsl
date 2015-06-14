@@ -13,12 +13,15 @@ in int instanceId_ES_in[];
 in vec3 Tangent_ES_in[];
 
 uniform int MaterialType;
+
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2
 #define MaterialTypeSky 3
 #define MaterialTypeWetDrops 4
 #define MaterialTypeGrass 5
+#define MaterialTypePlanetSurface 6
+
 uniform int UseBumpMap;
 layout(binding = 16) uniform sampler2D bumpMap;
 
@@ -30,6 +33,8 @@ smooth out vec2 UV;
 smooth out vec3 barycentric;
 out int instanceId;
 
+#include noise3D.glsl
+
 vec2 interpolate2D(vec2 v0, vec2 v1, vec2 v2)
 {
    	return vec2(gl_TessCoord.x) * v0 + vec2(gl_TessCoord.y) * v1 + vec2(gl_TessCoord.z) * v2;
@@ -40,24 +45,8 @@ vec3 interpolate3D(vec3 v0, vec3 v1, vec3 v2)
    	return vec3(gl_TessCoord.x) * v0 + vec3(gl_TessCoord.y )* v1 + vec3(gl_TessCoord.z) * v2;
 }
 
-vec3 mod289(vec3 x) {
-    return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
 
-vec4 mod289(vec4 x) {
-    return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
-
-vec4 permute(vec4 x) {
-    return mod289(((x*34.0)+1.0)*x);
-}
-
-vec4 taylorInvSqrt(vec4 r)
-{
-    return 1.79284291400159 - 0.85373472095314 * r;
-}
-
-float snoise(vec3 v)
+float snoise2d(vec3 v)
 { 
     const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;
     const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);
@@ -133,7 +122,7 @@ float snoise(vec3 v)
 }
 
 float sns(vec2 p, float scale, float tscale){
-    return snoise(vec3(p.x*scale, p.y*scale, Time * tscale * 0.5));
+    return snoise2d(vec3(p.x*scale, p.y*scale, Time * tscale * 0.5));
 }
 float getwater( vec2 position ) {
 
@@ -149,6 +138,16 @@ float getwater( vec2 position ) {
     return color / 7.0;
 
 }
+
+float getPlanetSurface(){
+    vec3 wpos = positionWorldSpace * 0.00111;
+    float factor = snoise(wpos) * 12;
+    factor += snoise(wpos * 0.1) * 20;
+    factor += snoise(wpos * 0.06) * 50;
+    factor += snoise(wpos * 0.01) * 80;
+    return factor * 1;
+}
+
 void main()
 {
    	// Interpolate the attributes of the output vertex using the barycentric coordinates
@@ -165,8 +164,12 @@ void main()
     if(MaterialType == MaterialTypeWater){
         float factor = getwater(UV * 5);
         vec3 lpos = positionWorldSpace;
-        positionWorldSpace += normal * (factor) * 0.1;
+        positionWorldSpace += normal * (factor) * 11.1;
         normal = normalize(normal - (tangent * factor * 0.05));
+    }
+    if(MaterialType == MaterialTypePlanetSurface){
+        float factor = getPlanetSurface();
+        positionWorldSpace -= normal * (factor) * 11.0;
     }
     if(UseBumpMap == 1){
         if(MaterialType == MaterialTypeGrass){
