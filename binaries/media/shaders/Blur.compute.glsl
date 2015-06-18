@@ -1,6 +1,6 @@
 #version 430 core
 
-layout (binding = 0, r8) writeonly uniform image2D colorTexWR;
+layout (binding = 0, rgba16f) writeonly uniform image2D colorTexWR;
 layout (binding = 1, rgba16f) readonly uniform image2D colorTex;
 //layout (binding = 2, rgba8) readonly uniform image2D texColor;
 //layout (binding = 3, r32f) readonly uniform image2D texDepth;
@@ -9,7 +9,24 @@ layout (binding = 3, rgba16f) readonly uniform image2D normalsTex;
 layout (binding = 4, rgba16f) readonly uniform image2D colorTexLast;
 
 layout( local_size_x = 32, local_size_y = 32, local_size_z = 1 ) in;
-
+bool testVisibilityEX(ivec2 uv1, ivec2 uv2) {
+    vec3 w1 = imageLoad(worldPosTex, uv1).rgb; 
+    vec3 w2 = imageLoad(worldPosTex, uv2).rgb;  
+    float d3d1 = length(w1);
+    float d3d2 = length(w2);
+    
+    for(float i=0;i<1.0;i+= 0.1) { 
+        vec2 ruv = mix(uv1, uv2, i);
+        ivec2 iruv = ivec2(int(ruv.x), int(ruv.y));
+        vec3 wd = imageLoad(worldPosTex, iruv).rgb; 
+        float rd3d = length(wd) + 0.01;
+        if(rd3d < mix(d3d1, d3d2, i)) {
+            return false;
+        }
+        //result = min(result, max(0, sign(rd3d - mix(d3d1, d3d2, i))));
+    }
+    return true;
+}
 //uniform float Rand;
 /*
 #define mPI2 (2*3.14159265)
@@ -182,6 +199,56 @@ vec3 Radiosity()
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
     return rs + initialAmbient;
 }
+vec3 FullGI() 
+{    
+    ivec2 iUV = ivec2(
+        gl_GlobalInvocationID.x,
+        gl_GlobalInvocationID.y
+    );
+    ivec2 iUV2 = ivec2(
+        gl_LocalInvocationID.x,
+        gl_LocalInvocationID.y
+    );
+    vec3 posCenter = imageLoad(worldPosTex, iUV).rgb;
+    vec3 normalCenter = normalize(imageLoad(normalsTex, iUV).rgb);
+    vec3 color = vec3(0);
+    const int samples = 15;
+    
+    // choose between noisy and slower, but better looking variant
+    float randomizer = 138.345341 * rand(iuvToUv(iUV)) + Rand;
+    // or faster, non noisy variant, which is also cool looking
+    //const float randomizer = 138.345341;
+    
+    
+    uint counter = 0;
+    ivec2 size = imageSize(worldPosTex);
+    
+    vec3 cameraRelative = CameraPosition - FromCameraSpace(posCenter);
+
+    for(int i=0;i<samples;i++)
+    {
+        float rd = randomizer * float(i);
+        ivec2 displace = ivec2(
+            fract(rd) * size.x, 
+            fract(rd*12.2562) * size.y);
+        if(testVisibilityEX(iUV, displace)){                
+            vec3 posThere = imageLoad(worldPosTex, displace).rgb;
+            vec3 normalThere = normalize(imageLoad(normalsTex, displace).rgb);
+            float att = 1.0 / pow(((distance(posThere, posCenter)) + 1.0), 2.0) * 130;
+            float diffuseComponent = max(0, dot(normalThere,  normalCenter));
+
+            
+            vec3 lightRelative = posThere - posCenter;
+            vec3 R = reflect(lightRelative, normalCenter);
+            float cosAlpha = -dot(normalize(cameraRelative), normalize(R));
+            float specularComponent = clamp(pow(cosAlpha, 50.0), 0.0, 1.0);
+            vec3 colorThere = imageLoad(colorTex, displace).rgb;
+            
+            color += colorThere * att * diffuseComponent + colorThere * specularComponent;
+        }
+    }
+    return color / samples;
+}
 
 void main(){
 
@@ -192,6 +259,6 @@ void main(){
         gl_GlobalInvocationID.y
     );
     vec4 last = imageLoad(colorTexLast, iUV);
-    c = (c + last*1) / 2;
+    c = (c + last*2) / 3;
     imageStore(colorTexWR, iUV, c);
 }

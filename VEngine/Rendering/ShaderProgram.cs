@@ -349,8 +349,8 @@ namespace VEngine
                 Console.WriteLine(ostr);
             int status_code;
             GL.GetShader(shader, ShaderParameter.CompileStatus, out status_code);
-            if(status_code != 1)
-                throw new ApplicationException("Compilation error");
+            //if(status_code != 1)
+            //    throw new ApplicationException("Compilation error");
             return shader;
         }
     }

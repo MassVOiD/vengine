@@ -97,9 +97,9 @@ namespace VEngine
             LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 
             GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth, initialHeight);
-            GlobalIlluminationFrameBuffer.ColorInternalFormat = PixelInternalFormat.R8;
-            GlobalIlluminationFrameBuffer.ColorPixelFormat = PixelFormat.Red;
-            GlobalIlluminationFrameBuffer.ColorPixelType = PixelType.UnsignedByte;
+            //GlobalIlluminationFrameBuffer.ColorInternalFormat = PixelInternalFormat.R8;
+            //GlobalIlluminationFrameBuffer.ColorPixelFormat = PixelFormat.Red;
+            //GlobalIlluminationFrameBuffer.ColorPixelType = PixelType.UnsignedByte;
             GlobalIlluminationFrameBuffer.Use();  
             //BackDiffuseFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight  / 2);
             //BackNormalsFrameBuffer = new Framebuffer(initialWidth / 2, initialHeight / 2); 

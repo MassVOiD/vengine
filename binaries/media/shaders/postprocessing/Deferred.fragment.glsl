@@ -259,7 +259,7 @@ void main()
         color1 = colorOriginal;
         IgnoreLightingFragment = true;
     } else {
-        //color1 = colorOriginal;
+        color1 = colorOriginal * 0.01;
     }
     
     //vec3 color1 = colorOriginal * 0.2;
@@ -343,15 +343,17 @@ void main()
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.99, 0.0
-                );
+                    0.5, 0.0
+                ) * 0;
 
+                /*
                 float diffuseComponent = orenNayarDiffuse(
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
                     0.8, 0.9
-                );
+                );*/
+                float diffuseComponent = max(0, dot(normalize(lightRelativeToVPos),  normal.xyz));
                 //float diffuseComponent = 0;
                 
                 float culler = LightsMixModes[i] == LIGHT_MIX_MODE_ADDITIVE ? clamp((1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0), 0.0, 1.0) : 1.0;
