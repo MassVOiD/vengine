@@ -252,12 +252,12 @@ vec3 FullGI()
 
 void main(){
 
-    vec4 c = vec4(Radiosity() * HBAOContribution, 1);
-    //barrier();
     ivec2 iUV = ivec2(
         gl_GlobalInvocationID.x,
         gl_GlobalInvocationID.y
     );
+    vec4 c = vec4(FullGI() * 6 * HBAOContribution, Radiosity() * HBAOContribution);
+    //barrier();
     vec4 last = imageLoad(colorTexLast, iUV);
     c = (c + last*2) / 3;
     imageStore(colorTexWR, iUV, c);

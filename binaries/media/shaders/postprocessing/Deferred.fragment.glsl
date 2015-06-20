@@ -344,16 +344,16 @@ void main()
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
                     0.5, 0.0
-                ) * 0;
+                );
 
-                /*
+                
                 float diffuseComponent = orenNayarDiffuse(
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
                     0.8, 0.9
-                );*/
-                float diffuseComponent = max(0, dot(normalize(lightRelativeToVPos),  normal.xyz));
+                );
+                //float diffuseComponent = max(0, dot(normalize(lightRelativeToVPos),  normal.xyz));
                 //float diffuseComponent = 0;
                 
                 float culler = LightsMixModes[i] == LIGHT_MIX_MODE_ADDITIVE ? clamp((1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0), 0.0, 1.0) : 1.0;
@@ -363,7 +363,8 @@ void main()
                 * att * culler * max(0, percent)) * LightsColors[i].a * 0.01;
                 if(percent < 0){
                     //is in shadow! lets try subsufrace scattering
-                    /*float amount = 0.02 + percent * 0.01;
+                    /*float amount = (-percent) * 0.3;
+                    // todo - less lighting for more distance
                     float dotdiffuse2 = dot(normalize(lightRelativeToVPos), normalize (-normal.xyz));
                     float diffuseComponent2 = clamp(dotdiffuse2, 0.0, 1.0);                        
                     color1 += colorOriginal * culler * 10 * dotdiffuse2 * LightsColors[i].rgb *  att*  max(0, amount);*/

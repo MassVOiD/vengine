@@ -510,7 +510,7 @@ void main()
 	if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
 	//if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
 	//if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
-	if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb;
+	if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
 	centerDepth = texture(depth, UV).r;
 	
 	gl_FragDepth = centerDepth;

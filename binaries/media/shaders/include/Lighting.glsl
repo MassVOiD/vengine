@@ -45,22 +45,22 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	float distanceCenter = distance2;
 	float AInv = 1.0 / ((ainvd) + 1.0);
 	float average = 0.0;
-	int counter = 0;
+	float counter = 0;
     float abcd = lookupDepthFromLight(i, uv);
     float minval = 999;
     float maxval = 0;
-    for(float x = 0; x < mPI2; x+=0.5){ 
-        for(float y=0.1;y<1.0;y+= 0.2){  
+    for(float x = 0; x < mPI2; x+=1.2){ 
+        for(float y=0.01;y<1.0;y+= 0.3){  
 			vec2 crd = vec2(sin(x + y), cos(x + y)) * (y * AInv * 0.2);
 			vec2 fakeUV = uv + crd;
 			float bval = (lookupDepthFromLight(i, fakeUV));
             if(bval < distance2) average += bval;
-            counter++;
+            counter+=1;
 		}
 	}
     if(counter == 0) return 0.0;
     float bbb = average/counter;
-	return clamp((distance2 - bbb) * 21, 0, 11);
+	return clamp((distance2 - bbb) * 21, 0, 11) * 10;
 }
 
 
@@ -75,7 +75,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 	vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
 	if(lightClipSpace.z <= 0.0) return 0;
-	float badass_depth = (lightClipSpace.z / lightClipSpace.w) * 0.5 + 0.5;	
+	float badass_depth = toLogDepth(distance2);	
 	
 	
 	float AInv = 1.0 / ((distance2) + 1.0);
@@ -108,7 +108,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
                 fakeUV = uv + crd;
                 distance1 = lookupDepthFromLight(i, fakeUV);
                 float diff = (distance3 -  distance1);
-                if(diff > 0.0003) accum += 1.0;
+                if(diff > 0.00003) accum += 1.0;
                 counter++;
             }
         }

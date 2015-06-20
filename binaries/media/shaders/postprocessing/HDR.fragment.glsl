@@ -8,6 +8,10 @@ layout(binding = 0) uniform sampler2D textureIn;
 layout(binding = 3) uniform sampler2D texDepth;
 layout(binding = 4) uniform sampler2D bloom;
 layout(binding = 5) uniform sampler2D worldPosTex;
+layout(binding = 9) uniform sampler2D numbersTex;
+
+uniform int Numbers[12];
+uniform int NumbersCount;
 
 
 uniform float Brightness;
@@ -190,6 +194,21 @@ void main()
 		blur = clamp(blur * 50,0.0,4.0) * 10;
 		color1.xyz = lensblur(blur, fDepth, 0.03, 7.0);
 	}
+    float letterpixels = 10;
+    float maxx = NumbersCount * (0.5 / letterpixels);
+    if(UV.x < maxx && UV.y < 0.05){
+        vec2 nuv = vec2(UV.x / maxx, UV.y / 0.05);
+        float letterx = 1.0 / letterpixels;
+        vec2 nuv2 = vec2(mod(UV.x / maxx, letterx), 1.0 - UV.y / 0.05);
+        for(int i=0;i<NumbersCount;i++){
+            vec2 numbUVOffset = vec2(i*letterx, 0);
+            if(nuv.x > numbUVOffset.x && nuv.x < numbUVOffset.x + letterx){
+                vec2 numbUV = vec2(Numbers[i]*letterx, 0) + nuv2;
+                float data = texture(numbersTex, numbUV).a;
+                color1 += data;
+            }
+        }
+    }
 				
 	if(UseBloom == 1) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb * BloomContribution;  
     outColor = clamp(color1, 0.0, 1.0);

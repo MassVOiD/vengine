@@ -51,7 +51,9 @@ namespace VEngine
 
         private Mesh3d PostProcessingMesh;
 
-        private Texture TestTexture1, TestTexture2;
+        private Texture NumbersTexture;
+
+        private Stopwatch stopwatch = new Stopwatch();
 
         private static uint[] postProcessingPlaneIndices = {
                 0, 1, 2, 3, 2, 1
@@ -69,8 +71,7 @@ namespace VEngine
         public PostProcessing(int initialWidth, int initialHeight)
         {
             TestBuffer = new ShaderStorageBuffer();
-            TestTexture1 = new Texture(Media.Get("tt1.jpg"));
-            TestTexture2 = new Texture(Media.Get("tt2.jpg"));
+            NumbersTexture = new Texture(Media.Get("numbers.png"));
             CShader = new ComputeShader("Blur.compute.glsl");
             GLThread.Invoke(() =>
             {
@@ -231,10 +232,15 @@ namespace VEngine
             PostProcessingMesh.Draw();
             ShaderProgram.Lock = false;
         }
-        private void HDR()
+        private void HDR(long time)
         {
+            string lastTimeSTR = time.ToString();
+            Console.WriteLine(time);
+            int[] nums = lastTimeSTR.ToCharArray().Select<char, int>((a) => a - 48).ToArray();
             HDRShader.Use();
             CombinerShader.SetUniform("UseBloom", GLThread.GraphicsSettings.UseBloom);
+            CombinerShader.SetUniform("NumbersCount", nums.Length);
+            CombinerShader.SetUniformArray("Numbers", nums);
             if(Camera.MainDisplayCamera != null)
             {
                 LensBlurShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
@@ -291,7 +297,7 @@ namespace VEngine
                 return SwitchToFB1();
         }
 
-
+        long lastTime = 0;
 
         public void ExecutePostProcessing()
         {
@@ -309,6 +315,10 @@ namespace VEngine
              */
 
             //WriteBackDepth();
+            stopwatch.Stop();
+            lastTime = (lastTime * 20 + stopwatch.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L))) / 21;
+            stopwatch.Reset();
+            stopwatch.Start();
 
             LastWorldPositionFramebuffer.Use();
             MRT.UseTextureWorldPosition(0);
@@ -445,9 +455,9 @@ namespace VEngine
             MRT.UseTextureDepth(2);
             BloomFrameBuffer.UseTexture(4);
             MRT.UseTextureWorldPosition(5);
-            TestTexture1.Use(TextureUnit.Texture9);
-            TestTexture2.Use(TextureUnit.Texture10);
-            HDR();
+            NumbersTexture.Use(TextureUnit.Texture9);
+
+            HDR(lastTime == 0 ? 0 : 1000000 / lastTime);
             if(World.Root != null && World.Root.UI != null)
                 World.Root.UI.DrawAll();
             Mesh3d.PostProcessingUniformsOnly = false;
