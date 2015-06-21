@@ -55,7 +55,7 @@ namespace ShadowsTester
 
 
             //new PlanetScene().Create();
-            new SculptScene().Create();
+            //new SculptScene().Create();
             //new SponzaScene().Create();
             //new OldCityScene().Create();
             //new NatureScene().Create();
@@ -63,8 +63,9 @@ namespace ShadowsTester
             //new DragonScene().Create();
             //new ManyCubesScene().Create();
             //new ComputeBallsScene().Create();
+            //new CarScene().Create();
 
-            //new FortressScene().Create();
+            new FortressScene().Create();
 
             //new HallScene().Create();
             //new RoadScene().Create();

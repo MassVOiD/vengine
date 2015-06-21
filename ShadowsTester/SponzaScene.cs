@@ -31,7 +31,7 @@ namespace ShadowsTester
             Add(dragon);
 
             // (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000
-
+            /*
             ArmatureAnimation animation = new ArmatureAnimation();
 
             ArmatureAnimation.KeyFrame f1 = new ArmatureAnimation.KeyFrame()
@@ -145,7 +145,7 @@ namespace ShadowsTester
             GLThread.OnUpdate += (o, e) =>
             {
                 animation.Apply(dragon, (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000, 7);
-            };
+            };*/
             /*  Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048, -2048), new Vector2(2048, 2048), new Vector2(496, 496), Vector3.UnitY);
               var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
               waterMat.SetNormalMapFromMedia("waternormal.png");

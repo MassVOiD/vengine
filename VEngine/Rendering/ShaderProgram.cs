@@ -113,6 +113,8 @@ namespace VEngine
 
         public void SetUniform(string name, int data)
         {
+            if(name == "Instances")
+                Console.WriteLine(data);
             int location = GetUniformLocation(name);
             if(location >= 0)
                 GL.Uniform1(location, data);

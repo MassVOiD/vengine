@@ -196,7 +196,7 @@ void finishFragment(vec4 color){
 
     }
 	outWorldPos = vec4(ToCameraSpace(wpos), 1);
-	if(IgnoreLighting == 0){
+	//if(IgnoreLighting == 0){
 		if(UseNormalMap == 1){
 			normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);
     
@@ -226,9 +226,9 @@ void finishFragment(vec4 color){
 		} else {
 			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, 1);
 		}
-	} else {
-		outNormals = vec4(0, 0, 0, 1);
-	}	
+	//} else {
+	//	outNormals = vec4(0, 0, 0, 1);
+	//}	
 	// mesh data is packed as follows:
 	/*
 	outColor.a - invalid to read

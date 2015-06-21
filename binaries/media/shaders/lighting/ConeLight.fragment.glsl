@@ -4,6 +4,8 @@ smooth in vec3 vertexWorldSpace;
 uniform vec3 LightPosition;
 #include LogDepth.glsl
 
+//uniform int Instances;
+
 layout(binding = 2) uniform sampler2D AlphaMask;
 uniform int UseAlphaMask;
 layout(binding = 31) uniform sampler2D bumpMap;
@@ -33,6 +35,5 @@ void main()
     }    
 	float depth = distance(wpos, LightPosition);
 	gl_FragDepth = toLogDepth(depth);
-		
     //outColor = 0;
 }

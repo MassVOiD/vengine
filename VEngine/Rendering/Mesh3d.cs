@@ -257,8 +257,9 @@ namespace VEngine
             shader.SetUniform("RandomSeed9", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
- 
+
             shader.SetUniform("Instances", 1);
+            shader.SetUniform("Instanced", 0);
             shader.SetUniform("LogEnchacer", 0.01f);
 
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());

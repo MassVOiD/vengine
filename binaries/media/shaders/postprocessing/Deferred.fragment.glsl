@@ -403,8 +403,8 @@ void main()
         
     }
     color1 += lightPoints();
-   // if(UV.x < 0.4 && UV.y < 0.4){
-   //     color1 = texture(lightDepth0, UV*2.5).rrr*10;
-    //}
+    if(UV.x < 0.4 && UV.y < 0.4){
+        color1 = texture(lightDepth0, UV*2.5).rrr*10;
+    }
     outColor = vec4(color1, 1);
 }

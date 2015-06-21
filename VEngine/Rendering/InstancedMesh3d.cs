@@ -143,6 +143,8 @@ namespace VEngine
             ShaderProgram shader = material.GetShaderProgram();
             bool shaderSwitchResult = Material.Use();
 
+            shader = ShaderProgram.Current;
+
             ModelMatricesBuffer.Use(0);
             RotationMatricesBuffer.Use(1);
 
@@ -170,7 +172,8 @@ namespace VEngine
 
             //LastMaterialHash = Material.GetShaderProgram().GetHashCode();
             // per world
-            shader.SetUniform("Instances", Instances);
+            shader.SetUniform("Instances", Transformations.Count);
+            shader.SetUniform("Instanced", 1);
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
             shader.SetUniform("LogEnchacer", 0.01f);

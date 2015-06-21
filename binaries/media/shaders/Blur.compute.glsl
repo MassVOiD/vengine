@@ -9,24 +9,7 @@ layout (binding = 3, rgba16f) readonly uniform image2D normalsTex;
 layout (binding = 4, rgba16f) readonly uniform image2D colorTexLast;
 
 layout( local_size_x = 32, local_size_y = 32, local_size_z = 1 ) in;
-bool testVisibilityEX(ivec2 uv1, ivec2 uv2) {
-    vec3 w1 = imageLoad(worldPosTex, uv1).rgb; 
-    vec3 w2 = imageLoad(worldPosTex, uv2).rgb;  
-    float d3d1 = length(w1);
-    float d3d2 = length(w2);
-    
-    for(float i=0;i<1.0;i+= 0.1) { 
-        vec2 ruv = mix(uv1, uv2, i);
-        ivec2 iruv = ivec2(int(ruv.x), int(ruv.y));
-        vec3 wd = imageLoad(worldPosTex, iruv).rgb; 
-        float rd3d = length(wd) + 0.01;
-        if(rd3d < mix(d3d1, d3d2, i)) {
-            return false;
-        }
-        //result = min(result, max(0, sign(rd3d - mix(d3d1, d3d2, i))));
-    }
-    return true;
-}
+
 //uniform float Rand;
 /*
 #define mPI2 (2*3.14159265)
@@ -125,19 +108,41 @@ vec2 iuvToUv(ivec2 uv){
 
 
 const float[9] binarysearch = float[9](0.5, 0.25, 0.75, 0.125, 0.875, 0.375, 0.625, 0.01, 0.98);
+const float[3] binarysearchSmart = float[3](0.5, 0.25, 0.75);
 
+ivec2 project(vec3 pos){
+	vec4 clipspace = (PV) * vec4((FromCameraSpace(pos)), 1.0);
+	return uvToIUv((clipspace.xyz / clipspace.w).xy * 0.5 + 0.5);
+}
+
+bool testVisibilityEX(ivec2 uv1, ivec2 uv2, vec3 w1, vec3 w2) {
+    float d3d1 = length(w1);
+    float d3d2 = length(w2);
+    
+    for(int i=0; i<3; i++) { 
+        vec3 ruv = mix(w1, w2, binarysearchSmart[i]);
+        ivec2 iruv = project(ruv);
+        vec3 wd = imageLoad(worldPosTex, iruv).rgb; 
+        float rd3d = length(wd) + 0.001;
+        if(rd3d < mix(d3d1, d3d2, binarysearchSmart[i]) && mix(d3d1, d3d2, binarysearchSmart[i]) - rd3d < 1.001) {
+            return false;
+        }
+        //result = min(result, max(0, sign(rd3d - mix(d3d1, d3d2, i))));
+    }
+    return true;
+}
 bool testVisibility3d(ivec2 cuv, vec3 w1, vec3 w2) {
     //vec3 direction = normalize(w2 - w1);
     
     float d3d1 = length(w1);
     float d3d2 = length(w2);
     ivec2 sdir = uvToIUv(projdir(FromCameraSpace(w1), FromCameraSpace(w2)));
-    for(int i=0; i<9; i++) { 
-        vec2 ruv = mix(cuv, cuv + sdir, binarysearch[i]);
+    for(int i=0; i<3; i++) { 
+        vec2 ruv = mix(cuv, cuv + sdir, binarysearchSmart[i]);
         ivec2 iruv = ivec2(ruv); 
         vec3 wd = imageLoad(worldPosTex, iruv).rgb; 
         float rd3d = length(wd) + 0.001;
-        if(rd3d < mix(d3d1, d3d2, i) && mix(d3d1, d3d2, i) - rd3d < 1.001) {
+        if(rd3d < mix(d3d1, d3d2, binarysearchSmart[i]) && mix(d3d1, d3d2, binarysearchSmart[i]) - rd3d < 1.001) {
             return false;
         }
     }
@@ -161,8 +166,8 @@ vec3 Radiosity()
     vec3 posCenter = imageLoad(worldPosTex, iUV).rgb;
     vec3 normalCenter = normalize(imageLoad(normalsTex, iUV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 15;
-    const int octaves = 4;
+    const int samples = 20;
+    const int octaves = 2;
     
     // choose between noisy and slower, but better looking variant
     float randomizer = 138.345341 * rand(iuvToUv(iUV)) + Rand;
@@ -182,7 +187,7 @@ vec3 Radiosity()
             fract(rd) * 2 - 1, 
             fract(rd*12.2562), 
             fract(rd*7.121214) * 2 - 1
-        ));// * clamp(length(posCenter), 0.1, 2.0) * 0.4);
+        )) * clamp(length(posCenter), 0.1, 2.0) * 0.8;
         float dotdiffuse = max(0, dot(normalize(displace),  (normalCenter)));
         if(dotdiffuse == 0) { counter+=octaves;continue; }
         for(int div = 0;div < octaves; div++)
@@ -191,8 +196,8 @@ vec3 Radiosity()
             {
                 ambient += ambientColor * dotdiffuse * weight;
             } else { counter += octaves - div; break; }
-            displace = displace * 1.4;
-            weight = weight * 0.8;
+            displace = displace * 2.94;
+            weight = weight * 0.99;
             counter++;
         }
     }
@@ -212,12 +217,12 @@ vec3 FullGI()
     vec3 posCenter = imageLoad(worldPosTex, iUV).rgb;
     vec3 normalCenter = normalize(imageLoad(normalsTex, iUV).rgb);
     vec3 color = vec3(0);
-    const int samples = 15;
+    const int samples = 160;
     
     // choose between noisy and slower, but better looking variant
-    float randomizer = 138.345341 * rand(iuvToUv(iUV)) + Rand;
+    //float randomizer = 138.345341 * rand(iuvToUv(iUV2)) + Rand;
     // or faster, non noisy variant, which is also cool looking
-    //const float randomizer = 138.345341;
+    const float randomizer = 138.345341 + Rand;
     
     
     uint counter = 0;
@@ -227,24 +232,25 @@ vec3 FullGI()
 
     for(int i=0;i<samples;i++)
     {
-        float rd = randomizer * float(i);
+        float rd = randomizer * float(i) * 125.1234897;
         ivec2 displace = ivec2(
             fract(rd) * size.x, 
             fract(rd*12.2562) * size.y);
-        if(testVisibilityEX(iUV, displace)){                
-            vec3 posThere = imageLoad(worldPosTex, displace).rgb;
-            vec3 normalThere = normalize(imageLoad(normalsTex, displace).rgb);
-            float att = 1.0 / pow(((distance(posThere, posCenter)) + 1.0), 2.0) * 130;
-            float diffuseComponent = max(0, dot(normalThere,  normalCenter));
+        vec3 posThere = imageLoad(worldPosTex, displace).rgb;
+        vec3 normalThere = normalize(imageLoad(normalsTex, displace).rgb);
+        float att = 1.0 / pow(((distance(posThere, posCenter)) + 1.0), 4.0) * 430;
+        float diffuseComponent =  smoothstep(0, 0.1, max(0, -dot(normalThere,  normalCenter)));
+       /* vec3 lightRelative = posThere - posCenter;
+        vec3 R = reflect(lightRelative, normalCenter);
+        float cosAlpha = -dot(normalize(cameraRelative), normalize(R));
+        float specularComponent = clamp(pow(cosAlpha, 50.0), 0.0, 1.0);*/
+        vec3 colorThere = imageLoad(colorTex, displace).rgb * 70;
+        if(testVisibilityEX(iUV, displace, posCenter, posThere)){                
 
             
-            vec3 lightRelative = posThere - posCenter;
-            vec3 R = reflect(lightRelative, normalCenter);
-            float cosAlpha = -dot(normalize(cameraRelative), normalize(R));
-            float specularComponent = clamp(pow(cosAlpha, 50.0), 0.0, 1.0);
-            vec3 colorThere = imageLoad(colorTex, displace).rgb;
             
-            color += colorThere * att * diffuseComponent + colorThere * specularComponent;
+            //color += colorThere * att * diffuseComponent + colorThere * specularComponent;
+            color += colorThere * att * diffuseComponent;
         }
     }
     return color / samples;
@@ -256,9 +262,9 @@ void main(){
         gl_GlobalInvocationID.x,
         gl_GlobalInvocationID.y
     );
-    vec4 c = vec4(FullGI() * 6 * HBAOContribution, Radiosity() * HBAOContribution);
+    vec4 c = vec4(0,0,0, Radiosity() * HBAOContribution);
     //barrier();
     vec4 last = imageLoad(colorTexLast, iUV);
-    c = (c + last*2) / 3;
+    c = (c + last*1) / 2;
     imageStore(colorTexWR, iUV, c);
 }

@@ -22,10 +22,10 @@ namespace ShadowsTester
 
 
             var color = GenericMaterial.FromMedia("checked.png");
-            color.SetBumpMapFromMedia("lightref.png");
+            //color.SetBumpMapFromMedia("lightref.png");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
-            water.Translate(0, -10, 0);
+            water.Translate(0, 0, 0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
             Add(water);
 
@@ -71,7 +71,7 @@ namespace ShadowsTester
             var car = new Mesh3d(car3dInfo, new GenericMaterial(Color.LightGreen));
             car.SetMass(800);
             //car.Translate(0, 3.76f, 0);
-            car.SetCollisionShape(new BoxShape(car3dInfo.GetAxisAlignedBox()));
+            car.SetCollisionShape(new BoxShape(car3dInfo.GetAxisAlignedBox() / 4));
             car.CreateRigidBody(new Vector3(0, -25, 0), true);
             car.PhysicalBody.SetSleepingThresholds(0, 0);
             car.PhysicalBody.ContactProcessingThreshold = 0;

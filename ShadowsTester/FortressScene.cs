@@ -18,20 +18,51 @@ namespace ShadowsTester
 
         public FortressScene()
         {
+           /* var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 300, 100, 70, 40, 10, 1);
+            GLThread.OnUpdate += (o, e) =>
+            {
+                var kb = OpenTK.Input.Keyboard.GetState();
+                if(kb.IsKeyDown(OpenTK.Input.Key.U))
+                {
+                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.J))
+                {
+                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.H))
+                {
+                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.K))
+                {
+                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
+                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                }
+            };*/
+            
             List<Mesh3d> nodes1 = new List<Mesh3d>();
             List<Mesh3d> leaves1 = new List<Mesh3d>();
-            for(int x = 0; x < 10; x++)
+            Random rand = new Random();
+            for(int x = 0; x < 7; x++)
             {
-                for(int z = 0; z < 10; z++)
+                for(int z = 0; z < 7; z++)
                 {
                     var tree = TreeGenerator.CreateTree(MathHelper.DegreesToRadians(30), MathHelper.DegreesToRadians(45), 4, 4, 6666, 0.3f, true);
-
+                    var scale = (float)rand.NextDouble() * 2 + 1;
+                    var tx = (float)rand.NextDouble() * 2 + 4;
+                    var ty = (float)rand.NextDouble() * 2 + 4;
                     var mergedNodes = tree[0].Merge();
-                    mergedNodes.Translate(x * 5, 0, z * 5);
+                    mergedNodes.Translate(x * 5 + tx, 0, z * 5 + ty);
+                    mergedNodes.Scale(scale);
                     nodes1.Add(mergedNodes);
 
                     var mergedLeaves = tree[1].Merge();
-                    mergedLeaves.Translate(x * 5, 0, z * 5);
+                    mergedLeaves.Translate(x * 5 + tx, 0, z * 5 + ty);
+                    mergedLeaves.Scale(scale);
                     leaves1.Add(mergedLeaves);
 
                     //tree[0].ObjectInfo.FreeCPUMemory();
@@ -51,8 +82,8 @@ namespace ShadowsTester
             {
                 for(int z = 0; z < 5; z++)
                 {
-                    nodes.Transformations.Add(new TransformationManager(new Vector3(x * 100, 0, z * 100)));
-                    leaves.Transformations.Add(new TransformationManager(new Vector3(x * 100, 0, z * 100)));
+                    nodes.Transformations.Add(new TransformationManager(new Vector3(x * 50, 0, z * 50)));
+                    leaves.Transformations.Add(new TransformationManager(new Vector3(x * 50, 0, z * 50)));
                 }
             }
             nodes.UpdateMatrix();
@@ -65,6 +96,16 @@ namespace ShadowsTester
                 GLThread.Invoke(() => read());
                 
             }, 2000).Start();*/
+            /*Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
+
+
+            var color = GenericMaterial.FromMedia("checked.png");
+            //color.SetBumpMapFromMedia("lightref.png");
+            Mesh3d water = new Mesh3d(waterInfo, color);
+            water.SetMass(0);
+            water.Translate(0, 0, 0);
+            water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
+            Add(water);*/
         }
         /*
         unsafe void read()
@@ -90,6 +131,5 @@ namespace ShadowsTester
             }
             
         }*/
-
     }
 }
