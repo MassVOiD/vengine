@@ -46,7 +46,7 @@ namespace VEngine.Rendering
                 }
                 else
                 {
-                    accumulator += Frames[i].Duration;
+                    accumulator += Frames[i >= Frames.Count ? Frames.Count - 1 : i].Duration;
                 }
             }
             return null;

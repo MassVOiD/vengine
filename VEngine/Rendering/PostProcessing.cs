@@ -93,7 +93,7 @@ namespace VEngine
 
             LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
             BloomFrameBuffer = new Framebuffer(initialWidth / 4, initialHeight / 4);
-            FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            FogFramebuffer = new Framebuffer(initialWidth, initialHeight);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
             LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 

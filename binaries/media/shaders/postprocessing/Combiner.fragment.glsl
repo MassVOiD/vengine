@@ -32,7 +32,7 @@ vec3 lookupFog(vec2 fuv){
 	{ 
 		for(float g2 = 0; g2 < 6.0; g2+=1.0)
 		{ 
-			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.004);
+			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001);
 			vec3 color = texture(fog, fuv + gauss).rgb;
 			outc += color;
 			counter++;

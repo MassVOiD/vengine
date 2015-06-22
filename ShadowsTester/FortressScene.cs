@@ -78,9 +78,9 @@ namespace ShadowsTester
 
             InstancedMesh3d nodes = new InstancedMesh3d(singleNodes.MainObjectInfo, singleNodes.MainMaterial);
             InstancedMesh3d leaves = new InstancedMesh3d(singleLeaves.MainObjectInfo, singleLeaves.MainMaterial);
-            for(int x = 0; x < 5; x++)
+            for(int x = 0; x < 1; x++)
             {
-                for(int z = 0; z < 5; z++)
+                for(int z = 0; z < 1; z++)
                 {
                     nodes.Transformations.Add(new TransformationManager(new Vector3(x * 50, 0, z * 50)));
                     leaves.Transformations.Add(new TransformationManager(new Vector3(x * 50, 0, z * 50)));
@@ -96,7 +96,7 @@ namespace ShadowsTester
                 GLThread.Invoke(() => read());
                 
             }, 2000).Start();*/
-            /*Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
 
 
             var color = GenericMaterial.FromMedia("checked.png");
@@ -105,7 +105,7 @@ namespace ShadowsTester
             water.SetMass(0);
             water.Translate(0, 0, 0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
-            Add(water);*/
+            Add(water);
         }
         /*
         unsafe void read()
