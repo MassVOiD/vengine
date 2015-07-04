@@ -8,18 +8,18 @@ out vec3 ModelPos_CS_in;
 out vec3 WorldPos_CS_in;
 out vec2 TexCoord_CS_in;
 out vec3 Normal_CS_in;
-out vec3 Barycentric_CS_in;
+//out vec3 Barycentric_CS_in;
 out vec3 Tangent_CS_in;
 
 void main(){
 
     vec4 v = vec4(in_position,1);
     //vec4 n = vec4(in_normal,0);
-	Barycentric_CS_in = vec3(0, 0, 1);
+	//Barycentric_CS_in = vec3(0, 0, 1);
     
 
     
-	if(Instances > 1){
+	if(Instances > 0){
 		WorldPos_CS_in = (ModelMatrixes[gl_InstanceID] * v).xyz;
 
 	} else {

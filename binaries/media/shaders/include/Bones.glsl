@@ -10,7 +10,7 @@ int determineBone(vec3 modelpos){
 	int index = 0;
 	float maxdist = 99999;
 	for(int i=0;i<BonesCount;i++){
-		float dist = distance(modelpos, BonesTails[i]) + distance(modelpos, BonesHeads[i]);
+		float dist = distance(mix(BonesHeads[i], BonesTails[i], 0.5), modelpos);
 		if(dist < maxdist){
 			index = i;
 			maxdist = dist;
@@ -33,6 +33,7 @@ vec3 applyBoneRotationChain(vec3 pos, int boneIndex){
 			break;
 		}
 	}
+   // pos = (BonesRotationMatrices[0] * vec4(pos, 1)).xyz;
 	return pos;
 }
 vec3 applyBoneRotationChainNormal(vec3 nrm, int boneIndex){

@@ -276,6 +276,8 @@ namespace VEngine
         private void Combine()
         {
             CombinerShader.Use();
+            LightPool.MapSimpleLightsToShader(CombinerShader);
+            SetLightingUniforms(CombinerShader);
             CombinerShader.SetUniform("UseSimpleGI", GLThread.GraphicsSettings.UseSimpleGI);
             CombinerShader.SetUniform("UseFog", GLThread.GraphicsSettings.UseFog);
             CombinerShader.SetUniform("UseLightPoints", GLThread.GraphicsSettings.UseLightPoints);

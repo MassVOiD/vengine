@@ -17,7 +17,7 @@ namespace ShadowsTester
             var sphere = Object3dInfo.LoadFromObjSingle(Media.Get("planet.obj"));
             var planet = new Mesh3d(sphere, new GenericMaterial(Color.Red));
             planet.Scale(30000);
-            (planet.MainMaterial as GenericMaterial).Type = AbsMaterial.MaterialType.PlanetSurface;
+            (planet.MainMaterial as GenericMaterial).Type = GenericMaterial.MaterialType.PlanetSurface;
             (planet.MainMaterial as GenericMaterial).TesselationMultiplier = 0.007f;
             planet.Translate(0, -30500, 0);
             

@@ -19,7 +19,7 @@ namespace ShadowsTester
             var mat = GenericMaterial.FromMedia("lambertian.jpg");
             //mat.SetBumpMapFromMedia("bumplow.png");
             var head = new Mesh3d(obj, mat);
-            head.SpecularComponent = 0f;
+            mat.SpecularComponent = 0f;
             head.Transformation.Translate(new Vector3(30, 0, 0));
             Add(head);
         }

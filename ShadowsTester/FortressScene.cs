@@ -18,6 +18,14 @@ namespace ShadowsTester
 
         public FortressScene()
         {
+            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
+            var skydomeMaterial = GenericMaterial.FromMedia("skyreal.png");
+            var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
+            skydome.Scale(55000);
+            skydome.Translate(0, -100, 0);
+            //skydome.IgnoreLighting = true;
+            //skydome.DiffuseComponent = 0.2f;
+            Add(skydome);
            /* var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 300, 100, 70, 40, 10, 1);
             GLThread.OnUpdate += (o, e) =>
             {
@@ -47,9 +55,9 @@ namespace ShadowsTester
             List<Mesh3d> nodes1 = new List<Mesh3d>();
             List<Mesh3d> leaves1 = new List<Mesh3d>();
             Random rand = new Random();
-            for(int x = 0; x < 7; x++)
+            for(int x = 0; x < 3; x++)
             {
-                for(int z = 0; z < 7; z++)
+                for(int z = 0; z < 3; z++)
                 {
                     var tree = TreeGenerator.CreateTree(MathHelper.DegreesToRadians(30), MathHelper.DegreesToRadians(45), 4, 4, 6666, 0.3f, true);
                     var scale = (float)rand.NextDouble() * 2 + 1;

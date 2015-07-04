@@ -153,7 +153,7 @@ float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-vec3 Radiosity() 
+float Radiosity() 
 {    
     ivec2 iUV = ivec2(
         gl_GlobalInvocationID.x,
@@ -167,7 +167,7 @@ vec3 Radiosity()
     vec3 normalCenter = normalize(imageLoad(normalsTex, iUV).rgb);
     vec3 ambient = vec3(0);
     const int samples = 20;
-    const int octaves = 2;
+    const int octaves = 4;
     
     // choose between noisy and slower, but better looking variant
     float randomizer = 138.345341 * rand(iuvToUv(iUV)) + Rand;
@@ -187,7 +187,7 @@ vec3 Radiosity()
             fract(rd) * 2 - 1, 
             fract(rd*12.2562), 
             fract(rd*7.121214) * 2 - 1
-        )) * clamp(length(posCenter), 0.1, 2.0) * 0.8;
+        )) * clamp(length(posCenter), 0.1, 2.0) * 0.1;
         float dotdiffuse = max(0, dot(normalize(displace),  (normalCenter)));
         if(dotdiffuse == 0) { counter+=octaves;continue; }
         for(int div = 0;div < octaves; div++)
@@ -197,12 +197,12 @@ vec3 Radiosity()
                 ambient += ambientColor * dotdiffuse * weight;
             } else { counter += octaves - div; break; }
             displace = displace * 2.94;
-            weight = weight * 0.99;
+            weight = weight * 0.47;
             counter++;
         }
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    return rs + initialAmbient;
+    return (rs + initialAmbient).r;
 }
 vec3 FullGI() 
 {    
@@ -220,9 +220,9 @@ vec3 FullGI()
     const int samples = 160;
     
     // choose between noisy and slower, but better looking variant
-    //float randomizer = 138.345341 * rand(iuvToUv(iUV2)) + Rand;
+    float randomizer = 138.345341 * rand(iuvToUv(iUV)) + Rand;
     // or faster, non noisy variant, which is also cool looking
-    const float randomizer = 138.345341 + Rand;
+    //const float randomizer = 138.345341 + Rand;
     
     
     uint counter = 0;
@@ -239,19 +239,19 @@ vec3 FullGI()
         vec3 posThere = imageLoad(worldPosTex, displace).rgb;
         vec3 normalThere = normalize(imageLoad(normalsTex, displace).rgb);
         float att = 1.0 / pow(((distance(posThere, posCenter)) + 1.0), 4.0) * 430;
-        float diffuseComponent =  smoothstep(0, 0.1, max(0, -dot(normalThere,  normalCenter)));
+        float diffuseComponent =  max(0, -dot(normalThere,  normalCenter));
        /* vec3 lightRelative = posThere - posCenter;
         vec3 R = reflect(lightRelative, normalCenter);
         float cosAlpha = -dot(normalize(cameraRelative), normalize(R));
         float specularComponent = clamp(pow(cosAlpha, 50.0), 0.0, 1.0);*/
         vec3 colorThere = imageLoad(colorTex, displace).rgb * 70;
-        if(testVisibilityEX(iUV, displace, posCenter, posThere)){                
+        //if(testVisibilityEX(iUV, displace, posCenter, posThere)){                
 
             
             
             //color += colorThere * att * diffuseComponent + colorThere * specularComponent;
             color += colorThere * att * diffuseComponent;
-        }
+       // }
     }
     return color / samples;
 }
@@ -262,7 +262,7 @@ void main(){
         gl_GlobalInvocationID.x,
         gl_GlobalInvocationID.y
     );
-    vec4 c = vec4(0,0,0, Radiosity() * HBAOContribution);
+    vec4 c = vec4(0,0,0, Radiosity());
     //barrier();
     vec4 last = imageLoad(colorTexLast, iUV);
     c = (c + last*1) / 2;

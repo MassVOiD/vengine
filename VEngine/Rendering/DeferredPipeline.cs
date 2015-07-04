@@ -22,6 +22,8 @@ namespace VEngine
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
+            GL.ClearColor(1, 1, 1, 1);
+            GL.ClearDepth(1);
 
             GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
 

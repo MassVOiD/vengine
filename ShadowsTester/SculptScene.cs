@@ -47,14 +47,14 @@ namespace ShadowsTester
             var skysphere = Object3dInfo.LoadFromObjSingle(Media.Get("skyicosphere.obj"));
             var skymesh = new Mesh3d(skysphere, new GenericMaterial(Color.SkyBlue));
             skymesh.Scale(8000);
-            skymesh.IgnoreLighting = true;
+            skymesh.MainMaterial.IgnoreLighting = true;
             Add(skymesh);
             
             var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("desertcity.obj"));
             dragon3dInfo.ScaleUV(0.1f);
             var mat = new GenericMaterial(Color.WhiteSmoke);
             var dragon = new Mesh3d(dragon3dInfo, mat);
-            //mat.Type = AbsMaterial.MaterialType.WetDrops;
+            //mat.Type = GenericMaterial.MaterialType.WetDrops;
             dragon.Translate(0, 0, 20);
             //dragon.Scale(5);
             dragon.SetMass(0);

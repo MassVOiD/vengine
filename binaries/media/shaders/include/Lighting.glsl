@@ -74,7 +74,9 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	//float badass_depth = toLogDepth(distance2);
 	mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 	vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
-	if(lightClipSpace.z <= 0.0) return 0;
+    vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;   
+	if(lightClipSpace.z <= 0.0) return 1;
+    if(lightScreenSpace.x < 0.0 || lightScreenSpace.x > 1.0 || lightScreenSpace.y < 0.0 || lightScreenSpace.y > 1.0) return 1;
 	float badass_depth = toLogDepth(distance2);	
 	
 	

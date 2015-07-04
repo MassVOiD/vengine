@@ -54,7 +54,10 @@ vec3 perturb_normal( vec3 N, vec3 V, vec2 texcoord )
 {
     // assume N, the interpolated vertex normal and 
     // V, the view vector (vertex to eye)
-   vec3 map = texture(normalMap, texcoord ).xyz;
+   vec3 map = -texture(normalMap, texcoord ).xyz;
+   map.x = - map.x;
+   map.y = - map.y;
+   map.z = - map.z;
    map = map * 255./127. - 128./127.;
     mat3 TBN = cotangent_frame(N, -V, texcoord);
     return normalize(TBN * map);
@@ -185,31 +188,63 @@ float getwater( vec2 position ) {
 }
 uniform float NormalMapScale;
 
+layout(binding = 2) uniform sampler2D AlphaMask;
+uniform int UseAlphaMask;
+void discardIfAlphaMasked(){
+	if(UseAlphaMask == 1){
+		if(texture(AlphaMask, UV).r < 0.5) discard;
+	}
+}
+
 void finishFragment(vec4 color){
+    discardIfAlphaMasked();
 	outColor = vec4((color.xyz) * DiffuseComponent, color.a);
     //outColor = vec4(1);
     vec3 wpos = positionWorldSpace;
     vec3 normalNew  = normalize(normal);
     if(UseBumpMap == 1){
         float factor = (texture(bumpMap, UV).r - 0.5);
-        wpos += normalNew * factor;
+        //wpos += normalNew * factor * 0.01;
 
     }
-	outWorldPos = vec4(ToCameraSpace(wpos), 1);
+    mat3 TBN = inverse(transpose(mat3(
+        normalize(tangent.xyz),
+        cross(normal.xyz, normalize(tangent.xyz)),
+        normal.xyz
+    )));
+    mat3 TBN2 = (transpose(mat3(
+        normalize(tangent.xyz),
+        cross(normal.xyz, normalize(tangent.xyz)),
+        normal.xyz
+    )));
+    vec3 tangentwspace = TBN * tangent;
+	outWorldPos = vec4(ToCameraSpace(wpos), 1);     
 	//if(IgnoreLighting == 0){
 		if(UseNormalMap == 1){
-			normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);
+			//normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);   
+            vec3 map = -texture(normalMap, UV ).xyz;
+   map.x = - map.x;
+   map.y = - map.y;
+   map.z = - map.z;
+   map = map * 255./127. - 128./127.;
+            normalNew = TBN * map; 
     
-		}/* else if(UseBumpMap == 1){
-            float factor = (texture(bumpMap, UV).r - 0.5);
-            //vec3 bitan = cross(normal, tangent);
-			normalNew = normalize(normalNew - (tangent * factor));
+		} else if(UseBumpMap == 1){
+            float factor = (texture(bumpMap, UV).r) * 255.;
+            factor = factor - 119;
+            factor = (factor / 255) * 2;
+            vec3 bitan = cross(normal, tangent);
+            vec3 nee = normalize((normalNew - ((tangent) * factor * 0.2)));
+            nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
+			normalNew =  nee;
     
 		} else {
-            float factor = (length(vec3(0.5)) - length(color.xyz)) * 0.2;
-			normalNew = normalize(normalNew - (tangent * factor));
-    
-		}*/
+            float factor = (length(vec3(0.5)) - length(color.xyz));
+		    //normalNew = (normalNew - ((tangent) * factor * 0.05)); 
+                vec3 nee = normalize((normalNew - ((tangent) * factor * 0.2)));
+            nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
+			normalNew =  nee;
+		}
         if(MaterialType == MaterialTypeWater){
             float factor = getwater(UV * 5) * 0.3;
 			normalNew = normalize(normalNew - (tangent * factor));
@@ -221,7 +256,7 @@ void finishFragment(vec4 color){
 			normalNew = normalize(normalNew - (tangent * pn * 0.05));
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
-		if(Instances == 1){
+		if(Instances == 0){
 			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, 1);
 		} else {
 			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, 1);

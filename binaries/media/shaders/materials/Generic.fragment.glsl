@@ -1,19 +1,12 @@
 #version 430 core
 #include Fragment.glsl
 layout(binding = 0) uniform sampler2D Tex;
-layout(binding = 2) uniform sampler2D AlphaMask;
-uniform int UseAlphaMask;
 uniform int DrawMode;
 #define MODE_TEXTURE_ONLY 0
 #define MODE_COLOR_ONLY 1
 #define MODE_TEXTURE_MULT_COLOR 2
 #define MODE_ONE_MINUS_COLOR_OVER_TEXTURE 3
 
-void discardIfAlphaMasked(){
-	if(UseAlphaMask == 1){
-		if(texture(AlphaMask, UV).r < 0.5) discard;
-	}
-}
 void main()
 {
 	discardIfAlphaMasked();

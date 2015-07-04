@@ -22,13 +22,29 @@ namespace ShadowsTester
             dragon.Scale(0.3f);
             dragon.Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2));
             Add(dragon);*/
-            var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("ann.obj"));
+
+            var lightSphereInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
+
+            var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("fleur_toskeleton.obj"));
             var dragon = new Mesh3d(dragon3dInfo, new GenericMaterial(new Vector4(0.7f, 0, 0.2f, 1)));
-            dragon.Translate(0, 10, 0);
-            dragon.Scale(0.3f);
-            dragon.LoadSkeleton(Media.Get("annie_skeleton.txt"));
-            dragon.Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2));
+           // dragon.Translate(0, 10, 0);
+            //dragon.Scale(0.3f);
+            dragon.LoadSkeleton(Media.Get("fleurskeleton.txt"), true);
+            //dragon.Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2));
             Add(dragon);
+
+            var heads = new InstancedMesh3d(lightSphereInfo, new GenericMaterial(Color.Green));
+            var tails = new InstancedMesh3d(lightSphereInfo, new GenericMaterial(Color.Red));
+
+            foreach(var b in dragon.Bones)
+            {
+                heads.Transformations.Add(new TransformationManager(b.Head));
+                tails.Transformations.Add(new TransformationManager(b.Tail));
+            }
+            heads.UpdateMatrix();
+            tails.UpdateMatrix();
+            Add(heads);
+            Add(tails);
 
             Dictionary<string, Quaternion> restpose = new Dictionary<string, Quaternion>();
             restpose.Add("rfemur", Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(-20)));
@@ -46,24 +62,22 @@ namespace ShadowsTester
                 foreach(var elem in frame)
                 {
                     var rot = elem.Value;
-                    if(restpose.ContainsKey(elem.Key)) rot = Quaternion.Mult(restpose[elem.Key], rot);
-                    if(elem.Key == "rfemur")
-                        kf.Orientations.Add("LegStartRight", rot);
-                    if(elem.Key == "rtibia")
-                        kf.Orientations.Add("LegEndRight", rot);
-                    if(elem.Key == "lfemur")
-                        kf.Orientations.Add("LegStartLeft", rot);
-                    if(elem.Key == "ltibia")
-                        kf.Orientations.Add("LegEndLeft", rot);
+                    var nam = elem.Key;
+                    if(nam.Substring(1) == "clavicle" ||
+                        nam.Substring(1) == "humerus" ||
+                        nam.Substring(1) == "radius" ||
+                        nam.Substring(1) == "wrist" ||
+                        nam.Substring(1) == "hand" ||
+                        nam.Substring(1) == "fingers" ||
+                        nam.Substring(1) == "thumb")
+                    {
+                        if(nam.StartsWith("r") && nam != "root")
+                            nam = "l" + nam.Substring(1);
+                        else if(nam.StartsWith("l") && nam != "lowerback" && nam != "lowerneck")
+                            nam = "r" + nam.Substring(1);
+                    }
+                    kf.Orientations.Add(nam, rot);
 
-                    if(elem.Key == "rhumerus")
-                        kf.Orientations.Add("ArmRightStart", rot);
-                    if(elem.Key == "rradius")
-                        kf.Orientations.Add("ArmRightEnd", rot);
-                    if(elem.Key == "lhumerus")
-                        kf.Orientations.Add("ArmLeftStart", rot);
-                    if(elem.Key == "lradius")
-                        kf.Orientations.Add("ArmLeftEnd", rot);
                 }
                 animation.Frames.Add(kf);
             }
@@ -81,7 +95,7 @@ namespace ShadowsTester
               water.Transformation.Translate(0, 1, 0);
               //water.DisableDepthWrite = true;
               Add(water);*/
-            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("sponzasimple.obj"), Media.Get("sponzasimple.mtl"), 1f);
+            /*var scene = Object3dInfo.LoadSceneFromObj(Media.Get("sponzasimple.obj"), Media.Get("sponzasimple.mtl"), 1f);
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in scene)
             {
@@ -91,7 +105,7 @@ namespace ShadowsTester
                 ob.Translate(0, 10, 0);
                 //ob.MainObjectInfo.MakeDoubleFaced();
                 this.Add(ob);
-            }
+            }*/
         }
 
     }

@@ -8,7 +8,7 @@ in vec3 ModelPos_ES_in[];
 in vec3 WorldPos_ES_in[];
 in vec2 TexCoord_ES_in[];
 in vec3 Normal_ES_in[];
-in vec3 Barycentric_ES_in[];
+//in vec3 Barycentric_ES_in[];
 in int instanceId_ES_in[];
 in vec3 Tangent_ES_in[];
 
@@ -23,14 +23,12 @@ uniform int MaterialType;
 #define MaterialTypePlanetSurface 6
 
 uniform int UseBumpMap;
-layout(binding = 16) uniform sampler2D bumpMap;
-
+layout(binding = 31) uniform sampler2D bumpMap;
 smooth out vec3 normal;
 smooth out vec3 tangent;
 smooth out vec3 positionWorldSpace;
 smooth out vec3 positionModelSpace;
 smooth out vec2 UV;
-smooth out vec3 barycentric;
 out int instanceId;
 
 #include noise3D.glsl
@@ -152,7 +150,7 @@ void main()
 {
    	// Interpolate the attributes of the output vertex using the barycentric coordinates
    	UV = interpolate2D(TexCoord_ES_in[0], TexCoord_ES_in[1], TexCoord_ES_in[2]);
-   	barycentric = interpolate3D(Barycentric_ES_in[0], Barycentric_ES_in[1], Barycentric_ES_in[2]);
+   	//barycentric = interpolate3D(Barycentric_ES_in[0], Barycentric_ES_in[1], Barycentric_ES_in[2]);
    	normal = interpolate3D(Normal_ES_in[0], Normal_ES_in[1], Normal_ES_in[2]);
    	tangent = interpolate3D(Tangent_ES_in[0], Tangent_ES_in[1], Tangent_ES_in[2]);
    	positionWorldSpace = interpolate3D(WorldPos_ES_in[0], WorldPos_ES_in[1], WorldPos_ES_in[2]);
@@ -179,8 +177,11 @@ void main()
             positionWorldSpace += tangent * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
             positionWorldSpace += binormal * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
         } else {
-            float factor = (texture(bumpMap, UV).r - 0.5);
-            positionWorldSpace += normal * (factor) * 0.3;
+            //float factor = (texture(bumpMap, UV*0.01).r - 0.5);
+            float factor = snoise(positionWorldSpace*normal / 4) * 0.2;
+            factor += snoise(positionWorldSpace *10) * 0.03;
+            positionWorldSpace += normal * (factor) * 1.3;
+            normal = normalize(normal - (tangent * factor * 0.05));
         }
     
     }

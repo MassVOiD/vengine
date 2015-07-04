@@ -12,7 +12,7 @@ namespace VEngine
         List<Mesh3d> Frames;
         public int CurrentFrame;
         TransformationManager Transformation;
-        public KeyframeAnimatedMesh3d(List<Object3dInfo> infos, IMaterial material)
+        public KeyframeAnimatedMesh3d(List<Object3dInfo> infos, GenericMaterial material)
         {
             Transformation = new TransformationManager(Vector3.Zero);
             Frames = new List<Mesh3d>();

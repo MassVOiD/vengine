@@ -43,7 +43,6 @@ namespace VEngine
         {
             VSync = VSyncMode.Off;
 
-            GL.ClearColor(0.37f, 0.37f, 0.37f, 1.0f);
             var s = GL.GetString(StringName.Version);
             Console.WriteLine(s);
         }

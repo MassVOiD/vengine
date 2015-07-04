@@ -51,10 +51,17 @@ namespace VEngine
 
         private Quaternion CreateRotation(float x, float y, float z)
         {
-            Quaternion res = Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(x));
+            var matx = Matrix3.CreateRotationX(MathHelper.DegreesToRadians(-x));
+            var maty = Matrix3.CreateRotationY(MathHelper.DegreesToRadians(-y));
+            var matz = Matrix3.CreateRotationZ(MathHelper.DegreesToRadians(-z));
+            return Quaternion.FromMatrix(
+                Matrix3.Mult(matx, Matrix3.Mult(matz, maty))
+            );
+            /*Quaternion res = Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(z));
             res = Quaternion.Multiply(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegreesToRadians(y)), res);
-            res = Quaternion.Multiply(Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(z)), res);
-            return res;
+            res = Quaternion.Multiply(Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(x)), res);
+           // 
+            return res;*/
         }
     }
 }

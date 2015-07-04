@@ -68,7 +68,7 @@ namespace ShadowsTester
             //terrainInfo.ScaleUV(100);
             var color = GenericMaterial.FromMedia("151.JPG", "151_norm.JPG");
             color.SetBumpMapFromMedia("grassbump.png");
-            color.Type = AbsMaterial.MaterialType.Grass;
+            color.Type = GenericMaterial.MaterialType.Grass;
             var terrain = new Mesh3d(terrainInfo, color);
            // terrain.Scale(5);
             Add(terrain);
@@ -165,8 +165,8 @@ namespace ShadowsTester
             var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
             skydome.Transformation.Scale(55000);
             skydome.Transformation.Translate(0, -100, 0);
-            skydome.IgnoreLighting = true;
-            skydome.DiffuseComponent = 0.2f;
+            skydome.MainMaterial.IgnoreLighting = true;
+            skydome.MainMaterial.DiffuseComponent = 0.2f;
             World.Root.Add(skydome);
         }
 

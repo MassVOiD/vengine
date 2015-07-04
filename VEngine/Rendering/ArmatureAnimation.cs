@@ -55,6 +55,8 @@ namespace VEngine.Rendering
         public void Apply(Mesh3d mesh, float time, float speed = 1.0f)
         {
             var framedata = GetCurrentKeyFrame(time, speed);
+            if(framedata == null)
+                return;
             foreach(var o in framedata.Frame.Orientations)
             {
                 var orient = Quaternion.Slerp(framedata.PreviousFrame.Orientations[o.Key], o.Value, framedata.Step);

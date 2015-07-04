@@ -12,7 +12,7 @@ namespace VEngine
             camera = new Camera(position, Vector3.Zero, mapwidth / mapheight, fov, near, far);
             camera.LookAt(Vector3.Zero);
             FBO = new Framebuffer(mapwidth, mapheight, true);
-            Shader = ManualShaderMaterial.FromName("ConeLight");
+            Shader = GenericMaterial.FromName("ConeLight");
             ViewPort = new Size(mapwidth, mapheight);
         }
 
@@ -28,7 +28,7 @@ namespace VEngine
         public Framebuffer FBO;
         public Vector4 LightColor = new Vector4(1, 1, 1, 1);
         private float FarPlane;
-        private ManualShaderMaterial Shader;
+        private GenericMaterial Shader;
         private Size ViewPort;
 
         public float CullerMultiplier = 1.0f;

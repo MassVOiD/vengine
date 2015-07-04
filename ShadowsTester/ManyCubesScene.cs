@@ -45,7 +45,7 @@ namespace ShadowsTester
             //Object3dInfo cube = Object3dGenerator.CreateCube(new Vector3(1, 1, 1), new Vector2(1, 1));
             var cube = Object3dInfo.LoadFromObjSingle(Media.Get("portalcube.obj"));
             cube.MakeDoubleFaced();
-            IMaterial material = new GenericMaterial(new Vector4(1, 1, 1, 1.000f));
+            GenericMaterial material = new GenericMaterial(new Vector4(1, 1, 1, 1.000f));
             int allCount = 0;
             var meshes = new List<Mesh3d>();
             Mesh3d lastmesh = null;

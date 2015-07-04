@@ -6,7 +6,7 @@ namespace VEngine.UI
 {
     public class Text : AbsUIElement
     {
-        static public ManualShaderMaterial Program = ManualShaderMaterial.FromMedia("UI.vertex.glsl", "UI.Text.fragment.glsl");
+        static public GenericMaterial Program = GenericMaterial.FromMedia("UI.vertex.glsl", "UI.Text.fragment.glsl");
         public Texture Tex;
 
         public Text(float x, float y, string text, string font, float size, Color textColor)

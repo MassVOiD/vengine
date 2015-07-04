@@ -25,6 +25,12 @@ namespace VEngine.Rendering
 
         public static List<InstancedMesh3d> CreateTree(float minNodesAngle, float maxNodesAngle, int maxNodesCountPerLevel, int iterations, int randomSeed, float scaleDescendant, bool addLeaves)
         {
+            LeafMaterial = GenericMaterial.FromMedia("leaf_color.png");
+            LeafMaterial.SetAlphaMaskFromMedia("leaf_alpha.png");
+            NodeMaterial.SetBumpMapFromMedia("treebump.png");
+            NodeMaterial.SetNormalMapFromMedia("nmaphires.jpg");
+            NodeMaterial.TesselationMultiplier = 10;
+            Node.ScaleUV(10);
             List<InstancedMesh3d> elements = new List<InstancedMesh3d>();
 
             Randomizer = new Random(DateTime.Now.Millisecond);

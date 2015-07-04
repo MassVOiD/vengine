@@ -12,14 +12,14 @@ namespace VEngine
         class LodLevelData
         {
             public Object3dInfo Info3d;
-            public IMaterial Material;
+            public GenericMaterial Material;
             public float Distance;
         }
 
         private List<LodLevelData> LodLevels;
 
         public int Instances;
-        public IMaterial Material;
+        public GenericMaterial Material;
         public Object3dInfo ObjectInfo;
         public Random Randomizer;
         public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
@@ -27,7 +27,7 @@ namespace VEngine
         public bool DisableDepthWrite = false;
 
 
-        public void AddLodLevel(float distance, Object3dInfo info, IMaterial material)
+        public void AddLodLevel(float distance, Object3dInfo info, GenericMaterial material)
         {
             if(LodLevels == null)
                 LodLevels = new List<LodLevelData>();
@@ -40,7 +40,7 @@ namespace VEngine
             LodLevels.Sort((a, b) => (int)((a.Distance - b.Distance) * 100.0)); // *100 to preserve precision
         }
 
-        public void SetUniforms(IMaterial material)
+        public void SetUniforms(GenericMaterial material)
         {
             ShaderProgram shader = material.GetShaderProgram();
             bool shaderSwitchResult = Material.Use();

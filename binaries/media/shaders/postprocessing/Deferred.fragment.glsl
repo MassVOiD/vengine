@@ -110,11 +110,12 @@ vec3 Radiosity()
     {
         float rd = randomizer * float(i);
         
-        vec3 displace = vec3(
+        /*vec3 displace = vec3(
             fract(rd) * 2 - 1, 
             fract(rd*12.2562), 
             fract(rd*7.121214) * 2 - 1
-        ) * clamp(length(posCenter), 0.1, 2.0);
+        ) * clamp(length(posCenter), 0.1, 2.0);*/
+        vec3 displace = vec3(0, 5, 0);
         float dotdiffuse =  max(0, dot(normalize(displace),  (normalCenter)));
         for(int div = 0;div < octaves; div++)
         {
@@ -122,7 +123,7 @@ vec3 Radiosity()
             {
                 ambient += ambientColor * dotdiffuse;
             }
-            displace = displace * 0.8;
+            //displace = displace * 0.8;
             counter++;
         }
     }
@@ -138,41 +139,6 @@ vec3 ball(vec3 colour, float sizec, float xc, float yc){
 	return colour * (d);
 }
 
-vec3 lightPoints(){
-    vec3 color = vec3(0);
-	for(int i=0;i<LightsCount;i++){
-	
-		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
-
-		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4((LightsPos[i]), 1.0);
-		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
-		if(clipspace.z < 0.0) continue;
-		
-        float badass_depth = (clipspace.z / clipspace.w) * 0.5 + 0.5;	
-        float logg = texture(texDepth, UV).r;
-        
-        if(logg > badass_depth || IgnoreLightingFragment) {
-            color += ball(vec3(LightsColors[i].rgb*2.0),LightPointSize / ( badass_depth) * 0.001, sspace1.x, sspace1.y);
-            //color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
-        }
-    
-	}
-	
-	for(int i=0;i<SimpleLightsCount;i++){
-	
-		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(SimpleLightsPos[i], 1.0);
-		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
-		if(clipspace.z < 0.0) continue;
-		float dist = distance(CameraPosition, SimpleLightsPos[i]);
-		float revlog = reverseLog(texture(texDepth, sspace1).r);
-		if(dist > revlog)continue;
-		dist += 1.0;
-		color += ball(vec3(SimpleLightsColors[i]*2.0 * SimpleLightsColors[i].a),SimpleLightPointSize * (0.8/ dist), sspace1.x, sspace1.y);
-
-	
-	}
-    return color;
-}
 
 #define PI 3.14159265
 
@@ -228,9 +194,9 @@ float cookTorranceSpecular(
   vec3 H = normalize(lightDirection + viewDirection);
 
   //Geometric term
-  float NdotH = max(dot(surfaceNormal, H), 0.0);
-  float VdotH = max(dot(viewDirection, H), 0.000001);
-  float LdotH = max(dot(lightDirection, H), 0.000001);
+  float NdotH = max(abs(dot(surfaceNormal, H)), 0.0);
+  float VdotH = max(abs(dot(viewDirection, H)), 0.000001);
+  float LdotH = max(abs(dot(lightDirection, H)), 0.000001);
   float G1 = (2.0 * NdotH * VdotN) / VdotH;
   float G2 = (2.0 * NdotH * LdotN) / LdotH;
   float G = min(1.0, min(G1, G2));
@@ -268,10 +234,11 @@ void main()
     }
     gl_FragDepth = texture(texDepth, nUV).r;
     vec4 fragmentPosWorld3d = texture(worldPosTex, nUV);
+    vec3 cameraRelativeToVPos = -vec3(fragmentPosWorld3d.xyz);
     fragmentPosWorld3d.xyz = FromCameraSpace(fragmentPosWorld3d.xyz);
 
 
-    vec3 cameraRelativeToVPos = normalize( CameraPosition - fragmentPosWorld3d.xyz);
+    //vec3 cameraRelativeToVPos = normalize( CameraPosition - fragmentPosWorld3d.xyz);
     float len = length(cameraRelativeToVPos);
     int foundSun = 0;
     if(!IgnoreLightingFragment) for(int i=0;i<LightsCount;i++){
@@ -308,15 +275,16 @@ void main()
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.8, 0.2
-                );
+                    0.9, 0.1
+                ) * 0.028;
 
+                
                 float diffuseComponent = orenNayarDiffuse(
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.8, 0.2
-                );
+                    0.9, 0.1
+                ) * 2.47 ;
                 
                 percent = max(0, percent);
                 color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
@@ -327,7 +295,7 @@ void main()
             } else {
                 vec3 abc = LightsPos[i];
                 float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-                float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 30;
+                float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 3;
                 //att = 1;
                 if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
                 if(att < 0.002) continue;
@@ -343,24 +311,24 @@ void main()
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.5, 0.0
-                );
+                    0.9, 0.1
+                ) * 0.028;
 
                 
                 float diffuseComponent = orenNayarDiffuse(
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.8, 0.9
-                );
-                //float diffuseComponent = max(0, dot(normalize(lightRelativeToVPos),  normal.xyz));
+                    0.9, 0.1
+                ) * 0.17 ;
+                //diffuseComponent = max(0, log(3*dot(normalize(lightRelativeToVPos),  normal.xyz)))* 0.017 ;
                 //float diffuseComponent = 0;
                 
                 float culler = LightsMixModes[i] == LIGHT_MIX_MODE_ADDITIVE ? clamp((1.0 - distance(lightScreenSpace, vec2(0.5)) * 2.0), 0.0, 1.0) : 1.0;
 
                 color1 += (((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
                 + (LightsColors[i].rgb * specularComponent))
-                * att * culler * max(0, percent)) * LightsColors[i].a * 0.01;
+                * att * max(0, percent)) * LightsColors[i].a;
                 if(percent < 0){
                     //is in shadow! lets try subsufrace scattering
                     /*float amount = (-percent) * 0.3;
@@ -402,7 +370,7 @@ void main()
     
         
     }
-    color1 += lightPoints();
+    //color1 += lightPoints();
     //if(UV.x < 0.4 && UV.y < 0.4){
     //    color1 = texture(lightDepth0, UV*2.5).rrr*10;
     //}

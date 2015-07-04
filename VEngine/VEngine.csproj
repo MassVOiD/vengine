@@ -85,7 +85,6 @@
     <Compile Include="Compute\ComputeShader.cs" />
     <Compile Include="Rendering\CubeMapFramebuffer.cs" />
     <Compile Include="Rendering\DeferredPipeline.cs" />
-    <Compile Include="Rendering\Materials\AbsMaterial.cs" />
     <Compile Include="Rendering\Materials\GenericMaterial.cs" />
     <Compile Include="Rendering\MRTFramebuffer.cs" />
     <Compile Include="Game\Game.cs" />
@@ -107,7 +106,6 @@
     <Compile Include="Rendering\Lights\SimplePointLight.cs" />
     <Compile Include="Rendering\Line2d.cs" />
     <Compile Include="Rendering\Line2dPool.cs" />
-    <Compile Include="Rendering\Materials\IMaterial.cs" />
     <Compile Include="Rendering\Lights\LightPool.cs" />
     <Compile Include="Internals\MathExtensions.cs" />
     <Compile Include="Rendering\InstancedMesh3d.cs" />
@@ -119,7 +117,6 @@
     <Compile Include="Utilities\Media.cs" />
     <Compile Include="Rendering\Mesh3d.cs" />
     <Compile Include="Rendering\Object3dInfo.cs" />
-    <Compile Include="Rendering\Materials\PostProcessLoadingMaterial.cs" />
     <Compile Include="Rendering\Scene.cs" />
     <Compile Include="SettingsWindow.cs">
       <SubType>Form</SubType>
@@ -129,8 +126,6 @@
     </Compile>
     <Compile Include="Internals\ShaderCache.cs" />
     <Compile Include="Internals\ShaderPreparser.cs" />
-    <Compile Include="Rendering\Materials\ManualShaderMaterial.cs" />
-    <Compile Include="Rendering\Materials\SkyboxMaterial.cs" />
     <Compile Include="Rendering\ShaderStorageBuffer.cs" />
     <Compile Include="Rendering\BufferTexture.cs" />
     <Compile Include="Internals\TransformationManager.cs" />

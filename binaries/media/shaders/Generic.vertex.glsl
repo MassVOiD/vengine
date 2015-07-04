@@ -25,25 +25,23 @@ void main(){
 	UV = vec2(in_uv.x, -in_uv.y);
     
     vec3 inorm = in_normal;
-	
-	if(Instances == 1){
-        vec3 mspace = v.xyz;
-        if(UseBoneSystem == 1){
-            int bone = determineBone(mspace);
-            mspace = applyBoneRotationChain(mspace, bone);
-            inorm = applyBoneRotationChainNormal(inorm, bone);
-        }
-        v = vec4(mspace, 1);
-		positionWorldSpace = (ModelMatrix * v).xyz;
-		gl_Position = (ProjectionMatrix  * ViewMatrix) * vec4(positionWorldSpace, 1);	
-	} else {
-		positionWorldSpace = (ModelMatrixes[gl_InstanceID] * v).xyz;
-		gl_Position = (ProjectionMatrix  * ViewMatrix) * vec4(positionWorldSpace, 1);	
-	}
+	mat4 mmat = ModelMatrix;
+    if(Instances > 0) mmat = ModelMatrixes[gl_InstanceID];
+
+    vec3 mspace = v.xyz;
+    if(UseBoneSystem == 1){
+        int bone = determineBone(mspace);
+        mspace = applyBoneRotationChain(mspace, bone);
+        inorm = applyBoneRotationChainNormal(inorm, bone);
+    }
+    v = vec4(mspace, 1);
+    positionWorldSpace = (mmat * v).xyz;	
+
 	normal = inorm;
 	
 	instanceId = gl_InstanceID;
 
 	positionModelSpace = v.xyz;	
 	
+    gl_Position = (ProjectionMatrix  * ViewMatrix) * vec4(positionWorldSpace, 1);
 }

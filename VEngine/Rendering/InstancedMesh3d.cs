@@ -8,7 +8,7 @@ namespace VEngine
 {
     public class InstancedMesh3d : IRenderable
     {
-        public InstancedMesh3d(Object3dInfo objectInfo, IMaterial material)
+        public InstancedMesh3d(Object3dInfo objectInfo, GenericMaterial material)
         {
             ModelMatricesBuffer = new ShaderStorageBuffer();
             RotationMatricesBuffer = new ShaderStorageBuffer();
@@ -21,9 +21,8 @@ namespace VEngine
         }
 
         public int Instances;
-        public IMaterial Material;
+        public GenericMaterial Material;
         public List<TransformationManager> Transformations;
-        public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
         public Object3dInfo ObjectInfo;
         private Random Randomizer;
         //private const int MaxInstances = 1500;
@@ -33,14 +32,14 @@ namespace VEngine
         class LodLevelData
         {
             public Object3dInfo Info3d;
-            public IMaterial Material;
+            public GenericMaterial Material;
             public float Distance;
         }
 
         private List<LodLevelData> LodLevels;
 
 
-        public void AddLodLevel(float distance, Object3dInfo info, IMaterial material)
+        public void AddLodLevel(float distance, Object3dInfo info, GenericMaterial material)
         {
             if(LodLevels == null)
                 LodLevels = new List<LodLevelData>();
@@ -138,7 +137,7 @@ namespace VEngine
         static int LastMaterialHash = 0;
         public bool IgnoreLighting = false;
         public bool DisableDepthWrite = false;
-        public void SetUniforms(IMaterial material)
+        public void SetUniforms(GenericMaterial material)
         {
             ShaderProgram shader = material.GetShaderProgram();
             bool shaderSwitchResult = Material.Use();
@@ -150,9 +149,6 @@ namespace VEngine
 
             // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
 
-            shader.SetUniform("SpecularComponent", SpecularComponent);
-            shader.SetUniform("DiffuseComponent", DiffuseComponent);
-            shader.SetUniform("SpecularSize", SpecularSize);
             shader.SetUniform("IgnoreLighting", IgnoreLighting);
 
             shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
@@ -167,9 +163,7 @@ namespace VEngine
             shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
 
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-
-            shader.SetUniform("UseAlphaMask", 0);
-
+            
             //LastMaterialHash = Material.GetShaderProgram().GetHashCode();
             // per world
             shader.SetUniform("Instances", Transformations.Count);
@@ -230,8 +224,18 @@ namespace VEngine
             }
             GLThread.Invoke(() =>
             {
-                ModelMatricesBuffer.MapData(Matrix.ToArray());
-                RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
+                while(true)
+                {
+                    try
+                    {
+                        ModelMatricesBuffer.MapData(Matrix.ToArray());
+                        RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
+                        break;
+                    }
+                    catch
+                    {
+                    }
+                }
             });
         }
 

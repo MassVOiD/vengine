@@ -381,16 +381,16 @@ namespace VEngine
             var objs = ParseOBJString(lines);
             var mtllib = LoadMaterialsFromMtl(mtlfile);
             List<Mesh3d> meshes = new List<Mesh3d>();
-            Dictionary<string, IMaterial> texCache = new Dictionary<string, IMaterial>();
-            Dictionary<Color, IMaterial> colorCache = new Dictionary<Color, IMaterial>();
-            Dictionary<IMaterial, MaterialInfo> mInfos = new Dictionary<IMaterial, MaterialInfo>();
-            Dictionary<IMaterial, List<Object3dInfo>> linkCache = new Dictionary<IMaterial, List<Object3dInfo>>();
+            Dictionary<string, GenericMaterial> texCache = new Dictionary<string, GenericMaterial>();
+            Dictionary<Color, GenericMaterial> colorCache = new Dictionary<Color, GenericMaterial>();
+            Dictionary<GenericMaterial, MaterialInfo> mInfos = new Dictionary<GenericMaterial, MaterialInfo>();
+            Dictionary<GenericMaterial, List<Object3dInfo>> linkCache = new Dictionary<GenericMaterial, List<Object3dInfo>>();
             var colorPink = new GenericMaterial(Color.Pink);
-            mInfos = new Dictionary<IMaterial, MaterialInfo>();
+            mInfos = new Dictionary<GenericMaterial, MaterialInfo>();
             foreach(var obj in objs)
             {
                 var mat = mtllib.ContainsKey(obj.MaterialName) ? mtllib[obj.MaterialName] : null;
-                IMaterial material = null;
+                GenericMaterial material = null;
                 if(mat != null && mat.TextureName.Length > 0)
                 {
                     if(texCache.ContainsKey(mat.TextureName + mat.AlphaMask))
@@ -455,10 +455,10 @@ namespace VEngine
                 //o3di.CorrectFacesByNormals();
                 // o3di.CorrectFacesByNormals();
                 Mesh3d mesh = new Mesh3d(o3di, kv.Key);
-                mesh.SpecularComponent = mInfos[kv.Key].SpecularStrength + 0.01f;
-                mesh.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
+                kv.Key.SpecularComponent = mInfos[kv.Key].SpecularStrength + 0.01f;
+                kv.Key.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
                 if(mInfos[kv.Key].AlphaMask.Length > 1)
-                    mesh.UseAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
+                    (kv.Key as GenericMaterial).SetAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
                 if(mInfos[kv.Key].BumpMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetBumpMapFromMedia(mInfos[kv.Key].BumpMapName);
                 // mesh.SpecularComponent = kv.Key.SpecularStrength;

@@ -12,7 +12,7 @@ in vec3 ModelPos_CS_in[];
 in vec3 WorldPos_CS_in[];
 in vec2 TexCoord_CS_in[];
 in vec3 Normal_CS_in[];
-in vec3 Barycentric_CS_in[];
+//in vec3 Barycentric_CS_in[];
 in vec3 Tangent_CS_in[];
 
 // attributes of the output CPs
@@ -21,7 +21,7 @@ out vec3 ModelPos_ES_in[];
 out vec3 WorldPos_ES_in[];
 out vec2 TexCoord_ES_in[];
 out vec3 Normal_ES_in[];
-out vec3 Barycentric_ES_in[];
+//out vec3 Barycentric_ES_in[];
 out vec3 Tangent_ES_in[];
 
 uniform int MaterialType;
@@ -57,7 +57,7 @@ void main()
     Normal_ES_in[gl_InvocationID] = Normal_CS_in[gl_InvocationID];
     WorldPos_ES_in[gl_InvocationID] = WorldPos_CS_in[gl_InvocationID];
     ModelPos_ES_in[gl_InvocationID] = ModelPos_CS_in[gl_InvocationID];
-    Barycentric_ES_in[gl_InvocationID] = Barycentric_CS_in[gl_InvocationID];
+   // Barycentric_ES_in[gl_InvocationID] = Barycentric_CS_in[gl_InvocationID];
     Tangent_ES_in[gl_InvocationID] = Tangent_CS_in[gl_InvocationID];
     instanceId_ES_in[gl_InvocationID] = instanceId_CS_in[gl_InvocationID];
    	//Barycentric_ES_in = Barycentric_ES_in[0];

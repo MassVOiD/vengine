@@ -11,7 +11,7 @@ namespace VEngine
 {
     public class Mesh3d : IRenderable, ITransformable
     {
-        public Mesh3d(Object3dInfo objectInfo, IMaterial material)
+        public Mesh3d(Object3dInfo objectInfo, GenericMaterial material)
         {
            // ModelMatricesBuffer = new ShaderStorageBuffer();
            // RotationMatricesBuffer = new ShaderStorageBuffer();
@@ -25,35 +25,24 @@ namespace VEngine
         }
 
         public int Instances;
-        public IMaterial MainMaterial;
+        public GenericMaterial MainMaterial;
         public Matrix4 Matrix, RotationMatrix;
         public RigidBody PhysicalBody;
-        public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
         public TransformationManager Transformation;
         public bool DisableDepthWrite;
         //public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
 
-        private static int LastMaterialHash = -989898;
         private float Mass = 1.0f;
         public Object3dInfo MainObjectInfo;
         private CollisionShape PhysicalShape;
         private static Random Randomizer = new Random();
         private Vector3 MeshColoredID;
 
-        public float ReflectionStrength = 0;
-        public float RefractionStrength = 0;
-
-        public bool CastShadows = true;
-        public bool ReceiveShadows = true;
-        public bool IgnoreLighting = false;
-        private Texture AlphaMask = null;
-        public bool DrawOddOnly = false;
-        public static bool IsOddframe = false;
         public static bool PostProcessingUniformsOnly = false;
 
         class LodLevelData{
             public Object3dInfo Info3d;
-            public IMaterial Material;
+            public GenericMaterial Material;
             public float Distance;
         }
 
@@ -73,7 +62,7 @@ namespace VEngine
             return new Mesh3d(main, meshes[0].MainMaterial);
         }
 
-        public void AddLodLevel(float distance, Object3dInfo info, IMaterial material)
+        public void AddLodLevel(float distance, Object3dInfo info, GenericMaterial material)
         {
             if(LodLevels == null)
                 LodLevels = new List<LodLevelData>();
@@ -86,7 +75,7 @@ namespace VEngine
             LodLevels.Sort((a, b) => (int)((b.Distance - a.Distance)*100.0)); // *100 to preserve precision
         }
 
-        private IMaterial GetCurrentMaterial()
+        private GenericMaterial GetCurrentMaterial()
         {
             if(LodLevels == null)
                 return MainMaterial;
@@ -117,10 +106,7 @@ namespace VEngine
             return LodLevels.Last().Info3d;
         }
 
-        public void UseAlphaMaskFromMedia(string key)
-        {
-            AlphaMask = new Texture(Media.Get(key));
-        }
+
 
         public RigidBody CreateRigidBody(bool forceRecreate = false)
         {
@@ -217,28 +203,10 @@ namespace VEngine
             GLThread.GraphicsSettings.SetUniforms(shader);
             if(!PostProcessingUniformsOnly)
             {
-                shader.SetUniform("SpecularComponent", SpecularComponent);
-                shader.SetUniform("DiffuseComponent", DiffuseComponent);
-                shader.SetUniform("SpecularSize", SpecularSize);
-                shader.SetUniform("ReflectionStrength", ReflectionStrength);
-                shader.SetUniform("RefractionStrength", RefractionStrength);
-                shader.SetUniform("IgnoreLighting", IgnoreLighting);
                 shader.SetUniform("ColoredID", MeshColoredID); //magic
                 shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
                 shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
-                if(AlphaMask != null)
-                {
-                    shader.SetUniform("UseAlphaMask", 1);
-                    AlphaMask.Use(OpenTK.Graphics.OpenGL4.TextureUnit.Texture2);
-                    //GL.DepthFunc(DepthFunction.Always);
-                    GL.Disable(EnableCap.CullFace);
-                }
-                else
-                {
-                    shader.SetUniform("UseAlphaMask", 0);
-                    GL.Enable(EnableCap.CullFace);
-                    //GL.DepthFunc(DepthFunction.Lequal);
-                }
+                
             }
             else
             {
@@ -258,7 +226,7 @@ namespace VEngine
             shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
 
-            shader.SetUniform("Instances", 1);
+            shader.SetUniform("Instances", 0);
             shader.SetUniform("Instanced", 0);
             shader.SetUniform("LogEnchacer", 0.01f);
 
@@ -299,7 +267,7 @@ namespace VEngine
 
         public List<Bone> Bones = null;
 
-        public void LoadSkeleton(string file)
+        public void LoadSkeleton(string file, bool bonerelative = false)
         {
             var lines = File.ReadAllLines(file);
             Match match;
@@ -332,7 +300,7 @@ namespace VEngine
                     float x = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
                     float y = float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
                     float z = float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
-                    current.Head = new Vector3(x, z, -y) + offset;
+                    current.Head = new Vector3(x, y, z) + offset;
                 }
                 if(l.StartsWith("tail"))
                 {
@@ -340,7 +308,7 @@ namespace VEngine
                     float x = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
                     float y = float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture);
                     float z = float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
-                    current.Tail = new Vector3(x, z, -y) + offset;
+                    current.Tail = new Vector3(x, y, z) + offset;
                 }
                 if(l.StartsWith("parent"))
                 {
@@ -352,6 +320,28 @@ namespace VEngine
             foreach(var b in bones)
             {
                 b.Parent = b.ParentName == "null" ? null : bones.First((a) => a.Name == b.ParentName);
+            }
+            if(bonerelative)
+            {
+                Action<Bone> recursion = null;
+                recursion = new Action<Bone>((b) =>
+                {
+                    foreach(var c in bones)
+                    {
+                        if(c.Parent == b)
+                        {
+                           // c.Head += b.Head;
+                           // c.Tail += b.Head;
+                            recursion(c);
+                        }
+                    }
+                });
+                recursion(bones.First((a) => a.Parent == null));
+                foreach(var b in bones)
+                {
+                    b.Tail *= 0.612f;
+                    b.Head *= 0.612f;
+                }
             }
             Bones = bones;
         }
