@@ -22,7 +22,7 @@ namespace ShadowsTester
             dragon.Scale(0.3f);
             dragon.Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2));
             Add(dragon);*/
-
+            /*
             var lightSphereInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
 
             var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("fleur_toskeleton.obj"));
@@ -87,7 +87,7 @@ namespace ShadowsTester
             GLThread.OnUpdate += (o, e) =>
             {
                 animation.Apply(dragon, (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000, 87);
-            };
+            };*/
             /*  Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-2048, -2048), new Vector2(2048, 2048), new Vector2(496, 496), Vector3.UnitY);
               var waterMat = new SolidColorMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
               waterMat.SetNormalMapFromMedia("waternormal.png");
@@ -95,17 +95,26 @@ namespace ShadowsTester
               water.Transformation.Translate(0, 1, 0);
               //water.DisableDepthWrite = true;
               Add(water);*/
-            /*var scene = Object3dInfo.LoadSceneFromObj(Media.Get("sponzasimple.obj"), Media.Get("sponzasimple.mtl"), 1f);
+            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("sponzasimple.obj"), Media.Get("sponzasimple.mtl"), 1f);
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in scene)
             {
                 //ob.SetMass(0);
                 // ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
                 //ob.SpecularComponent = 0.1f;
-                ob.Translate(0, 10, 0);
+                //ob.Translate(0, 10, 0);
                 //ob.MainObjectInfo.MakeDoubleFaced();
                 this.Add(ob);
-            }*/
+            }
+            var meshEmit = Object3dInfo.LoadFromObjSingle(Media.Get("emitplane.obj"));
+            var verts = meshEmit.GetOrderedVertices();
+            foreach(var v in verts)
+            {
+                var light = new SimplePointLight(v, Color.White);
+                LightPool.Add(light);
+            }
+            var emitter = new Mesh3d(meshEmit, new GenericMaterial(Color.White));
+            Add(emitter);
         }
 
     }

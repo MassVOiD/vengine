@@ -8,6 +8,7 @@ layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
 layout(binding = 30) uniform sampler2D worldPosTex;
 layout(binding = 31) uniform sampler2D normalsTex;
+layout(binding = 32) uniform sampler2D worldPosTexBack;
 
 const int MAX_SIMPLE_LIGHTS = 20;
 uniform int SimpleLightsCount;
@@ -45,6 +46,9 @@ struct SampleData
   vec3 sampleColor;
 };
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 SampleData getSampleData(vec3 sampl, vec3 displace){
 	vec4 clipspace = (PV) * vec4(sampl, 1.0);
 	vec2 sspace1 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
@@ -70,23 +74,27 @@ SampleData getSampleData(vec3 sampl, vec3 displace){
 }
 
 bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
-    //vec3 direction = normalize(w2 - w1);
-    float d3d1 = length(w1);
-    float d3d2 = length(w2);
-    vec2 sdir = projdir(FromCameraSpace(w1), FromCameraSpace(w2));
-    for(float i=0;i<1.0;i+= 0.2) { 
-        vec2 ruv = mix(cuv, cuv + sdir, i);
+	vec4 clipspace = (PV) * vec4((w1), 1.0);
+	vec2 sspace1 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
+	vec4 clipspace2 = (PV) * vec4((w2), 1.0);
+	vec2 sspace2 = (clipspace2.xyz / clipspace2.w).xy * 0.5 + 0.5;
+    float d3d1 = length(ToCameraSpace(w1));
+    float d3d2 = length(ToCameraSpace(w2));
+    for(float ix=0;ix<1.0;ix+= 0.2) { 
+        float i = fract(rand(UV) * RandomSeed2 * 123.54234234 * ix);
+        vec2 ruv = mix(sspace1, sspace2, i);
+        float zcheck = mix(clipspace.z, clipspace2.z, i);
+        if(ruv.x<0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1 || zcheck < 0) continue;
         vec3 wd = texture(worldPosTex, ruv).rgb; 
         float rd3d = length(wd) + 0.01;
-        if(rd3d < mix(d3d1, d3d2, i) && mix(d3d1, d3d2, i) - rd3d < 1.01) {
+        wd = texture(worldPosTexBack, ruv).rgb; 
+        float othick = length(wd) + 0.01;
+        float inter = distance(CameraPosition, mix(w1, w2, i));
+        if(rd3d < inter && (othick > inter)) {
             return false;
         }
     }
     return true;
-}
-
-float rand(vec2 co){
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
 vec3 Radiosity() 
@@ -345,9 +353,9 @@ void main()
     
 
     for(int i=0;i<SimpleLightsCount;i++){
-        
-        vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(SimpleLightsPos[i], 1.0);
-        vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+        if(SimpleLightsColors[i].rgb != vec3(1)) continue;
+        //vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(SimpleLightsPos[i], 1.0);
+        //vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
         //if(clipspace.z < 0.0) continue;
         
         
@@ -364,15 +372,17 @@ void main()
         lightRelativeToVPos = SimpleLightsPos[i] - fragmentPosWorld3d.xyz;
         float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal.xyz));
         float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
-        color1 += ((colorOriginal * (diffuseComponent * SimpleLightsColors[i].rgb)) 
-        + (SimpleLightsColors[i].rgb * specularComponent))
-        *att;
+        if(testVisibility3d(nUV, SimpleLightsPos[i], fragmentPosWorld3d.xyz)){
+            color1 += ((colorOriginal * (diffuseComponent * SimpleLightsColors[i].rgb)) 
+            + (SimpleLightsColors[i].rgb * specularComponent))
+            *att;
+        }
     
         
     }
     //color1 += lightPoints();
     //if(UV.x < 0.4 && UV.y < 0.4){
-    //    color1 = texture(lightDepth0, UV*2.5).rrr*10;
+    //    color1 = vec3(length(texture(worldPosTex, UV*2.5).rgb - texture(//worldPosTexBack, UV*2.5).rgb) * 0.1);
     //}
     outColor = vec4(color1, 1);
 }

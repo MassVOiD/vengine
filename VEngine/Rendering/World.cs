@@ -103,7 +103,7 @@ namespace VEngine
         public void Draw(bool ignoreMeshWithDisabledDepthTest = false, bool ignoreDisableDepthWriteFlag = false)
         {
             //if(Camera.Current != null) SortByCameraDistance();
-            GL.CullFace(CullFaceMode.Back);
+           // GL.CullFace(CullFaceMode.Back);
             for(int i = 0; i < Children.Count; i++)
             {
                 if(Children[i] != null)

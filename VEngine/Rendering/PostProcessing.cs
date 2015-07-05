@@ -45,7 +45,7 @@ namespace VEngine
             GlobalIlluminationFrameBuffer,
             LastWorldPositionFramebuffer;
 
-        private MRTFramebuffer MRT;
+        private MRTFramebuffer MRT, BackMRT;
 
         private ShaderStorageBuffer TestBuffer;
 
@@ -86,7 +86,8 @@ namespace VEngine
             MSAAResolvingFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             MSAAResolvingFrameBuffer.SetMultiSample(true);
 
-            MRT = new MRTFramebuffer(initialWidth , initialHeight);
+            MRT = new MRTFramebuffer(initialWidth, initialHeight);
+            BackMRT = new MRTFramebuffer(initialWidth / 4, initialHeight / 4);
 
             Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
             Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
@@ -211,6 +212,7 @@ namespace VEngine
             DeferredShader.Use();
             MRT.UseTextureWorldPosition(30);
             MRT.UseTextureNormals(31);
+            BackMRT.UseTextureWorldPosition(32);
             LightPool.UseTextures(2);
             LightPool.MapSimpleLightsToShader(DeferredShader);
             SetLightingUniforms(DeferredShader);
@@ -329,8 +331,13 @@ namespace VEngine
             DisableBlending();
 
             Mesh3d.PostProcessingUniformsOnly = false;
+            GL.CullFace(CullFaceMode.Back);
             MRT.Use();
             World.Root.Draw();
+            GL.CullFace(CullFaceMode.Front);
+            BackMRT.Use();
+            World.Root.Draw();
+            GL.CullFace(CullFaceMode.Back);
             Mesh3d.PostProcessingUniformsOnly = true;
 
             DisableBlending();
