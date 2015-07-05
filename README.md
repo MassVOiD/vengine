@@ -7,7 +7,7 @@ The software is licensed under MIT license - so do what you want.
 
 ![A screenshot](http://i.imgur.com/TZISwdx.png "Screenshot")
 
-![A screenshot](http://i.imgur.com/TZISwdx.png "Screenshot")
+![A screenshot](http://i.imgur.com/7vETONq.png "Screenshot")
 
 ![A screenshot](http://i.imgur.com/7NfaOWm.png "Screenshot")
 
