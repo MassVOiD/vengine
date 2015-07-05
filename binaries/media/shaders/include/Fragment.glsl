@@ -218,15 +218,15 @@ void finishFragment(vec4 color){
         normal.xyz
     )));
     vec3 tangentwspace = TBN * tangent;
-	outWorldPos = vec4(ToCameraSpace(wpos), 1);     
+	outWorldPos = vec4(ToCameraSpace(wpos), SpecularComponent);     
 	//if(IgnoreLighting == 0){
 		if(UseNormalMap == 1){
 			//normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);   
             vec3 map = -texture(normalMap, UV ).xyz;
-   map.x = - map.x;
-   map.y = - map.y;
-   map.z = - map.z;
-   map = map * 255./127. - 128./127.;
+           map.x = - map.x;
+           map.y = - map.y;
+           map.z = - map.z;
+           map = map * 255./127. - 128./127.;
             normalNew = TBN * map; 
     
 		} else if(UseBumpMap == 1){
@@ -257,9 +257,9 @@ void finishFragment(vec4 color){
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
 		if(Instances == 0){
-			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, 1);
+			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, DiffuseComponent);
 		} else {
-			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, 1);
+			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, DiffuseComponent);
 		}
 	//} else {
 	//	outNormals = vec4(0, 0, 0, 1);
@@ -272,6 +272,6 @@ void finishFragment(vec4 color){
 	outMeshData.r - reflection strength
 	outMeshData.g - refraction strength
 	*/
-	outMeshData = vec4(ReflectionStrength, RefractionStrength, color.a, 1);
+	outMeshData = vec4(ReflectionStrength, RefractionStrength, color.a, Roughness);
 	updateDepth();
 }

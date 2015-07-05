@@ -455,7 +455,9 @@ namespace VEngine
                 //o3di.CorrectFacesByNormals();
                 // o3di.CorrectFacesByNormals();
                 Mesh3d mesh = new Mesh3d(o3di, kv.Key);
-                kv.Key.SpecularComponent = mInfos[kv.Key].SpecularStrength + 0.01f;
+                kv.Key.SpecularComponent = 1.0f - mInfos[kv.Key].SpecularStrength + 0.01f;
+                kv.Key.Roughness = (mInfos[kv.Key].SpecularStrength);
+                kv.Key.ReflectionStrength = 1.0f - (mInfos[kv.Key].SpecularStrength);
                 kv.Key.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
                 if(mInfos[kv.Key].AlphaMask.Length > 1)
                     (kv.Key as GenericMaterial).SetAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);

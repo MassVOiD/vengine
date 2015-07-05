@@ -9,11 +9,17 @@ layout(binding = 1) uniform sampler2D texDepth;
 layout(binding = 30) uniform sampler2D worldPosTex;
 layout(binding = 31) uniform sampler2D normalsTex;
 layout(binding = 32) uniform sampler2D worldPosTexBack;
+layout(binding = 33) uniform sampler2D meshDataTex;
 
 const int MAX_SIMPLE_LIGHTS = 20;
 uniform int SimpleLightsCount;
 uniform vec3 SimpleLightsPos[MAX_SIMPLE_LIGHTS];
 uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
+
+float meshRoughness;
+float meshSpecular;
+float meshDiffuse;
+
 
 out vec4 outColor;
 bool IgnoreLightingFragment = false;
@@ -81,7 +87,7 @@ bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     float d3d1 = length(ToCameraSpace(w1));
     float d3d2 = length(ToCameraSpace(w2));
     for(float ix=0;ix<1.0;ix+= 0.2) { 
-        float i = fract(rand(UV) * RandomSeed2 * 123.54234234 * ix);
+        float i = fract(rand(UV) * (RandomSeed2 * 123.54234234 * ix));
         vec2 ruv = mix(sspace1, sspace2, i);
         float zcheck = mix(clipspace.z, clipspace2.z, i);
         if(ruv.x<0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1 || zcheck < 0) continue;
@@ -228,6 +234,9 @@ void main()
     }
     vec3 colorOriginal = texture(texColor, nUV).rgb;    
     vec4 normal = texture(normalsTex, nUV);
+    meshDiffuse = normal.a;
+    meshSpecular = texture(worldPosTex, nUV).a;
+    meshRoughness = texture(meshDataTex, nUV).a;
     vec3 color1 = vec3(0);
     if(normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0){
         color1 = colorOriginal;
@@ -283,16 +292,16 @@ void main()
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.9, 0.1
-                ) * 0.028;
+                    meshRoughness, 0.1
+                ) * meshSpecular;
 
                 
                 float diffuseComponent = orenNayarDiffuse(
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.9, 0.1
-                ) * 2.47 ;
+                    meshRoughness, 0.1
+                ) * meshDiffuse ;
                 
                 percent = max(0, percent);
                 color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
@@ -303,7 +312,7 @@ void main()
             } else {
                 vec3 abc = LightsPos[i];
                 float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-                float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 3;
+                float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 1;
                 //att = 1;
                 if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
                 if(att < 0.002) continue;
@@ -319,16 +328,16 @@ void main()
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.9, 0.1
-                ) * 0.028;
+                    meshRoughness, 0.1
+                ) * meshSpecular;
 
                 
                 float diffuseComponent = orenNayarDiffuse(
                     normalize(lightRelativeToVPos),
                     normalize(cameraRelativeToVPos),
                     normal.xyz,
-                    0.9, 0.1
-                ) * 0.17 ;
+                    meshRoughness, 0.1
+                ) * meshDiffuse  ;
                 //diffuseComponent = max(0, log(3*dot(normalize(lightRelativeToVPos),  normal.xyz)))* 0.017 ;
                 //float diffuseComponent = 0;
                 
@@ -350,8 +359,54 @@ void main()
         }
         
     }
-    
+    #define RSMSamples 4
+    for(int i=0;i<LightsCount;i++){
+        mat4 lightPV = (LightsPs[i] * LightsVs[i]);
+        mat4 invlightPV = inverse(LightsPs[i] * LightsVs[i]);
+        vec3 centerpos = LightsPos[i];
+        for(int x=0;x<RSMSamples;x++){
+            for(int y=0;y<RSMSamples;y++){
+                vec2 scruv = vec2(float(x) / RSMSamples, float(y) /RSMSamples);
+                float ldep = lookupDepthFromLight(i, scruv);
+                scruv.y = 1.0 - scruv.y;
+                scruv = scruv * 2 - 1;
+                vec4 reconstructDir = invlightPV * vec4(scruv, 0.01, 1.0);
+                reconstructDir.xyz /= reconstructDir.w;
+                vec3 dir = normalize(
+                    reconstructDir.xyz - centerpos
+                );
+                
+                // not optimizable 
+                vec3 newpos = dir * reverseLog(ldep) + LightsPos[i];
+                float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
+                vec3 lightRelativeToVPos = newpos - fragmentPosWorld3d.xyz;
+                float att = 1.0 / pow(((distanceToLight * 1) + 1.0), 2.0) * 1;
+                
 
+                float specularComponent = cookTorranceSpecular(
+                    normalize(lightRelativeToVPos),
+                    normalize(cameraRelativeToVPos),
+                    normal.xyz,
+                    meshRoughness, 0.1
+                ) * meshSpecular;
+
+                
+                float diffuseComponent = orenNayarDiffuse(
+                    normalize(lightRelativeToVPos),
+                    normalize(cameraRelativeToVPos),
+                    normal.xyz,
+                    meshRoughness, 0.1
+                ) * meshDiffuse ;
+                
+                if(testVisibility3d(nUV, newpos, fragmentPosWorld3d.xyz)){
+                    color1 += ((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
+                    + (LightsColors[i].rgb * specularComponent))
+                    *att*8;
+                }                
+            }
+        }
+    }
+/*
     for(int i=0;i<SimpleLightsCount;i++){
         if(SimpleLightsColors[i].rgb != vec3(1)) continue;
         //vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(SimpleLightsPos[i], 1.0);
@@ -379,7 +434,7 @@ void main()
         }
     
         
-    }
+    }*/
     //color1 += lightPoints();
     //if(UV.x < 0.4 && UV.y < 0.4){
     //    color1 = vec3(length(texture(worldPosTex, UV*2.5).rgb - texture(//worldPosTexBack, UV*2.5).rgb) * 0.1);

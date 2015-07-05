@@ -629,7 +629,7 @@ vec3 DamnReflections()
 	
 		
 	}	
-	return (sampls == 0 ? closestColor : (speccolor / sampls));
+	return (sampls == 0 ? closestColor : (speccolor / sampls)) * reflectionStrength;
 }
 vec3 ball(vec3 colour, float sizec, float xc, float yc){
 	float xdist = (abs(UV.x - xc));

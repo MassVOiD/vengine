@@ -14,14 +14,14 @@ namespace ShadowsTester
     {
         public OldCityScene()
         {
-            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("houses.obj"), Media.Get("houses.mtl"), 1.3f);
+            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"), Media.Get("cryteksponza.mtl"), 0.03f);
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             foreach(var ob in scene)
             {
                 ob.SetMass(0);
                 //ob.SetCollisionShape(ob.MainObjectInfo.GetAccurateCollisionShape());
                 //ob.SpecularComponent = 0.1f;
-                ob.MainMaterial.ReflectionStrength = ob.MainMaterial.SpecularComponent;
+                //ob.MainMaterial.ReflectionStrength = ob.MainMaterial.SpecularComponent;
                 //ob.SetCollisionShape(ob.ObjectInfo.GetAccurateCollisionShape());
                // ob.Material = new SolidColorMaterial(new Vector4(1, 1, 1, 0.1f));
                 //(ob.MainMaterial as GenericMaterial).Type = GenericMaterial.MaterialType.WetDrops;
@@ -31,12 +31,12 @@ namespace ShadowsTester
             //var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);
             //foreach(var o in protagonist)
             //    Add(o);
-            
+            /*
            var fountainWaterObj = Object3dInfo.LoadFromObjSingle(Media.Get("turbinegun.obj"));
            var water = new Mesh3d(fountainWaterObj, new GenericMaterial(new Vector4(1, 1, 1, 1)));
            water.Transformation.Scale(1.0f);
            water.Translate(0, 10, 0);
-           Add(water);
+           Add(water);*/
 
            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
 
@@ -45,7 +45,7 @@ namespace ShadowsTester
            //color.SetBumpMapFromMedia("lightref.png");
            Mesh3d water2 = new Mesh3d(waterInfo, color);
            water2.SetMass(0);
-           water2.Translate(0, 0.3f, 0);
+           water2.Translate(0, 0.1f, 0);
            water2.MainMaterial.ReflectionStrength = 1;
            //water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
            Add(water2);

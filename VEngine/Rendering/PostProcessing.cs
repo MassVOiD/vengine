@@ -212,6 +212,7 @@ namespace VEngine
             DeferredShader.Use();
             MRT.UseTextureWorldPosition(30);
             MRT.UseTextureNormals(31);
+            MRT.UseTextureMeshData(33);
             BackMRT.UseTextureWorldPosition(32);
             LightPool.UseTextures(2);
             LightPool.MapSimpleLightsToShader(DeferredShader);

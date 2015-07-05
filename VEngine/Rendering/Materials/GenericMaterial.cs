@@ -8,9 +8,10 @@ namespace VEngine
     {
         public Texture Tex;
         public Vector4 Color;
-        public float SpecularSize = 1.0f, SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
+        public float SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
         public float ReflectionStrength = 0;
         public float RefractionStrength = 0;
+        public float Roughness = 0.5f;
 
         public bool CastShadows = true;
         public bool ReceiveShadows = true;
@@ -126,7 +127,7 @@ namespace VEngine
 
             prg.SetUniform("SpecularComponent", SpecularComponent);
             prg.SetUniform("DiffuseComponent", DiffuseComponent);
-            prg.SetUniform("SpecularSize", SpecularSize);
+            prg.SetUniform("Roughness", Roughness);
             prg.SetUniform("ReflectionStrength", ReflectionStrength);
             prg.SetUniform("RefractionStrength", RefractionStrength);
             prg.SetUniform("IgnoreLighting", IgnoreLighting);
