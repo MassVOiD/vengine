@@ -20,6 +20,9 @@ layout(binding = 8) uniform sampler2D normals;
 layout(binding = 9) uniform sampler2D worldPos;
 layout(binding = 10) uniform sampler2D lastworldPos;
 layout(binding = 11) uniform sampler2D meshData;
+layout(binding = 12) uniform sampler2D RSM;
+layout(binding = 13) uniform sampler2D SSReflections;
+layout(binding = 14) uniform sampler2D VDAOTex;
 
 float centerDepth;
 uniform float Brightness;
@@ -51,6 +54,25 @@ vec3 blurByUV(sampler2D sampler, vec2 fuv, float force){
             vec3 color = texture(sampler, fuv + gauss).rgb;
             outc += color;
             counter++;
+        }
+    }
+    return outc / counter;
+}
+vec3 blurByUV2(sampler2D sampler, vec2 fuv, float force){
+    vec3 outc = vec3(0);
+    int counter = 0;
+    float depthCenter = texture(depth, fuv).r;
+    for(float g = 0; g < mPI2; g+=GOLDEN_RATIO)
+    { 
+        for(float g2 = 0; g2 < 3.0; g2+=1.0)
+        { 
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001 * force);
+            vec3 color = texture(sampler, fuv + gauss).rgb;
+            float depthThere = texture(depth, fuv + gauss).r;
+            if(abs(depthThere - depthCenter) < 0.001){
+                outc += color;
+                counter++;
+            }
         }
     }
     return outc / counter;
@@ -591,7 +613,7 @@ vec3 DamnReflections()
 		if(coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1) break;
 		// Let's test visibility
 
-		vec3 c = texture(color, coord).rgb + texture(diffuseColor, coord).rgb*0.1;
+		vec3 c = texture(color, coord).rgb;
 		vec3 worldPosition = FromCameraSpace(texture(worldPos, coord).rgb);
 		vec3 lightRelativeToVPos = worldPosition - positionCenter;
 		vec3 R = reflect(cameraSpace, normalCenter.xyz);
@@ -606,18 +628,18 @@ vec3 DamnReflections()
                 for(float i=0;i<1.0;i+=0.1){
                     vec2 dir = (normalize(ssnormaldir) * i * 0.01);
                     coord = UV + (ssnormaldir * g) + dir;
-                    c = texture(color, coord).rgb + texture(diffuseColor, coord).rgb*0.1;
+                    c = texture(color, coord).rgb;
                     closestColor += c;   
                     
                     coord = UV + (ssnormaldir * g) - dir;
-                    c = texture(color, coord).rgb + texture(diffuseColor, coord).rgb*0.1;
+                    c = texture(color, coord).rgb;
 
                     closestColor += c;
                     coord = UV + (ssnormaldir * g) + dir.yx;
-                    c = texture(color, coord).rgb + texture(diffuseColor, coord).rgb*0.1;
+                    c = texture(color, coord).rgb;
                     closestColor += c;
                     coord = UV + (ssnormaldir * g) - dir.yx;
-                    c = texture(color, coord).rgb + texture(diffuseColor, coord).rgb*0.1;
+                    c = texture(color, coord).rgb;
                     closestColor += c;
                 }
 				//speccolor += blurByUV(color, clouv, distance(worldPosition, positionCenter));
@@ -679,6 +701,9 @@ void main()
     //if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
     //if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
     if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
+    
+    color1 += texture(VDAOTex, nUV ).rrr ;
+    
     centerDepth = texture(depth, UV).r;
     
     gl_FragDepth = centerDepth;
@@ -699,6 +724,8 @@ void main()
     color1.rgb = vec3(pow(color1.r, gamma.r),
     pow(color1.g, gamma.g),
     pow(color1.b, gamma.b));
-    if(UseLightPoints == 1) color1 += DamnReflections();
+    //if(UseLightPoints == 1) color1 += DamnReflections();
+    color1 += blurByUV2(RSM, UV, 3.0);
+    color1 += texture(SSReflections, nUV).rgb;
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

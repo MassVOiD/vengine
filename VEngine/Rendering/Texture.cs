@@ -33,7 +33,7 @@ namespace VEngine
         public bool UseNearestFilter = false;
         private byte[] Bitmap;
         private bool Generated;
-        private int Handle = -1;
+        public int Handle = -1;
         private Size Size;
 
         public static Texture FromText(string text, string font, float size, Color textColor, Color background)

@@ -10,71 +10,6 @@ layout (binding = 4, rgba16f) readonly uniform image2D colorTexLast;
 
 layout( local_size_x = 32, local_size_y = 32, local_size_z = 1 ) in;
 
-//uniform float Rand;
-/*
-#define mPI2 (2*3.14159265)
-bool testVisibilityEX(ivec2 uv1, ivec2 uv2) {
-    vec3 w1 = imageLoad(worldPosTex, uv1).rgb; 
-    vec3 w2 = imageLoad(worldPosTex, uv2).rgb;  
-    float d3d1 = length(w1);
-    float d3d2 = length(w2);
-    
-    for(float i=0;i<1.0;i+= 0.1) { 
-        vec2 ruv = mix(uv1, uv2, i);
-        ivec2 iruv = ivec2(int(ruv.x), int(ruv.y));
-        vec3 wd = imageLoad(worldPosTex, iruv).rgb; 
-        float rd3d = length(wd) + 0.01;
-        if(rd3d < mix(d3d1, d3d2, i)) {
-            return false;
-        }
-        //result = min(result, max(0, sign(rd3d - mix(d3d1, d3d2, i))));
-    }
-    return true;
-}
-float randEX(vec2 co){
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
-
-vec3 RadiosityEX() 
-{
-    vec2 txs = imageSize(colorTex);
-    ivec2 iUV = ivec2(
-        gl_GlobalInvocationID.x,
-        gl_GlobalInvocationID.y
-    );
-    vec3 giLight = vec3(0);
-    vec3 normalCenter = imageLoad(normalsTex, iUV).rgb;
-    vec3 posCenter = imageLoad(worldPosTex, iUV).rgb;
-    
-    float randomizer = 138.345341 * rand(iUV) + Rand;
-    //const float randomizer = 138.345341;
-    
-    const int samples = 64;
-    vec3 colorCenter = imageLoad(colorTex, iUV).rgb;
-    for(int i=0;i<samples;i++)
-    {
-        float rd = randomizer * float(i);
-        ivec2 coord = ivec2(
-            fract(rd) * txs.x, 
-            fract(rd*12.2562) * txs.y
-        );
-        vec3 normalC = imageLoad(normalsTex, coord).rgb;
-        vec3 color = imageLoad(colorTex, coord).rgb;
-        vec3 posC = imageLoad(worldPosTex, coord).rgb;
-        float diffuse =  max(0, dot(normalC, normalCenter));
-        if(diffuse == 0) continue;
-        float att = 1.0 / pow((distance(posC, posCenter) + 1.0), 2.0);
-        if(att < 0.02) continue;
-        if(testVisibility(iUV, coord))
-        {
-            giLight += color * diffuse * att;
-            imageStore(colorTexWR, coord, vec4(colorCenter * diffuse * att, 1));
-        }
-    }
-    return giLight / samples * 200;
-}*/
-
-//uniform mat4 PV;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrix;
 mat4 PV = (ProjectionMatrix * ViewMatrix);
@@ -82,18 +17,7 @@ uniform vec3 CameraPosition;
 uniform float HBAOContribution;
 uniform float Rand;
 
-vec3 FromCameraSpace(vec3 position){
-    return position - -CameraPosition;
-}
-vec2 projdir(vec3 start, vec3 end){
-	//vec3 dirPosition = start + end;
-	
-	vec4 clipspace = (PV) * vec4((start), 1.0);
-	vec2 sspace1 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
-	clipspace = (PV) * vec4((end), 1.0);
-	vec2 sspace2 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
-	return (sspace2 - sspace1);
-}
+#include UsefulIncludes.glsl
 
 ivec2 uvToIUv(vec2 uv){
     ivec2 size = imageSize(worldPosTex);
@@ -105,49 +29,41 @@ vec2 iuvToUv(ivec2 uv){
     //ivec2 size = ivec2(1366, 768);
     return vec2(float(uv.x) / float(size.x), float(uv.y) / float(size.y));
 }
-
-
-const float[9] binarysearch = float[9](0.5, 0.25, 0.75, 0.125, 0.875, 0.375, 0.625, 0.01, 0.98);
-const float[3] binarysearchSmart = float[3](0.5, 0.25, 0.75);
-
-ivec2 project(vec3 pos){
-	vec4 clipspace = (PV) * vec4((FromCameraSpace(pos)), 1.0);
-	return uvToIUv((clipspace.xyz / clipspace.w).xy * 0.5 + 0.5);
+float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, image2D sampler){
+    float ret = 0;
+    for(float i=0;i<1;i+=0.03) 
+        ret = max(mix(v1, v2, i) - length(imageLoad(worldPosTex, uvToIUv(mix(p1, p2, i))).rgb), ret);
+        
+    return ret;
 }
 
-bool testVisibilityEX(ivec2 uv1, ivec2 uv2, vec3 w1, vec3 w2) {
-    float d3d1 = length(w1);
-    float d3d2 = length(w2);
-    
-    for(int i=0; i<3; i++) { 
-        vec3 ruv = mix(w1, w2, binarysearchSmart[i]);
-        ivec2 iruv = project(ruv);
-        vec3 wd = imageLoad(worldPosTex, iruv).rgb; 
-        float rd3d = length(wd) + 0.001;
-        if(rd3d < mix(d3d1, d3d2, binarysearchSmart[i]) && mix(d3d1, d3d2, binarysearchSmart[i]) - rd3d < 1.001) {
-            return false;
-        }
-        //result = min(result, max(0, sign(rd3d - mix(d3d1, d3d2, i))));
-    }
-    return true;
+vec2 saturatev2(vec2 v){
+    return clamp(v, 0.0, 1.0);
 }
-bool testVisibility3d(ivec2 cuv, vec3 w1, vec3 w2) {
-    //vec3 direction = normalize(w2 - w1);
-    
-    float d3d1 = length(w1);
-    float d3d2 = length(w2);
-    ivec2 sdir = uvToIUv(projdir(FromCameraSpace(w1), FromCameraSpace(w2)));
-    for(int i=0; i<3; i++) { 
-        vec2 ruv = mix(cuv, cuv + sdir, binarysearchSmart[i]);
-        ivec2 iruv = ivec2(ruv); 
-        vec3 wd = imageLoad(worldPosTex, iruv).rgb; 
-        float rd3d = length(wd) + 0.001;
-        if(rd3d < mix(d3d1, d3d2, binarysearchSmart[i]) && mix(d3d1, d3d2, binarysearchSmart[i]) - rd3d < 1.001) {
-            return false;
-        }
-    }
-    return true;
+
+bool testVisibility3d2(vec3 w1, vec3 w2) {
+    vec4 clipspace = (PV) * vec4((w1), 1.0);
+    vec2 sspace1 = saturatev2((clipspace.xyz / clipspace.w).xy * 0.5 + 0.5);
+    vec4 clipspace2 = (PV) * vec4((w2), 1.0);
+    vec2 sspace2 = saturatev2((clipspace2.xyz / clipspace2.w).xy * 0.5 + 0.5);
+    float d3d1 = (length(ToCameraSpace(w1)));
+    float d3d2 = (length(ToCameraSpace(w2)));
+    float mx = (textureMaxFromLine(d3d1, d3d2, sspace1, sspace2, worldPosTex));
+    //float mx2 = (textureMaxFromLine(d3d1, d3d2, sspace1, sspace2, texDepth));
+
+    return mx == 0;
 }
+vec2 projdir(vec3 start, vec3 end){
+	//vec3 dirPosition = start + end;
+	
+	vec4 clipspace = (PV) * vec4((start), 1.0);
+	vec2 sspace1 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
+	clipspace = (PV) * vec4((end), 1.0);
+	vec2 sspace2 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
+	return (sspace2 - sspace1);
+}
+
+
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -192,7 +108,7 @@ float Radiosity()
         if(dotdiffuse == 0) { counter+=octaves;continue; }
         for(int div = 0;div < octaves; div++)
         {
-            if(testVisibility3d((iUV), posCenter, posCenter + displace))
+            if(testVisibility3d2(posCenter, posCenter + displace))
             {
                 ambient += ambientColor * dotdiffuse * weight;
             } else { counter += octaves - div; break; }

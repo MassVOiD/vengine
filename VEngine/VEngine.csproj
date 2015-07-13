@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="AMCParser.cs" />
     <Compile Include="Game\Water.cs" />
+    <Compile Include="PathTracing\PathTracer.cs" />
     <Compile Include="Rendering\AbsMesh.cs" />
     <Compile Include="Rendering\ArmatureAnimation.cs" />
     <Compile Include="Rendering\Camera.cs" />
@@ -100,6 +101,7 @@
     <Compile Include="Rendering\Lights\ProjectionLight.cs" />
     <Compile Include="Rendering\Framebuffer.cs" />
     <Compile Include="Rendering\TreeGenerator.cs" />
+    <Compile Include="Texture3D.cs" />
     <Compile Include="Utilities\Generators\MeshGenerator.cs" />
     <Compile Include="Utilities\Generators\Object3dGenerator.cs" />
     <Compile Include="Rendering\GLThread.cs" />

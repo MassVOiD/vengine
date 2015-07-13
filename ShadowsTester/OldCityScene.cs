@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using VEngine;
 using VEngine.Generators;
 using OpenTK;
+using VEngine.PathTracing;
 
 namespace ShadowsTester
 {
@@ -28,6 +29,8 @@ namespace ShadowsTester
                 //(ob.MainMaterial as GenericMaterial).BumpMap = null;
                 this.Add(ob);
             }
+            PathTracer tracer = new PathTracer();
+            tracer.PrepareTrianglesData(scene);
             //var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);
             //foreach(var o in protagonist)
             //    Add(o);
@@ -49,9 +52,17 @@ namespace ShadowsTester
            water2.MainMaterial.ReflectionStrength = 1;
            //water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
            Add(water2);
+           var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("apple.obj"));
+           dragon3dInfo.ScaleUV(0.1f);
+           var mat = GenericMaterial.FromMedia("skin.jpg");
+           var dragon = new Mesh3d(dragon3dInfo, mat);
+           //mat.Type = GenericMaterial.MaterialType.WetDrops;
+           //dragon.Scale(5);
+           dragon.SetMass(0);
+           dragon.SetCollisionShape(dragon3dInfo.GetAccurateCollisionShape());
+           Add(dragon);
             /*
             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
-
 
             var color = new GenericMaterial(Color.Green);
             color.SetBumpMapFromMedia("grassbump.png");
@@ -69,7 +80,7 @@ namespace ShadowsTester
             dragon.Scale(80);
             Add(dragon);
             */
-           
+
 
         }
 

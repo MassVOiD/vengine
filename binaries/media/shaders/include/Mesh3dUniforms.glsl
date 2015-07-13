@@ -46,6 +46,7 @@ uniform vec3 CameraDirection;
 uniform vec3 CameraTangentUp;
 uniform vec3 CameraTangentLeft;
 uniform float Time;
+uniform int FrameINT;
 
 uniform vec3 ColoredID;
 

@@ -131,6 +131,9 @@ namespace VEngine
             prg.SetUniform("ReflectionStrength", ReflectionStrength);
             prg.SetUniform("RefractionStrength", RefractionStrength);
             prg.SetUniform("IgnoreLighting", IgnoreLighting);
+           // prg.SetUniform("FrameINT", (int)PostProcessing.RandomIntFrame);
+
+         //   GL.BindImageTexture(22u, (uint)PostProcessing.FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
 
             return res;
         }

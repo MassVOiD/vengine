@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commons.cs" />
+    <Compile Include="PathTraceTest.cs" />
     <Compile Include="LucyScene.cs" />
     <Compile Include="HallScene.cs" />
     <Compile Include="CarScene.cs" />

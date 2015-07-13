@@ -105,7 +105,7 @@ namespace ShadowsTester
                 //ob.Translate(0, 10, 0);
                 //ob.MainObjectInfo.MakeDoubleFaced();
                 this.Add(ob);
-            }
+            }/*
             var meshEmit = Object3dInfo.LoadFromObjSingle(Media.Get("emitplane.obj"));
             var verts = meshEmit.GetOrderedVertices();
             foreach(var v in verts)
@@ -114,7 +114,7 @@ namespace ShadowsTester
                 LightPool.Add(light);
             }
             var emitter = new Mesh3d(meshEmit, new GenericMaterial(Color.White));
-            Add(emitter);
+            Add(emitter);*/
         }
 
     }

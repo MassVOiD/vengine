@@ -578,6 +578,18 @@ namespace VEngine
             }
             return ot;
         }
+        public List<Vector3> GetOrderedNormals()
+        {
+            var ot = new List<Vector3>();
+            for(int i = 0; i < Indices.Count; i++)
+            {
+                // for 1
+                int vboIndex1 = i * 8;
+                var pos1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                ot.Add(pos1);
+            }
+            return ot;
+        }
         public List<int> GetOrderedIndices()
         {
             var ot = new List<int>();

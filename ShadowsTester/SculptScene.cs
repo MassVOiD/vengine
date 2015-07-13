@@ -50,9 +50,9 @@ namespace ShadowsTester
             skymesh.MainMaterial.IgnoreLighting = true;
             Add(skymesh);
             
-            var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("desertcity.obj"));
+            var dragon3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("apple.obj"));
             dragon3dInfo.ScaleUV(0.1f);
-            var mat = new GenericMaterial(Color.WhiteSmoke);
+            var mat = GenericMaterial.FromMedia("skin.jpg");
             var dragon = new Mesh3d(dragon3dInfo, mat);
             //mat.Type = GenericMaterial.MaterialType.WetDrops;
             dragon.Translate(0, 0, 20);

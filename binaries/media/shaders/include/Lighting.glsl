@@ -60,7 +60,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	}
     if(counter == 0) return 0.0;
     float bbb = average/counter;
-	return clamp((distance2 - bbb) * 21, 0, 11) * 10;
+	return clamp((distance2 - bbb) * 21, 0, 11) * 1;
 }
 
 
@@ -91,7 +91,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	int counter = 0;
 	//distance1 = lookupDepthFromLight(i, uv);
     if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE){
-        float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
+        float distance3 = toLogDepth(distance2);
         fakeUV = uv;
         distance1 = lookupDepthFromLight(i, uv);
         float diff = (distance3 -  distance1);

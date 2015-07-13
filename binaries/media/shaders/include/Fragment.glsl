@@ -5,6 +5,9 @@ layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outWorldPos;
 layout(location = 2) out vec4 outNormals;
 layout(location = 3) out vec4 outMeshData;
+
+//layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
+
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
@@ -218,7 +221,10 @@ void finishFragment(vec4 color){
         normal.xyz
     )));
     vec3 tangentwspace = TBN * tangent;
-	outWorldPos = vec4(ToCameraSpace(wpos), SpecularComponent);     
+	outWorldPos = vec4(ToCameraSpace(wpos), SpecularComponent); 
+    
+    
+    
 	//if(IgnoreLighting == 0){
 		if(UseNormalMap == 1){
 			//normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);   
@@ -274,4 +280,10 @@ void finishFragment(vec4 color){
 	*/
 	outMeshData = vec4(ReflectionStrength, RefractionStrength, color.a, Roughness);
 	updateDepth();
+    // lets do it, from -32 to 32
+    /*vec3 normalized = (wpos)  *3;
+    normalized = clamp(normalized, -32, 32);
+    normalized = normalized + 32;
+    ivec3 imgcoord = ivec3(int(normalized.x), int(normalized.y), int(normalized.z));
+    imageStore(full3dScene, imgcoord, uvec4(FrameINT, 0, 0, 0));*/
 }
