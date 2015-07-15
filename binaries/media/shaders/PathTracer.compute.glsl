@@ -48,6 +48,8 @@ vec3 baryCentricMix(vec3 t1, vec3 t2, vec3 t3, vec3 barycentric){
     vec3(barycentric.z) * t3;
 }
 
+//IntersectionData currentHitData = emptyIntersection;
+
 IntersectionData triangleIntersection(Triangle triangle, vec3 origin, vec3 direction){
     vec3 e0 = triangle.vertices[1].Position.xyz - triangle.vertices[0].Position.xyz;
 	vec3 e1 = triangle.vertices[2].Position.xyz - triangle.vertices[0].Position.xyz;
@@ -55,28 +57,15 @@ IntersectionData triangleIntersection(Triangle triangle, vec3 origin, vec3 direc
 	vec3  h = cross(direction, e1);
 	float a = dot(e0, h);
     
-
-	 if(a > -EPSILON && a < EPSILON) 
-		return emptyIntersection;
-
 	float f = 1.0 / a;
 
 	vec3  s = origin - triangle.vertices[0].Position.xyz;
 	float u = f * dot(s, h);
 
-	if(u < 0.0 || u > 1.0)
-		return emptyIntersection;
-
 	vec3  q = cross(s, e0);
 	float v = f * dot(direction, q);
 
-	if(v < 0.0 || u + v > 1.0)
-		return emptyIntersection;
-
 	float t = f * dot(e1, q);
-
-	if (t < EPSILON)
-		return emptyIntersection;
         
     vec3 center = mix(mix(triangle.vertices[0].Position.xyz, triangle.vertices[1].Position.xyz, 0.5), triangle.vertices[2].Position.xyz, 0.5);
 
@@ -95,16 +84,19 @@ IntersectionData triangleIntersection(Triangle triangle, vec3 origin, vec3 direc
     vec3 c3 = triangle.vertices[2].Albedo.xyz;
     vec3 incidentColor = triangle.vertices[0].Albedo.xyz;
     
-    
-	if(t > 0.0 && t < INFINITY){
-        return IntersectionData(
-            reflect(direction, incidentNormal),
-            incidentPosition,
-            incidentColor,
-            distance(origin, incidentPosition),
-            true
-        );
-    }
+
+    return IntersectionData(
+        reflect(direction, incidentNormal),
+        incidentPosition,
+        incidentColor,
+        distance(origin, incidentPosition),
+        t > 0.0 && t < INFINITY && 
+       // (a <= -EPSILON || a >= EPSILON) && 
+        u >= 0.0 && u <= 1.0 && 
+        v >= 0.0 && u + v <= 1.0 && 
+        t >= EPSILON
+    );
+
 }
 
 vec3 determineDirectionFromCamera(vec2 UV){
@@ -124,17 +116,6 @@ vec2 iuvToUv(ivec2 uv){
     return vec2(float(uv.x) / float(size.x), float(uv.y) / float(size.y));
 }
 
-vec3 PathTrace2(vec3 origin, vec3 direction){
-    IntersectionData bestCandidate = emptyIntersection;
-    for(int i=0; i < TrianglesCount; i++){
-        IntersectionData inter = triangleIntersection(Triangles[i], origin, direction);
-        if(inter.HasHit && inter.Distance <= bestCandidate.Distance){
-            bestCandidate = inter;
-        }
-    }
-    return bestCandidate.HasHit ? vec3(bestCandidate.Distance * 0.1) : vec3(1,0,0);
-}
-
 float CalculateFallof(float dist){
     return 1.0 / pow(((dist) + 1.0), 2.0);
 }
@@ -143,44 +124,55 @@ float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
+float randomizer = 0;
+void Seed(vec2 seeder){
+    randomizer += 138.345341 * (rand(iuvToUv(iUV)) + rand(seeder)) * Rand;
+}
+
 vec3 random3dSample(){
-    float randomizer = 138.345341 * rand(iuvToUv(iUV)) * Rand;
-    return vec3(
+    return normalize(vec3(
         fract(randomizer) * 2 - 1, 
         fract(randomizer*12.2562) * 2 - 1, 
         fract(randomizer*7.121214) * 2 - 1
-    );
+    ));
 }
 
 vec3 PathTrace(vec3 origin, vec3 direction){
     vec3 accumulator = vec3(0);
     vec3 accumulator1 = vec3(0);
     vec3 lastIncidentColor = vec3(1);
-    for(int i=0;i<16;i++){
+    for(int i=0;i<3;i++){
         IntersectionData bestCandidate = emptyIntersection;
         for(int i=0; i < TrianglesCount; i++){
-            IntersectionData inter = triangleIntersection(Triangles[i], origin, direction);
-            if(inter.HasHit && inter.Distance <= bestCandidate.Distance){
-                bestCandidate = inter;
+            IntersectionData currentHitData = triangleIntersection(Triangles[i], origin, direction);
+            if(currentHitData.HasHit && currentHitData.Distance <= bestCandidate.Distance){
+                bestCandidate = currentHitData;
             }
         }
         if(bestCandidate.HasHit){
             vec3 incidentColor = bestCandidate.Color;
            // if(bestCandidate.Color == vec3(1)){
-                accumulator += bestCandidate.Color*50 * CalculateFallof(bestCandidate.Distance)*7;
+                accumulator += bestCandidate.Color;
            // }
-        }
+        }// else break;
         
         //lastIncidentColor *= bestCandidate.Color;
         origin = bestCandidate.Origin;
         if(i == 0)accumulator1 = bestCandidate.Color;
+        Seed(bestCandidate.NewDirection.xy);
         direction = random3dSample();//bestCandidate.NewDirection;
-        //direction *= sign(dot(direction, bestCandidate.NewDirection));
-        direction = normalize((bestCandidate.NewDirection));
+        direction *= sign(dot(direction, bestCandidate.NewDirection));
+        //direction = normalize((bestCandidate.NewDirection));
         //if(!bestCandidate.HasHit) break;
     }
     
-    return (accumulator);
+    return (accumulator) * accumulator1 * 21;
+}
+
+vec3 buff(vec3 newcolor){
+    vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;
+    //return length(newcolor) > length(lastResult) ? newcolor : lastResult;
+    return (lastResult * 4 + newcolor) / 5;
 }
 
 void main(){
@@ -189,9 +181,12 @@ void main(){
         gl_GlobalInvocationID.y
     );
     vec3 direction = determineDirectionFromCamera(iuvToUv(iUV));
-    vec3 color = PathTrace(CameraPosition, direction);
-    vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;
-    //color = (lastResult * 10 + color) / 11;
-    color *= 1.09;
+    vec3 color = vec3(0);
+    for(int i=0;i<3;i++){
+        color += PathTrace(CameraPosition, direction);
+    }
+    //vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;
+    color = buff(color)*1;
+    //color *= 1.09;
     imageStore(outImage, iUV, vec4(color, 1));
 }

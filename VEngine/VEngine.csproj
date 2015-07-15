@@ -77,6 +77,7 @@
     <Compile Include="AMCParser.cs" />
     <Compile Include="Game\Water.cs" />
     <Compile Include="PathTracing\PathTracer.cs" />
+    <Compile Include="PathTracing\SceneOctalTree.cs" />
     <Compile Include="Rendering\AbsMesh.cs" />
     <Compile Include="Rendering\ArmatureAnimation.cs" />
     <Compile Include="Rendering\Camera.cs" />

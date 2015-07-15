@@ -8,6 +8,25 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine.PathTracing
 {
+    public class Vertex
+    {
+        public Vector3 Position, Normal, Albedo;
+        public void Tranform(Matrix4 matrix)
+        {
+            Position = Vector4.Transform(new Vector4(Position, 1.0f), matrix).Xyz;
+            Normal = Vector3.Transform(Normal, matrix.ExtractRotation(true));
+        }
+    }
+
+    public class Triangle
+    {
+        public Triangle()
+        {
+            Vertices = new List<Vertex>();
+        }
+        public List<Vertex> Vertices;
+    }
+
     public class PathTracer
     {
         ShaderStorageBuffer MeshDataSSBO;
@@ -17,24 +36,7 @@ namespace VEngine.PathTracing
         {
             TracerShader = new ComputeShader("PathTracer.compute.glsl");
         }
-        class Vertex
-        {
-            public Vector3 Position, Normal, Albedo;
-            public void Tranform(Matrix4 matrix)
-            {
-                Position = Vector4.Transform(new Vector4(Position, 1.0f), matrix).Xyz;
-                Normal = Vector3.Transform(Normal, matrix.ExtractRotation(true));
-            }
-        }
-
-        class Triangle
-        {
-            public Triangle()
-            {
-                Vertices = new List<Vertex>();
-            }
-            public List<Vertex> Vertices;
-        }
+        
         private Random Rand = new Random();
         public void PathTraceToImage(int imageHandle, int lastBuffer, int Width, int Height)
         {
@@ -75,6 +77,8 @@ namespace VEngine.PathTracing
                     }
                 }
             }
+            SceneOctalTree tree = new SceneOctalTree();
+            tree.CreateFromTriangleList(triangles);
             TriangleCount = triangles.Count;
             // lets prepare byte array
             // layout

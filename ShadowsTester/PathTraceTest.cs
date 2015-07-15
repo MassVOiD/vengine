@@ -25,12 +25,12 @@ namespace ShadowsTester
             List<Mesh3d> meshes = new List<Mesh3d>();
             List<GenericMaterial> mats = new List<GenericMaterial>
             {
-                new GenericMaterial(new Vector4(1.0f, 1.0f, 1.0f, 1.0f)),
                 new GenericMaterial(new Vector4(0.1f, 0, 0, 1.0f)),
+                new GenericMaterial(new Vector4(1.0f, 1.0f, 1.0f, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0.1f, 0, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
-                new GenericMaterial(new Vector4(1.0f, 1.0f, 1.0f, 1.0f)),
-                new GenericMaterial(new Vector4(1.0f, 1.0f, 1.0f, 1.0f))
+                new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
             };
             int ix = 0;
             foreach(var sd in skydomeInfo)
