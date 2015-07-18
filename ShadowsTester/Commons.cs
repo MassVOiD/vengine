@@ -10,7 +10,7 @@ namespace ShadowsTester
 {
     class Commons
     {
-        static FreeCamera FreeCam;
+        public static FreeCamera FreeCam;
         static ProjectionLight RedLight;
         public static FreeCamera SetUpFreeCamera()
         {

@@ -30,7 +30,11 @@ namespace VEngine.PathTracing
     public class PathTracer
     {
         ShaderStorageBuffer MeshDataSSBO;
+        ShaderStorageBuffer RandomsSSBO;
+        ShaderStorageBuffer TrianglesStream;
+        ShaderStorageBuffer OctreeBoxes;
         int TriangleCount;
+        int BoxesCount;
         ComputeShader TracerShader;
         public PathTracer()
         {
@@ -42,6 +46,11 @@ namespace VEngine.PathTracing
         {
             TracerShader.Use();
             MeshDataSSBO.Use(0);
+            RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(32, 32 * 32 * 32, true).ToArray());
+            TracerShader.SetUniform("RandomsCount", 32 * 32 * 32);
+            RandomsSSBO.Use(6);
+            TrianglesStream.Use(1);
+            OctreeBoxes.Use(2);
             GL.BindImageTexture(0, imageHandle, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba16f);
             GL.BindImageTexture(1, lastBuffer, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
             TracerShader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
@@ -49,6 +58,7 @@ namespace VEngine.PathTracing
             TracerShader.SetUniform("ProjectionMatrix", Camera.MainDisplayCamera.ProjectionMatrix);
             TracerShader.SetUniform("Rand", (float)Rand.NextDouble());
             TracerShader.SetUniform("TrianglesCount", TriangleCount);
+            TracerShader.SetUniform("TotalBoxesCount", BoxesCount);
             TracerShader.Dispatch(Width / 32 + 1, Height / 32 + 1);
         }
 
@@ -78,7 +88,9 @@ namespace VEngine.PathTracing
                 }
             }
             SceneOctalTree tree = new SceneOctalTree();
-            tree.CreateFromTriangleList(triangles);
+            Triangle[] trcopy = new Triangle[triangles.Count];
+            triangles.CopyTo(trcopy);
+            tree.CreateFromTriangleList(trcopy.ToList());
             TriangleCount = triangles.Count;
             // lets prepare byte array
             // layout
@@ -105,7 +117,15 @@ namespace VEngine.PathTracing
                 }
             }
             MeshDataSSBO = new ShaderStorageBuffer();
-            GLThread.Invoke(() => MeshDataSSBO.MapData(bytes.ToArray()));
+            TrianglesStream = new ShaderStorageBuffer();
+            OctreeBoxes = new ShaderStorageBuffer();
+            GLThread.Invoke(() =>
+            {
+                MeshDataSSBO.MapData(bytes.ToArray());
+                tree.PopulateSSBOs(TrianglesStream, OctreeBoxes);
+                BoxesCount = tree.TotalBoxesCount;
+            });
+            RandomsSSBO = new ShaderStorageBuffer();
         }
     }
 }

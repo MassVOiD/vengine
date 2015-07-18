@@ -298,7 +298,7 @@ namespace VEngine
         private void HDR(long time)
         {
             string lastTimeSTR = time.ToString();
-            Console.WriteLine(time);
+            //Console.WriteLine(time);
             int[] nums = lastTimeSTR.ToCharArray().Select<char, int>((a) => a - 48).ToArray();
             HDRShader.Use();
             CombinerShader.SetUniform("UseBloom", GLThread.GraphicsSettings.UseBloom);

@@ -26,7 +26,7 @@ namespace ShadowsTester
             List<GenericMaterial> mats = new List<GenericMaterial>
             {
                 new GenericMaterial(new Vector4(0.1f, 0, 0, 1.0f)),
-                new GenericMaterial(new Vector4(1.0f, 1.0f, 1.0f, 1.0f)),
+                new GenericMaterial(new Vector4(10.0f, 10.0f, 10.0f, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0.1f, 0, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
@@ -41,6 +41,8 @@ namespace ShadowsTester
             }
             Tracer = new PathTracer();
             Tracer.PrepareTrianglesData(meshes);
+            Commons.FreeCam.Cam.SetPosition(10, 5, 10);
+            Commons.FreeCam.Cam.LookAt(new Vector3(0, 0, 0));
             PostProcessing.Tracer = Tracer;
         }
     }
