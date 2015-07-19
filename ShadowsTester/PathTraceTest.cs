@@ -26,11 +26,11 @@ namespace ShadowsTester
             List<GenericMaterial> mats = new List<GenericMaterial>
             {
                 new GenericMaterial(new Vector4(0.1f, 0, 0, 1.0f)),
-                new GenericMaterial(new Vector4(10.0f, 10.0f, 10.0f, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0.1f, 0, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
                 new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(10.0f, 10.0f, 10.0f, 1.0f)),
             };
             int ix = 0;
             foreach(var sd in skydomeInfo)
@@ -41,6 +41,10 @@ namespace ShadowsTester
             }
             Tracer = new PathTracer();
             Tracer.PrepareTrianglesData(meshes);
+
+            PointLight pd = new PointLight(new Vector3(3, 10, 3), new Vector3(1, 1, 1), 0.2f, 16);
+            Tracer.SetLights(new List<PointLight> { pd });
+
             Commons.FreeCam.Cam.SetPosition(10, 5, 10);
             Commons.FreeCam.Cam.LookAt(new Vector3(0, 0, 0));
             PostProcessing.Tracer = Tracer;

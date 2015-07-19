@@ -46,6 +46,17 @@ layout (std430, binding = 6) buffer RandomsBuffer
   float Randoms[]; 
 }; 
 
+struct PointLight
+{
+    vec4 PositionAndRadius;
+    vec4 ColorAndSamples;
+};
+uniform int LightsCount;
+layout (std430, binding = 7) buffer LightssBuffer
+{
+  PointLight PointLights[]; 
+}; 
+
 uniform int TrianglesCount;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ViewMatrix;
@@ -122,6 +133,8 @@ uniform int TotalBoxesCount;
 IntersectionData getIntersectionOctree(vec3 origin, vec3 direction){
     int boxCursor = 0;
     IntersectionData bestCandidate = emptyIntersection;
+    int foundID = -1;
+    float bestDistance = INFINITY;
     for(int i=0;i<TotalBoxesCount;i++){
         /*if(i==8 && OctreeBoxes[boxCursor].Parent != -1){
             boxCursor = OctreeBoxes[boxCursor].Parent;
@@ -132,14 +145,15 @@ IntersectionData getIntersectionOctree(vec3 origin, vec3 direction){
         //OctreeBox box = OctreeBoxes[OctreeBoxes[boxCursor].Children[i]];
         OctreeBox box = OctreeBoxes[i];
         
-        if(box.TriangleCount > 0 && tryIntersectBox(origin, direction, box.CenterAndRadius.xyz, box.CenterAndRadius.w)){
+        if(tryIntersectBox(origin, direction, box.CenterAndRadius.xyz, box.CenterAndRadius.w)){
             int istart = box.TriangleContainerIndex;
             int iend = istart + box.TriangleCount;
             for(int xx = istart; xx < iend; xx++){
-                IntersectionData currentHitData = triangleIntersection(Triangles[TriangleContainersStream[xx]], origin, direction);
+                float currentDistance = triangleIntersectionDistance(Triangles[TriangleContainersStream[xx]], origin, direction);
                 
-                if(currentHitData.HasHit && currentHitData.Distance <= bestCandidate.Distance){
-                    bestCandidate = currentHitData;
+                if(currentDistance >= 0 && currentDistance <= bestDistance){
+                    bestDistance = currentDistance;
+                    foundID = TriangleContainersStream[xx];
                 }
             }
             /*IntersectionData currentHitData = IntersectionData(
@@ -155,38 +169,85 @@ IntersectionData getIntersectionOctree(vec3 origin, vec3 direction){
             }*/
         }
     }
-    return bestCandidate;
+    return foundID != -1 ? triangleIntersection(Triangles[foundID], origin, direction) : emptyIntersection;
+}
+IntersectionData getIntersectionRaw(vec3 origin, vec3 direction){
+    int boxCursor = 0;
+    IntersectionData bestCandidate = emptyIntersection;
+    int foundID = -1;
+    float bestDistance = INFINITY;
+    for(int xx = 0; xx < TrianglesCount; xx++){
+        float currentDistance = triangleIntersectionDistance(Triangles[xx], origin, direction);
+        
+        if(currentDistance >= 0 && currentDistance <= bestDistance){
+            bestDistance = currentDistance;
+            foundID = xx;
+        }
+    }
+    return foundID != -1 ? triangleIntersection(Triangles[foundID], origin, direction) : emptyIntersection;
+}
+
+vec3 RandomlyDisplace(vec3 center, float radius){
+    return center + (random3dSample() * radius);
+}
+
+vec3 TraceShadows(vec3 origin, vec3 normal){
+    vec3 accumulatorTotal = vec3(0);
+    for(int i=0;i<LightsCount;i++){
+        vec3 accumulator = vec3(0);
+        float att = CalculateFallof(distance(origin, PointLights[i].PositionAndRadius.xyz));
+        for(int s=0;s<int(PointLights[i].ColorAndSamples.w);s++){
+            vec3 lpos = RandomlyDisplace(PointLights[i].PositionAndRadius.xyz, PointLights[i].PositionAndRadius.w);
+            vec3 direction = normalize(lpos - origin);
+            IntersectionData bestCandidate = getIntersectionOctree(origin, direction);
+            if( bestCandidate.Distance >= distance(lpos, origin)){
+                accumulator += PointLights[i].ColorAndSamples.rgb * max(0,dot(direction, normal)) * att * 10;
+            }
+        }
+        accumulatorTotal += accumulator / PointLights[i].ColorAndSamples.w;
+    }
+    return accumulatorTotal;
 }
 
 vec3 PathTrace(vec3 origin, vec3 direction){
     vec3 accumulator = vec3(0);
     vec3 accumulator1 = vec3(0);
     vec3 lastIncidentColor = vec3(1);
-    for(int i=0;i<1;i++){
+    float totalDistance = 0;
+    vec3 raycolor = vec3(2);
+    for(int i=0;i<3;i++){
         IntersectionData bestCandidate = getIntersectionOctree(origin, direction);
         if(bestCandidate.HasHit){
+            if(i > 0)totalDistance += bestCandidate.Distance;
             vec3 incidentColor = bestCandidate.Color;
+           // raycolor *= 0.5;
             if(length(bestCandidate.Color) > length(vec3(1))){
-                if(i > 0)accumulator += bestCandidate.Color*5 * CalculateFallof(bestCandidate.Distance) * max(0,dot(-direction, bestCandidate.Normal)); 
+                if(i > 0)accumulator += CalculateFallof(totalDistance) * max(0,dot(-direction, bestCandidate.Normal)) / i; 
                 else accumulator += incidentColor;
                 //accumulator += incidentColor * max(0,dot(vec3(0,1,0), bestCandidate.Normal));
+                break;
+            } else {
+                incidentColor = TraceShadows(bestCandidate.Origin, bestCandidate.Normal);
+                if(i > 0)accumulator += CalculateFallof(totalDistance + 5.0) * max(0,dot(-direction, bestCandidate.Normal)) / i; 
             }
-        } else if(i == 0)accumulator += vec3(1,0,0);
+        } else break;
         
         //lastIncidentColor *= bestCandidate.Color;
-        if(i == 0)origin = bestCandidate.Origin;
+        origin = bestCandidate.Origin;
         if(i == 0)accumulator1 = bestCandidate.Color;
         //Seed(bestCandidate.NewDirection.xy);
         direction = random3dSample();// + bestCandidate.NewDirection;
         direction *= sign(dot(direction, bestCandidate.Normal));
-        if(i == 2)direction = mix(direction, bestCandidate.NewDirection, 0.8);
+        //direction = mix(direction, bestCandidate.NewDirection, 0.8);
         //direction = normalize(direction);
         //if(!bestCandidate.HasHit) break;
+        if(i==0)accumulator += TraceShadows(origin, bestCandidate.Normal);
     }
     
-    //return (accumulator*3) * accumulator1;
-    return accumulator1;
+    return (accumulator*raycolor) ;// * accumulator1;
+    //return accumulator1;
 }
+
 
 vec3 buff(vec3 newcolor){
     vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;
@@ -199,18 +260,19 @@ void main(){
         gl_GlobalInvocationID.x,
         gl_GlobalInvocationID.y
     );
-    randsPointer = int((gl_GlobalInvocationID.x + gl_GlobalInvocationID.y*gl_WorkGroupID.x * gl_WorkGroupSize.x)) % RandomsCount;
+    randsPointer = int((gl_GlobalInvocationID.x + (gl_GlobalInvocationID.y + 1)*(gl_WorkGroupID.y + 1) * gl_WorkGroupSize.y)) % RandomsCount;
     vec3 direction = determineDirectionFromCamera(iuvToUv(iUV));
     vec3 color = vec3(0);
     for(int i=0;i<1;i++){
         color += PathTrace(CameraPosition, direction);
     }
+    color *= 2.3;
     //vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;    
     vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
     color.rgb = vec3(pow(color.r, gamma.r),
     pow(color.g, gamma.g),
     pow(color.b, gamma.b));
-    //color = buff(color * 1.2)*1;
+    color = buff(color)*1;
     //color *= 1.09;
     imageStore(outImage, iUV, vec4(color, 1));
 }

@@ -35,6 +35,7 @@ namespace VEngine
             ScreenSpaceNormalsWriterShader,
             RSMShader,
             VDAOShader,
+            PathTracerOutputShader,
             SSReflectionsShader;
 
         private Framebuffer
@@ -132,6 +133,7 @@ namespace VEngine
             BlitShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Blit.fragment.glsl");
             DeferredShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Deferred.fragment.glsl");
             CombinerShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Combiner.fragment.glsl");
+            PathTracerOutputShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Output.fragment.glsl");
             GlobalIlluminationShaderX = ShaderProgram.Compile("PostProcess.vertex.glsl", "GlobalIllumination.fragment.glsl");
             GlobalIlluminationShaderX.SetGlobal("SEED", "gl_FragCoord.x");
             GlobalIlluminationShaderY = ShaderProgram.Compile("PostProcess.vertex.glsl", "GlobalIllumination.fragment.glsl");
@@ -380,7 +382,10 @@ namespace VEngine
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
                 SwitchToFB0();
                 MRT.UseTextureWorldPosition(0);
-                Blit();
+                PathTracerOutputShader.Use();
+                ShaderProgram.Lock = true;
+                PostProcessingMesh.Draw();
+                ShaderProgram.Lock = false;
                 SwitchToFB(VDAOFramebuffer);// not really related
                 MRT.UseTextureWorldPosition(0);
                 Blit();

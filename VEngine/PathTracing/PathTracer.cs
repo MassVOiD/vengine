@@ -27,18 +27,54 @@ namespace VEngine.PathTracing
         public List<Vertex> Vertices;
     }
 
+    public class PointLight
+    {
+        public Vector3 Position;
+        public Vector3 Color;
+        public float Radius;
+        public int Samples;
+        public PointLight(Vector3 position, Vector3 color, float radius, int samples)
+        {
+            Position = position;
+            Color = color;
+            Radius = radius;
+            Samples = samples;
+        }
+    }
+
     public class PathTracer
     {
         ShaderStorageBuffer MeshDataSSBO;
         ShaderStorageBuffer RandomsSSBO;
         ShaderStorageBuffer TrianglesStream;
         ShaderStorageBuffer OctreeBoxes;
-        int TriangleCount;
-        int BoxesCount;
+        ShaderStorageBuffer LightsSSBO;
+        int TriangleCount = 0;
+        int BoxesCount = 0;
+        int LightsCount = 0;
         ComputeShader TracerShader;
         public PathTracer()
         {
             TracerShader = new ComputeShader("PathTracer.compute.glsl");
+            LightsSSBO = new ShaderStorageBuffer();
+        }
+
+        public void SetLights(List<PointLight> lights)
+        {
+            LightsCount = lights.Count;
+            List<byte> bytes = new List<byte>();
+            foreach(var l in lights)
+            {
+                bytes.AddRange(BitConverter.GetBytes(l.Position.X));
+                bytes.AddRange(BitConverter.GetBytes(l.Position.Y));
+                bytes.AddRange(BitConverter.GetBytes(l.Position.Z));
+                bytes.AddRange(BitConverter.GetBytes(l.Radius));
+                bytes.AddRange(BitConverter.GetBytes(l.Color.X));
+                bytes.AddRange(BitConverter.GetBytes(l.Color.Y));
+                bytes.AddRange(BitConverter.GetBytes(l.Color.Z));
+                bytes.AddRange(BitConverter.GetBytes((float)l.Samples));
+            }
+            GLThread.Invoke(() => LightsSSBO.MapData(bytes.ToArray()));
         }
         
         private Random Rand = new Random();
@@ -49,6 +85,7 @@ namespace VEngine.PathTracing
             RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(32, 32 * 32 * 32, true).ToArray());
             TracerShader.SetUniform("RandomsCount", 32 * 32 * 32);
             RandomsSSBO.Use(6);
+            LightsSSBO.Use(7);
             TrianglesStream.Use(1);
             OctreeBoxes.Use(2);
             GL.BindImageTexture(0, imageHandle, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba16f);
@@ -59,6 +96,7 @@ namespace VEngine.PathTracing
             TracerShader.SetUniform("Rand", (float)Rand.NextDouble());
             TracerShader.SetUniform("TrianglesCount", TriangleCount);
             TracerShader.SetUniform("TotalBoxesCount", BoxesCount);
+            TracerShader.SetUniform("LightsCount", LightsCount);
             TracerShader.Dispatch(Width / 32 + 1, Height / 32 + 1);
         }
 

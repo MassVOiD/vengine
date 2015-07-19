@@ -12,7 +12,34 @@ bool tryIntersectBox(vec3 origin, vec3 direction,
     vec3 t2 = max(tMin, tMax);
     float tNear = max(max(t1.x, t1.y), t1.z);
     float tFar = min(min(t2.x, t2.y), t2.z);
-    return tFar > tNear && tNear > - radius;
+    return tFar > tNear && tNear > - radius*2;
+}
+
+float triangleIntersectionDistance(Triangle triangle, vec3 origin, vec3 direction){
+    vec3 e0 = triangle.vertices[1].Position.xyz - triangle.vertices[0].Position.xyz;
+	vec3 e1 = triangle.vertices[2].Position.xyz - triangle.vertices[0].Position.xyz;
+
+	vec3  h = cross(direction, e1);
+	float a = dot(e0, h);
+    
+	float f = 1.0 / a;
+
+	vec3  s = origin - triangle.vertices[0].Position.xyz;
+	float u = f * dot(s, h);
+
+	vec3  q = cross(s, e0);
+	float v = f * dot(direction, q);
+
+	float t = f * dot(e1, q);
+            
+    vec3 incidentPosition = triangle.vertices[0].Position.xyz+(triangle.vertices[1].Position.xyz-triangle.vertices[0].Position.xyz)*u+(triangle.vertices[2].Position.xyz-triangle.vertices[0].Position.xyz)*v;
+
+    return t > 0.0 && t < INFINITY && 
+       // (a <= -EPSILON || a >= EPSILON) && 
+        u >= 0.0 && u <= 1.0 && 
+        v >= 0.0 && u + v <= 1.0 && 
+        t >= EPSILON ? distance(origin, incidentPosition) : -1;
+
 }
 
 IntersectionData triangleIntersection(Triangle triangle, vec3 origin, vec3 direction){
