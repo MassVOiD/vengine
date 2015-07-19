@@ -10,7 +10,7 @@ namespace VEngine.PathTracing
 {
     class SceneOctalTree
     {
-        private const int MAX_LEAF_TRIANGLES = 150;
+        private const int MAX_LEAF_TRIANGLES = 8;
 
         // debugging
         public static int TotalNodes = 0;

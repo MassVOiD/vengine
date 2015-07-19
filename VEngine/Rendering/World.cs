@@ -116,9 +116,9 @@ namespace VEngine
             }
             if(!ignoreMeshWithDisabledDepthTest)
             {
-                GL.Enable(EnableCap.Blend);
-                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-                GL.BlendEquation(BlendEquationMode.FuncAdd);
+               // GL.Enable(EnableCap.Blend);
+               // GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+               // GL.BlendEquation(BlendEquationMode.FuncAdd);
                // GL.CullFace(CullFaceMode.Front);
                 for(int i = 0; i < Children.Count; i++)
                 {
@@ -130,7 +130,7 @@ namespace VEngine
                             ((InstancedMesh3d)Children[i]).Draw(ignoreDisableDepthWriteFlag);
                     }
                 }
-                GL.Disable(EnableCap.Blend);
+               // GL.Disable(EnableCap.Blend);
                // GL.CullFace(CullFaceMode.Back);
             }
         }

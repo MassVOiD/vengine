@@ -221,7 +221,7 @@ void finishFragment(vec4 color){
         normal.xyz
     )));
     vec3 tangentwspace = TBN * tangent;
-	outWorldPos = vec4(ToCameraSpace(wpos), SpecularComponent); 
+	outWorldPos = vec4((wpos), SpecularComponent); 
     
     
     

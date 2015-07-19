@@ -21,26 +21,32 @@ namespace ShadowsTester
         public PathTraceTest()
         {
             Object3dInfo[] skydomeInfo = Object3dInfo.LoadFromObj(Media.Get("ptracetest.obj"));
-            //var sponza = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"), Media.Get("cryteksponza.mtl"), 0.03f);
+           // var sponza = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"), Media.Get("cryteksponza.mtl"), 0.03f);
             List<Mesh3d> meshes = new List<Mesh3d>();
             List<GenericMaterial> mats = new List<GenericMaterial>
             {
+                new GenericMaterial(new Vector4(10.0f, 10.0f, 10.0f, 1.0f)),
                 new GenericMaterial(new Vector4(0.1f, 0, 0, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0.1f, 0, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
                 new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
                 new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
-                new GenericMaterial(new Vector4(10.0f, 10.0f, 10.0f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
             };
             int ix = 0;
             foreach(var sd in skydomeInfo)
             {
-                var skydomeMaterial = mats[ix++];
+                var skydomeMaterial = mats[ix++ % mats.Count];
                 var skydome = new Mesh3d(sd, skydomeMaterial);
                 meshes.Add(skydome);
             }
             Tracer = new PathTracer();
             Tracer.PrepareTrianglesData(meshes);
+            foreach(var m in meshes)
+                Add(m);
 
             PointLight pd = new PointLight(new Vector3(3, 10, 3), new Vector3(1, 1, 1), 0.2f, 16);
             Tracer.SetLights(new List<PointLight> { pd });

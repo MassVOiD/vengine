@@ -78,7 +78,7 @@ namespace VEngine.PathTracing
         }
         
         private Random Rand = new Random();
-        public void PathTraceToImage(int imageHandle, int lastBuffer, int Width, int Height)
+        public void PathTraceToImage(MRTFramebuffer MRT, int imageHandle, int lastBuffer, int Width, int Height)
         {
             TracerShader.Use();
             MeshDataSSBO.Use(0);
@@ -90,6 +90,10 @@ namespace VEngine.PathTracing
             OctreeBoxes.Use(2);
             GL.BindImageTexture(0, imageHandle, 0, false, 0, TextureAccess.WriteOnly, SizedInternalFormat.Rgba16f);
             GL.BindImageTexture(1, lastBuffer, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
+            GL.BindImageTexture(2, MRT.TexDiffuse, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba8);
+            GL.BindImageTexture(3, MRT.TexNormals, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
+            GL.BindImageTexture(4, MRT.TexWorldPos, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba16f);
+            
             TracerShader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
             TracerShader.SetUniform("ViewMatrix", Camera.MainDisplayCamera.ViewMatrix);
             TracerShader.SetUniform("ProjectionMatrix", Camera.MainDisplayCamera.ProjectionMatrix);

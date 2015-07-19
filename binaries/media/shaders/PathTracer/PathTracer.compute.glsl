@@ -4,6 +4,9 @@ layout( local_size_x = 32, local_size_y = 32, local_size_z = 1 ) in;
 
 layout (binding = 0, rgba16f) writeonly uniform image2D outImage;
 layout (binding = 1, rgba16f) readonly uniform image2D lastBuffer;
+layout (binding = 2, rgba8) readonly uniform image2D texAlbedo;
+layout (binding = 3, rgba16f) readonly uniform image2D texNormals;
+layout (binding = 4, rgba16f) readonly uniform image2D texWorldPos;
 
 struct Vertex
 {
@@ -82,12 +85,12 @@ const IntersectionData emptyIntersection = IntersectionData(vec3(0), vec3(0), ve
 
 vec3 determineDirectionFromCamera(vec2 UV){
     mat4 inverted = inverse(ProjectionMatrix * ViewMatrix);
-    UV.y = 1.0 - UV.y;
+   // UV.y = 1.0 - UV.y;
     //UV.x = 1.0 - UV.x;
     UV = UV * 2 - 1;
     vec4 reconstructDir = inverted * vec4(UV, 0.01, 1.0);
     reconstructDir.xyz /= reconstructDir.w;
-    vec3 dir = normalize(
+    vec3 dir = -normalize(
          CameraPosition - reconstructDir.xyz
     );
     return dir;
@@ -98,8 +101,12 @@ vec2 iuvToUv(ivec2 uv){
     return vec2(float(uv.x) / float(size.x), float(uv.y) / float(size.y));
 }
 
-float CalculateFallof(float dist){
-    return 1.0 / pow(((dist) + 1.0), 2.0);
+#define M_PI 3.1415926535897932384626433832795
+
+float CalculateFallof( float dist){
+    //return 1.0 / pow(((dist) + 1.0), 2.0);
+    return dist == 0 ? 1 : (3) / (4*M_PI*dist*dist);
+    
 }
 
 float rand(vec2 co){
@@ -145,7 +152,7 @@ IntersectionData getIntersectionOctree(vec3 origin, vec3 direction){
         //OctreeBox box = OctreeBoxes[OctreeBoxes[boxCursor].Children[i]];
         OctreeBox box = OctreeBoxes[i];
         
-        if(tryIntersectBox(origin, direction, box.CenterAndRadius.xyz, box.CenterAndRadius.w)){
+        if(dot(direction, box.CenterAndRadius.xyz - origin) > 0 && tryIntersectBox(origin, direction, box.CenterAndRadius.xyz, box.CenterAndRadius.w)){
             int istart = box.TriangleContainerIndex;
             int iend = istart + box.TriangleCount;
             for(int xx = istart; xx < iend; xx++){
@@ -211,14 +218,13 @@ vec3 TraceShadows(vec3 origin, vec3 normal){
 
 vec3 PathTrace(vec3 origin, vec3 direction){
     vec3 accumulator = vec3(0);
-    vec3 accumulator1 = vec3(0);
     vec3 lastIncidentColor = vec3(1);
     float totalDistance = 0;
     vec3 raycolor = vec3(2);
-    for(int i=0;i<3;i++){
-        IntersectionData bestCandidate = getIntersectionOctree(origin, direction);
+    for(int i=0;i<2;i++){
+        IntersectionData bestCandidate = getIntersectionRaw(origin, direction);
         if(bestCandidate.HasHit){
-            if(i > 0)totalDistance += bestCandidate.Distance;
+            totalDistance += bestCandidate.Distance;
             vec3 incidentColor = bestCandidate.Color;
            // raycolor *= 0.5;
             if(length(bestCandidate.Color) > length(vec3(1))){
@@ -227,32 +233,46 @@ vec3 PathTrace(vec3 origin, vec3 direction){
                 //accumulator += incidentColor * max(0,dot(vec3(0,1,0), bestCandidate.Normal));
                 break;
             } else {
-                incidentColor = TraceShadows(bestCandidate.Origin, bestCandidate.Normal);
-                if(i > 0)accumulator += CalculateFallof(totalDistance + 5.0) * max(0,dot(-direction, bestCandidate.Normal)) / i; 
+               // incidentColor = TraceShadows(bestCandidate.Origin, bestCandidate.Normal);
+               // if(i > 0)accumulator += CalculateFallof(totalDistance + 5.0) * max(0,dot(-direction, bestCandidate.Normal)) / i; 
             }
         } else break;
         
         //lastIncidentColor *= bestCandidate.Color;
         origin = bestCandidate.Origin;
-        if(i == 0)accumulator1 = bestCandidate.Color;
         //Seed(bestCandidate.NewDirection.xy);
         direction = random3dSample();// + bestCandidate.NewDirection;
         direction *= sign(dot(direction, bestCandidate.Normal));
         //direction = mix(direction, bestCandidate.NewDirection, 0.8);
         //direction = normalize(direction);
         //if(!bestCandidate.HasHit) break;
-        if(i==0)accumulator += TraceShadows(origin, bestCandidate.Normal);
+        //if(i==0)accumulator += TraceShadows(origin, bestCandidate.Normal);
     }
     
-    return (accumulator*raycolor) ;// * accumulator1;
+    return (accumulator*raycolor);
     //return accumulator1;
 }
 
-
+vec3 ExecuteTracing(){
+    vec3 albedo = imageLoad(texAlbedo, iUV).xyz;
+    vec3 worldPos = imageLoad(texWorldPos, iUV).xyz;
+    vec3 normal = imageLoad(texNormals, iUV).xyz;
+    vec3 c = vec3(0);
+    for(int i=1;i<7;i++){
+        randsPointer = int((gl_GlobalInvocationID.x + (gl_GlobalInvocationID.y + 1)*(gl_WorkGroupID.y + 1) * gl_WorkGroupSize.y))*i % RandomsCount;
+        vec3 direction = random3dSample();// + bestCandidate.NewDirection;
+        direction *= sign(dot(direction, normal));
+       // direction = mix(direction, bestCandidate.NewDirection, 0.8);
+        c += PathTrace(worldPos, direction);
+        //c += TraceShadows(worldPos, normal);
+    }
+    return c;
+}
+    
 vec3 buff(vec3 newcolor){
     vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;
-    return length(newcolor) > length(lastResult) ? newcolor : lastResult;
-    //return (lastResult * 60 + newcolor) / 61;
+   return length(newcolor) > length(lastResult) ? newcolor : lastResult;
+   // return (lastResult * 2 + newcolor) / 3;
 }
 
 void main(){
@@ -260,13 +280,25 @@ void main(){
         gl_GlobalInvocationID.x,
         gl_GlobalInvocationID.y
     );
-    randsPointer = int((gl_GlobalInvocationID.x + (gl_GlobalInvocationID.y + 1)*(gl_WorkGroupID.y + 1) * gl_WorkGroupSize.y)) % RandomsCount;
-    vec3 direction = determineDirectionFromCamera(iuvToUv(iUV));
+    
     vec3 color = vec3(0);
-    for(int i=0;i<1;i++){
-        color += PathTrace(CameraPosition, direction);
-    }
-    color *= 2.3;
+    vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;
+    int iter = 0;
+   /* while(length(lastResult) > 0.1 && iter < 512){
+        iUV = ivec2(
+            getRand() * imageSize(lastBuffer).x,
+            getRand() * imageSize(lastBuffer).y
+        );
+        lastResult = imageLoad(lastBuffer, iUV).xyz;
+        iter++;
+    } */
+    //vec3 direction = determineDirectionFromCamera(iuvToUv(iUV));
+
+    color += ExecuteTracing();
+    
+    
+   // color *= 0.1;
+    //color = vec3(0);
     //vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;    
     vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
     color.rgb = vec3(pow(color.r, gamma.r),
@@ -274,5 +306,12 @@ void main(){
     pow(color.b, gamma.b));
     color = buff(color)*1;
     //color *= 1.09;
-    imageStore(outImage, iUV, vec4(color, 1));
+    /*if(iUV.x < imageSize(lastBuffer).x/2 && iUV.y < imageSize(lastBuffer).y/2){
+        float ix = float(iUV.x) * 4;
+        float iy = float(iUV.y) * 4;
+        ivec2 newi = iUV*2;
+        vec3 c = imageLoad(texAlbedo, newi).rgb;
+        color = c;
+    }*/
+    imageStore(outImage, iUV, vec4(clamp(color, 0, 1), 1));
 }

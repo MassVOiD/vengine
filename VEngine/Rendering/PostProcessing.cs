@@ -109,7 +109,7 @@ namespace VEngine
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
             LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             RSMFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            SSReflectionsFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            SSReflectionsFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             VDAOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 
             GlobalIlluminationFrameBuffer = new Framebuffer(initialWidth, initialHeight);
@@ -374,20 +374,36 @@ namespace VEngine
             // lets do it
             if(Tracer != null)
             {
-                GL.DepthFunc(DepthFunction.Always);
+                //FullScene3DTexture.Clear();
+                // FullScene3DTexture.Use(0);
+                //GL.BindImageTexture(22u, (uint)FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
                 GL.Disable(EnableCap.CullFace);
+                //GL.CullFace(CullFaceMode.Back);
+                // GL.DepthFunc(DepthFunction.Always);
+                DisableBlending();
+                Mesh3d.PostProcessingUniformsOnly = false;
                 MRT.Use();
+                World.Root.Draw();
+                Mesh3d.PostProcessingUniformsOnly = true;
+                //GL.DepthFunc(DepthFunction.Always);
+                //GL.Disable(EnableCap.CullFace);
                 SwitchToFB1();
-                Tracer.PathTraceToImage(MRT.TexWorldPos, VDAOFramebuffer.TexColor, Width, Height);
+                if(VDAOFramebuffer.TexColor <= 0)
+                {
+                    VDAOFramebuffer.Use();
+                    RSMFramebuffer.Use();
+                    SwitchToFB0();
+                }
+                Tracer.PathTraceToImage(MRT, VDAOFramebuffer.TexColor, RSMFramebuffer.TexColor, Width, Height);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
                 SwitchToFB0();
-                MRT.UseTextureWorldPosition(0);
+                VDAOFramebuffer.UseTexture(0);
                 PathTracerOutputShader.Use();
                 ShaderProgram.Lock = true;
                 PostProcessingMesh.Draw();
                 ShaderProgram.Lock = false;
-                SwitchToFB(VDAOFramebuffer);// not really related
-                MRT.UseTextureWorldPosition(0);
+                SwitchToFB(RSMFramebuffer);// not really related
+                VDAOFramebuffer.UseTexture(0);
                 Blit();
                 return;
             }
