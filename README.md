@@ -3,6 +3,8 @@ If you want to check out how does it behave - Run Tester project binaries with c
 
 The software is licensed under MIT license - so do what you want.
 
+![A screenshot](http://i.imgur.com/YeSWlGI.png "Screenshot")
+
 ![A screenshot](http://i.imgur.com/p5h1sjq.jpg "Screenshot")
 
 ![A screenshot](http://i.imgur.com/TZISwdx.png "Screenshot")
