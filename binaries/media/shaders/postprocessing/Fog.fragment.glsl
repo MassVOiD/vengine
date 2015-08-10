@@ -48,8 +48,8 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 		vec3 lastPos = start - mix(start, end, sampling);
 		for(float m = 0.0; m< 1.0;m+= sampling){
 			vec3 pos = mix(start, end, m);
-            //float distanceMult = clamp(distance(lastPos, pos) * 2, 0, 33) * 6;
-            float distanceMult = 5;
+            float distanceMult = clamp(distance(lastPos, pos) * 2, 0, 33) * 6;
+            //float distanceMult = 5;
             lastPos = pos;
 			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
 			//float att = 1;

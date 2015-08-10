@@ -7,17 +7,12 @@ namespace GLSLLint
 {
     internal class Program
     {
-        class Config
-        {
-            public static string MediaPath = @"C:\Users\Aerofly\Documents\Visual Studio 2013\Projects\VEngine\binaries\media";
-            public static int Width = 1200;
-            public static int Height = 700;
-        }
+
         private static void Main(string[] args)
         {
             string source = null;
             ShaderType type = ShaderType.VertexShader;
-            Media.SearchPath = Config.MediaPath;
+            Media.SearchPath = System.IO.Directory.GetCurrentDirectory();
             if(args.Length == 2)
             {
                 string typestr = args[0];
@@ -38,7 +33,7 @@ namespace GLSLLint
             }
             else if(args.Length == 1)
             {
-                string path = args[0];
+                string path = Media.Get(System.IO.Path.GetFileName(args[0]));
                 type = ShaderType.VertexShader;
                 if(path.EndsWith(".vertex.glsl"))
                     type = ShaderType.VertexShader;
@@ -58,9 +53,8 @@ namespace GLSLLint
             var window = new VEngineInvisibleAdapter();
 
             int shader = GL.CreateShader(type);
-            System.IO.Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
+            //System.IO.Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
             //var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
-            Media.SearchPath = Config.MediaPath;
             string src = ShaderPreparser.Preparse(source);
             GL.ShaderSource(shader, src);
             int i = 0;

@@ -35,7 +35,7 @@ float triangleIntersectionDistance(Triangle triangle, vec3 origin, vec3 directio
     vec3 incidentPosition = triangle.vertices[0].Position.xyz+(triangle.vertices[1].Position.xyz-triangle.vertices[0].Position.xyz)*u+(triangle.vertices[2].Position.xyz-triangle.vertices[0].Position.xyz)*v;
 
     return t > 0.0 && t < INFINITY && 
-       // (a <= -EPSILON || a >= EPSILON) && 
+       (a <= -EPSILON || a >= EPSILON) && 
         u >= 0.0 && u <= 1.0 && 
         v >= 0.0 && u + v <= 1.0 && 
         t >= EPSILON ? distance(origin, incidentPosition) : -1;
@@ -82,9 +82,10 @@ IntersectionData triangleIntersection(Triangle triangle, vec3 origin, vec3 direc
         incidentPosition,
         incidentNormal,
         incidentColor,
+        triangle.vertices[0].Albedo.a,
         distance(origin, incidentPosition),
         t > 0.0 && t < INFINITY && 
-       // (a <= -EPSILON || a >= EPSILON) && 
+        (a <= -EPSILON || a >= EPSILON) && 
         u >= 0.0 && u <= 1.0 && 
         v >= 0.0 && u + v <= 1.0 && 
         t >= EPSILON

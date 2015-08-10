@@ -16,7 +16,7 @@ namespace VEngine
 {
     public class PostProcessing
     {
-        private int Width, Height;
+        public int Width, Height;
 
         private ShaderProgram 
             BloomShader, 
@@ -59,6 +59,7 @@ namespace VEngine
         private Mesh3d PostProcessingMesh;
 
         private Texture NumbersTexture;
+        private CubeMapTexture CubeMap;
       //  public static uint RandomIntFrame = 1;
 
        // public static Texture3D FullScene3DTexture;
@@ -84,6 +85,8 @@ namespace VEngine
             TestBuffer = new ShaderStorageBuffer();
             NumbersTexture = new Texture(Media.Get("numbers.png"));
             CShader = new ComputeShader("Blur.compute.glsl");
+            CubeMap = new CubeMapTexture(Media.Get("posx.jpg"), Media.Get("posy.jpg"), Media.Get("posz.jpg"),
+                Media.Get("negx.jpg"), Media.Get("negy.jpg"), Media.Get("negz.jpg"));
             GLThread.Invoke(() =>
             {
                 TestBuffer.MapData(new Vector3[4]{
@@ -97,7 +100,7 @@ namespace VEngine
             MSAAResolvingFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             MSAAResolvingFrameBuffer.SetMultiSample(true);
 
-            MRT = new MRTFramebuffer(initialWidth, initialHeight);
+            MRT = new MRTFramebuffer(initialWidth / 1, initialHeight / 1);
             BackMRT = new MRTFramebuffer(initialWidth / 4, initialHeight / 4);
 
             Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
@@ -265,6 +268,7 @@ namespace VEngine
             MRT.UseTextureNormals(31);
             MRT.UseTextureMeshData(33);
             BackMRT.UseTextureDepth(32);
+            CubeMap.Use(TextureUnit.Texture29);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw();
@@ -394,18 +398,18 @@ namespace VEngine
                     RSMFramebuffer.Use();
                     SwitchToFB0();
                 }
-                Tracer.PathTraceToImage(MRT, VDAOFramebuffer.TexColor, RSMFramebuffer.TexColor, Width, Height);
+                Tracer.PathTraceToImage(MRT, VDAOFramebuffer.TexColor, RSMFramebuffer.TexColor, VDAOFramebuffer.Width, VDAOFramebuffer.Height);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
-                SwitchToFB0();
-                VDAOFramebuffer.UseTexture(0);
-                PathTracerOutputShader.Use();
-                ShaderProgram.Lock = true;
-                PostProcessingMesh.Draw();
-                ShaderProgram.Lock = false;
+               // SwitchToFB0();
+              //  VDAOFramebuffer.UseTexture(0);
+                //PathTracerOutputShader.Use();
+               // ShaderProgram.Lock = true;
+               // PostProcessingMesh.Draw();
+               // ShaderProgram.Lock = false;
                 SwitchToFB(RSMFramebuffer);// not really related
                 VDAOFramebuffer.UseTexture(0);
                 Blit();
-                return;
+              //  return;
             }
             /**
              * MSAA way:
@@ -489,10 +493,10 @@ namespace VEngine
             MRT.UseTextureWorldPosition(9);
             LastWorldPositionFramebuffer.UseTexture(10);
             MRT.UseTextureMeshData(11);
-            SSReflections();
+           // SSReflections();
 
             SwitchToFB(RSMFramebuffer);
-            RSM();
+           // RSM();
             SwitchToFB(VDAOFramebuffer);
             VDAO();
 

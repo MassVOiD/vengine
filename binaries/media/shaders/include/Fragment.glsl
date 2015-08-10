@@ -205,10 +205,10 @@ void finishFragment(vec4 color){
     //outColor = vec4(1);
     vec3 wpos = positionWorldSpace;
     vec3 normalNew  = normalize(normal);
+    float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
-        float factor = (texture(bumpMap, UV).r - 0.5);
-        //wpos += normalNew * factor * 0.01;
-
+        float factor = (texture(bumpMap, UV).r);
+        wpos += (normalNew * factor * 0.2)+0.2;
     }
     mat3 TBN = inverse(transpose(mat3(
         normalize(tangent.xyz),
@@ -221,35 +221,33 @@ void finishFragment(vec4 color){
         normal.xyz
     )));
     vec3 tangentwspace = TBN * tangent;
-	outWorldPos = vec4((wpos), SpecularComponent); 
+	outWorldPos = vec4(ToCameraSpace(wpos), Roughness); 
     
     
     
 	//if(IgnoreLighting == 0){
 		if(UseNormalMap == 1){
 			//normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);   
-            vec3 map = -texture(normalMap, UV ).xyz;
-           map.x = - map.x;
-           map.y = - map.y;
-           map.z = - map.z;
+            vec3 map = texture(normalMap, UV ).xyz;
+          // map.x = - map.x;
+         //  map.y = - map.y;
            map = map * 255./127. - 128./127.;
+           map.y = - map.y;
             normalNew = TBN * map; 
     
 		} else if(UseBumpMap == 1){
-            float factor = (texture(bumpMap, UV).r) * 255.;
-            factor = factor - 119;
-            factor = (factor / 255) * 2;
+            float factor = ( texture(bumpMap, UV).r);
+            //factor = factor - 119;
+            factor = (factor) ;
+            worldBumpMapSize = factor;
             vec3 bitan = cross(normal, tangent);
-            vec3 nee = normalize((normalNew - ((tangent) * factor * 0.2)));
+            factor = factor * 2 - 1;
+            vec3 nee = normalize((normalNew - ((tangent) * factor*-0.02)));
             nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
-			normalNew =  nee;
+			//normalNew =  nee;
     
 		} else {
-            float factor = (length(vec3(0.5)) - length(color.xyz));
-		    //normalNew = (normalNew - ((tangent) * factor * 0.05)); 
-                vec3 nee = normalize((normalNew - ((tangent) * factor * 0.2)));
-            nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
-			normalNew =  nee;
+
 		}
         if(MaterialType == MaterialTypeWater){
             float factor = getwater(UV * 5) * 0.3;
@@ -278,8 +276,10 @@ void finishFragment(vec4 color){
 	outMeshData.r - reflection strength
 	outMeshData.g - refraction strength
 	*/
-	outMeshData = vec4(ReflectionStrength, RefractionStrength, color.a, Roughness);
-	updateDepth();
+	outMeshData = vec4(ReflectionStrength, RefractionStrength,1, Roughness);
+	float deptha = distance(wpos, CameraPosition);
+	float badass_deptha = log(LogEnchacer*deptha + 1.0f);
+	gl_FragDepth = badass_deptha;
     // lets do it, from -32 to 32
     /*vec3 normalized = (wpos)  *3;
     normalized = clamp(normalized, -32, 32);

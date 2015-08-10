@@ -29,8 +29,106 @@ namespace ShadowsTester
                 //(ob.MainMaterial as GenericMaterial).BumpMap = null;
                 this.Add(ob);
             }
-            PathTracer tracer = new PathTracer();
-            tracer.PrepareTrianglesData(scene);
+            Object3dInfo[] skydomeInfo = Object3dInfo.LoadFromObj(Media.Get("sponza_verysimple.obj"));
+            // var sponza = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"), Media.Get("cryteksponza.mtl"), 0.03f);
+            List<Mesh3d> meshes = new List<Mesh3d>();
+            List<GenericMaterial> mats = new List<GenericMaterial>
+            {
+                new GenericMaterial(new Vector4(1f, 0.6f, 0.6f, 1.0f)) {Roughness = 0.2f },
+                new GenericMaterial(new Vector4(0.9f, 0.9f, 0.9f, 1.0f)) {Roughness = 0.5f },
+                new GenericMaterial(new Vector4(0.6f, 0.6f, 1f, 1.0f)) {Roughness = 0.2f },
+                new GenericMaterial(new Vector4(1, 1, 2.05f, 1.0f)) {Roughness = 0.8f },
+                new GenericMaterial(new Vector4(0.6f, 1f, 1f, 1.0f)) {Roughness = 0.2f },
+                new GenericMaterial(new Vector4(1f, 0.6f, 1f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+            };
+            int ix = 0;
+            foreach(var sd in skydomeInfo)
+            {
+                var skydomeMaterial = mats[ix++ % mats.Count];
+                var skydome = new Mesh3d(sd, skydomeMaterial);
+                skydome.Scale(3);
+                meshes.Add(skydome);
+            }
+           // var Tracer = new PathTracer();
+           //  Tracer.PrepareTrianglesData(meshes);
+           /* List<Triangle> triangles = new List<Triangle>();
+            foreach(var mesh in scene)
+            {
+                var Triangle = new Triangle();
+                Triangle.Tag = mesh;
+                var vertices = mesh.MainObjectInfo.GetOrderedVertices();
+                var normals = mesh.MainObjectInfo.GetOrderedNormals();
+                for(int i = 0; i < vertices.Count; i++)
+                {
+                    var vertex = new Vertex()
+                    {
+                        Position = vertices[i],
+                        Normal = normals[i],
+                        Albedo = mesh.MainMaterial.Color.Xyz
+                    };
+                    vertex.Tranform(mesh.Matrix);
+                    Triangle.Vertices.Add(vertex);
+                    if(Triangle.Vertices.Count == 3)
+                    {
+                        triangles.Add(Triangle);
+                        Triangle = new Triangle();
+                        Triangle.Tag = mesh;
+                    }
+                }
+            }
+            SceneOctalTree tree = new SceneOctalTree();
+            Triangle[] trcopy = new Triangle[triangles.Count];
+            triangles.CopyTo(trcopy);
+            tree.CreateFromTriangleList(trcopy.ToList());
+            var TriangleCount = triangles.Count;
+            // lets prepare byte array
+            // layout
+            // posx, posy, poz, norx, nory, norz, albr, albg, albz
+            List<byte> bytes = new List<byte>();
+            foreach(var triangle in triangles)
+            {
+                foreach(var vertex in triangle.Vertices)
+                {
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Position.X));
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Position.Y));
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Position.Z));
+                    bytes.AddRange(BitConverter.GetBytes((float)(triangle.Tag as Mesh3d).MainMaterial.Roughness));
+
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Normal.X));
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Normal.Y));
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Normal.Z));
+                    bytes.AddRange(BitConverter.GetBytes(0.0f));
+
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Albedo.X));
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Albedo.Y));
+                    bytes.AddRange(BitConverter.GetBytes(vertex.Albedo.Z));
+                    bytes.AddRange(BitConverter.GetBytes(0.0f));
+                }
+            }
+            var octree = new SceneOctalTree();
+            octree.CreateFromTriangleList(triangles);
+            InstancedMesh3d ims = new InstancedMesh3d(Object3dInfo.LoadFromObjSingle(Media.Get("normalizedcube.obj")), new GenericMaterial(Color.White));
+            Action<SceneOctalTree.Box> a = null;
+            a = new Action<SceneOctalTree.Box>((box) =>
+            {
+                if(box.Children.Count == 0)
+                    ims.Transformations.Add(new TransformationManager(new Vector3(box.Center), Quaternion.Identity, box.Radius));
+                else
+                    foreach(var b in box.Children)
+                        a(b);
+            });
+            foreach(var b in octree.BoxTree.Children)
+            {
+                a(b);
+            }
+            ims.UpdateMatrix();
+            Add(ims);
+            */
+         //   PostProcessing.Tracer = Tracer;
             //var protagonist = Object3dInfo.LoadSceneFromObj(Media.Get("protagonist.obj"), Media.Get("protagonist.mtl"), 1.0f);
             //foreach(var o in protagonist)
             //    Add(o);
@@ -41,13 +139,14 @@ namespace ShadowsTester
            water.Translate(0, 10, 0);
            Add(water);*/
 
-           Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(30, 30), Vector3.UnitY, 333, (x, y) => 0);
 
-           var color = GenericMaterial.FromMedia("checked.png");
-           color.SetNormalMapFromMedia("stones_map.png");
-           //color.SetBumpMapFromMedia("lightref.png");
+           var color = new GenericMaterial(Color.SkyBlue);
+           color.SetBumpMapFromMedia("cobblestone.jpg");
+          //  color.Type = GenericMaterial.MaterialType.Water;
            Mesh3d water2 = new Mesh3d(waterInfo, color);
            water2.SetMass(0);
+            color.Roughness = 0.8f;
            water2.Translate(0, 0.1f, 0);
            water2.MainMaterial.ReflectionStrength = 1;
            //water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));

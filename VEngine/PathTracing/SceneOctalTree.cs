@@ -8,9 +8,9 @@ using OpenTK;
 
 namespace VEngine.PathTracing
 {
-    class SceneOctalTree
+    public class SceneOctalTree
     {
-        private const int MAX_LEAF_TRIANGLES = 8;
+        private const int MAX_LEAF_TRIANGLES = 64;
 
         // debugging
         public static int TotalNodes = 0;
@@ -251,12 +251,46 @@ namespace VEngine.PathTracing
                 }
             }
 
-            public void RecursiveDivide(int iterationLimit = 5)
+            public static List<Triangle> TrianglesS;
+            static int cnt = 0;
+
+           /* public List<Box> Voxelize(int grid)
+            {
+                Vector3 max = new Vector3(0), min = new Vector3(float.PositiveInfinity);
+                foreach(var t in Triangles)
+                {
+                    foreach(var v in t.Vertices)
+                    {
+                        max.X = Max(max.X, v.Position.X);
+                        max.Y = Max(max.Y, v.Position.Y);
+                        max.Z = Max(max.Z, v.Position.Z);
+
+                        min.X = Min(min.X, v.Position.X);
+                        min.Y = Min(min.Y, v.Position.Y);
+                        min.Z = Min(min.Z, v.Position.Z);
+                    }
+                }
+                Vector3 center = (max + min) / 2;
+                float radius =
+                    Max(
+                        Max(max.X - min.X, max.Y - min.Y)
+                        , max.Z - min.Z) / 2;
+                for(int x = 0; x < grid; x++)
+                {
+                    for(int y = 0; y < grid; y++)
+                    {
+                        
+                    }
+                }
+            }*/
+
+            public void RecursiveDivide(int iterationLimit =3)
             {
                 CheckSanity();
                 Console.WriteLine(Triangles.Count);
-                if(Triangles.Count < MAX_LEAF_TRIANGLES || iterationLimit <= 0)
+                if(iterationLimit <= 0)
                     return;
+                Console.WriteLine("ITERATION " + (cnt++).ToString());
 
                 var newBoxes = new List<Box>();
                 float rd2 = Radius / 2.0f;
@@ -272,31 +306,34 @@ namespace VEngine.PathTracing
                 newBoxes.Add(new Box(Center + new Vector3(rd2, -rd2, -rd2), rd2));
                 newBoxes.Add(new Box(Center + new Vector3(-rd2, rd2, -rd2), rd2));
                 newBoxes.Add(new Box(Center + new Vector3(-rd2, -rd2, -rd2), rd2));
-
-                foreach(var b in newBoxes)
+                Parallel.For(0, newBoxes.Count, i =>
                 {
+                    var b = newBoxes[i];
+
                     foreach(var t in Triangles)
                     {
                         if(b.TestTriangle(t))
                         {
                             b.Triangles.Add(t);
+                            // break;
                         }
                     }
-                    b.RecursiveDivide(iterationLimit - 1);
-                }
+                    if(b.Triangles.Count > 49)
+                        b.RecursiveDivide(iterationLimit - 1);
+                });
                 newBoxes = newBoxes.Where((b) => b.Children.Count > 0 || b.Triangles.Count > 0).ToList();
                 TotalNodes -= 8 - newBoxes.Count;
                 if(newBoxes.Count > 0)
                     Triangles.Clear();
                 TotalNodes--;
                 Children = newBoxes;
-                Flatten();
+               // Flatten();
                 CheckSanity();
             }
         } // here box class ends
 
 
-        Box BoxTree;
+        public Box BoxTree;
 
         public SceneOctalTree()
         {
@@ -343,6 +380,7 @@ namespace VEngine.PathTracing
                     , max.Z - min.Z) / 2;
             BoxTree = new Box(center, radius);
             BoxTree.Triangles = triangles;
+            Box.TrianglesS = triangles;
             BoxTree.RecursiveDivide();
 
             Console.WriteLine(TotalNodes);
@@ -354,7 +392,6 @@ namespace VEngine.PathTracing
         Dictionary<Box, int> BoxesIds;
         List<byte> SerializerBytes;
         int BoxCursor = 0;
-        Queue<Box> SerializationQueue;
         List<Box> FlatBoxList;
         public int TotalBoxesCount = 0;
 

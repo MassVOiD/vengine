@@ -153,5 +153,14 @@ namespace VEngine
             x |= (x >> 16);
             return (x + 1);
         }
+        public void FreeGPU()
+        {
+            GL.DeleteTexture(Handle);
+        }
+
+        public void FreeCPU()
+        {
+            Bitmap = new byte[0];
+        }
     }
 }

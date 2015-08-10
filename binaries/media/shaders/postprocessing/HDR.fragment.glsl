@@ -133,7 +133,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
                // if(-(depth - focus) > 0.05) continue;     
                 vec3 texel = texture(textureIn, coord).rgb;
                 float w = length(texel) + 0.2;
-                float dpf = depthfocus - depth;
+                float dpf = depthfocus - toLogDepth(depth);
                 w*=dpf;
                 weight+=w;
                 finalColor += texel * w;
@@ -141,7 +141,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             }
         }
     }
-	return finalColor/weight;
+	return weight == 0.0 ? vec3(0.0) : finalColor/weight;
 }
 
 float rand(vec2 co){

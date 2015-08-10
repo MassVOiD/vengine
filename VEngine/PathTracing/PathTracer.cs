@@ -25,6 +25,7 @@ namespace VEngine.PathTracing
             Vertices = new List<Vertex>();
         }
         public List<Vertex> Vertices;
+        public object Tag;
     }
 
     public class PointLight
@@ -78,8 +79,23 @@ namespace VEngine.PathTracing
         }
         
         private Random Rand = new Random();
+        private int Iteration = 0;
+        private const int GridSize = 1;
         public void PathTraceToImage(MRTFramebuffer MRT, int imageHandle, int lastBuffer, int Width, int Height)
         {
+            float divWidthX = (float)Width / (float)GridSize;
+            float divHeightY = (float)Height / (float)GridSize;
+
+            float iteractionX = (float)Iteration % (float)GridSize;
+            float iteractionY = (float)Math.Floor(((float)Iteration / (float)GridSize));
+
+            int renderOffsetX = (int)(iteractionX * divWidthX);
+            int renderOffsetY = (int)(iteractionY * divHeightY);
+
+            Iteration++;
+            if(Iteration >= GridSize * GridSize)
+                Iteration = 0;
+
             TracerShader.Use();
             MeshDataSSBO.Use(0);
             RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(32, 32 * 32 * 32, true).ToArray());
@@ -101,7 +117,9 @@ namespace VEngine.PathTracing
             TracerShader.SetUniform("TrianglesCount", TriangleCount);
             TracerShader.SetUniform("TotalBoxesCount", BoxesCount);
             TracerShader.SetUniform("LightsCount", LightsCount);
-            TracerShader.Dispatch(Width / 32 + 1, Height / 32 + 1);
+            TracerShader.SetUniform("RenderOffsetX", renderOffsetX);
+            TracerShader.SetUniform("RenderOffsetY", renderOffsetY);
+            TracerShader.Dispatch((int)divWidthX/32 + 1, 1, (int)divHeightY/ 32 + 1);
         }
 
         public void PrepareTrianglesData(List<Mesh3d> meshes)
@@ -110,6 +128,7 @@ namespace VEngine.PathTracing
             foreach(var mesh in meshes)
             {
                 var Triangle = new Triangle();
+                Triangle.Tag = mesh;
                 var vertices = mesh.MainObjectInfo.GetOrderedVertices();
                 var normals = mesh.MainObjectInfo.GetOrderedNormals();
                 for(int i = 0; i < vertices.Count; i++)
@@ -126,6 +145,7 @@ namespace VEngine.PathTracing
                     {
                         triangles.Add(Triangle);
                         Triangle = new Triangle();
+                        Triangle.Tag = mesh;
                     }
                 }
             }
@@ -145,7 +165,7 @@ namespace VEngine.PathTracing
                     bytes.AddRange(BitConverter.GetBytes(vertex.Position.X));
                     bytes.AddRange(BitConverter.GetBytes(vertex.Position.Y));
                     bytes.AddRange(BitConverter.GetBytes(vertex.Position.Z));
-                    bytes.AddRange(BitConverter.GetBytes(0.0f));
+                    bytes.AddRange(BitConverter.GetBytes((float)(triangle.Tag as Mesh3d).MainMaterial.Roughness));
 
                     bytes.AddRange(BitConverter.GetBytes(vertex.Normal.X));
                     bytes.AddRange(BitConverter.GetBytes(vertex.Normal.Y));

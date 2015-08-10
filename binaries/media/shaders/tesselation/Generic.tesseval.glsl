@@ -160,10 +160,12 @@ void main()
 	normal = normalize(normal);
     
     if(MaterialType == MaterialTypeWater){
-        float factor = getwater(UV * 5);
+        float factor = abs(getwater(UV * 15));
         vec3 lpos = positionWorldSpace;
-        positionWorldSpace += normal * (factor) * 11.1;
-        normal = normalize(normal - (tangent * factor * 0.05));
+        positionWorldSpace += normal * (factor) * 0.11;           
+        vec3 nee = normalize((normal - ((tangent) *distance(lpos, positionWorldSpace))));
+        nee = dot(nee, normal) < 0 ?  nee = -nee : nee;
+        normal = normalize(nee);
     }
     if(MaterialType == MaterialTypePlanetSurface){
         float factor = getPlanetSurface();

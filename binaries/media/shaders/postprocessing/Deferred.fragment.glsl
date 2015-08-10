@@ -44,6 +44,13 @@ vec2 projdir(vec3 start, vec3 end){
     vec2 sspace2 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
     return (sspace2 - sspace1);
 }
+vec2 projectPoint(vec3 point){
+    //vec3 dirPosition = start + end;
+    
+    vec4 clipspace = (PV) * vec4((point), 1.0);
+    vec2 sspace1 = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
+    return sspace1;
+}
 
 struct SampleData
 {
@@ -225,7 +232,7 @@ float albedo) {
 }
 
 float beckmannDistribution(float x, float roughness) {
-    float NdotH = max(x, 0.0001);
+    float NdotH = max(x, 0.001);
     float cos2Alpha = NdotH * NdotH;
     float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
     float roughness2 = roughness * roughness;
@@ -256,8 +263,8 @@ float fresnel) {
 
     //Geometric term
     float NdotH = max(abs(dot(surfaceNormal, H)), 0.0);
-    float VdotH = max(abs(dot(viewDirection, H)), 0.000001);
-    float LdotH = max(abs(dot(lightDirection, H)), 0.000001);
+    float VdotH = max(abs(dot(viewDirection, H)), 0.0001);
+    float LdotH = max(abs(dot(lightDirection, H)), 0.0001);
     float G1 = (2.0 * NdotH * VdotN) / VdotH;
     float G2 = (2.0 * NdotH * LdotN) / LdotH;
     float G = min(1.0, min(G1, G2));
@@ -269,7 +276,25 @@ float fresnel) {
     float F = pow(1.0 - VdotN, fresnel);
 
     //Multiply terms and done
-    return  G * F * D / max(3.14159265 * VdotN, 0.000001);
+    return  G * F * D / max(3.14159265 * VdotN, 0.001);
+}
+
+const float EPSILON  = 1e-6;
+const float INFINITY = 1e+4;
+float textautoshadow(vec2 p1, vec2 p2, vec3 ldir){
+        float ret = 0;
+        vec3 wpos = FromCameraSpace(texture(worldPosTex, p1).rgb);
+        vec3 norm = texture(normalsTex, p1).rgb;
+        vec3 refdir = normalize( (wpos + norm) - wpos );
+        float dt1 = abs(dot(norm, ldir));
+        
+        for(float i=0.0091; i<1; i+=0.005){
+            vec3 w = FromCameraSpace(texture(worldPosTex, mix(p1, p2, i)).rgb);
+            //vec3 n = texture(normalsTex, mix(p1, p2, i)).rgb;
+            float dotprod = clamp(dot(normalize(w - wpos), norm), 0.0, 1.0); 
+            ret = max( dotprod , ret );
+        }
+        return  dt1 - ret<-0.4?0:1;
 }
 
 void main()
@@ -318,21 +343,31 @@ void main()
         
         
         
-        //int counter = 0;
+        //int counter = 0;  
 
         // do shadows
         if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0){ 
             float percent = getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i);
-        
             vec3 abc = LightsPos[i];
+            
+            vec3 lightRelativeToVPos =normalize( abc - fragmentPosWorld3d.xyz);
+            vec2 pointCenter = projectPoint(fragmentPosWorld3d.xyz);
+            vec3 rdir = normalize(abc - fragmentPosWorld3d.xyz);
+            vec3 flatdir = cross(cross(normal.xyz, rdir), normal.xyz);
+            vec2 pointedDir = clamp(projectPoint(fragmentPosWorld3d.xyz + flatdir*(0.2)), 0.0, 1.0);
+            vec2 d2dir = (pointedDir - pointCenter);
+            float dotmax = textautoshadow(pointCenter, pointCenter + d2dir, flatdir);
+           // if(dotmax == 0){
+                percent *= dotmax;
+            //}
+        
             float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-            float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a * 0.1;
+            float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a;
             //att = 1;
             if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
             if(att < 0.002) continue;
             
             
-            vec3 lightRelativeToVPos =normalize( abc - fragmentPosWorld3d.xyz);
             /*
             vec3 R = reflect(lightRelativeToVPos, normal.xyz);
             float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
@@ -360,14 +395,31 @@ void main()
             color1 += (((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
             + (LightsColors[i].rgb * specularComponent))
             * att * max(0, percent)) * LightsColors[i].a;*/
-            color1 += LightingPhysical(
+           /* color1 += LightingPhysical(
                 LightsColors[i].rgb*LightsColors[i].a, 
                 meshDiffuse, 
                 meshSpecular, 
                 normal.xyz, 
                 normalize(lightRelativeToVPos),
                 normalize(cameraRelativeToVPos), 
-                att) * clamp(percent, 0, 1);
+                att) * clamp(percent, 0, 1);*/
+            float specularComponent = clamp(cookTorranceSpecular(
+            normalize(lightRelativeToVPos),
+            normalize(cameraRelativeToVPos),
+            normal.xyz,
+            meshRoughness, 0.2
+            ) * meshSpecular, 0.0, 1.0);
+
+            
+            float diffuseComponent = orenNayarDiffuse(
+            normalize(lightRelativeToVPos),
+            normalize(cameraRelativeToVPos),
+            normal.xyz,
+            meshRoughness, 0.1
+            ) * meshDiffuse *5 ;    
+            color1 += (((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
+            + (LightsColors[i].rgb * specularComponent))
+            * att * max(0, percent)) * LightsColors[i].a;           
             if(percent < 0){
                 //is in shadow! lets try subsufrace scattering
                 /*float amount = (-percent) * 0.3;

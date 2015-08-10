@@ -39,7 +39,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
@@ -55,6 +55,10 @@
     <Reference Include="BulletSharp, Version=2.83.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dependencies\BulletSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Jint, Version=2.5.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
+      <HintPath>..\packages\Jint.2.5.0\lib\portable-net40+sl50+win+wpa81+wp80\Jint.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Noesis.Javascript" Condition="'$(PlatformTarget)' == 'x86'">
       <HintPath>..\packages\Noesis.Javascript.0.7.1.0\lib\net40\x86\Noesis.Javascript.dll</HintPath>
@@ -75,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AMCParser.cs" />
+    <Compile Include="FileFormats\SceneFormat.cs" />
     <Compile Include="Game\Water.cs" />
     <Compile Include="PathTracing\JitterRandomSequenceGenerator.cs" />
     <Compile Include="PathTracing\PathTracer.cs" />
@@ -102,6 +107,7 @@
     <Compile Include="Rendering\Lights\PointLight.cs" />
     <Compile Include="Rendering\Lights\ProjectionLight.cs" />
     <Compile Include="Rendering\Framebuffer.cs" />
+    <Compile Include="Rendering\CubeMapTexture.cs" />
     <Compile Include="Rendering\TreeGenerator.cs" />
     <Compile Include="Texture3D.cs" />
     <Compile Include="Utilities\Generators\MeshGenerator.cs" />

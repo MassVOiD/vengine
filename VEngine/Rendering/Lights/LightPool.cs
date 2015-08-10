@@ -7,7 +7,7 @@ namespace VEngine
 {
     public static class LightPool
     {
-        private static byte InternalCounter = 0;
+        //private static byte InternalCounter = 0;
         private static List<ILight> Lights = new List<ILight>();
 
         private static List<SimplePointLight> SimpleLights = new List<SimplePointLight>();

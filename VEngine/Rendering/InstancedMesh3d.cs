@@ -134,7 +134,7 @@ namespace VEngine
             }
             // GLThread.CheckErrors();
         }
-        static int LastMaterialHash = 0;
+        //static int LastMaterialHash = 0;
         public bool IgnoreLighting = false;
         public bool DisableDepthWrite = false;
         public void SetUniforms(GenericMaterial material)

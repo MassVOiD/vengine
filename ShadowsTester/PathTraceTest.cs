@@ -25,12 +25,12 @@ namespace ShadowsTester
             List<Mesh3d> meshes = new List<Mesh3d>();
             List<GenericMaterial> mats = new List<GenericMaterial>
             {
-                new GenericMaterial(new Vector4(10.0f, 10.0f, 10.0f, 1.0f)),
-                new GenericMaterial(new Vector4(0.1f, 0, 0, 1.0f)),
-                new GenericMaterial(new Vector4(0, 0.1f, 0, 1.0f)),
-                new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
-                new GenericMaterial(new Vector4(0, 0, 0.1f, 1.0f)),
-                new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
+                new GenericMaterial(new Vector4(1f, 0.6f, 0.6f, 1.0f)) {Roughness = 0.2f },
+                new GenericMaterial(new Vector4(0.9f, 0.9f, 0.9f, 1.0f)) {Roughness = 0.5f },
+                new GenericMaterial(new Vector4(0.6f, 0.6f, 1f, 1.0f)) {Roughness = 0.2f },
+                new GenericMaterial(new Vector4(1, 1, 1.05f, 1.0f)) {Roughness = 0.8f },
+                new GenericMaterial(new Vector4(0.6f, 1f, 1f, 1.0f)) {Roughness = 0.2f },
+                new GenericMaterial(new Vector4(1f, 0.6f, 1f, 1.0f)),
                 new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
                 new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),
                 new GenericMaterial(new Vector4(1, 0, 0.1f, 1.0f)),

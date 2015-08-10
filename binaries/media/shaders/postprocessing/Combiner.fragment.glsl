@@ -32,9 +32,9 @@ vec3 lookupFog(vec2 fuv){
     vec3 outc = vec3(0);
     int counter = 0;
     for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
-    { 
+    {
         for(float g2 = 0; g2 < 6.0; g2+=1.0)
-        { 
+        {
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001);
             vec3 color = texture(fog, fuv + gauss).rgb;
             outc += color;
@@ -47,9 +47,9 @@ vec3 blurByUV(sampler2D sampler, vec2 fuv, float force){
     vec3 outc = vec3(0);
     int counter = 0;
     for(float g = 0; g < mPI2; g+=GOLDEN_RATIO)
-    { 
+    {
         for(float g2 = 0; g2 < 3.0; g2+=1.0)
-        { 
+        {
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001 * force);
             vec3 color = texture(sampler, fuv + gauss).rgb;
             outc += color;
@@ -63,9 +63,9 @@ vec3 blurByUV2(sampler2D sampler, vec2 fuv, float force){
     int counter = 0;
     float depthCenter = texture(depth, fuv).r;
     for(float g = 0; g < mPI2; g+=GOLDEN_RATIO)
-    { 
+    {
         for(float g2 = 0; g2 < 3.0; g2+=1.0)
-        { 
+        {
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001 * force);
             vec3 color = texture(sampler, fuv + gauss).rgb;
             float depthThere = texture(depth, fuv + gauss).r;
@@ -85,9 +85,9 @@ vec3 lookupFog(vec2 fuv){
     vec3 outc = vec3(0);
     float near = 99;
     for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
-    { 
+    {
         for(float g2 = 0; g2 < 6.0; g2+=1.0)
-        { 
+        {
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.005);
             vec3 color = texture(fog, fuv + gauss).rgb;
             float fdepth = texture(fogDepth, fuv + gauss).r;
@@ -130,9 +130,9 @@ vec3 subsurfaceScatteringExperiment(){
 }*/
 
 vec2 proj(vec3 dir){
-    vec3 positionCenter = texture(worldPos, UV).rgb; 
+    vec3 positionCenter = texture(worldPos, UV).rgb;
     vec3 dirPosition = positionCenter + dir * 0.05;
-    
+
     vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(normalize(positionCenter), 1.0);
     vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
     clipspace = (ProjectionMatrix * ViewMatrix) * vec4(normalize(dirPosition), 1.0);
@@ -154,11 +154,11 @@ vec3 motionBlurExperiment(vec2 uv){
     vec3 centerPos = texture(worldPos, uv).rgb;
     vec2 nearestUV = uv;
     float worldDistance = 999999;
-    
+
     for(float g = 0; g < mPI2 * 2; g+=0.9)
-    { 
+    {
         for(float g2 = 0.0; g2 < 4.0; g2+=0.3)
-        { 
+        {
             vec2 dsplc = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.002);
             vec3 pos = texture(lastworldPos, uv + dsplc).rgb;
             float ds = distance(pos, centerPos);
@@ -167,13 +167,13 @@ vec3 motionBlurExperiment(vec2 uv){
                 nearestUV = uv + dsplc;
             }
         }
-    }	
+    }
     //if(distance(nearestUV, uv) < 0.001) return outc;
     int counter = 0;
     outc = vec3(0);
     vec2 direction = (nearestUV - uv);
     for(float g = 0; g < 1; g+=0.1)
-    { 
+    {
         outc += texture(color, mix(uv - direction, uv + direction, g)).rgb;
         counter++;
     }
@@ -189,8 +189,8 @@ uniform int UseBilinearGI;
 
 layout (std430, binding = 2) buffer SSBOTest
 {
-    vec3 BufValues[]; 
-}; 
+    vec3 BufValues[];
+};
 
 #define TechniAmount 0.21        //[0.0 to 1.0]
 #define TechniPower  2.85        //[0.0 to 8.0]
@@ -199,7 +199,7 @@ layout (std430, binding = 2) buffer SSBOTest
 #define blueNegativeAmount  0.90 //[0.0 to 1.0]
 
 #define cyanfilter vec3(0.0, 1.30, 1.0)
-#define magentafilter vec3(1.0, 0.0, 1.05) 
+#define magentafilter vec3(1.0, 0.0, 1.05)
 #define yellowfilter vec3(1.6, 1.6, 0.05)
 
 #define redorangefilter vec2(1.05, 0.620) //RG_
@@ -233,46 +233,46 @@ vec3 TechnicolorPass( vec3 colorInput )
 #define Bleach              1.000           //[0.000 to 1.000] Brightens the shadows and fades the colors
 #define Defog               0.000           //[0.000 to 1.000] How much of the color tint to remove
 
-#define FogColor vec3(-0.51, 0.65, -0.65) 
+#define FogColor vec3(-0.51, 0.65, -0.65)
 
 vec3 TonemapPass( vec3 colorInput )
 {
     vec3 color = colorInput.rgb;
 
     color = clamp(color - Defog * FogColor, 0.0, 1.0); // Defog
-    
+
     color *= pow(2.0f, Exposure); // Exposure
-    
-    color.x = pow(color.x, Gamma); 
-    color.y = pow(color.y, Gamma); 
-    color.z = pow(color.z, Gamma); 
+
+    color.x = pow(color.x, Gamma);
+    color.y = pow(color.y, Gamma);
+    color.z = pow(color.z, Gamma);
 
     //#define BlueShift 0.00	//Blueshift
     //float4 d = color * float4(1.05f, 0.97f, 1.27f, color.a);
     //color = mix(color, d, BlueShift);
-    
+
     vec3 lumCoeff = vec3(0.2126, 0.7152, 0.0722);
     float lum = dot(lumCoeff, color.rgb);
-    
+
     vec3 blend = lum.rrr; //dont use vec3
-    
+
     float L = clamp( 10.0 * (lum - 0.45), 0.0, 1.0);
-    
+
     vec3 result1 = 2.0f * color.rgb * blend;
     vec3 result2 = 1.0f - 2.0f * (1.0f - blend) * (1.0f - color.rgb);
-    
+
     vec3 newColor = mix(result1, result2, L);
     vec3 A2 = Bleach * color.rgb;
     vec3 mixRGB = A2 * newColor;
-    
+
     color.rgb += ((1.0f - A2) * mixRGB);
-    
+
     //vec3 middlegray = float(color.r + color.g + color.b) / 3;
     float middlegray = dot(color,vec3(1.0/3.0)); //1fps slower than the original on nvidia, 2 fps faster on AMD
-    
+
     vec3 diffcolor = color - middlegray; //float 3 here
     colorInput.rgb = (color + diffcolor * Saturation)/(1+(diffcolor*Saturation)); //saturation
-    
+
     return colorInput;
 }
 #define VignetteType       1  //[1|2|3] 1 = Original, 2 = New, 3 = TV style
@@ -286,19 +286,19 @@ vec3 TonemapPass( vec3 colorInput )
 vec3 VignettePass( vec3 colorInput, vec2 tex )
 {
     vec3 vignette = colorInput;
-    
+
     //Set the center
     vec2 tc = tex - VignetteCenter;
-    
+
     //Make the ratio 1:1
     tc.x *= ratio;
-    
+
     //Calculate the distance
     float v = length(tc) / VignetteRadius;
-    
+
     //Apply the vignette
     vignette.rgb = vignette.rgb * (1.0 + pow(v, VignetteSlope) * VignetteAmount); //pow - multiply
-    
+
     return vignette;
 }
 
@@ -311,35 +311,35 @@ vec3 BloomPass( vec3 ColorInput2,vec2 Tex  )
     vec3 Blurtemp = vec3(0);
     float MaxDistance = sqrt(8*BloomWidth);
     float CurDistance = 0;
-    
+
     //float Samplecount = 0;
     float Samplecount = 25.0;
-    
+
     vec2 blurtempvalue = Tex * resolution * BloomWidth;
-    
+
     //float distancetemp = 1.0 - ((MaxDistance - CurDistance) / MaxDistance);
-    
+
     vec2 BloomSample = vec2(2.5,-2.5);
     vec2 BloomSampleValue;// = BloomSample;
-    
+
     for(BloomSample.x = (2.5); BloomSample.x > -2.0; BloomSample.x = BloomSample.x - 1.0) // runs 5 times
     {
         BloomSampleValue.x = BloomSample.x * blurtempvalue.x;
         vec2 distancetemp = BloomSample * BloomSample * BloomWidth;
-        
+
         for(BloomSample.y = (- 2.5); BloomSample.y < 2.0; BloomSample.y = BloomSample.y + 1.0) // runs 5 ( * 5) times
         {
             distancetemp.y = BloomSample.y * BloomSample.y;
             //CurDistance = sqrt(dot(BloomSample,BloomSample)*BloomWidth); //dot() attempt - same result , same speed. //move x part up ?
             CurDistance = sqrt( (distancetemp.y * BloomWidth) + distancetemp.x); //dot() attempt - same result , same speed. //move x part up ?
-            
+
             //Blurtemp.rgb = myTex2D(s0, vec2(Tex + (BloomSample*blurtempvalue))); //same result - same speed.
             BloomSampleValue.y = BloomSample.y * blurtempvalue.y;
             Blurtemp.rgb = texture(color, vec2(Tex + BloomSampleValue)).rgb; //same result - same speed.
-            
+
             //BlurColor2.rgb += lerp(Blurtemp.rgb,ColorInput2.rgb, 1 - ((MaxDistance - CurDistance)/MaxDistance)); //convert float4 to vec3 and check if it's possible to use a MAD
             BlurColor2.rgb += mix(Blurtemp.rgb,ColorInput2.rgb, 1.0 - ((MaxDistance - CurDistance) / MaxDistance)); //convert float4 to vec3 and check if it's possible to use a MAD
-            
+
             //Samplecount = Samplecount + 1; //take out of loop and replace with constant if it helps (check with compiler)
         }
     }
@@ -347,7 +347,7 @@ vec3 BloomPass( vec3 ColorInput2,vec2 Tex  )
     float Bloomamount = (dot(ColorInput2.rgb,vec3(0.299f, 0.587f, 0.114f))) ; //try BT 709
     vec3 BlurColor = BlurColor2.rgb * (BloomPower + 4.0); //check if calculated offline and combine with line 24 (the blurcolor2 calculation)
 
-    ColorInput2.rgb = mix(ColorInput2.rgb,BlurColor.rgb, Bloomamount);	
+    ColorInput2.rgb = mix(ColorInput2.rgb,BlurColor.rgb, Bloomamount);
 
     return ColorInput2;
 }
@@ -372,16 +372,16 @@ vec3 CurvesPass( vec3 colorInput )
 
     //calculate luma (grey)
     float luma = dot(lumCoeff, color);
-    
+
     //calculate chroma
     vec3 chroma = color - luma;
-    
+
     //Apply curve to luma
-    
+
     // -- Curve 1 --
 #if Curves_formula == 1
     luma = sin(PI * 0.5 * luma); // Sin - 721 amd fps
-    luma *= luma;  
+    luma *= luma;
 #endif
 
     // -- Curve 2 --
@@ -410,19 +410,19 @@ vec3 CurvesPass( vec3 colorInput )
 #if Curves_formula == 6
     luma = luma*luma*luma*(luma*(luma*6.0 - 15.0) + 10.0); //Perlins smootherstep - 752 amd fps
     #endif
-    
+
     // -- Curve 7 --
 #if Curves_formula == 7
     luma = ((luma-0.5) / ((0.5/(4.0/3.0)) + abs((luma-0.5)*1.25))) + 0.5; // amd fps
 #endif
-    
+
 
     //Add back the chroma
     color = luma + chroma;
-    
+
     //Blend by Curves_contrast
     colorInput.rgb = mix(colorInput.rgb, color, Curves_contrast_blend);
-    
+
     //Return the result
     return colorInput;
 }
@@ -475,19 +475,19 @@ vec3 DPXPass(vec3 InputColor) {
     B.b = pow(B.b, 1.00);
 
     B = (B * (1.0 - DPXContrast)) + DPXContrast / 2.0;
-    
-    B.r = (1.0 /(1.0 + exp(- RedCurve * (B.r - RedC))) - (1.0 / (1.0 + exp(RedCurve / 2.0))))/(1.0 - 2.0 * (1.0 / (1.0 + exp(RedCurve / 2.0))));				
-    B.g = (1.0 /(1.0 + exp(- GreenCurve * (B.g - GreenC))) - (1.0 / (1.0 + exp(GreenCurve / 2.0))))/(1.0 - 2.0 * (1.0 / (1.0 + exp(GreenCurve / 2.0))));				
-    B.b = (1.0 /(1.0 + exp(- BlueCurve * (B.b - BlueC))) - (1.0 / (1.0 + exp(BlueCurve / 2.0))))/(1.0 - 2.0 * (1.0 / (1.0 + exp(BlueCurve / 2.0))));					
+
+    B.r = (1.0 /(1.0 + exp(- RedCurve * (B.r - RedC))) - (1.0 / (1.0 + exp(RedCurve / 2.0))))/(1.0 - 2.0 * (1.0 / (1.0 + exp(RedCurve / 2.0))));
+    B.g = (1.0 /(1.0 + exp(- GreenCurve * (B.g - GreenC))) - (1.0 / (1.0 + exp(GreenCurve / 2.0))))/(1.0 - 2.0 * (1.0 / (1.0 + exp(GreenCurve / 2.0))));
+    B.b = (1.0 /(1.0 + exp(- BlueCurve * (B.b - BlueC))) - (1.0 / (1.0 + exp(BlueCurve / 2.0))))/(1.0 - 2.0 * (1.0 / (1.0 + exp(BlueCurve / 2.0))));
 
     //TODO use faster code for conversion between RGB/HSV  -  see http://www.chilliant.com/rgb2hsv.html
     float value = max(max(B.r, B.g), B.b);
     vec3 color = B / value;
-    
+
     color.x = pow(color.x, 1.0/ColorGamma);
     color.y = pow(color.y, 1.0/ColorGamma);
     color.z = pow(color.z, 1.0/ColorGamma);
-    
+
     vec3 c0 = color * value;
 
     c0 = mul(XYZ, c0);
@@ -497,7 +497,7 @@ vec3 DPXPass(vec3 InputColor) {
 
     c0 = luma + chroma * DPXSaturation;
     c0 = mul(RGB, c0);
-    
+
     InputColor.rgb = mix(InputColor.rgb, c0, Blend); //as long as Blend is always 0 we don't really need to lerp. The compiler *should* be smart enough to optimize this though (check to be sure)
 
     return InputColor;
@@ -509,9 +509,9 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
     int counter = 0;
     float cdp = texture(depth, giuv).r;
     for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
-    { 
+    {
         for(float g2 = 1; g2 < 6.0; g2+=1.0)
-        { 
+        {
             vec2 gauss = giuv + vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * radius);
             float dp = texture(depth, gauss).r;
             if(abs(dp - cdp) > 0.001) continue;
@@ -537,7 +537,7 @@ const float[7] binarysearch = float[7](0.5, 0.75, 0.875, 0.375, 0.625, 0.01, 0.9
 bool testVisibility(vec2 uv1, vec2 uv2) {
 	float d3d1 = texture(depth, uv1).r;
 	float d3d2 = texture(depth, uv2).r;
-	for(float i=0;i<1.0;i+= 0.1) { 
+	for(float i=0;i<1.0;i+= 0.1) {
 		vec2 ruv = mix(uv1, uv2, i);
 		float rd3d = texture(depth, ruv).r;
 		if(rd3d < mix(d3d1, d3d2, i)) {
@@ -549,7 +549,7 @@ bool testVisibility(vec2 uv1, vec2 uv2) {
 bool testVisibilityLowRes(vec2 uv1, vec2 uv2) {
 	float d3d1 = texture(depth, uv1).r;
 	float d3d2 = texture(depth, uv2).r;
-	for(int i=0;i<binarysearch.length();i++) { 
+	for(int i=0;i<binarysearch.length();i++) {
 		vec2 ruv = mix(uv1, uv2, binarysearch[i]);
 		float rd3d = texture(depth, ruv).r;
 		if(rd3d < mix(d3d1, d3d2, binarysearch[i])) {
@@ -565,10 +565,10 @@ vec2 projectDirection(vec3 dir){
 }
 
 vec2 getProjNormal(){
-	vec3 positionCenter = FromCameraSpace(texture(worldPos, UV).rgb); 
+	vec3 positionCenter = FromCameraSpace(texture(worldPos, UV).rgb);
 	vec3 normalCenter = texture(normals, UV).rgb;
 	vec3 dirPosition = positionCenter + normalCenter * 0.05;
-	
+
 	vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4((positionCenter), 1.0);
 	vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 	clipspace = (ProjectionMatrix * ViewMatrix) * vec4((dirPosition), 1.0);
@@ -579,7 +579,7 @@ vec2 getProjNormal(){
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
-vec3 DamnReflections() 
+vec3 DamnReflections()
 {
 	float reflectionStrength = texture(meshData, UV).r;
 	if(reflectionStrength < 0.05) return vec3(0);
@@ -590,7 +590,7 @@ vec3 DamnReflections()
 	vec3 normalCenter = texture(normals, UV).rgb;
 	float specSize = texture(normals, UV).a;
 	// Good to mix direct light color with diffuse color
-	vec3 positionCenter = FromCameraSpace(texture(worldPos, UV).rgb);  
+	vec3 positionCenter = FromCameraSpace(texture(worldPos, UV).rgb);
 	vec2 ssnormaldir = getProjNormal();
 	float speccomp = 1;
 	float distanceToCamera = distance(CameraPosition, positionCenter);
@@ -605,9 +605,9 @@ vec3 DamnReflections()
     vec3 closestColor = vec3(0);
     vec2 clouv = UV;
     float iter = 12.0 / (resolution.x);
-	for(float g = 0.0; g < 1.0; g += iter ) 
-	{ 	
-	
+	for(float g = 0.0; g < 1.0; g += iter )
+	{
+
 		vec2 coord = UV + (ssnormaldir * g);
 		//coord.x = (((coord.x - 0.5) * 2) * 1.05 / 2) + 0.5;
 		if(coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1) break;
@@ -618,8 +618,8 @@ vec3 DamnReflections()
 		vec3 lightRelativeToVPos = worldPosition - positionCenter;
 		vec3 R = reflect(cameraSpace, normalCenter.xyz);
 		float cosAlpha = dot(normalize(R), normalize(lightRelativeToVPos));
-		if(cosAlpha > 0.971){		
-			if(testVisibilityLowRes(coord, UV)) 
+		if(cosAlpha > 0.971){
+			if(testVisibilityLowRes(coord, UV))
 			{
                 closestColor = c;
                 clouv = coord;
@@ -629,8 +629,8 @@ vec3 DamnReflections()
                     vec2 dir = (normalize(ssnormaldir) * i * 0.01);
                     coord = UV + (ssnormaldir * g) + dir;
                     c = texture(color, coord).rgb;
-                    closestColor += c;   
-                    
+                    closestColor += c;
+
                     coord = UV + (ssnormaldir * g) - dir;
                     c = texture(color, coord).rgb;
 
@@ -646,17 +646,17 @@ vec3 DamnReflections()
                 speccolor += closestColor / 40;
                 sampls++;
                 break;
-			} 
+			}
 		}
-	
-		
-	}	
+
+
+	}
 	return (sampls == 0 ? closestColor : (speccolor / sampls)) * reflectionStrength;
 }
 vec3 ball(vec3 colour, float sizec, float xc, float yc){
 	float xdist = (abs(UV.x - xc));
 	float ydist = (abs(UV.y - yc)) * ratio;
-	
+
 	float d = sizec / length(vec2(xdist, ydist));
 	return colour * (d);
 }
@@ -664,24 +664,24 @@ vec3 ball(vec3 colour, float sizec, float xc, float yc){
 vec3 lightPoints(){
     vec3 color = vec3(0);
 	for(int i=0;i<LightsCount;i++){
-	
+
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 
 		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4((LightsPos[i]), 1.0);
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
-                
-        float badass_depth = distance(LightsPos[i], CameraPosition);	
+
+        float badass_depth = distance(LightsPos[i], CameraPosition);
         float logg = length(texture(worldPos, sspace1).rgb);
         float mixv = 1.0 - smoothstep(0.0, 4.5, distance(sspace1*resolution.xy * 0.01, UV*resolution.xy * 0.01));
-        
+
         if(logg > badass_depth) {
             color += mix(vec3(0), ball(vec3(LightsColors[i].rgb*1.0),LightPointSize / ( badass_depth) * 0.1, sspace1.x, sspace1.y), 1);
             //color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
         }
-    
+
 	}
-	
+
     return color;
 }
 void main()
@@ -701,13 +701,17 @@ void main()
     //if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
     //if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
     if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
-    
-    color1 += texture(VDAOTex, nUV ).rrr ;
-    
+
+    color1 += texture(VDAOTex, nUV ).rrr
+    *texture(VDAOTex, nUV ).rgb
+    * texture(diffuseColor, UV).rgb
+     * 0.2;
+    //color1 += texture(VDAOTex, nUV ).rrr;
+
     centerDepth = texture(depth, UV).r;
-    
+
     gl_FragDepth = centerDepth;
-    
+
     /*if(UV.x > 0 && UV.x < 0.05) color1 = (BufValues[0]);
     if(UV.x > 0.05 && UV.x < 0.1) color1 = (BufValues[1]);
     if(UV.x > 0.1 && UV.x < 0.15) color1 = (BufValues[2]);
@@ -725,7 +729,8 @@ void main()
     pow(color1.g, gamma.g),
     pow(color1.b, gamma.b));
     //if(UseLightPoints == 1) color1 += DamnReflections();
-    color1 += blurByUV2(RSM, UV, 3.0);
+    //color1 += blurByUV2(RSM, UV, 3.0);
+    color1 += texture(RSM, nUV).rgb;
     color1 += texture(SSReflections, nUV).rgb;
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

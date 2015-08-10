@@ -15,7 +15,8 @@ namespace VEngine
         }
 
         public int TexColor, TexDepth;
-        private int FBO, RBO, Width, Height;
+        private int FBO, RBO;
+        public int Width, Height;
         private bool DepthOnly, MultiSample;
         public bool Generated;
         public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.Rgba16f;

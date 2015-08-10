@@ -17,7 +17,7 @@ layout (std430, binding = 3) buffer B4
   vec4 PathPoints[]; 
 }; 
 
-layout( local_size_x = 1, local_size_y = 1, local_size_z = 1 ) in;
+layout( local_size_x = 3, local_size_y = 3, local_size_z = 50 ) in;
 
 uniform int BallsCount;
 uniform int PathPointsCount;
@@ -133,33 +133,59 @@ vec3 processCloth(uint index, vec3 position){
     return diff * 1 + ((Velocities[index].xyz + avrVec / counter) * 0.28) + GRAVITY;
 }
 
-uniform float Time;
-
-#include noise3D.glsl
-
-void main(){
-	uint group = getIndex(gl_WorkGroupID.x, gl_WorkGroupID.y, gl_WorkGroupID.z);
-		  
-	vec3 translation = Positions[group].xyz;
-	float bs = float(BallsCount);
+void processBallPhysics(uint group){
+    vec3 translation = Positions[group].xyz;
+    vec3 velocity = Velocities[group].xyz;
     
-    //vec3 vv = processPath(group, translation, 5.1, 1.0, 1.0);
-    //vec3 vv = processPoint(group, translation, 2.1, 1.0, 1.0);
-    //barrier();
-    vec3 vv = processCloth(group, translation);
-    barrier();
-    vec3 vel = vv;
+
+    translation += velocity * 0.1;
+            memoryBarrierBuffer();
+    for(int i=0;i<BallsCount;i++){
+        vec3 t = Positions[i].xyz;
+        vec3 dir = normalize(t - translation);
+        vec3 rvel = Velocities[i].xyz ;
+        float dt = max(0, dot(normalize(velocity), dir));
+        float dt2 = max(0, dot(normalize(rvel), dir));
+        if(distance(t, translation) < 2){
+            //barrier();
+            
+            velocity = reflect(Velocities[i].xyz, -dir) * dt2 + velocity * (1.0-dt2);
+            Velocities[i].xyz = reflect(velocity, dir) * dt + rvel * (1.0-dt);
+            translation =  t - dir * 2.0;
+            memoryBarrierBuffer();
+            break;
+        }
+    }
+            memoryBarrierBuffer();
+   // velocity = Velocities[group].xyz;
+    velocity += GRAVITY;
     
-    vel *= 0.7789;
-    //vel += ;
-    int smoother = 3;
-    vec4 fv = vec4((Velocities[group].xyz * smoother + vel) / (smoother + 1), 1);
-    fv.z += snoise(vec3(translation.x/22, translation.y/22, translation.z/22 + Time) ) *0.01;
-    fv.x += snoise(vec3(translation.x/12, translation.y/45, translation.z/33 + Time) ) *0.06;
-    Velocities[group] = fv.xyzz;
-    float fin = float(gl_WorkGroupID.y) / float(gl_NumWorkGroups.y);
-	translation += fv.xyz * 2 * fin;
+    if(translation.y - 1 < -20) {
+        velocity.y = abs(velocity.y) * 0.998+0.0;
+        translation.y = -19;
+    }
+    #define barr 55
+    if(translation.x < -barr) {
+        velocity.x = abs(velocity.x) * 0.998;
+        translation.x = -barr;
+    }
+    if(translation.x > barr) {
+        velocity.x = -abs(velocity.x) * 0.998;
+        translation.x = barr;
+    }
+    
+    if(translation.z < -barr) {
+        velocity.z = abs(velocity.z) * 0.998;
+        translation.z = -barr;
+    }
+    if(translation.z > barr) {
+        velocity.z = -abs(velocity.z) * 0.998;
+        translation.z = barr;
+    }
+    velocity *= 0.99;
+   
 	Positions[group] = vec4(translation, 1);
+    Velocities[group] = vec4(velocity, 1);
     
 	//translation.x += 0.01 * group;
 	//translation.z += 0.01 * group;
@@ -168,4 +194,15 @@ void main(){
 	m[3][1] = translation.y;
 	m[3][2] = translation.z;
 	Matrices[group] = m;
+}
+
+uniform float Time;
+
+#include noise3D.glsl
+
+void main(){
+	uint group = gl_GlobalInvocationID.z * gl_NumWorkGroups.x* gl_NumWorkGroups.y + 
+    gl_GlobalInvocationID.y * gl_NumWorkGroups.x + 
+        gl_GlobalInvocationID.x;
+    processBallPhysics(group);
 }

@@ -31,16 +31,16 @@ float rand(vec2 co){
 }
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(float i=0;i<1;i+=0.03) 
+    for(float i=0;i<1;i+=0.03)
         ret = max(mix(v1, v2, i) - texture(sampler, mix(p1, p2, i)).r, ret);
-        
+
     return ret;
 }
 float textureMaxFromLineNegate(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 9999;
-    for(float i=0;i<1;i+=0.03) 
+    for(float i=0;i<1;i+=0.03)
         ret = min(mix(v1, v2, i) - texture(sampler, mix(p1, p2, i)).r + 0.1, ret);
-        
+
     return ret;
 }
 
@@ -63,12 +63,12 @@ bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
 }
 
 vec3 LightingPhysical(
-    vec3 lightColor, 
-    float albedo, 
-    float gloss, 
-    vec3 normal, 
-    vec3 lightDir, 
-    vec3 viewDir, 
+    vec3 lightColor,
+    float albedo,
+    float gloss,
+    vec3 normal,
+    vec3 lightDir,
+    vec3 viewDir,
     float atten )
     {
         // calculate diffuse term
@@ -98,14 +98,14 @@ vec3 LightingPhysical(
     }
 
 void main()
-{   
-/*
+{
+
     float alpha = texture(texColor, UV).a;
     vec2 nUV = UV;
     if(alpha < 0.99){
         //nUV = refractUV();
     }
-    vec3 colorOriginal = texture(texColor, nUV).rgb;    
+    vec3 colorOriginal = texture(texColor, nUV).rgb;
     vec4 normal = texture(normalsTex, nUV);
     meshDiffuse = normal.a;
     meshSpecular = texture(worldPosTex, nUV).a;
@@ -117,7 +117,7 @@ void main()
     } else {
         color1 = colorOriginal * 0.01;
     }
-    
+
     //vec3 color1 = colorOriginal * 0.2;
     if(texture(texColor, UV).a < 0.99){
         color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
@@ -131,7 +131,7 @@ void main()
     //vec3 cameraRelativeToVPos = normalize( CameraPosition - fragmentPosWorld3d.xyz);
     float len = length(cameraRelativeToVPos);
     int foundSun = 0;
-    
+
     #define RSMSamples 4
     for(int i=0;i<LightsCount;i++){
         //break;
@@ -151,27 +151,27 @@ void main()
                 vec3 dir = normalize(
                 reconstructDir.xyz - centerpos
                 );
-                
-                // not optimizable 
+
+                // not optimizable
                 vec3 newpos = dir * reverseLog(ldep) + LightsPos[i];
                 float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
                 vec3 lightRelativeToVPos = newpos - fragmentPosWorld3d.xyz;
                 float att = 1.0 / pow(((distanceToLight * 1) + 1.0), 2.0) * 0.6;
-                
+
 
                 //if(testVisibility3d(nUV, newpos, fragmentPosWorld3d.xyz)){
                     color1 += LightingPhysical(
-                        LightsColors[i].rgb*LightsColors[i].a, 
-                        meshDiffuse, 
-                        meshSpecular, 
-                        normal.xyz, 
+                        LightsColors[i].rgb*LightsColors[i].a,
+                        meshDiffuse,
+                        meshSpecular,
+                        normal.xyz,
                         normalize(lightRelativeToVPos),
-                        normalize(cameraRelativeToVPos), 
+                        normalize(cameraRelativeToVPos),
                         att);
-                //}                
+                //}
             }
         }
     }
-    outColor = vec4(color1 / RSMSamples, 1);*/
+    outColor = vec4(color1 / RSMSamples, 1);
     outColor = vec4(0,0,0, 1);
 }

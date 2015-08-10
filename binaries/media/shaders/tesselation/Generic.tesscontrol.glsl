@@ -80,9 +80,9 @@ void main()
     float surfaceSize = 0.5 * p * h;
 
     if(MaterialType == MaterialTypeWater){
-        gl_TessLevelOuter[0] = GetTessLevel(EyeToVertexDistance1, EyeToVertexDistance2) * TesselationMultiplier;
-        gl_TessLevelOuter[1] = GetTessLevel(EyeToVertexDistance2, EyeToVertexDistance0) * TesselationMultiplier;
-        gl_TessLevelOuter[2] = GetTessLevel(EyeToVertexDistance0, EyeToVertexDistance1) * TesselationMultiplier;
+        gl_TessLevelOuter[0] = GetTessLevelAlternative(EyeToVertexDistance1, EyeToVertexDistance2, surfaceSize) * TesselationMultiplier;
+        gl_TessLevelOuter[1] = GetTessLevelAlternative(EyeToVertexDistance2, EyeToVertexDistance0, surfaceSize) * TesselationMultiplier;
+        gl_TessLevelOuter[2] = GetTessLevelAlternative(EyeToVertexDistance0, EyeToVertexDistance1, surfaceSize) * TesselationMultiplier;
         gl_TessLevelInner[0] = gl_TessLevelOuter[0];
         gl_TessLevelInner[1] = gl_TessLevelOuter[1];
     } else {

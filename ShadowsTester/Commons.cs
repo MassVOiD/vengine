@@ -171,6 +171,14 @@ namespace ShadowsTester
                     ShaderProgram.RecompileAll();
                     ComputeShader.RecompileAll();
                 }
+                if(e.Key == OpenTK.Input.Key.LBracket)
+                {
+                    FreeCam.Cam.Brightness -= 0.1f;
+                }
+                if(e.Key == OpenTK.Input.Key.RBracket)
+                {
+                    FreeCam.Cam.Brightness += 0.1f;
+                }
                 if(e.Key == OpenTK.Input.Key.T)
                 {
                     World.Root.SimulationSpeed = 1.0f;

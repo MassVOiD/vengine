@@ -1,6 +1,6 @@
 #version 430 core
 
-layout( local_size_x = 32, local_size_y = 32, local_size_z = 1 ) in;
+layout( local_size_x = 32, local_size_y = 1, local_size_z = 32 ) in;
 
 layout (binding = 0, rgba16f) writeonly uniform image2D outImage;
 layout (binding = 1, rgba16f) readonly uniform image2D lastBuffer;
@@ -74,11 +74,12 @@ struct IntersectionData{
     vec3 Origin;
     vec3 Normal;
     vec3 Color;
+    float Roughness;
     float Distance;
     bool HasHit;
 };
 
-const IntersectionData emptyIntersection = IntersectionData(vec3(0), vec3(0), vec3(0), vec3(0), INFINITY, false);
+const IntersectionData emptyIntersection = IntersectionData(vec3(0), vec3(0), vec3(0), vec3(0), 0, INFINITY, false);
 
 #include IntersectionTests.glsl
 
@@ -186,7 +187,7 @@ IntersectionData getIntersectionRaw(vec3 origin, vec3 direction){
     for(int xx = 0; xx < TrianglesCount; xx++){
         float currentDistance = triangleIntersectionDistance(Triangles[xx], origin, direction);
         
-        if(currentDistance >= 0 && currentDistance <= bestDistance){
+        if(currentDistance >= 0.03 && currentDistance <= bestDistance){
             bestDistance = currentDistance;
             foundID = xx;
         }
@@ -215,71 +216,90 @@ vec3 TraceShadows(vec3 origin, vec3 normal){
     }
     return accumulatorTotal;
 }
-
 vec3 PathTrace(vec3 origin, vec3 direction){
     vec3 accumulator = vec3(0);
     vec3 lastIncidentColor = vec3(1);
     float totalDistance = 0;
-    vec3 raycolor = vec3(2);
-    for(int i=0;i<2;i++){
+    vec3 raycolor = imageLoad(texAlbedo, iUV).xyz;
+    float rayStrength = 1;
+    for(int i=1;i<4;i++){
         IntersectionData bestCandidate = getIntersectionRaw(origin, direction);
         if(bestCandidate.HasHit){
             totalDistance += bestCandidate.Distance;
             vec3 incidentColor = bestCandidate.Color;
            // raycolor *= 0.5;
-            if(length(bestCandidate.Color) > length(vec3(1))){
-                if(i > 0)accumulator += CalculateFallof(totalDistance) * max(0,dot(-direction, bestCandidate.Normal)) / i; 
-                else accumulator += incidentColor;
+            if(length(bestCandidate.Color) >= length(vec3(1))){
+                accumulator += CalculateFallof(totalDistance/60+1) * incidentColor*1 * max(0,dot(-direction, bestCandidate.Normal)) *raycolor; 
                 //accumulator += incidentColor * max(0,dot(vec3(0,1,0), bestCandidate.Normal));
                 break;
-            } else {
+            } 
+            raycolor *= bestCandidate.Color * max(0,dot(-direction, bestCandidate.Normal));
                // incidentColor = TraceShadows(bestCandidate.Origin, bestCandidate.Normal);
                // if(i > 0)accumulator += CalculateFallof(totalDistance + 5.0) * max(0,dot(-direction, bestCandidate.Normal)) / i; 
-            }
+               //rayStrength *= 1 * max(0,dot(-direction, bestCandidate.Normal));
+           // }
         } else break;
         
         //lastIncidentColor *= bestCandidate.Color;
         origin = bestCandidate.Origin;
         //Seed(bestCandidate.NewDirection.xy);
         direction = random3dSample();// + bestCandidate.NewDirection;
-        direction *= sign(dot(direction, bestCandidate.Normal));
-        //direction = mix(direction, bestCandidate.NewDirection, 0.8);
+        direction *= sign(dot(direction, bestCandidate.NewDirection));
+        direction = normalize(mix(direction, bestCandidate.NewDirection, 1));
+        //direction.y = abs(direction.y);
+        direction = direction;
         //direction = normalize(direction);
         //if(!bestCandidate.HasHit) break;
         //if(i==0)accumulator += TraceShadows(origin, bestCandidate.Normal);
     }
-    
-    return (accumulator*raycolor);
+   // accumulator*=0.2;
+    return (accumulator);
     //return accumulator1;
 }
-
+#define CST 1.78107241799019798524
+#include UsefulIncludes.glsl
 vec3 ExecuteTracing(){
     vec3 albedo = imageLoad(texAlbedo, iUV).xyz;
-    vec3 worldPos = imageLoad(texWorldPos, iUV).xyz;
+    float albedoA = imageLoad(texAlbedo, iUV).a;
+    vec3 worldPos = FromCameraSpace(imageLoad(texWorldPos, iUV).xyz);
     vec3 normal = imageLoad(texNormals, iUV).xyz;
+    vec3 vwpos = normalize(worldPos - CameraPosition);
+    float roughness = 1.0-imageLoad(texWorldPos, iUV).a;
+    vec3 reflected = reflect(vwpos , normal);
     vec3 c = vec3(0);
-    for(int i=1;i<7;i++){
-        randsPointer = int((gl_GlobalInvocationID.x + (gl_GlobalInvocationID.y + 1)*(gl_WorkGroupID.y + 1) * gl_WorkGroupSize.y))*i % RandomsCount;
-        vec3 direction = random3dSample();// + bestCandidate.NewDirection;
-        direction *= sign(dot(direction, normal));
-       // direction = mix(direction, bestCandidate.NewDirection, 0.8);
-        c += PathTrace(worldPos, direction);
-        //c += TraceShadows(worldPos, normal);
+    int count = 0;
+    if(albedo != vec3(0) && albedoA != 0){
+        for(int i=1;i<5;i++){
+            randsPointer = int(getRand() + (gl_GlobalInvocationID.x + (gl_GlobalInvocationID.z + 1)*(gl_WorkGroupID.z + 1) * gl_WorkGroupSize.x))*i % RandomsCount;
+            vec3 direction = random3dSample();// + bestCandidate.NewDirection;
+            //direction *= sign(dot(direction, normal));
+           // direction = mix(direction, bestCandidate.NewDirection, 0.8);
+            direction *= sign(dot(direction, normal));
+            direction = normalize(mix(direction, reflected, 1));
+            c += PathTrace(worldPos, direction);
+            count++;
+            //c += TraceShadows(worldPos, normal);
+        }
     }
-    return c;
+    if(count == 0) return albedo *max(0, dot(reflected, normal));
+    c = c/count;
+   // if(length(albedo) >= length(vec3(1))) return vec3(1);
+    return worldPos.y > -9 ? (c) : vec3(0);
 }
     
 vec3 buff(vec3 newcolor){
     vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;
-   return length(newcolor) > length(lastResult) ? newcolor : lastResult;
-   // return (lastResult * 2 + newcolor) / 3;
+ //  return length(newcolor) > length(lastResult) ? newcolor : lastResult;
+    return (lastResult * 15 + newcolor ) / 16;
 }
 
+uniform int RenderOffsetX;
+uniform int RenderOffsetY;
 void main(){
     iUV = ivec2(
         gl_GlobalInvocationID.x,
-        gl_GlobalInvocationID.y
-    );
+        gl_GlobalInvocationID.z
+    ) + ivec2(RenderOffsetX, RenderOffsetY);
     
     vec3 color = vec3(0);
     vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;
@@ -297,15 +317,15 @@ void main(){
     color += ExecuteTracing();
     
     
-   // color *= 0.1;
+    //color *= 0.08;
     //color = vec3(0);
     //vec3 lastResult = imageLoad(lastBuffer, iUV).xyz;    
     vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
     color.rgb = vec3(pow(color.r, gamma.r),
     pow(color.g, gamma.g),
     pow(color.b, gamma.b));
-    color = buff(color)*1;
-    //color *= 1.09;
+    //color = buff(color)*1;
+   // color *= 0;
     /*if(iUV.x < imageSize(lastBuffer).x/2 && iUV.y < imageSize(lastBuffer).y/2){
         float ix = float(iUV.x) * 4;
         float iy = float(iUV.y) * 4;

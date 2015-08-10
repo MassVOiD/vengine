@@ -871,7 +871,7 @@ namespace VEngine
                                 Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                                 Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
 
-                                out_vertex_buffer.AddRange(new float[] { vertex.X, vertex.Y, vertex.Z, 0.0f, 0.0f, normal.X, normal.Y, normal.Z });
+                                out_vertex_buffer.AddRange(new float[] { vertex.X, vertex.Y, vertex.Z, 1.0f, 1.0f, normal.X, normal.Y, normal.Z });
                                 index_buffer.Add(vcount++);
                                 if(i >= 6)
                                     break;
