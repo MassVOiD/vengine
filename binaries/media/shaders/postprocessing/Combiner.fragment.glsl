@@ -719,11 +719,11 @@ void main()
     //if(UseDeferred == 1) color1 += motionBlurExperiment(nUV);
     if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
     //if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
-    color1 += lightPoints();
+   // color1 += lightPoints();
     if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
     //if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
     //if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
-    if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
+   // if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
 
     color1 += 
     //blurByUV3(VDAOTex, nUV, 3.9);
@@ -737,7 +737,7 @@ void main()
     /*if(UV.x > 0 && UV.x < 0.05) color1 = (BufValues[0]);
     if(UV.x > 0.05 && UV.x < 0.1) color1 = (BufValues[1]);
     if(UV.x > 0.1 && UV.x < 0.15) color1 = (BufValues[2]);
-    if(UV.x > 0.15 && UV.x < 0.2) color1 = (BufValues[3]);
+    if(UV.x > 0.15 && UV.x < 0.2) color1 = (BufValues[3]);  
     */
     //color1 = TechnicolorPass(color1);
     //color1 = VignettePass(color1, UV);

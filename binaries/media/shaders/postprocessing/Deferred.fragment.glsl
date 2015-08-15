@@ -356,7 +356,7 @@ void main()
             vec3 flatdir = cross(cross(normal.xyz, rdir), normal.xyz);
             vec2 pointedDir = clamp(projectPoint(fragmentPosWorld3d.xyz + flatdir*(0.2)), 0.0, 1.0);
             vec2 d2dir = (pointedDir - pointCenter);
-            float dotmax = textautoshadow(pointCenter, pointCenter + d2dir, flatdir);
+           // float dotmax = textautoshadow(pointCenter, pointCenter + d2dir, flatdir);
            // if(dotmax == 0){
              //   percent *= dotmax;
             //}
@@ -411,23 +411,25 @@ void main()
             ) * meshSpecular, 0.0, 1.0);
 
             
-            float diffuseComponent = orenNayarDiffuse(
+            float diffuseComponent = clamp(orenNayarDiffuse(
             normalize(lightRelativeToVPos),
             normalize(cameraRelativeToVPos),
             normal.xyz,
             meshRoughness, 0.1
-            ) * meshDiffuse *5 ;    
-            color1 += (((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) 
+            ) * meshDiffuse *5 , 0.0, 1.0);   
+            float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
+            fresnel = fresnel * fresnel * fresnel + 1.0; 
+            color1 += (((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) * fresnel
             + (LightsColors[i].rgb * specularComponent))
-            * att * max(0, percent)) * LightsColors[i].a;           
-            if(percent < 0){
+            * att * max(0, percent)) * LightsColors[i].a * fresnel;           
+            //if(percent < 0){
                 //is in shadow! lets try subsufrace scattering
-                /*float amount = (-percent) * 0.3;
-                // todo - less lighting for more distance
-                float dotdiffuse2 = dot(normalize(lightRelativeToVPos), normalize (-normal.xyz));
-                float diffuseComponent2 = clamp(dotdiffuse2, 0.0, 1.0);                        
-                color1 += colorOriginal * culler * 10 * dotdiffuse2 * LightsColors[i].rgb *  att*  max(0, amount);*/
-            }
+                float subsc = max(0.007, abs(LastProbeDistance));
+                float amount = 1.0/(pow((subsc *200)+1, 3));
+                amount = max(0.03, abs(amount));
+                  
+               // color1 += colorOriginal *  max(0, amount);
+            //} else color1 += colorOriginal * 0.7;
             if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
         
         }

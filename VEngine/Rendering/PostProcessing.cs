@@ -256,6 +256,8 @@ namespace VEngine
             MRT.UseTextureMeshData(33);
             BackMRT.UseTextureDepth(32);
             LightPool.UseTextures(2);
+            MRT.UseTextureDiffuseColor(0);
+            MRT.UseTextureDepth(1);
             LightPool.MapSimpleLightsToShader(RSMShader);
             SetLightingUniforms(RSMShader);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);

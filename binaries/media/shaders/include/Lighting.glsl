@@ -63,7 +63,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	return clamp((distance2 - bbb) * 21, 0, 11) * 1;
 }
 
-
+float LastProbeDistance = 0.0;
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 1.0;
 	
@@ -96,6 +96,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
         distance1 = lookupDepthFromLight(i, uv);
         float diff = (distance3 -  distance1);
         if(diff > 0.00003) {
+            LastProbeDistance = bval;
             return -abs(bval);
         }
         
@@ -116,6 +117,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
         }
     }
 	
+    LastProbeDistance = bval;
     float rs = 1.0 - (accum / counter);
 	if(rs > 0) return rs;
     else return -abs(bval);

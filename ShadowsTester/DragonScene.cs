@@ -30,13 +30,13 @@ namespace ShadowsTester
             chair.MainMaterial.Roughness = 0.0f;
             //chair.MainMaterial.SetNormalMapFromMedia("clothnorm.png");
             chair.MainMaterial.ReflectionStrength = 1.0f;
-            Add(chair);
+            Add(chair);/*
             var scene = Object3dInfo.LoadSceneFromObj(Media.Get("desertcity.obj"), Media.Get("desertcity.mtl"), 1.0f);
             foreach(var ob in scene)
             {
                 ob.SetMass(0);
                 this.Add(ob);
-            }
+            }*/
         }
 
     }

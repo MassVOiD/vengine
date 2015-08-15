@@ -31,15 +31,15 @@ float rand(vec2 co){
 }
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(float i=0;i<1;i+=0.03)
+    for(float i=0;i<1;i+=0.1)
         ret = max(mix(v1, v2, i) - texture(sampler, mix(p1, p2, i)).r, ret);
 
     return ret;
 }
 float textureMaxFromLineNegate(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 9999;
-    for(float i=0;i<1;i+=0.03)
-        ret = min(mix(v1, v2, i) - texture(sampler, mix(p1, p2, i)).r + 0.1, ret);
+    for(float i=0;i<1;i+=0.33)
+        ret = min(mix(v1, v2, i) - texture(sampler, mix(p1, p2, i)).r, ret);
 
     return ret;
 }
@@ -49,7 +49,7 @@ vec2 saturatev2(vec2 v){
 }
 
 mat4 PV = (ProjectionMatrix * ViewMatrix);
-bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
+float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     vec4 clipspace = (PV) * vec4((w1), 1.0);
     vec2 sspace1 = saturatev2((clipspace.xyz / clipspace.w).xy * 0.5 + 0.5);
     vec4 clipspace2 = (PV) * vec4((w2), 1.0);
@@ -59,7 +59,7 @@ bool testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     float mx = (textureMaxFromLine(d3d1, d3d2, sspace1, sspace2, texDepth));
     //float mx2 = (textureMaxFromLine(d3d1, d3d2, sspace1, sspace2, texDepth));
 
-    return mx == 0;
+    return mx;
 }
 
 vec3 LightingPhysical(
@@ -97,6 +97,10 @@ vec3 LightingPhysical(
         return final_output;
     }
 
+float step2(float a, float b, float x){
+    return step(a, x) * (1.0-step(b, x));
+}
+    
 void main()
 {
 
@@ -155,23 +159,26 @@ void main()
                 // not optimizable
                 vec3 newpos = dir * reverseLog(ldep) + LightsPos[i] + (-dir * 0.1);
                 float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
-                vec3 lightRelativeToVPos = newpos - fragmentPosWorld3d.xyz;
-                float att = min(1.0 / pow(((distanceToLight * 0.6) + 1.0), 2.0) * 0.09, 0.007);
-
-
-                //if(testVisibility3d(nUV, newpos, fragmentPosWorld3d.xyz)){
-                    color1 += LightingPhysical(
-                        LightsColors[i].rgb*LightsColors[i].a,
+                vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
+                float att = min(1.0 / pow(((distanceToLight * 0.6) + 1.0), 2.0) * 0.9, 0.007);
+                float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*3.5, fragmentPosWorld3d.xyz);
+                vi = (step(0.0, -vi))+smoothstep(0.0, 0.1, vi);
+                //    vi = 1.0-vi;
+                float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
+                fresnel = fresnel * fresnel * fresnel + 1.0;
+               
+                    color1 += vi* fresnel * LightingPhysical(
+                        LightsColors[i].rgb*colorOriginal*LightsColors[i].a,
                         meshDiffuse,
                         meshSpecular,
                         normal.xyz,
-                        normalize(lightRelativeToVPos),
+                        (lightRelativeToVPos),
                         normalize(cameraRelativeToVPos),
                         att);
-                //}
+                
             }
         }
     }
-    outColor = vec4(clamp(color1 / RSMSamples, 0, 1), 1);
-    //outColor = vec4(0,0,0, 1);
+    outColor = vec4(clamp(color1 / (RSMSamples*RSMSamples), 0, 1), 1);
+ //   outColor = vec4(0,0,0, 1);
 }
