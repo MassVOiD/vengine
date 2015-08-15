@@ -138,6 +138,6 @@ vec3 DamnReflections()
 void main()
 {
     vec3 color1 = vec3(0);
-    //color1 += DamnReflections();
+   // color1 += DamnReflections();
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

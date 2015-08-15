@@ -142,6 +142,7 @@ namespace VEngine
         public Texture NormalMap, BumpMap, AlphaMask;
         public float NormalMapScale = 1.0f;
         public float TesselationMultiplier = 1.0f;
+        public string Name;
 
         public enum MaterialType
         {

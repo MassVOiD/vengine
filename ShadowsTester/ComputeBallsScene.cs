@@ -16,9 +16,17 @@ namespace ShadowsTester
 
         public ComputeBallsScene()
         {
+            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
+            var skydomeMaterial = GenericMaterial.FromMedia("skyreal.png");
+            var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
+            skydome.Scale(55000);
+            skydome.Translate(0, -100, 0);
+            //skydome.IgnoreLighting = true;
+            //skydome.DiffuseComponent = 0.2f;
+            Add(skydome);
             int instancesAxis = 10;
             int instances = instancesAxis * instancesAxis * instancesAxis;
-            var ballInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
+            var ballInfo = Object3dInfo.LoadFromObjSingle(Media.Get("star3d.obj"));
             ballInfo.Normalize();
            // var cb = Object3dGenerator.CreateCube(new Vector3(1000, 1000, 1000), new Vector2(1, 1));
            // cb.FlipFaces();
@@ -49,11 +57,11 @@ namespace ShadowsTester
                 var bts2 = new List<Vector4>();
                 var rand = new Random();
                 PBuffer.MapData(bts3.ToArray());
-                for(int x = 0; x < 3; x++)
+                for(int x = 0; x < 30; x++)
                 {
                     for(int y = 0; y < 200; y++)
                     {
-                        for(int z = 0; z < 3; z++)
+                        for(int z = 0; z < 30; z++)
                         {
                             var vec = new Vector3(x * 4 + (float)rand.NextDouble()*3, y*3 + 20 + (float)rand.NextDouble(), z * 4 + (float)rand.NextDouble() * 3);
                             instanced.Transformations.Add(new TransformationManager(vec, Quaternion.Identity, 1f));
@@ -76,7 +84,7 @@ namespace ShadowsTester
                     cshader.SetUniform("BallsCount", instances);
                     cshader.SetUniform("PathPointsCount", bts3.Count);
                     cshader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-                    cshader.Dispatch(3, 3, 200/50);
+                    cshader.Dispatch(30, 30, 200/50);
                 };
             });
             Add(instanced);

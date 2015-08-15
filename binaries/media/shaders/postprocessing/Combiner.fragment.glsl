@@ -77,6 +77,28 @@ vec3 blurByUV2(sampler2D sampler, vec2 fuv, float force){
     }
     return outc / counter;
 }
+vec3 blurByUV3(sampler2D sampler, vec2 fuv, float force){
+    vec3 outc = vec3(0);
+    int counter = 0;
+    vec3 norm = texture(normals, fuv).xyz;
+    float depthCenter = texture(depth, fuv).r;
+    for(float g = 0; g < mPI2; g+=0.2)
+    {
+        for(float g2 = 0; g2 < 1.0; g2+=0.1)
+        {
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001 * force);
+            vec3 color = texture(sampler, fuv + gauss).rgb;
+            vec3 anorm = texture(normals, fuv + gauss).xyz;
+            if(dot(anorm, norm) > 0.9){
+                outc += color;
+                counter++;
+            }
+        }
+    }
+    if(counter == 0) return texture(sampler, fuv).rgb;
+    vec3 a = outc / counter ;
+    return a ;
+}
 vec3 lookupFogSimple(vec2 fuv){
     return texture(fog, fuv).rgb;
 }
@@ -526,9 +548,10 @@ vec3 lookupGIBlurred(vec2 giuv, float radius){
 }
 
 vec3 emulateSkyWithDepth(vec2 uv){
-    float depth = texture(depth, uv).r;
-    vec3 worldPos = FromCameraSpace(texture(worldPos, uv).rgb);
-    depth = depth * clamp(1.0 / (abs(worldPos.y) * 0.001), 0, 1);
+    vec3 worldPos = (texture(worldPos, uv).rgb);
+    float depth = length(worldPos)*0.001;
+    worldPos = FromCameraSpace(worldPos);
+    depth = depth * clamp(1.0 / (abs(worldPos.y) * 0.0001), 0, 1);
     return vec3(1) * depth;
 }
 
@@ -702,10 +725,9 @@ void main()
     //if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
     if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
 
-    color1 += texture(VDAOTex, nUV ).rrr
-    *texture(VDAOTex, nUV ).rgb
-    * texture(diffuseColor, UV).rgb
-     * 0.2;
+    color1 += 
+    //blurByUV3(VDAOTex, nUV, 3.9);
+    texture(VDAOTex, nUV).rgb;
     //color1 += texture(VDAOTex, nUV ).rrr;
 
     centerDepth = texture(depth, UV).r;

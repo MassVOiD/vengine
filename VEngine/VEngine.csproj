@@ -79,7 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AMCParser.cs" />
-    <Compile Include="FileFormats\SceneFormat.cs" />
+    <Compile Include="FileFormats\GameScene.cs" />
     <Compile Include="Game\Water.cs" />
     <Compile Include="PathTracing\JitterRandomSequenceGenerator.cs" />
     <Compile Include="PathTracing\PathTracer.cs" />

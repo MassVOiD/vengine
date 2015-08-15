@@ -314,7 +314,7 @@ void main()
         color1 = colorOriginal;
         IgnoreLightingFragment = true;
     } else {
-        color1 = colorOriginal * 0.01;
+       // color1 = colorOriginal * 0.01;
     }
     
     //vec3 color1 = colorOriginal * 0.2;
@@ -358,7 +358,7 @@ void main()
             vec2 d2dir = (pointedDir - pointCenter);
             float dotmax = textautoshadow(pointCenter, pointCenter + d2dir, flatdir);
            // if(dotmax == 0){
-                percent *= dotmax;
+             //   percent *= dotmax;
             //}
         
             float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);

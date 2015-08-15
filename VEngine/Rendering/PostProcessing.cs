@@ -11,6 +11,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using VEngine.Particles;
 using System.Drawing;
+using VEngine.PathTracing;
 
 namespace VEngine
 {
@@ -53,6 +54,7 @@ namespace VEngine
             SSReflectionsFramebuffer;
 
         private MRTFramebuffer MRT, BackMRT;
+        ShaderStorageBuffer RandomsSSBO = new ShaderStorageBuffer();
 
         private ShaderStorageBuffer TestBuffer;
 
@@ -99,6 +101,7 @@ namespace VEngine
             Height = initialHeight;
             MSAAResolvingFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             MSAAResolvingFrameBuffer.SetMultiSample(true);
+            RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(16, 16 * 16 * 16, true).ToArray());
 
             MRT = new MRTFramebuffer(initialWidth / 1, initialHeight / 1);
             BackMRT = new MRTFramebuffer(initialWidth / 4, initialHeight / 4);
@@ -263,11 +266,15 @@ namespace VEngine
         private void VDAO()
         {
             VDAOShader.Use();
+
+            VDAOShader.SetUniform("RandomsCount", 16 * 16 * 16);
+            RandomsSSBO.Use(6);
             // GL.BindImageTexture(11, (uint)FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
             MRT.UseTextureWorldPosition(30);
             MRT.UseTextureNormals(31);
             MRT.UseTextureMeshData(33);
-            BackMRT.UseTextureDepth(32);
+            MRT.UseTextureDiffuseColor(0);
+            MRT.UseTextureDepth(1);
             CubeMap.Use(TextureUnit.Texture29);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
             ShaderProgram.Lock = true;
@@ -493,10 +500,10 @@ namespace VEngine
             MRT.UseTextureWorldPosition(9);
             LastWorldPositionFramebuffer.UseTexture(10);
             MRT.UseTextureMeshData(11);
-           // SSReflections();
+            SSReflections();
 
             SwitchToFB(RSMFramebuffer);
-           // RSM();
+            RSM();
             SwitchToFB(VDAOFramebuffer);
             VDAO();
 

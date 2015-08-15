@@ -132,7 +132,7 @@ void main()
     float len = length(cameraRelativeToVPos);
     int foundSun = 0;
 
-    #define RSMSamples 4
+    #define RSMSamples 7
     for(int i=0;i<LightsCount;i++){
         //break;
         if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && foundSun == 1) continue;
@@ -153,10 +153,10 @@ void main()
                 );
 
                 // not optimizable
-                vec3 newpos = dir * reverseLog(ldep) + LightsPos[i];
+                vec3 newpos = dir * reverseLog(ldep) + LightsPos[i] + (-dir * 0.1);
                 float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
                 vec3 lightRelativeToVPos = newpos - fragmentPosWorld3d.xyz;
-                float att = 1.0 / pow(((distanceToLight * 1) + 1.0), 2.0) * 0.6;
+                float att = min(1.0 / pow(((distanceToLight * 0.6) + 1.0), 2.0) * 0.09, 0.007);
 
 
                 //if(testVisibility3d(nUV, newpos, fragmentPosWorld3d.xyz)){
@@ -172,6 +172,6 @@ void main()
             }
         }
     }
-    outColor = vec4(color1 / RSMSamples, 1);
-    outColor = vec4(0,0,0, 1);
+    outColor = vec4(clamp(color1 / RSMSamples, 0, 1), 1);
+    //outColor = vec4(0,0,0, 1);
 }

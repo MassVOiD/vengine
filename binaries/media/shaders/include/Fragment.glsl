@@ -201,14 +201,14 @@ void discardIfAlphaMasked(){
 
 void finishFragment(vec4 color){
     discardIfAlphaMasked();
-	outColor = vec4((color.xyz) * DiffuseComponent, color.a);
+	outColor = vec4((color.xyz), color.a);
     //outColor = vec4(1);
     vec3 wpos = positionWorldSpace;
     vec3 normalNew  = normalize(normal);
     float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
         float factor = (texture(bumpMap, UV).r);
-        wpos += (normalNew * factor * 0.2)+0.2;
+      //  wpos += (normalNew * factor * 0.2)+0.2;
     }
     mat3 TBN = inverse(transpose(mat3(
         normalize(tangent.xyz),

@@ -13,8 +13,8 @@ namespace VEngine
     {
         public Mesh3d(Object3dInfo objectInfo, GenericMaterial material)
         {
-           // ModelMatricesBuffer = new ShaderStorageBuffer();
-           // RotationMatricesBuffer = new ShaderStorageBuffer();
+            // ModelMatricesBuffer = new ShaderStorageBuffer();
+            // RotationMatricesBuffer = new ShaderStorageBuffer();
             DisableDepthWrite = false;
             Instances = 1;
             MainObjectInfo = objectInfo;
@@ -24,6 +24,18 @@ namespace VEngine
             MeshColoredID = new Vector3((float)Randomizer.NextDouble(), (float)Randomizer.NextDouble(), (float)Randomizer.NextDouble());
         }
 
+        public Mesh3d()
+        {
+            // ModelMatricesBuffer = new ShaderStorageBuffer();
+            // RotationMatricesBuffer = new ShaderStorageBuffer();
+            DisableDepthWrite = false;
+            Instances = 1;
+            Transformation = new TransformationManager(Vector3.Zero, Quaternion.Identity, 1.0f);
+            UpdateMatrix();
+            MeshColoredID = new Vector3((float)Randomizer.NextDouble(), (float)Randomizer.NextDouble(), (float)Randomizer.NextDouble());
+        }
+
+        public string Name;
         public int Instances;
         public GenericMaterial MainMaterial;
         public Matrix4 Matrix, RotationMatrix;

@@ -140,7 +140,7 @@ void processBallPhysics(uint group){
 
     translation += velocity * 0.1;
             memoryBarrierBuffer();
-    for(int i=0;i<BallsCount;i++){
+    for(int i=0;i<BallsCount;i++) if(i!=group){
         vec3 t = Positions[i].xyz;
         vec3 dir = normalize(t - translation);
         vec3 rvel = Velocities[i].xyz ;
@@ -150,21 +150,22 @@ void processBallPhysics(uint group){
             //barrier();
             
             velocity = reflect(Velocities[i].xyz, -dir) * dt2 + velocity * (1.0-dt2);
-            Velocities[i].xyz = reflect(velocity, dir) * dt + rvel * (1.0-dt);
+            //Velocities[i].xyz = reflect(velocity, dir) * dt + rvel * (1.0-dt);
             translation =  t - dir * 2.0;
             memoryBarrierBuffer();
-            break;
+            //break;
         }
     }
             memoryBarrierBuffer();
    // velocity = Velocities[group].xyz;
     velocity += GRAVITY;
+   // velocity += (vec3(0,0,70) - translation)*0.001 ;
     
     if(translation.y - 1 < -20) {
         velocity.y = abs(velocity.y) * 0.998+0.0;
         translation.y = -19;
     }
-    #define barr 55
+    #define barr 114
     if(translation.x < -barr) {
         velocity.x = abs(velocity.x) * 0.998;
         translation.x = -barr;
