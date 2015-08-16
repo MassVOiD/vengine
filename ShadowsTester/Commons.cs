@@ -16,7 +16,7 @@ namespace ShadowsTester
         {
 
             float aspect = GLThread.Resolution.Height > GLThread.Resolution.Width ? GLThread.Resolution.Height / GLThread.Resolution.Width : GLThread.Resolution.Width / GLThread.Resolution.Height;
-            var freeCamera = new FreeCamera((float)GLThread.Resolution.Width / (float)GLThread.Resolution.Height, MathHelper.PiOver3);
+            var freeCamera = new FreeCamera((float)GLThread.Resolution.Width / (float)GLThread.Resolution.Height, MathHelper.PiOver3/1);
             FreeCam = freeCamera;
             return freeCamera;
         }

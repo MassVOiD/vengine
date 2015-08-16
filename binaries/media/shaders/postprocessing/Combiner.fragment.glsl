@@ -726,8 +726,8 @@ void main()
    // if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
 
     color1 += 
-    //blurByUV3(VDAOTex, nUV, 3.9);
-    texture(VDAOTex, nUV).rgb;
+   // blurByUV3(VDAOTex, nUV, 3.9) * 0.5;
+    texture(VDAOTex, nUV).rgb * 0.5;
     //color1 += texture(VDAOTex, nUV ).rrr;
 
     centerDepth = texture(depth, UV).r;

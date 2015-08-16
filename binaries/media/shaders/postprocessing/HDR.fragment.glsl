@@ -106,6 +106,9 @@ float PIOverSides = mPI2/ngonsides;
 float PIOverSidesOver2 = PIOverSides/2;
 float triangleHeight = 0.85;
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 	vec3 finalColor = vec3(0);  
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
@@ -114,7 +117,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 	//float centerDepth = texture(texDepth, UV).r;
     float focus = texture(texDepth, vec2(0.5)).r;
     for(float x = 0; x < mPI2; x+=0.2){ 
-        for(float y=0.1;y<1.0;y+= 0.07){  
+        for(float y=0.01;y<1.0;y+= 0.07){  
 			
 			//ngon
 			float xt = x;
@@ -123,17 +126,17 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 			ndist /= PIOverSidesOver2;
 			float rat = mix(1, triangleHeight, ndist);
 		
-			vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (y * 0.125 * rat);
+			vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (y * 0.125);
 			//if(length(crd) > 1.0) continue;
             vec2 coord = UV+crd * 0.01 * amount;  
 			//coord.x = clamp(abs(coord.x), 0.0, 1.0);
 			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
             float depth = length(texture(worldPosTex, coord).xyz);
             if(distance(coord, UV.xy) < max_radius){  
-               // if(-(depth - focus) > 0.05) continue;     
+                //if((depth - focus) > 0.005) continue;     
                 vec3 texel = texture(textureIn, coord).rgb;
                 float w = length(texel) + 0.2;
-                float dpf = depthfocus - toLogDepth(depth);
+                float dpf = abs(focus - toLogDepth(depth));
                 w*=dpf;
                 weight+=w;
                 finalColor += texel * w;
@@ -144,9 +147,6 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 	return weight == 0.0 ? vec3(0.0) : finalColor/weight;
 }
 
-float rand(vec2 co){
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
 uniform int UseBloom;
 vec3 lookupBloomBlurred(vec2 buv, float radius){
 	vec3 outc = vec3(0);
@@ -166,6 +166,36 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 	return outc / counter;
 }
 
+float avgdepth(vec2 buv){
+	float outc = float(0);
+	float counter = 0;
+        float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).rgb);
+	for(float g = 0; g < mPI2; g+=0.5)
+	{ 
+		for(float g2 = 0; g2 < 1.0; g2+=0.05)
+		{ 
+			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.09);
+			vec3 color = texture(worldPosTex, buv + gauss).xyz;
+            float adepth = length(color);
+            //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
+            float f = 5.0 * LensBlurAmount; //focal length in mm
+            float d = fDepth*1000.0; //focal plane in mm
+            float o = adepth*1000.0; //depth in mm
+            
+            float fstop = 4.0;
+            float CoC = 0.03;
+            float a = (o*f)/(o-f); 
+            float b = (d*f)/(d-f); 
+            float c = (d-f)/(d*fstop*CoC); 
+            
+            float blur = abs(a-b)*c;
+            outc += clamp(blur * 50,0.0,4.0) * 10;
+			counter++;
+		}
+	}
+	return outc / counter;
+}
+
 void main()
 {
 	vec2 fragCoord = UV * resolution;
@@ -178,21 +208,8 @@ void main()
 		float focus = CameraCurrentDepth;
 		float adepth = length(texture(worldPosTex, UV).xyz);
 		//float fDepth = reverseLog(CameraCurrentDepth);
-        float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).xyz);
-		//float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-		float f = 5.0 * LensBlurAmount; //focal length in mm
-		float d = fDepth*1000.0; //focal plane in mm
-		float o = adepth*1000.0; //depth in mm
-		
-		float fstop = 4.0;
-		float CoC = 0.03;
-		float a = (o*f)/(o-f); 
-		float b = (d*f)/(d-f); 
-		float c = (d-f)/(d*fstop*CoC); 
-		
-		float blur = abs(a-b)*c;
-		blur = clamp(blur * 50,0.0,4.0) * 10;
-		color1.xyz = lensblur(blur, fDepth, 0.03, 7.0);
+
+		color1.xyz = lensblur(avgdepth(UV), 1, 0.03, 7.0);
 	}
     float letterpixels = 10;
     float maxx = NumbersCount * (0.5 / letterpixels);

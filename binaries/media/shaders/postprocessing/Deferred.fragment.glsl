@@ -281,20 +281,16 @@ float fresnel) {
 
 const float EPSILON  = 1e-6;
 const float INFINITY = 1e+4;
-float textautoshadow(vec2 p1, vec2 p2, vec3 ldir){
-        float ret = 0;
-        vec3 wpos = FromCameraSpace(texture(worldPosTex, p1).rgb);
-        vec3 norm = texture(normalsTex, p1).rgb;
-        vec3 refdir = normalize( (wpos + norm) - wpos );
-        float dt1 = abs(dot(norm, ldir));
+float textautoshadow(vec2 p1, vec2 p2, vec3 ldir, vec3 newpos){
+        float ret = 999;
+        float dt1 = length(CameraPosition - ldir);
+        float dt2 = length(CameraPosition - newpos);
         
-        for(float i=0.0091; i<1; i+=0.005){
-            vec3 w = FromCameraSpace(texture(worldPosTex, mix(p1, p2, i)).rgb);
-            //vec3 n = texture(normalsTex, mix(p1, p2, i)).rgb;
-            float dotprod = clamp(dot(normalize(w - wpos), norm), 0.0, 1.0); 
-            ret = max( dotprod , ret );
+        for(float i=0.0001; i<1; i+=0.1){
+            vec3 w = (texture(worldPosTex, mix(p1, p2, i)).rgb);
+            ret = min( length(w) - mix(dt1, dt2, i) -0.001, ret );
         }
-        return  dt1 - ret<-0.4?0:1;
+        return  ret<-0.0003?0:1;
 }
 
 void main()
@@ -351,15 +347,16 @@ void main()
             vec3 abc = LightsPos[i];
             
             vec3 lightRelativeToVPos =normalize( abc - fragmentPosWorld3d.xyz);
-            vec2 pointCenter = projectPoint(fragmentPosWorld3d.xyz);
+            /*vec2 pointCenter = projectPoint(fragmentPosWorld3d.xyz);
             vec3 rdir = normalize(abc - fragmentPosWorld3d.xyz);
             vec3 flatdir = cross(cross(normal.xyz, rdir), normal.xyz);
-            vec2 pointedDir = clamp(projectPoint(fragmentPosWorld3d.xyz + flatdir*(0.2)), 0.0, 1.0);
+            vec3 newposl = fragmentPosWorld3d.xyz + lightRelativeToVPos*(0.7);
+            vec2 pointedDir = clamp(projectPoint(newposl), 0.0, 1.0);
             vec2 d2dir = (pointedDir - pointCenter);
-           // float dotmax = textautoshadow(pointCenter, pointCenter + d2dir, flatdir);
+            float dotmax = textautoshadow(pointCenter, pointedDir, fragmentPosWorld3d.xyz, newposl);
            // if(dotmax == 0){
-             //   percent *= dotmax;
-            //}
+                percent *= dotmax;
+            //}*/
         
             float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
             float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a;
@@ -407,7 +404,7 @@ void main()
             normalize(lightRelativeToVPos),
             normalize(cameraRelativeToVPos),
             normal.xyz,
-            meshRoughness, 0.2
+            meshRoughness, 0.07
             ) * meshSpecular, 0.0, 1.0);
 
             
@@ -415,10 +412,10 @@ void main()
             normalize(lightRelativeToVPos),
             normalize(cameraRelativeToVPos),
             normal.xyz,
-            meshRoughness, 0.1
-            ) * meshDiffuse *5 , 0.0, 1.0);   
+            meshRoughness, 0.07
+            ) * meshDiffuse *5 , 0.0, 1.0) * 0;   
             float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
-            fresnel = fresnel * fresnel * fresnel + 1.0; 
+            fresnel = fresnel * fresnel * fresnel + 1.0;
             color1 += (((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) * fresnel
             + (LightsColors[i].rgb * specularComponent))
             * att * max(0, percent)) * LightsColors[i].a * fresnel;           

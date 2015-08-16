@@ -208,7 +208,7 @@ void finishFragment(vec4 color){
     float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
         float factor = (texture(bumpMap, UV).r);
-      //  wpos += (normalNew * factor * 0.2)+0.2;
+        wpos += (normalNew * factor * 0.02);
     }
     mat3 TBN = inverse(transpose(mat3(
         normalize(tangent.xyz),

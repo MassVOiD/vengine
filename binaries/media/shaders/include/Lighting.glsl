@@ -41,6 +41,9 @@ float lookupDepthFromLight(uint i, vec2 uv){
 #define mPI2 (2.0*3.14159265)
 #define GOLDEN_RATIO (1.6180339)
 
+float rand2s(vec2 co){
+        return fract(sin(dot(co.xy,vec2(12.9898,78.233))) * 43758.5453);
+}
 float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	float distanceCenter = distance2;
 	float AInv = 1.0 / ((ainvd) + 1.0);
@@ -65,7 +68,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 
 float LastProbeDistance = 0.0;
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
-	float accum = 1.0;
+	float accum = 0.0;
 	
 	
 	
@@ -103,22 +106,23 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
         return 1.0;
     } else {
         float distance3 = toLogDepth(distance2);
+       // float pssblur =0.9;
         float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
         //float pssblur = 0;
-        for(float x = 0; x < mPI2; x+=1.23){ 
-            for(float y=0.0;y<1.0;y+= 0.2 ){  
-                vec2 crd = vec2(sin(x + y), cos(x + y)) * y * pssblur * 0.005;
+        for(float x = 0; x < mPI2; x+=0.3){ 
+            for(float y=0.05;y<1.0;y+= 0.2 ){  
+                vec2 crd = vec2(sin(x+y), cos(x+y)) * y * pssblur * 0.005;
                 fakeUV = uv + crd;
                 distance1 = lookupDepthFromLight(i, fakeUV);
                 float diff = (distance3 -  distance1);
-                if(diff > 0.00003) accum += 1.0;
+                if(diff > 0.00003) accum += 1.0 ;
+                LastProbeDistance += badass_depth - distance1;
                 counter++;
             }
         }
     }
 	
-    LastProbeDistance = bval;
+    LastProbeDistance = LastProbeDistance / counter;
     float rs = 1.0 - (accum / counter);
-	if(rs > 0) return rs;
-    else return -abs(bval);
+	 return rs;
 }

@@ -16,17 +16,10 @@ namespace ShadowsTester
 
         public ComputeBallsScene()
         {
-            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
-            var skydomeMaterial = GenericMaterial.FromMedia("skyreal.png");
-            var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
-            skydome.Scale(55000);
-            skydome.Translate(0, -100, 0);
-            //skydome.IgnoreLighting = true;
-            //skydome.DiffuseComponent = 0.2f;
-            Add(skydome);
+
             int instancesAxis = 10;
             int instances = instancesAxis * instancesAxis * instancesAxis;
-            var ballInfo = Object3dInfo.LoadFromObjSingle(Media.Get("star3d.obj"));
+            var ballInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
             ballInfo.Normalize();
            // var cb = Object3dGenerator.CreateCube(new Vector3(1000, 1000, 1000), new Vector2(1, 1));
            // cb.FlipFaces();
@@ -38,10 +31,10 @@ namespace ShadowsTester
             //var vrts = model.GetOrderedVertices();
             //vrts = vrts.Distinct().ToList();
             var bts3 = new List<Vector4>();
-            for(int x = 0; x < 20; x++)
-                for(int y = 60; y > 0; y--)
-            {
-                bts3.Add(new Vector4(x, y, 0, 1));
+            for(float x = 0; x < MathHelper.TwoPi; x++)
+                for(float y = 0; y < MathHelper.TwoPi; y++)
+                {
+                bts3.Add(new Vector4((float)Math.Sin(x), (float)Math.Cos(y), (float)Math.Cos(y), 1)*12);
             }
             instanced2.UpdateMatrix();
             Add(instanced2);
@@ -57,11 +50,11 @@ namespace ShadowsTester
                 var bts2 = new List<Vector4>();
                 var rand = new Random();
                 PBuffer.MapData(bts3.ToArray());
-                for(int x = 0; x < 30; x++)
+                for(int x = 0; x < 2; x++)
                 {
-                    for(int y = 0; y < 200; y++)
+                    for(int y = 0; y < 50; y++)
                     {
-                        for(int z = 0; z < 30; z++)
+                        for(int z = 0; z < 2; z++)
                         {
                             var vec = new Vector3(x * 4 + (float)rand.NextDouble()*3, y*3 + 20 + (float)rand.NextDouble(), z * 4 + (float)rand.NextDouble() * 3);
                             instanced.Transformations.Add(new TransformationManager(vec, Quaternion.Identity, 1f));
@@ -84,23 +77,31 @@ namespace ShadowsTester
                     cshader.SetUniform("BallsCount", instances);
                     cshader.SetUniform("PathPointsCount", bts3.Count);
                     cshader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-                    cshader.Dispatch(30, 30, 200/50);
+                    cshader.Dispatch(2, 2, 50/50);
                 };
             });
             Add(instanced);
-            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(300, 300), Vector3.UnitY, 333, (x, y) => 0);
 
-            var color = new GenericMaterial(Color.White);
-           // color.SetNormalMapFromMedia("watermap.png");
-            //color.Type = GenericMaterial.MaterialType.Water;
-            //color.SetBumpMapFromMedia("lightref.png");
-            Mesh3d water2 = new Mesh3d(waterInfo, color);
-            water2.SetMass(0);
-            color.Roughness = 0.1f;
-            water2.Translate(0, -20.0f, 0);
-           // water2.MainMaterial.ReflectionStrength = 1;
-            //water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
-            Add(water2);
+            var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
+            var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
+            whitebox.Scale(300);
+            whitebox.Translate(0, -2, 0);
+            Add(whitebox);
+            var whiteboxInfo2 = Object3dInfo.LoadFromObjSingle(Media.Get("reflector.obj"));
+            //whiteboxInfo2.ScaleUV(33.0f);
+            var whitebox2 = new Mesh3d(whiteboxInfo2, new GenericMaterial(Color.White));
+            //whitebox2.MainMaterial.SetBumpMapFromMedia("cobblestone.jpg");
+            whitebox2.Scale(2);
+            whitebox2.Rotate(Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(90)));
+            Add(whitebox2);
+            var lod1 = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
+            lod1.ScaleUV(8.0f);
+            var chairInfo = Object3dInfo.LoadFromObjSingle(Media.Get("nicechair.obj"));
+            var chair = new Mesh3d(lod1, GenericMaterial.FromMedia("168.JPG", "168_norm.JPG", "168_norm.JPG"));
+            chair.MainMaterial.Roughness = 0.9f;
+            //chair.MainMaterial.SetNormalMapFromMedia("clothnorm.png");
+            chair.MainMaterial.ReflectionStrength = 1.0f;
+            Add(chair);
         }
 
     }

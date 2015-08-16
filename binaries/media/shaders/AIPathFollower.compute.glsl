@@ -161,11 +161,11 @@ void processBallPhysics(uint group){
     velocity += GRAVITY;
    // velocity += (vec3(0,0,70) - translation)*0.001 ;
     
-    if(translation.y - 1 < -20) {
+    if(translation.y - 1 < -1) {
         velocity.y = abs(velocity.y) * 0.998+0.0;
-        translation.y = -19;
+        translation.y = -1;
     }
-    #define barr 114
+    #define barr 15
     if(translation.x < -barr) {
         velocity.x = abs(velocity.x) * 0.998;
         translation.x = -barr;

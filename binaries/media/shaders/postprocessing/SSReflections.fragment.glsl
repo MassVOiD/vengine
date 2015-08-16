@@ -59,8 +59,8 @@ float rand(vec2 co){
 }
 vec3 DamnReflections()
 {
-	float reflectionStrength = texture(meshData, UV).r;
-	if(reflectionStrength < 0.05) return vec3(0);
+	//float reflectionStrength = texture(meshData, UV).r;
+	//if(reflectionStrength < 0.05) return vec3(0);
 	vec3 originalColor = (texture(color, UV).rgb * 12 + texture(diffuseColor, UV).rgb * GIDiffuseComponent) * 0.7;
 	//if(length(originalColor) > 0.8) discard;
 	// Get some basic data for processed pixel, like normal, original color, position in world space
@@ -133,11 +133,11 @@ vec3 DamnReflections()
 
 
 	}
-	return (sampls == 0 ? closestColor : (speccolor)) * reflectionStrength;
+	return (sampls == 0 ? closestColor : (speccolor));
 }
 void main()
 {
     vec3 color1 = vec3(0);
-   // color1 += DamnReflections();
+    //color1 += DamnReflections();
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

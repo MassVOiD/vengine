@@ -66,7 +66,7 @@ vec3 LightingPhysical(
     vec3 lightColor,
     float albedo,
     float gloss,
-    vec3 normal,
+    vec3 normal,    
     vec3 lightDir,
     vec3 viewDir,
     float atten )
@@ -162,7 +162,7 @@ void main()
                 vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
                 float att = min(1.0 / pow(((distanceToLight * 0.6) + 1.0), 2.0) * 0.9, 0.007);
                 float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*3.5, fragmentPosWorld3d.xyz);
-                vi = (step(0.0, -vi))+smoothstep(0.0, 0.1, vi);
+                vi = (step(0.0, -vi))+smoothstep(0.0, 0.91, vi);
                 //    vi = 1.0-vi;
                 float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
                 fresnel = fresnel * fresnel * fresnel + 1.0;
@@ -179,6 +179,6 @@ void main()
             }
         }
     }
-    outColor = vec4(clamp(color1 / (RSMSamples*RSMSamples), 0, 1), 1);
- //   outColor = vec4(0,0,0, 1);
+ //   outColor = vec4(clamp(color1 / (RSMSamples*RSMSamples), 0, 1), 1);
+    outColor = vec4(0,0,0, 1);
 }
