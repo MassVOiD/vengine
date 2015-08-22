@@ -104,7 +104,7 @@ vec3 DamnReflections()
 			{
                 closestColor = c;
                 clouv = coord;
-                float cull = min(min(min(smoothstep(0.0, 0.05, coord.x), smoothstep(0.0, 0.05, coord.y)), smoothstep(1.0, 0.95, coord.x)), smoothstep(1.0, 0.95, coord.y));
+                //float cull = min(min(min(smoothstep(0.0, 0.05, coord.x), smoothstep(0.0, 0.05, coord.y)), smoothstep(1.0, 0.95, coord.x)), smoothstep(1.0, 0.95, coord.y));
             // find closer amtch
                 float highestCos = cosAlpha;
                 /*for(float i=0;i<1.0;i+=0.1){

@@ -52,7 +52,7 @@ namespace VEngine
         }
 
         public List<uint> Indices;
-        public string MaterialName = "";
+        public string MaterialName = "", Name = "";
         public List<float> VBO;
         public bool WireFrameRendering = false;
         //private Object3dInfo Current = null;
@@ -396,6 +396,8 @@ namespace VEngine
                     if(texCache.ContainsKey(mat.TextureName + mat.AlphaMask))
                     {
                         material = texCache[mat.TextureName + mat.AlphaMask];
+
+                        material.Name = obj.MaterialName;
                         mInfos[material] = mat;
                     }
                     else
@@ -403,6 +405,8 @@ namespace VEngine
                         var m = GenericMaterial.FromMedia(Path.GetFileName(mat.TextureName));
                         m.NormalMapScale = 10;
                         material = m;
+
+                        material.Name = obj.MaterialName;
                         mInfos[material] = mat;
                         texCache.Add(mat.TextureName + mat.AlphaMask, material);
                         // material = colorPink;
@@ -437,6 +441,7 @@ namespace VEngine
                     obj.VBO[i + 2] *= scale;
                 }
                 var o3di = new Object3dInfo(obj.VBO, obj.Indices);
+                o3di.Name = obj.Name;
                 if(!linkCache.ContainsKey(material))
                     linkCache.Add(material, new List<Object3dInfo> { o3di });
                 else
@@ -455,6 +460,7 @@ namespace VEngine
                 //o3di.CorrectFacesByNormals();
                 // o3di.CorrectFacesByNormals();
                 Mesh3d mesh = new Mesh3d(o3di, kv.Key);
+                mesh.Name = o3di.Name;
                 kv.Key.SpecularComponent = 1.0f - mInfos[kv.Key].SpecularStrength + 0.01f;
                 kv.Key.Roughness = (mInfos[kv.Key].SpecularStrength);
                 kv.Key.ReflectionStrength = 1.0f - (mInfos[kv.Key].SpecularStrength);

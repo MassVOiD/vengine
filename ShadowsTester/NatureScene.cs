@@ -44,34 +44,14 @@ namespace ShadowsTester
             var protagonist = Object3dInfo.LoadSceneFromObj(Media"protagonist.obj", "protagonist.mtl", 1.0f);
             foreach(var o in protagonist)
                 Add(o);*/
-            
-            var hmap = System.IO.File.ReadAllBytes(Media.Get("map1.raw"));
-            int count = 0;
-            Func<uint, uint, float> terrainGen = (x, y) =>
-            {
-                int yy = (int)(((double)y / (1024.0 / scale)) * 2000);
-                int xx = (int)(((double)x / (1024.0 / scale)) * 3000);
-                int ix = (int)(yy * 3000  + xx) * 3;
-                count++;
-                if(count % 1000 == 0)
-                    Console.WriteLine(count * 100 / ((1024 / scale) * (1024 / scale)));
-                return ix < hmap.Length ? hmap[ix] * 0.3f : 0;
-            };
-            Object3dGenerator.UseCache = false;
-            Object3dInfo terrainInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500, -1000), new Vector2(1500, 1000), new Vector2(1096, 1096), Vector3.UnitY, 1024 / scale, terrainGen);
-            hmap = null;
-            GC.Collect();
+            var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
+            var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
+            whitebox.Scale(300);
+            whitebox.Translate(0, -2, 0);
+            Add(whitebox);
 
             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-1500, -1000), new Vector2(1500, 1000), new Vector2(1096, 1096), Vector3.UnitY, 121, (x, y) => 0);
-            
-            //var terrainInfo = Object3dInfo.LoadFromObjSingle(Media.Get("terrain11.obj"));
-            //terrainInfo.ScaleUV(100);
-            var color = GenericMaterial.FromMedia("151.JPG", "151_norm.JPG");
-            color.SetBumpMapFromMedia("grassbump.png");
-            color.Type = GenericMaterial.MaterialType.Grass;
-            var terrain = new Mesh3d(terrainInfo, color);
-           // terrain.Scale(5);
-            Add(terrain);
+
 
             var waterMat = new GenericMaterial(new Vector4(0.55f, 0.74f, 0.97f, 1.0f));
             waterMat.SetNormalMapFromMedia("151_norm.JPG");
@@ -80,6 +60,7 @@ namespace ShadowsTester
             water.Transformation.Translate(0, 15, 0);
             //water.DisableDepthWrite = true;
             //water.ReflectionStrength = 1;
+            water.MainMaterial.TesselationMultiplier = 0.1f;
             Add(water);
             /*
             var dragon3dInfo = Object3dInfo.LoadFromRaw(Media.Get("lucyhires.vbo.raw"), Media.Get("lucyhires.indices.raw"));
@@ -159,15 +140,7 @@ namespace ShadowsTester
                 //ob.SpecularComponent = 0.1f;
                 this.Add(ob);
             }*/
-
-            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
-            var skydomeMaterial = GenericMaterial.FromMedia("skyreal.png");
-            var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
-            skydome.Transformation.Scale(55000);
-            skydome.Transformation.Translate(0, -100, 0);
-            skydome.MainMaterial.IgnoreLighting = true;
-            skydome.MainMaterial.DiffuseComponent = 0.2f;
-            World.Root.Add(skydome);
+            
         }
 
     }

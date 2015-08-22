@@ -12,6 +12,7 @@ namespace VEngine
 {
     public class GLThread
     {
+
         static public Size Resolution;
         static public DateTime StartTime;
         private static Queue<Action> ActionQueue = new Queue<Action>();
@@ -30,7 +31,7 @@ namespace VEngine
 
         static public AbsDisplayAdapter DisplayAdapter;
         static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
-
+        
         static public void CheckErrors(string message = "Global")
         {
             var error = GL.GetError();

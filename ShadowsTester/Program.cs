@@ -15,12 +15,14 @@ namespace ShadowsTester
     internal class Program
     {
         public static FreeCamera FreeCam;
+        public static
+            ConsoleManager cmg = new ConsoleManager();
 
         class Config
         {
             public static string MediaPath = "media";
-            public static int Width = 1920;
-            public static int Height = 1070;
+            public static int Width = 1366;
+            public static int Height = 768;
         }
 
         private static void Main(string[] args)
@@ -29,7 +31,7 @@ namespace ShadowsTester
             //var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
 
             Media.SearchPath = Config.MediaPath;
-            GLThread.Resolution = new Size(Config.Width, Config.Height);
+            GLThread.Resolution = new Size(1366, 768);
 
             GLThread.SetCurrentThreadCores(1);
 
@@ -55,21 +57,21 @@ namespace ShadowsTester
 
 
             //new PlanetScene().Create();
-           // new SculptScene().Create();
+          // new SculptScene().Create();
             //new SponzaScene().Create();
-          //  new OldCityScene().Create();
+            new OldCityScene().Create();
            // new PathTraceTest().Create();
-            //new NatureScene().Create();
-            //new IndirectTestScene().Create();
+          //  new NatureScene().Create();
+          //  new IndirectTestScene().Create();
          // new DragonScene().Create();
          //   new ManyCubesScene().Create();
-            new ComputeBallsScene().Create();
+          //  new ComputeBallsScene().Create();
             //new CarScene().Create();
 
-            //new FortressScene().Create();
+         //   new FortressScene().Create();
 
             //new HallScene().Create();
-            //new RoadScene().Create();
+           // new RoadScene().Create();
             //new HomeScene().Create();
 
 

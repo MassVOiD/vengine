@@ -12,6 +12,7 @@ namespace VEngine
         {
             ModelMatricesBuffer = new ShaderStorageBuffer();
             RotationMatricesBuffer = new ShaderStorageBuffer();
+            Ids = new ShaderStorageBuffer();
             Randomizer = new Random();
             Transformations = new List<TransformationManager>();
             Instances = 0;
@@ -27,7 +28,8 @@ namespace VEngine
         private Random Randomizer;
         //private const int MaxInstances = 1500;
         //private List<Matrix4[]> ModelMatrices, RotationMatrices;
-        public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
+        public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer, Ids;
+        private List<Vector4> MeshColoredID;
 
         class LodLevelData
         {
@@ -66,6 +68,7 @@ namespace VEngine
                 Transformations.Sort((t1, t2) => (int)((t1.GetPosition() - Camera.MainDisplayCamera.GetPosition()).Length - (t2.GetPosition() - Camera.MainDisplayCamera.GetPosition()).Length));
                 foreach(var t in Transformations)
                 {
+
                     foreach(var l in LodLevels)
                     {
                         if(!MMatrices.ContainsKey(l))
@@ -146,11 +149,13 @@ namespace VEngine
 
             ModelMatricesBuffer.Use(0);
             RotationMatricesBuffer.Use(1);
+            Ids.Use(2);
 
             // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
 
             shader.SetUniform("IgnoreLighting", IgnoreLighting);
 
+            shader.SetUniform("Selected",  0); //magic
             shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());
@@ -216,9 +221,11 @@ namespace VEngine
         {
             RotationMatrix = new List<Matrix4>();
             Matrix = new List<Matrix4>();
+            MeshColoredID = new List<Vector4>();
             Instances = Transformations.Count;
             for(int i = 0; i < Instances; i++)
             {
+                MeshColoredID.Add(new Vector4((float)Randomizer.NextDouble(), (float)Randomizer.NextDouble(), (float)Randomizer.NextDouble(), 0));
                 RotationMatrix.Add(Matrix4.CreateFromQuaternion(Transformations[i].GetOrientation()));
                 Matrix.Add(Matrix4.CreateScale(Transformations[i].GetScale()) * RotationMatrix[i] * Matrix4.CreateTranslation(Transformations[i].GetPosition()));
             }
@@ -230,6 +237,7 @@ namespace VEngine
                     {
                         ModelMatricesBuffer.MapData(Matrix.ToArray());
                         RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
+                        Ids.MapData(MeshColoredID.ToArray());
                         break;
                     }
                     catch

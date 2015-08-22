@@ -29,6 +29,10 @@ layout (std430, binding = 1) buffer RMBuffer
 {
   mat4 RotationMatrixes[]; 
 }; 
+layout (std430, binding = 1) buffer IDMBuffer
+{
+  vec4 InstancedIds[]; 
+}; 
 
 
 uniform float RandomSeed1;
@@ -47,6 +51,7 @@ uniform vec3 CameraTangentUp;
 uniform vec3 CameraTangentLeft;
 uniform float Time;
 uniform int FrameINT;
+uniform int Selected;
 
 uniform vec3 ColoredID;
 

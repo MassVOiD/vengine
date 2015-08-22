@@ -5,6 +5,7 @@ layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outWorldPos;
 layout(location = 2) out vec4 outNormals;
 layout(location = 3) out vec4 outMeshData;
+layout(location = 4) out vec4 outId;
 
 //layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
 
@@ -201,6 +202,7 @@ void discardIfAlphaMasked(){
 
 void finishFragment(vec4 color){
     discardIfAlphaMasked();
+    if(Selected) color *= 3;
 	outColor = vec4((color.xyz), color.a);
     //outColor = vec4(1);
     vec3 wpos = positionWorldSpace;
@@ -208,7 +210,7 @@ void finishFragment(vec4 color){
     float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
         float factor = (texture(bumpMap, UV).r);
-        wpos += (normalNew * factor * 0.02);
+       // wpos += (normalNew * factor * 0.02);
     }
     mat3 TBN = inverse(transpose(mat3(
         normalize(tangent.xyz),
@@ -242,9 +244,9 @@ void finishFragment(vec4 color){
             worldBumpMapSize = factor;
             vec3 bitan = cross(normal, tangent);
             factor = factor * 2 - 1;
-            vec3 nee = normalize((normalNew - ((tangent) * factor*-0.02)));
+            vec3 nee = normalize((normalNew - ((tangent) * factor*-0.2)));
             nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
-			//normalNew =  nee;
+            normalNew =  nee;
     
 		} else {
 
@@ -261,8 +263,10 @@ void finishFragment(vec4 color){
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
 		if(Instances == 0){
+            outId = ColoredID.xyzz;
 			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, DiffuseComponent);
 		} else {
+            outId = InstancedIds[instanceId];
 			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, DiffuseComponent);
 		}
 	//} else {

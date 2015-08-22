@@ -160,7 +160,7 @@ void main()
                 vec3 newpos = dir * reverseLog(ldep) + LightsPos[i] + (-dir * 0.1);
                 float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
                 vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
-                float att = min(1.0 / pow(((distanceToLight * 0.6) + 1.0), 2.0) * 0.9, 0.007);
+                float att = min(1.0 / pow(((distanceToLight * 0.5) + 1.0), 2.0) * 0.9, 0.19);
                 float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*3.5, fragmentPosWorld3d.xyz);
                 vi = (step(0.0, -vi))+smoothstep(0.0, 0.91, vi);
                 //    vi = 1.0-vi;
@@ -179,6 +179,6 @@ void main()
             }
         }
     }
- //   outColor = vec4(clamp(color1 / (RSMSamples*RSMSamples), 0, 1), 1);
-    outColor = vec4(0,0,0, 1);
+    outColor = vec4(clamp(color1 / (RSMSamples*RSMSamples), 0, 1), 1);
+  //  outColor = vec4(0,0,0, 1);
 }

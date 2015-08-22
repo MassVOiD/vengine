@@ -23,7 +23,6 @@ namespace VEngine
             }
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
             GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, BufferUsageHint.DynamicDraw);
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, 0);
         }
         public void MapData(dynamic structure)
         {
@@ -59,6 +58,14 @@ namespace VEngine
 
                 MapData(arr);
             }
+        }
+
+        public byte[] Read(int offset, int size)
+        {
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
+            byte[] data = new byte[size];
+            GL.GetBufferSubData<byte>(BufferTarget.ShaderStorageBuffer, new IntPtr(offset), new IntPtr(size), data);
+            return data;
         }
 
         public void Use(uint point)

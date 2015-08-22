@@ -42,13 +42,21 @@ vec3 random3dSample(){
     getRand() * 2 - 1
     ));
 }
+vec2 HitPos = vec2(0);
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(int i=0; i<7; i++){
+    for(int i=0; i<6; i++){
         float ix = getRand();
         vec2 muv = mix(p1, p2, ix);
         float expr = min(muv.x, muv.y) * -(max(muv.x, muv.y)-1.0);
-        ret = min(0, sign(expr)) * ret + min(0, -sign(expr)) * (max(mix(v1, v2, ix) - texture(sampler, muv).r, ret));
+        float tmp = min(0, sign(expr)) * 
+            ret + 
+            min(0, -sign(expr)) * 
+            max(
+                mix(v1, v2, ix) - texture(sampler, muv).r,
+                ret);
+        if(tmp > ret) HitPos = muv;
+        ret = tmp;
     }
     //if(abs(ret) > 0.1) return 0;
     return abs(ret) - 0.0006;
@@ -85,63 +93,115 @@ vec3 vec3pow(vec3 inputx, float po){
         pow(inputx.z, po)
     );
 }
+
+vec3 adjustGamma(vec3 c, float gamma){
+    return vec3pow(c, 1.0/gamma);
+}
+#define PI 3.14159265
+vec3 maphemisphere(float ex){
+        vec2 samp = vec2(getRand() * 2 - 1, getRand() * 2 - 1);
+		float cos_phi = cos(2.0 * PI * samp.x);
+		float sin_phi = sin(2.0 * PI * samp.x);	
+		float cos_theta = pow((1.0 - samp.y), 1.0 / (ex + 1.0));
+		float sin_theta = sqrt (1.0 - cos_theta * cos_theta);
+		float pu = sin_theta * cos_phi;
+		float pv = sin_theta * sin_phi;
+		float pw = cos_theta;
+        return vec3(pu, pv, pw);
+}
+mat3 rotationMatrix(vec3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return mat3(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
+}
 vec3 Radiosity()
 {
     if(texture(texColor, UV).r >= 999) return texture(CubeMap, normalize(texture(worldPosTex, UV).rgb)).rgb*1.9;
+    
     vec3 posCenter = texture(worldPosTex, UV).rgb;
+    //vec3 albedo = texture(texColor, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
+    mat3 rotmat = rotationMatrix(cross(vec3(0), normalCenter), dot(normalCenter, vec3(0)));
     vec3 ambient = vec3(0);
-    const int samples = 6;
-    const int octaves = 4;
+    const int samples = 8;
     
     vec3 dir = normalize(reflect(posCenter, normalCenter));
     float fresnel = 1.0 - max(0, dot(-normalize(posCenter), normalize(normalCenter)));
     fresnel = fresnel * fresnel * fresnel + 1.0;
-    // choose between noisy and slower, but better looking variant         
-    Seed(UV);
-    randsPointer = int(randomizer * 123.86786) % RandomsCount;
-    // or faster, non noisy variant, which is also cool looking
-    //const float randomizer = 138.345341;
-
+    
     float initialAmbient = 0.0;
 
     uint counter = 0;   
-    //float meshRoughness = texture(meshDataTex, UV).a;
-    float meshRoughness =0.05;
-
-    for(int i=0; i<samples; i++)
-    {
-        //randsPointer = int(i*4 * 123.86786) % RandomsCount;
-        // float rd = randomizer * float(i) * 12.1125345;
-        float weight = 0.8;
-        vec3 displace = random3dSample();
-        vec3 displace2 = displace * sign(dot(normalCenter, displace));
-        float dotdist = max(meshRoughness, meshRoughness * dot(displace2, dir));
-        
-        displace = mix(displace2, dir, dotdist * meshRoughness);
-        displace = mix(displace, dir, meshRoughness);
-        displace *= sign(dot(normalCenter, displace));
-        vec3 color = vec3pow(texture(CubeMap, displace).rgb, 1)*0.99;
-        vec3 color2 =texture(texColor, UV).rgb;
-        color = mix(color2 * color, color, meshRoughness);
-        float dotdiffuse = max(0, dot(normalize(displace),  (normalCenter)) + 0.8);
-        //if(dotdiffuse == 0) { counter+=octaves;continue; }
-        float av = reverseLog(testVisibility3d(posCenter, posCenter + 5*displace/(length(posCenter)*0.0001+1.0)));
-        
-        //if(av > 0 && av < 1.9) break;
-        float vis = av <= 0 || av > 1.9 ? 1.9 :  0;
-        
-        ambient += color* dotdiffuse * weight * (vis/1.9) * fresnel;
-        // else { counter += octaves - div; break; }
-        //displace = displace * 1.94;
-        counter++;
-        
+    float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
+    
+    vec3 colorplastic = vec3(0.851, 0.788, 0);
+    
+    float brfds[] = float[2](0.0, 1.0);
+    for(int bi = 0; bi < brfds.length(); bi++){
+        for(int i=0; i<samples; i++)
+        {
+            float weight = 0.8;
+                
+            //float meshRoughness =brfds[bi];
+            vec3 displace = random3dSample();
+           vec3 displace2 = displace * sign(dot(normalCenter, displace));
+            float dotdist = max(meshRoughness, meshRoughness * dot(displace2, dir));
+            
+            displace = mix(displace2, dir, dotdist * meshRoughness);
+            displace = mix(displace, dir, meshRoughness);
+            displace *= sign(dot(normalCenter, displace));
+            
+            vec3 color = adjustGamma(texture(CubeMap, displace).rgb, mix(1.0, 0.3, meshRoughness)) ;
+            //color = mix(color);
+            
+            float dotdiffuse = max(0, dot(normalize(displace),  (normalCenter)) + 0.8);
+            
+            if(dotdiffuse == 0) { continue; }
+            
+            float av = reverseLog(testVisibility3d(posCenter, posCenter + 5*displace/(length(posCenter)*0.0001+1.0)));
+            
+            float vis = av <= 0 || av > 22.9 ? 1.9 :  0;
+            
+            vec3 hpwpos = texture(worldPosTex, HitPos).xyz;
+            vec3 ambientcolor = (-dot(normalCenter, texture(normalsTex, HitPos).xyz)+0.6) * texture(texColor, HitPos).rgb * texture(CubeMap, texture(normalsTex, HitPos).xyz).rgb;
+            if(vis == 0) ambient += ambientcolor * ((1.0-distance(UV, HitPos))*10/(length(posCenter)+1))*1.6;
+            
+            ambient += color* dotdiffuse * weight * (vis) * fresnel;
+           // ambient += colorplastic*0.3* dotdiffuse * weight * (vis/1.9) * fresnel;
+            
+            counter++;
+            
+        }
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    return (rs + initialAmbient);
+    return (rs);
 }
+
+vec3 hbao(){
+    vec3 posc = texture(worldPosTex, UV).rgb;
+    vec3 norm = texture(normalsTex, UV).rgb;
+    float buf = 0, counter = 0, div = 1.0/(length(posc)+1.0);
+    for(float g = 0; g < mPI2; g+=0.52){
+        for(float g2 = 0.1; g2 < 1.0; g2+=0.29){
+            vec3 pos = texture(worldPosTex,  UV + (vec2(sin(g + g2)*ratio, cos(g + g2)) * (getRand() * 4.09)) * div).rgb;
+            float skip = max(0, sign(length(posc) - length(pos)));
+            buf += skip * (dot(norm, normalize(pos - posc))) * max(0, (10.0 - length(pos - posc))/10.0);
+            counter+=0.3;
+        }
+    }
+    return vec3(1) * (1.0 - min(buf / counter, 0.9));
+}
+
 void main()
 {
+    Seed(UV);
+    randsPointer = int(randomizer * 123.86786) % RandomsCount;
     vec3 radio = Radiosity();
     outColor = vec4(radio, 1);
 }

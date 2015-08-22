@@ -13,6 +13,7 @@ namespace VEngine
         public Texture(string file)
         {
             Update(file);
+            FileName = System.IO.Path.GetFileName(file);
         }
 
         public Texture(int handle)
@@ -34,6 +35,7 @@ namespace VEngine
         private byte[] Bitmap;
         private bool Generated;
         public int Handle = -1;
+        public string FileName;
         private Size Size;
 
         public static Texture FromText(string text, string font, float size, Color textColor, Color background)

@@ -77,27 +77,30 @@ vec3 blurByUV2(sampler2D sampler, vec2 fuv, float force){
     }
     return outc / counter;
 }
-vec3 blurByUV3(sampler2D sampler, vec2 fuv, float force){
-    vec3 outc = vec3(0);
+vec3 blurssao(sampler2D sampler, vec2 fuv, float force){
+    float roughs = texture(meshData, fuv).a;
+   /* vec3 outc = vec3(0);
     int counter = 0;
     vec3 norm = texture(normals, fuv).xyz;
     float depthCenter = texture(depth, fuv).r;
-    for(float g = 0; g < mPI2; g+=0.2)
+    for(float g = 0; g < mPI2; g+=0.61)
     {
-        for(float g2 = 0; g2 < 1.0; g2+=0.1)
+        for(float g2 = 0; g2 < 1.0; g2+=0.2)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001 * force);
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.005 * force);
             vec3 color = texture(sampler, fuv + gauss).rgb;
             vec3 anorm = texture(normals, fuv + gauss).xyz;
-            if(dot(anorm, norm) > 0.9){
+            float depthd = texture(depth, fuv + gauss).x;
+            float roughd2 = texture(meshData, fuv).a;
+            if(dot(anorm, norm) > 0.99 && abs(depthCenter-depthd)<0.003 && abs(roughs-roughd2)<0.003){
                 outc += color;
                 counter++;
             }
         }
     }
-    if(counter == 0) return texture(sampler, fuv).rgb;
-    vec3 a = outc / counter ;
-    return a ;
+    if(counter == 0) return texture(sampler, fuv).rgb;*/
+    vec3 a = texture(sampler, fuv).rgb;
+    return mix(a, a, roughs);
 }
 vec3 lookupFogSimple(vec2 fuv){
     return texture(fog, fuv).rgb;
@@ -696,10 +699,10 @@ vec3 lightPoints(){
 
         float badass_depth = distance(LightsPos[i], CameraPosition);
         float logg = length(texture(worldPos, sspace1).rgb);
-        float mixv = 1.0 - smoothstep(0.0, 4.5, distance(sspace1*resolution.xy * 0.01, UV*resolution.xy * 0.01));
+        float mixv = 1.0 - smoothstep(0.1, 2.5, distance(sspace1*resolution.xy * 0.01, UV*resolution.xy * 0.009));
 
         if(logg > badass_depth) {
-            color += mix(vec3(0), ball(vec3(LightsColors[i].rgb*1.0),LightPointSize / ( badass_depth) * 0.1, sspace1.x, sspace1.y), 1);
+            color += mix(vec3(0), ball(vec3(LightsColors[i].rgb*1.0),LightPointSize / ( badass_depth) * 0.01, sspace1.x, sspace1.y), mixv);
             //color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
         }
 
@@ -719,15 +722,15 @@ void main()
     //if(UseDeferred == 1) color1 += motionBlurExperiment(nUV);
     if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
     //if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
-   // color1 += lightPoints();
+    color1 += lightPoints();
     if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
     //if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
     //if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
-   // if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
 
+   // if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
     color1 += 
-   // blurByUV3(VDAOTex, nUV, 3.9) * 0.5;
-    texture(VDAOTex, nUV).rgb * 0.5;
+   // blurssao(VDAOTex, nUV, 1.0)*1;
+    texture(VDAOTex, nUV).rgb * texture(diffuseColor, UV).rgb;
     //color1 += texture(VDAOTex, nUV ).rrr;
 
     centerDepth = texture(depth, UV).r;

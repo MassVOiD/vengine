@@ -116,15 +116,10 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 	float centerDepthDistance = abs((centerDepth) - (depthfocus));
 	//float centerDepth = texture(texDepth, UV).r;
     float focus = texture(texDepth, vec2(0.5)).r;
-    for(float x = 0; x < mPI2; x+=0.2){ 
-        for(float y=0.01;y<1.0;y+= 0.07){  
+    for(float x = 0; x < mPI2; x+=0.5){ 
+        for(float y=0.1;y<1.0;y+= 0.1){  
 			
 			//ngon
-			float xt = x;
-			while(xt > PIOverSides) xt -= PIOverSides;
-			float ndist = abs(xt - PIOverSidesOver2);
-			ndist /= PIOverSidesOver2;
-			float rat = mix(1, triangleHeight, ndist);
 		
 			vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (y * 0.125);
 			//if(length(crd) > 1.0) continue;
@@ -136,7 +131,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
                 //if((depth - focus) > 0.005) continue;     
                 vec3 texel = texture(textureIn, coord).rgb;
                 float w = length(texel) + 0.2;
-                float dpf = abs(focus - toLogDepth(depth));
+                float dpf = abs(focus - toLogDepth(depth))*0.2+0.8;
                 w*=dpf;
                 weight+=w;
                 finalColor += texel * w;
@@ -169,16 +164,16 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 float avgdepth(vec2 buv){
 	float outc = float(0);
 	float counter = 0;
-        float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).rgb);
+    float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).rgb);
 	for(float g = 0; g < mPI2; g+=0.5)
 	{ 
-		for(float g2 = 0; g2 < 1.0; g2+=0.05)
+		for(float g2 = 0; g2 < 1.0; g2+=0.33)
 		{ 
-			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.09);
+			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.2 * LensBlurAmount);
 			vec3 color = texture(worldPosTex, buv + gauss).xyz;
             float adepth = length(color);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-            float f = 5.0 * LensBlurAmount; //focal length in mm
+            float f = log((LensBlurAmount+1))*10; //focal length in mm
             float d = fDepth*1000.0; //focal plane in mm
             float o = adepth*1000.0; //depth in mm
             
@@ -209,7 +204,7 @@ void main()
 		float adepth = length(texture(worldPosTex, UV).xyz);
 		//float fDepth = reverseLog(CameraCurrentDepth);
 
-		color1.xyz = lensblur(avgdepth(UV), 1, 0.03, 7.0);
+		color1.xyz = lensblur(avgdepth(UV), 1, 0.09, 7.0);
 	}
     float letterpixels = 10;
     float maxx = NumbersCount * (0.5 / letterpixels);

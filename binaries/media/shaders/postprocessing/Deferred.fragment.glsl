@@ -416,9 +416,12 @@ void main()
             ) * meshDiffuse *5 , 0.0, 1.0) * 0;   
             float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
             fresnel = fresnel * fresnel * fresnel + 1.0;
+            
             color1 += (((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) * fresnel
-            + (LightsColors[i].rgb * specularComponent))
-            * att * max(0, percent)) * LightsColors[i].a * fresnel;           
+            + (mix(LightsColors[i].rgb, colorOriginal, meshRoughness) * specularComponent))
+            * att * max(0, percent)) * LightsColors[i].a * fresnel;      
+            
+            
             //if(percent < 0){
                 //is in shadow! lets try subsufrace scattering
                 float subsc = max(0.007, abs(LastProbeDistance));

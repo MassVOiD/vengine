@@ -18,48 +18,45 @@ namespace ShadowsTester
 
         public FortressScene()
         {
-            Object3dInfo skydomeInfo = Object3dInfo.LoadFromObjSingle(Media.Get("usky.obj"));
-            var skydomeMaterial = GenericMaterial.FromMedia("skyreal.png");
-            var skydome = new Mesh3d(skydomeInfo, skydomeMaterial);
-            skydome.Scale(55000);
-            skydome.Translate(0, -100, 0);
-            //skydome.IgnoreLighting = true;
-            //skydome.DiffuseComponent = 0.2f;
-            Add(skydome);
-           /* var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 300, 100, 70, 40, 10, 1);
-            GLThread.OnUpdate += (o, e) =>
-            {
-                var kb = OpenTK.Input.Keyboard.GetState();
-                if(kb.IsKeyDown(OpenTK.Input.Key.U))
-                {
-                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.J))
-                {
-                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.H))
-                {
-                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.K))
-                {
-                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-            };*/
-            
+            var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
+            var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
+            whitebox.Scale(300);
+            whitebox.Translate(0, -2, 0);
+            Add(whitebox);
+            /* var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 300, 100, 70, 40, 10, 1);
+             GLThread.OnUpdate += (o, e) =>
+             {
+                 var kb = OpenTK.Input.Keyboard.GetState();
+                 if(kb.IsKeyDown(OpenTK.Input.Key.U))
+                 {
+                     var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
+                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                 }
+                 if(kb.IsKeyDown(OpenTK.Input.Key.J))
+                 {
+                     var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
+                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                 }
+                 if(kb.IsKeyDown(OpenTK.Input.Key.H))
+                 {
+                     var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
+                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                 }
+                 if(kb.IsKeyDown(OpenTK.Input.Key.K))
+                 {
+                     var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
+                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
+                 }
+             };*/
+
             List<Mesh3d> nodes1 = new List<Mesh3d>();
             List<Mesh3d> leaves1 = new List<Mesh3d>();
             Random rand = new Random();
-            for(int x = 0; x < 3; x++)
+            for(int x = 0; x < 1; x++)
             {
-                for(int z = 0; z < 3; z++)
+                for(int z = 0; z < 1; z++)
                 {
-                    var tree = TreeGenerator.CreateTree(MathHelper.DegreesToRadians(30), MathHelper.DegreesToRadians(45), 4, 4, 6666, 0.3f, true);
+                    var tree = TreeGenerator.CreateTree(MathHelper.DegreesToRadians(40), MathHelper.DegreesToRadians(80), 5, 5, 6666, 0.3f, true);
                     var scale = (float)rand.NextDouble() * 2 + 1;
                     var tx = (float)rand.NextDouble() * 2 + 4;
                     var ty = (float)rand.NextDouble() * 2 + 4;

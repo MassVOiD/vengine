@@ -22,7 +22,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float radius = max_radius;  
 	float centerDepthDistance = abs((centerDepth) - (depthfocus));
 	//float centerDepth = texture(texDepth, UV).r;
-    for(float x = 0; x < mPI2; x+=0.1){ 
+    for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0;y<samples;y+= 1.0){  
 			vec2 crd = vec2(sin(x) * ratio, cos(x)) * (y * 0.25);
 			//if(length(crd) > 1.0) continue;
@@ -66,7 +66,7 @@ void main()
 		
 		float blur = abs(a-b)*c;
 		blur = clamp(blur,0.0,1.0) * 50.0;
-		color1 = lensblur(blur, focus, 0.03, 7.0);
+		color1 = lensblur(blur, focus, 0.03, 5.0);
 	
 	}
 	gl_FragDepth = depth;

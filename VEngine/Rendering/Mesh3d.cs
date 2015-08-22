@@ -42,13 +42,14 @@ namespace VEngine
         public RigidBody PhysicalBody;
         public TransformationManager Transformation;
         public bool DisableDepthWrite;
+        public bool Selected = false;
         //public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
 
         private float Mass = 1.0f;
         public Object3dInfo MainObjectInfo;
         private CollisionShape PhysicalShape;
         private static Random Randomizer = new Random();
-        private Vector3 MeshColoredID;
+        public Vector3 MeshColoredID;
 
         public static bool PostProcessingUniformsOnly = false;
 
@@ -226,6 +227,7 @@ namespace VEngine
                 shader.SetUniform("ProjectionMatrix", Camera.MainDisplayCamera.ProjectionMatrix);
             }
 
+            shader.SetUniform("Selected", Selected ? 1 : 0); //magic
             shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
             shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());

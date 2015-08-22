@@ -53,7 +53,7 @@ namespace VEngine
             VDAOFramebuffer,
             SSReflectionsFramebuffer;
 
-        private MRTFramebuffer MRT, BackMRT;
+        public MRTFramebuffer MRT, BackMRT;
         ShaderStorageBuffer RandomsSSBO = new ShaderStorageBuffer();
 
         private ShaderStorageBuffer TestBuffer;
@@ -101,7 +101,7 @@ namespace VEngine
             Height = initialHeight;
             MSAAResolvingFrameBuffer = new Framebuffer(initialWidth, initialHeight);
             MSAAResolvingFrameBuffer.SetMultiSample(true);
-            RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(16, 16 * 16 * 16, true).ToArray());
+            RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(8, 16 * 16 * 16, true).ToArray());
 
             MRT = new MRTFramebuffer(initialWidth / 1, initialHeight / 1);
             BackMRT = new MRTFramebuffer(initialWidth / 4, initialHeight / 4);
@@ -110,11 +110,11 @@ namespace VEngine
             Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
 
             LightPointsFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6);
-            BloomFrameBuffer = new Framebuffer(initialWidth / 4, initialHeight / 4);
+            BloomFrameBuffer = new Framebuffer(initialWidth / 5, initialHeight / 5);
             FogFramebuffer = new Framebuffer(initialWidth, initialHeight);
             SmallFrameBuffer = new Framebuffer(initialWidth / 10, initialHeight / 10);
-            LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            RSMFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
+            LastWorldPositionFramebuffer = new Framebuffer(initialWidth / 8, initialHeight / 8);
+            RSMFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
             SSReflectionsFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             VDAOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 
@@ -439,9 +439,9 @@ namespace VEngine
             stopwatch.Reset();
             stopwatch.Start();
 
-            LastWorldPositionFramebuffer.Use();
-            MRT.UseTextureWorldPosition(0);
-            Blit();
+          //  LastWorldPositionFramebuffer.Use();
+          //  MRT.UseTextureWorldPosition(0);
+          //  Blit();
 
             DisableBlending();
 
@@ -452,10 +452,10 @@ namespace VEngine
             GL.CullFace(CullFaceMode.Back);
             MRT.Use();
             World.Root.Draw();
-            GL.CullFace(CullFaceMode.Front);
-            BackMRT.Use();
-            World.Root.Draw();
-            GL.CullFace(CullFaceMode.Back);
+            //GL.CullFace(CullFaceMode.Front);
+           // BackMRT.Use();
+           // World.Root.Draw();
+          //  GL.CullFace(CullFaceMode.Back);
             Mesh3d.PostProcessingUniformsOnly = true;
 
             DisableBlending();
@@ -465,7 +465,7 @@ namespace VEngine
                 SwitchToFB(LightPointsFrameBuffer);
                 MRT.UseTextureDiffuseColor(0);
                 MRT.UseTextureDepth(1);
-                LightsPoints();
+               // LightsPoints();
             }
 
             if(GLThread.GraphicsSettings.UseFog)
@@ -502,7 +502,7 @@ namespace VEngine
             MRT.UseTextureWorldPosition(9);
             LastWorldPositionFramebuffer.UseTexture(10);
             MRT.UseTextureMeshData(11);
-            SSReflections();
+           // SSReflections();
 
             SwitchToFB(RSMFramebuffer);
             RSM();
@@ -607,6 +607,7 @@ namespace VEngine
             NumbersTexture.Use(TextureUnit.Texture9);
 
             HDR(lastTime == 0 ? 0 : 1000000 / lastTime);
+            EnableFullBlend();
             if(World.Root != null && World.Root.UI != null)
                 World.Root.UI.DrawAll();
             Mesh3d.PostProcessingUniformsOnly = false;

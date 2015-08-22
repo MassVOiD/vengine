@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 using VEngine;
 
 namespace ShadowsTester
@@ -12,12 +13,18 @@ namespace ShadowsTester
     {
         public static FreeCamera FreeCam;
         static ProjectionLight RedLight;
+        private static ShaderStorageBuffer PickingResult;
+        static ComputeShader MousePicker;
+        static int MouseX, MouseY;
+        static Mesh3d Picked;
         public static FreeCamera SetUpFreeCamera()
         {
 
             float aspect = GLThread.Resolution.Height > GLThread.Resolution.Width ? GLThread.Resolution.Height / GLThread.Resolution.Width : GLThread.Resolution.Width / GLThread.Resolution.Height;
             var freeCamera = new FreeCamera((float)GLThread.Resolution.Width / (float)GLThread.Resolution.Height, MathHelper.PiOver3/1);
             FreeCam = freeCamera;
+            PickingResult = new ShaderStorageBuffer();
+            MousePicker = new ComputeShader("MousePicker.compute.glsl");
             return freeCamera;
         }
 
@@ -31,8 +38,44 @@ namespace ShadowsTester
 
             LightPool.Add(redConeLight);
 
+            GLThread.OnMouseMove += (o, e) =>
+            {
+                MouseX = e.X;
+                MouseY = e.Y;
+            };
+
             GLThread.OnUpdate += (o, e) =>
             {
+                if(GLThread.DisplayAdapter.IsCursorVisible)
+                {
+                    PickingResult.MapData(Vector4.One);
+                    MousePicker.Use();
+                    var state = OpenTK.Input.Mouse.GetState();
+                    MousePicker.SetUniform("Mouse", new Vector2(MouseX, GLThread.Resolution.Height  - MouseY));
+                    PickingResult.Use(0);
+                    GL.BindImageTexture(0, GLThread.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba8);
+                    MousePicker.Dispatch(GLThread.Resolution.Width / 32, GLThread.Resolution.Height / 32, 1);
+                    OpenTK.Graphics.OpenGL4.GL.MemoryBarrier(OpenTK.Graphics.OpenGL4.MemoryBarrierFlags.ShaderStorageBarrierBit);
+                    byte[] result = PickingResult.Read(0, 4 * 3);
+                    Vector3 id = new Vector3(
+                        BitConverter.ToSingle(result, 0),
+                        BitConverter.ToSingle(result, 4),
+                        BitConverter.ToSingle(result, 8)
+                    );
+                    foreach(var m in World.Root.Children)
+                    {
+                        if(m is Mesh3d)
+                        {
+                            if(((m as Mesh3d).MeshColoredID - id).Length < 0.05f)
+                            {
+                                (m as Mesh3d).Selected = true;
+                                Picked = m as Mesh3d;
+                            }
+                            else
+                                (m as Mesh3d).Selected = false;
+                        }
+                    }
+                }
                 var kb = OpenTK.Input.Keyboard.GetState();
                 if(kb.IsKeyDown(OpenTK.Input.Key.Left))
                 {
@@ -165,6 +208,24 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Tab)
                 {
                     GLThread.DisplayAdapter.IsCursorVisible = !GLThread.DisplayAdapter.IsCursorVisible;
+                }
+                if(e.Key == OpenTK.Input.Key.Comma)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.Roughness -= 0.05f;
+                        if(Picked.MainMaterial.Roughness < 0)
+                            Picked.MainMaterial.Roughness = 0;
+                    }
+                }
+                if(e.Key == OpenTK.Input.Key.Period)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.Roughness += 0.05f;
+                        if(Picked.MainMaterial.Roughness > 1)
+                            Picked.MainMaterial.Roughness = 1;
+                    }
                 }
                 if(e.Key == OpenTK.Input.Key.Pause)
                 {

@@ -36,7 +36,7 @@ namespace VEngine
         public float Scale = 1.0f;
         public bool ShouldUpdatePhysics = false;
         private DbvtBroadphase Broadphase;
-        private List<IRenderable> Children;
+        public List<IRenderable> Children;
         private CollisionConfiguration CollisionConf;
         private Dictionary<IRenderable, CollisionObject> CollisionObjects;
         private CollisionDispatcher Dispatcher;
