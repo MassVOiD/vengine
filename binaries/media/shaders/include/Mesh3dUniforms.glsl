@@ -3,7 +3,7 @@ uniform mat4 ProjectionMatrix;
 uniform float LogEnchacer;
 uniform float FarPlane;
 
-const int MAX_LIGHTS = 26;
+const int MAX_LIGHTS = 6;
 uniform int LightsCount;
 uniform mat4 LightsPs[MAX_LIGHTS];
 uniform mat4 LightsVs[MAX_LIGHTS];
@@ -58,6 +58,7 @@ uniform vec3 ColoredID;
 uniform float DiffuseComponent;
 uniform float SpecularComponent;
 uniform float Roughness;
+uniform float Metalness;
 uniform float ReflectionStrength;
 uniform float RefractionStrength;
 uniform vec2 resolution;

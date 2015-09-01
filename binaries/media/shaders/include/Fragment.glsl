@@ -196,13 +196,13 @@ layout(binding = 2) uniform sampler2D AlphaMask;
 uniform int UseAlphaMask;
 void discardIfAlphaMasked(){
 	if(UseAlphaMask == 1){
-		if(texture(AlphaMask, UV).r < 0.5) discard;
+		if(texture(AlphaMask, UV).r < 1.0) discard;
 	}
 }
 
 void finishFragment(vec4 color){
     discardIfAlphaMasked();
-    if(Selected) color *= 3;
+   // if(Selected) color *= 3;
 	outColor = vec4((color.xyz), color.a);
     //outColor = vec4(1);
     vec3 wpos = positionWorldSpace;
@@ -244,7 +244,7 @@ void finishFragment(vec4 color){
             worldBumpMapSize = factor;
             vec3 bitan = cross(normal, tangent);
             factor = factor * 2 - 1;
-            vec3 nee = normalize((normalNew - ((tangent) * factor*-0.2)));
+            vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
             nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
             normalNew =  nee;
     
@@ -263,10 +263,10 @@ void finishFragment(vec4 color){
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
 		if(Instances == 0){
-            outId = ColoredID.xyzz;
+            outId = vec4(ColoredID.xyz, Metalness);
 			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, DiffuseComponent);
 		} else {
-            outId = InstancedIds[instanceId];
+            outId = vec4(InstancedIds[instanceId].xyz, Metalness);
 			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, DiffuseComponent);
 		}
 	//} else {
@@ -280,10 +280,8 @@ void finishFragment(vec4 color){
 	outMeshData.r - reflection strength
 	outMeshData.g - refraction strength
 	*/
-	outMeshData = vec4(ReflectionStrength, RefractionStrength,1, Roughness);
-	float deptha = distance(wpos, CameraPosition);
-	float badass_deptha = log(LogEnchacer*deptha + 1.0f);
-	gl_FragDepth = badass_deptha;
+	outMeshData = vec4(ReflectionStrength, RefractionStrength,Metalness, Roughness);
+	updateDepth();
     // lets do it, from -32 to 32
     /*vec3 normalized = (wpos)  *3;
     normalized = clamp(normalized, -32, 32);

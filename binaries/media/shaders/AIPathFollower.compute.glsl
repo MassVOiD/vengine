@@ -22,7 +22,7 @@ layout( local_size_x = 3, local_size_y = 3, local_size_z = 50 ) in;
 uniform int BallsCount;
 uniform int PathPointsCount;
 
-#define GRAVITY (vec3(0, -0.12, 0))
+#define GRAVITY (vec3(0, -0.07, 0))
 
 vec3 processPath(uint index, vec3 position, float max_speed, float acceleration, float agility){
    // for(uint i=0;i<BallsCount;i++){
@@ -138,7 +138,7 @@ void processBallPhysics(uint group){
     vec3 velocity = Velocities[group].xyz;
     
 
-    translation += velocity * 0.1;
+    translation += velocity * 0.8;
             memoryBarrierBuffer();
     for(int i=0;i<BallsCount;i++) if(i!=group){
         vec3 t = Positions[i].xyz;
@@ -161,29 +161,30 @@ void processBallPhysics(uint group){
     velocity += GRAVITY;
    // velocity += (vec3(0,0,70) - translation)*0.001 ;
     
-    if(translation.y - 1 < -1) {
-        velocity.y = abs(velocity.y) * 0.998+0.0;
-        translation.y = -1;
+    if(translation.y - 1 < 0) {
+        velocity.y = abs(velocity.y) * 0.88+0.0;
+        translation.y = 1;
     }
-    #define barr 15
+    #define barr 22
     if(translation.x < -barr) {
-        velocity.x = abs(velocity.x) * 0.998;
+        velocity.x = abs(velocity.x) * 0.98;
         translation.x = -barr;
     }
     if(translation.x > barr) {
-        velocity.x = -abs(velocity.x) * 0.998;
+        velocity.x = -abs(velocity.x) * 0.98;
         translation.x = barr;
     }
     
     if(translation.z < -barr) {
-        velocity.z = abs(velocity.z) * 0.998;
+        velocity.z = abs(velocity.z) * 0.98;
         translation.z = -barr;
     }
     if(translation.z > barr) {
-        velocity.z = -abs(velocity.z) * 0.998;
+        velocity.z = -abs(velocity.z) * 0.98;
         translation.z = barr;
     }
-    velocity *= 0.99;
+    velocity *= 0.993;
+    if(length(velocity) > 5) velocity = normalize(velocity)*5;
    
 	Positions[group] = vec4(translation, 1);
     Velocities[group] = vec4(velocity, 1);

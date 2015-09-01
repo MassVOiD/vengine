@@ -29,12 +29,24 @@ bool IgnoreLightingFragment = false;
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
+vec2 HitPos = vec2(0);
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(float i=0;i<1;i+=0.1)
-        ret = max(mix(v1, v2, i) - texture(sampler, mix(p1, p2, i)).r, ret);
-
-    return ret;
+    for(float i=1; i>0.003; i-=0.1){
+        float ix = i;
+        vec2 muv = mix(p1, p2, ix);
+        float expr = min(muv.x, muv.y) * -(max(muv.x, muv.y)-1.0);
+        float tmp = min(0, sign(expr)) * 
+            ret + 
+            min(0, -sign(expr)) * 
+            max(
+                mix(v1, v2, ix) - texture(sampler, muv).r,
+                ret);
+        if(tmp > ret) HitPos = muv;
+        ret = tmp;
+    }
+    //if(abs(ret) > 0.1) return 0;
+    return abs(ret) - 0.0006;
 }
 float textureMaxFromLineNegate(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 9999;
@@ -101,9 +113,80 @@ float step2(float a, float b, float x){
     return step(a, x) * (1.0-step(b, x));
 }
     
+#define PI 3.14159265
+
+float orenNayarDiffuse(
+vec3 lightDirection,
+vec3 viewDirection,
+vec3 surfaceNormal,
+float roughness,
+float albedo) {
+
+    float LdotV = dot(lightDirection, viewDirection);
+    float NdotL = dot(lightDirection, surfaceNormal);
+    float NdotV = dot(surfaceNormal, viewDirection);
+
+    float s = LdotV - NdotL * NdotV;
+    float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));
+
+    float sigma2 = roughness * roughness;
+    float A = 1.0 + sigma2 * (albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
+    float B = 0.45 * sigma2 / (sigma2 + 0.09);
+
+    return albedo * max(0.0, NdotL) * (A + B * s / t) / PI;
+}
+
+float beckmannDistribution(float x, float roughness) {
+    float NdotH = max(x, 0.001);
+    float cos2Alpha = NdotH * NdotH;
+    float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
+    float roughness2 = roughness * roughness;
+    float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
+    return exp(tan2Alpha / roughness2) / denom;
+}
+
+float beckmannSpecular(
+vec3 lightDirection,
+vec3 viewDirection,
+vec3 surfaceNormal,
+float roughness) {
+    return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
+}
+
+float cookTorranceSpecular(
+vec3 lightDirection,
+vec3 viewDirection,
+vec3 surfaceNormal,
+float roughness,
+float fresnel) {
+
+    float VdotN = max(dot(viewDirection, surfaceNormal), 0.0);
+    float LdotN = max(dot(lightDirection, surfaceNormal), 0.0);
+
+    //Half angle vector
+    vec3 H = normalize(lightDirection + viewDirection);
+
+    //Geometric term
+    float NdotH = max(abs(dot(surfaceNormal, H)), 0.0);
+    float VdotH = max(abs(dot(viewDirection, H)), 0.0001);
+    float LdotH = max(abs(dot(lightDirection, H)), 0.0001);
+    float G1 = (2.0 * NdotH * VdotN) / VdotH;
+    float G2 = (2.0 * NdotH * LdotN) / LdotH;
+    float G = min(1.0, min(G1, G2));
+
+    //Distribution term
+    float D = beckmannDistribution(NdotH, roughness);
+
+    //Fresnel term
+    float F = pow(1.0 - VdotN, fresnel);
+
+    //Multiply terms and done
+    return  G * F * D / max(3.14159265 * VdotN, 0.001);
+}
+uniform int UseRSM;
 void main()
 {
-
+    if(UseRSM != 1) return;
     float alpha = texture(texColor, UV).a;
     vec2 nUV = UV;
     if(alpha < 0.99){
@@ -113,13 +196,14 @@ void main()
     vec4 normal = texture(normalsTex, nUV);
     meshDiffuse = normal.a;
     meshSpecular = texture(worldPosTex, nUV).a;
+    vec3 poscenter = texture(worldPosTex, nUV).rgb;
     meshRoughness = texture(meshDataTex, nUV).a;
     vec3 color1 = vec3(0);
     if(normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0){
         color1 = colorOriginal;
         IgnoreLightingFragment = true;
     } else {
-        color1 = colorOriginal * 0.01;
+        color1 = vec3(0);
     }
 
     //vec3 color1 = colorOriginal * 0.2;
@@ -136,6 +220,8 @@ void main()
     float len = length(cameraRelativeToVPos);
     int foundSun = 0;
 
+    float octaves[] = float[4](0.4, 1.0, 2.0, 6.0);
+    
     #define RSMSamples 7
     for(int i=0;i<LightsCount;i++){
         //break;
@@ -146,8 +232,10 @@ void main()
         vec3 centerpos = LightsPos[i];
         for(int x=0;x<RSMSamples;x++){
             for(int y=0;y<RSMSamples;y++){
+                //float rd = rand(UV);
                 vec2 scruv = vec2(float(x) / RSMSamples, float(y) /RSMSamples);
                 float ldep = lookupDepthFromLight(i, scruv);
+                vec3 lcolor = lookupColorFromLight(i, scruv);
                 scruv.y = 1.0 - scruv.y;
                 scruv = scruv * 2 - 1;
                 vec4 reconstructDir = invlightPV * vec4(scruv, 0.01, 1.0);
@@ -157,28 +245,59 @@ void main()
                 );
 
                 // not optimizable
-                vec3 newpos = dir * reverseLog(ldep) + LightsPos[i] + (-dir * 0.1);
+                vec3 newpos = dir * reverseLogEx(ldep, LightsFarPlane[i]) + LightsPos[i];
                 float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
                 vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
-                float att = min(1.0 / pow(((distanceToLight * 0.5) + 1.0), 2.0) * 0.9, 0.19);
-                float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*3.5, fragmentPosWorld3d.xyz);
-                vi = (step(0.0, -vi))+smoothstep(0.0, 0.91, vi);
+                float att = min(1.0 / pow(((distanceToLight * 1.8) + 1.0), 2.0) * 0.9, 0.19);
+                //float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*6.5, fragmentPosWorld3d.xyz);
+                //vi = (step(0.0, -vi))+smoothstep(0.0, 2.91, vi);
+                /*
+                float bl = 1;
+                for(int p=0;p<octaves.length();p++){
+                
+                    float av = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*octaves[p], fragmentPosWorld3d.xyz);
+                    
+                    bl *= av <= 0.00 || av > 1.9 ? 1.0 : 0;
+                }*/
+               // float vi = bl;
+               float vi = 1;
                 //    vi = 1.0-vi;
-                float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
+                /*float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
                 fresnel = fresnel * fresnel * fresnel + 1.0;
                
                     color1 += vi* fresnel * LightingPhysical(
-                        LightsColors[i].rgb*colorOriginal*LightsColors[i].a,
+                        LightsColors[i].rgb*LightsColors[i].a,
                         meshDiffuse,
                         meshSpecular,
                         normal.xyz,
                         (lightRelativeToVPos),
                         normalize(cameraRelativeToVPos),
-                        att);
+                        att);*/
+                        
+                float specularComponent = clamp(cookTorranceSpecular(
+                normalize(lightRelativeToVPos),
+                normalize(cameraRelativeToVPos),
+                normal.xyz,
+                meshRoughness, 1.0
+                ) * meshSpecular, 0.0, 1.0);
+
+                
+                float diffuseComponent = clamp(orenNayarDiffuse(
+                normalize(lightRelativeToVPos),
+                normalize(cameraRelativeToVPos),
+                normal.xyz,
+                meshRoughness, 1.0
+                ) * meshDiffuse , 0.0, 1.0);   
+                float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
+                fresnel = fresnel * fresnel * fresnel + 1.0;
+                
+                color1 += ((colorOriginal * (diffuseComponent * lcolor)) * fresnel
+                + (mix(colorOriginal, lcolor*colorOriginal, meshRoughness) * specularComponent))
+                * att * vi * LightsColors[i].a * dot(lightRelativeToVPos, dir);   
                 
             }
         }
     }
-    outColor = vec4(clamp(color1 / (RSMSamples*RSMSamples), 0, 1), 1);
-  //  outColor = vec4(0,0,0, 1);
+    outColor = vec4(clamp(color1 / (RSMSamples*RSMSamples), 0, 1), texture(texDepth, nUV).r);
+   // outColor = vec4(0,0,0, 1);
 }

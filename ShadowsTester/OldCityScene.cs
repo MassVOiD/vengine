@@ -40,6 +40,19 @@ namespace ShadowsTester
                 this.Add(ob);
             };
             scene.Load();
+            SimplePointLight p = new SimplePointLight(new Vector3(0, 3, 0), new Vector4(-2.2f, -2.2f, -2.2f, 2.6f));
+            //LightPool.Add(p);
+            GLThread.OnKeyPress += (o, e) =>
+            {
+                if(e.KeyChar == 'o')
+                    p.Color = new Vector4(p.Color.X + 1.1f, p.Color.Y + 1.1f, p.Color.Z + 1.1f, p.Color.W);
+                if(e.KeyChar == 'l')
+                    p.Color = new Vector4(p.Color.X - 1.1f, p.Color.Y - 1.1f, p.Color.Z - 1.1f, p.Color.W);
+                if(e.KeyChar == 'i')
+                    p.Color = new Vector4(p.Color.X, p.Color.Y, p.Color.Z, p.Color.W + 1);
+                if(e.KeyChar == 'k')
+                    p.Color = new Vector4(p.Color.X, p.Color.Y, p.Color.Z, p.Color.W - 1);
+            };
             // var s = VEngine.FileFormats.GameScene.FromMesh3dList(scene);
             // System.IO.File.WriteAllText("Scene.scene", s);
             //  Object3dInfo[] skydomeInfo = Object3dInfo.LoadFromObj(Media.Get("sponza_verysimple.obj"));

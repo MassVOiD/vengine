@@ -14,36 +14,7 @@ namespace ShadowsTester
     {
         public NatureScene()
         {
-            var sun = new Sun(new Vector3(0.1f, -1, 0).ToQuaternion(Vector3.UnitY), new Vector4(1, 0.97f, 0.92f, 120), 100, 70, 10, 4, 1);
-            GLThread.OnUpdate += (o, e) =>
-            {
-                var kb = OpenTK.Input.Keyboard.GetState();
-                if(kb.IsKeyDown(OpenTK.Input.Key.U))
-                {
-                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.J))
-                {
-                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.H))
-                {
-                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.K))
-                {
-                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-            };
-            int scale = 2;
-            /*
-            var protagonist = Object3dInfo.LoadSceneFromObj(Media"protagonist.obj", "protagonist.mtl", 1.0f);
-            foreach(var o in protagonist)
-                Add(o);*/
+
             var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
             var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
             whitebox.Scale(300);

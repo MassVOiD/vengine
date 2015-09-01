@@ -11,9 +11,9 @@ namespace VEngine
     public class SimplePointLight: ITransformable
     {
         public TransformationManager Transformation;
-        public Color Color;
+        public Vector4 Color;
         public float Attenuation = 1.0f;
-        public SimplePointLight(Vector3 position, Color color)
+        public SimplePointLight(Vector3 position, Vector4 color)
         {
             Transformation = new TransformationManager(position);
             Color = color;

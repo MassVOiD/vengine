@@ -11,10 +11,13 @@ namespace VEngine
             FarPlane = far;
             camera = new Camera(position, Vector3.Zero, mapwidth / mapheight, fov, near, far);
             camera.LookAt(Vector3.Zero);
-            FBO = new Framebuffer(mapwidth, mapheight, true);
-            //FBO.ColorInternalFormat = PixelInternalFormat.Rgba8;
-            //FBO.ColorPixelFormat = PixelFormat.Rgba;
-            //FBO.ColorPixelType = PixelType.UnsignedByte;
+            FBO = new Framebuffer(mapwidth, mapheight, false);
+            FBO.ColorInternalFormat = PixelInternalFormat.Rgba8;
+            FBO.ColorPixelFormat = PixelFormat.Rgba;
+            FBO.ColorPixelType = PixelType.UnsignedByte;
+            FBO.DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
+            FBO.DepthPixelFormat = PixelFormat.DepthComponent;
+            FBO.DepthPixelType = PixelType.Float;
             Shader = GenericMaterial.FromName("ConeLight");
             ViewPort = new Size(mapwidth, mapheight);
         }

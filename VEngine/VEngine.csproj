@@ -51,6 +51,26 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Optimized|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Optimized\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Optimized|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\binaries\</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="BulletSharp, Version=2.83.0.0, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
@@ -80,6 +100,7 @@
   <ItemGroup>
     <Compile Include="AMCParser.cs" />
     <Compile Include="FileFormats\GameScene.cs" />
+    <Compile Include="Game\KeyboardController.cs" />
     <Compile Include="Game\Water.cs" />
     <Compile Include="PathTracing\JitterRandomSequenceGenerator.cs" />
     <Compile Include="PathTracing\PathTracer.cs" />
@@ -95,7 +116,6 @@
     <Compile Include="Rendering\DeferredPipeline.cs" />
     <Compile Include="Rendering\Materials\GenericMaterial.cs" />
     <Compile Include="Rendering\MRTFramebuffer.cs" />
-    <Compile Include="Game\Game.cs" />
     <Compile Include="Game\GameConsole\GameConsole.cs" />
     <Compile Include="Internals\Debugger.cs" />
     <Compile Include="Rendering\Fog\FogDensitySphere.cs" />

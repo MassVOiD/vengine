@@ -13,28 +13,16 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	else if(i==3)distance1 = texture(lightDepth3, uv).r;
 	else if(i==4)distance1 = texture(lightDepth4, uv).r;
 	else if(i==5)distance1 = texture(lightDepth5, uv).r;
-	else if(i==6)distance1 = texture(lightDepth6, uv).r;
-	else if(i==7)distance1 = texture(lightDepth7, uv).r;
-	else if(i==8)distance1 = texture(lightDepth8, uv).r;
-	else if(i==9)distance1 = texture(lightDepth9, uv).r;
-	else if(i==10)distance1 = texture(lightDepth10, uv).r;
-	else if(i==11)distance1 = texture(lightDepth11, uv).r;
-	else if(i==12)distance1 = texture(lightDepth12, uv).r;
-	else if(i==13)distance1 = texture(lightDepth13, uv).r;
-	else if(i==14)distance1 = texture(lightDepth14, uv).r;
-	else if(i==15)distance1 = texture(lightDepth15, uv).r;
-	else if(i==16)distance1 = texture(lightDepth16, uv).r;
-	else if(i==17)distance1 = texture(lightDepth17, uv).r;
-	else if(i==18)distance1 = texture(lightDepth18, uv).r;
-	else if(i==19)distance1 = texture(lightDepth19, uv).r;
-	else if(i==20)distance1 = texture(lightDepth20, uv).r;
-	else if(i==21)distance1 = texture(lightDepth21, uv).r;
-	else if(i==22)distance1 = texture(lightDepth22, uv).r;
-	else if(i==23)distance1 = texture(lightDepth23, uv).r;
-	else if(i==24)distance1 = texture(lightDepth24, uv).r;
-	else if(i==25)distance1 = texture(lightDepth25, uv).r;
-	//else if(i==26)distance1 = texture(lightDepth26, uv).r;
-	//else if(i==27)distance1 = texture(lightDepth27, uv).r;
+	return distance1;
+}
+vec3 lookupColorFromLight(uint i, vec2 uv){
+	vec3 distance1 = vec3(0.0);
+	if(i==0)distance1 = texture(lightDepth0Color, uv).rgb;
+	else if(i==1)distance1 = texture(lightDepth1Color, uv).rgb;
+	else if(i==2)distance1 = texture(lightDepth2Color, uv).rgb;
+	else if(i==3)distance1 = texture(lightDepth3Color, uv).rgb;
+	else if(i==4)distance1 = texture(lightDepth4Color, uv).rgb;
+	else if(i==5)distance1 = texture(lightDepth5Color, uv).rgb;
 	return distance1;
 }
 #define mPI (3.14159265)
@@ -80,7 +68,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;   
 	if(lightClipSpace.z <= 0.0) return 1;
     if(lightScreenSpace.x < 0.0 || lightScreenSpace.x > 1.0 || lightScreenSpace.y < 0.0 || lightScreenSpace.y > 1.0) return 1;
-	float badass_depth = toLogDepth(distance2);	
+	float badass_depth = toLogDepthEx(distance2, LightsFarPlane[i]);
 	
 	
 	float AInv = 1.0 / ((distance2) + 1.0);
@@ -105,8 +93,9 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
         
         return 1.0;
     } else {
-        float distance3 = toLogDepth(distance2);
+        float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
        // float pssblur =0.9;
+       LastProbeDistance = 1.0;
         float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
         //float pssblur = 0;
         for(float x = 0; x < mPI2; x+=0.3){ 
@@ -116,13 +105,13 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
                 distance1 = lookupDepthFromLight(i, fakeUV);
                 float diff = (distance3 -  distance1);
                 if(diff > 0.00003) accum += 1.0 ;
-                LastProbeDistance += badass_depth - distance1;
+                LastProbeDistance = min(LastProbeDistance, abs(badass_depth - distance1));
                 counter++;
             }
         }
     }
 	
-    LastProbeDistance = LastProbeDistance / counter;
+    //LastProbeDistance = LastProbeDistance / counter;
     float rs = 1.0 - (accum / counter);
 	 return rs;
 }

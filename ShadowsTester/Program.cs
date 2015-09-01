@@ -40,12 +40,10 @@ namespace ShadowsTester
                 window = new VEngineWindowAdapter("Test", Config.Width, Config.Height);
 
                 GLThread.GraphicsSettings.UseDeferred = true;
+                GLThread.GraphicsSettings.UseRSM = true;
                 GLThread.GraphicsSettings.UseFog = false;
                 GLThread.GraphicsSettings.UseBloom = false;
                 GLThread.GraphicsSettings.UseLightPoints = false;
-                GLThread.GraphicsSettings.UseMSAA = false;
-                GLThread.GraphicsSettings.UseSimpleGI = false;
-                GLThread.GraphicsSettings.UseBilinearGI = false;
 
                 window.Run(60);
                 GLThread.SetCurrentThreadCores(2);
@@ -59,20 +57,20 @@ namespace ShadowsTester
             //new PlanetScene().Create();
           // new SculptScene().Create();
             //new SponzaScene().Create();
-            new OldCityScene().Create();
-           // new PathTraceTest().Create();
-          //  new NatureScene().Create();
+           // new OldCityScene().Create();
+          /// new PathTraceTest().Create();
+           // new NatureScene().Create();
           //  new IndirectTestScene().Create();
-         // new DragonScene().Create();
+          new DragonScene().Create();
          //   new ManyCubesScene().Create();
           //  new ComputeBallsScene().Create();
             //new CarScene().Create();
 
-         //   new FortressScene().Create();
+          //  new FortressScene().Create();
 
             //new HallScene().Create();
            // new RoadScene().Create();
-            //new HomeScene().Create();
+          //  new HomeScene().Create();
 
 
             World.Root.SortByDepthMasking();
@@ -81,7 +79,7 @@ namespace ShadowsTester
 
             Commons.SetUpInputBehaviours();
             
-            World.Root.SortByObject3d();
+            //World.Root.SortByObject3d();
 
             GLThread.Invoke(() => window.StartPhysicsThread());
             renderThread.Wait();

@@ -43,8 +43,9 @@ namespace VEngine
             if(Map == null)
                 LoadFileMap();
             if(!Map.ContainsKey(name.ToLower()))
-                throw new KeyNotFoundException(name);
+               throw new KeyNotFoundException(name);
             return File.ReadAllText(Map[name.ToLower()]);
+            
         }
 
         private static void LoadFileMap(string path = null)

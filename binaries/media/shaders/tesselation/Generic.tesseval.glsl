@@ -171,14 +171,16 @@ void main()
         float factor = getPlanetSurface();
         positionWorldSpace -= normal * (factor) * 11.0;
     }
-    if(UseBumpMap == 1){
+    
         if(MaterialType == MaterialTypeGrass){
             float factor = (texture(bumpMap, UV).r);
             positionWorldSpace += normal * (factor) * 1.0;
             vec3 binormal = cross(normal, tangent);
+            vec3 sp2 = positionWorldSpace;
             positionWorldSpace += tangent * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
             positionWorldSpace += binormal * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
-        } else {
+            normal = normalize(cross(sp2, positionWorldSpace));
+        } else if(UseBumpMap == 1){
             //float factor = (texture(bumpMap, UV*0.01).r - 0.5);
             float factor = snoise(positionWorldSpace*normal / 4) * 0.2;
             factor += snoise(positionWorldSpace *10) * 0.03;
@@ -186,7 +188,7 @@ void main()
             normal = normalize(normal - (tangent * factor * 0.05));
         }
     
-    }
+    
 	
    	gl_Position = ProjectionMatrix * ViewMatrix * vec4(positionWorldSpace, 1.0);
 }

@@ -125,20 +125,20 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 		float fogMultiplier = 2.4;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
 		vec3 lastPos = start - mix(start, end, sampling);
-		for(float m = 0.0; m< 1.0;m+= sampling){
+		for(float m = 0.0; m< 1.0;m+= 0.01){
 			vec3 pos = mix(start, end, m);
             float distanceMult = clamp(distance(lastPos, pos) * 2, 0, 33) * 6;
             //float distanceMult = 5;
             lastPos = pos;
 			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
-			//float att = 1;
+			att = 1;
             if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) att = 0.1;
 			lightClipSpace = lightPV * vec4(pos, 1.0);
 			#ifdef ENABLE_FOG_NOISE
-			float fogNoise = clouds(pos);
+			//float fogNoise = clouds(pos);
 			
 			// rain
-			//float fogNoise = (snoise(vec3(pos.x*15, pos.y / 2 + Time*7, pos.z*15)) + 1.0) / 2.0;
+			float fogNoise = (snoise(vec3(pos.x*7, pos.y * 7, pos.z*7)) + 1.0) / 2.0;
 			
 			// snow
 			//float fogNoise = (density(vec3(pos.x*0.5, pos.y * 5, pos.z*5)) + 1.0) / 2.0;
@@ -180,5 +180,5 @@ vec3 makeFog(){
 
 void main()
 {
-    outColor = vec4(makeFog(), 1);
+    outColor = vec4(makeFog(), texture(texDepth, UV).r);
 }

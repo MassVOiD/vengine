@@ -19,7 +19,9 @@ layout(binding = 7) uniform sampler2D diffuseColor;
 layout(binding = 8) uniform sampler2D normals;
 layout(binding = 9) uniform sampler2D worldPos;
 layout(binding = 10) uniform sampler2D lastworldPos;
-layout(binding = 11) uniform sampler2D meshData;
+layout(binding = 33) uniform sampler2D meshData;
+
+layout(binding = 34) uniform sampler2D vdao;
 
 float centerDepth;
 uniform float Brightness;
@@ -57,7 +59,7 @@ vec2 getProjNormal(){
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
-vec3 DamnReflections()
+vec4 DamnReflections()
 {
 	//float reflectionStrength = texture(meshData, UV).r;
 	//if(reflectionStrength < 0.05) return vec3(0);
@@ -66,6 +68,7 @@ vec3 DamnReflections()
 	// Get some basic data for processed pixel, like normal, original color, position in world space
 	// distance to camera, and precalculate some used data too.
 	vec3 normalCenter = texture(normals, UV).rgb;
+	float rough = texture(meshData, UV).a;
 	float specSize = texture(normals, UV).a;
 	// Good to mix direct light color with diffuse color
 	vec3 positionCenter = FromCameraSpace(texture(worldPos, UV).rgb);
@@ -82,7 +85,8 @@ vec3 DamnReflections()
 	vec3 speccolor = vec3(0);
     vec3 closestColor = vec3(0);
     vec2 clouv = UV;
-    float iter = 9.0 / (resolution.x);
+    float iter = 5.0 / (resolution.x);
+    vec3 fwpos = positionCenter+normalCenter*100;
 	for(float g = 0.0; g < 1.0; g += iter )
 	{
 
@@ -91,7 +95,7 @@ vec3 DamnReflections()
 		if(coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1) break;
 		// Let's test visibility
 
-		vec3 c = texture(color, coord).rgb;
+		vec3 c = texture(color, coord).rgb + texture(vdao, coord).rgb*0.05;
 		vec3 worldPosition = FromCameraSpace(texture(worldPos, coord).rgb);
 		vec3 lightRelativeToVPos = worldPosition - positionCenter;
 		vec3 R = reflect(cameraSpace, normalCenter.xyz);
@@ -99,9 +103,9 @@ vec3 DamnReflections()
         
         float fresn = 1.0 - max(0, dot(normalize(CameraDirection), normalize(normalCenter)));
         fresn = fresn * fresn * fresn * 0.2 + 0.8;
-		if(cosAlpha > 0.991 && length(c) > 0.05){
-			if(testVisibilityLowRes(coord, UV))
-			{
+		if(cosAlpha > 0.9901){
+			//if(testVisibilityLowRes(coord, UV))
+			//{
                 closestColor = c;
                 clouv = coord;
                 //float cull = min(min(min(smoothstep(0.0, 0.05, coord.x), smoothstep(0.0, 0.05, coord.y)), smoothstep(1.0, 0.95, coord.x)), smoothstep(1.0, 0.95, coord.y));
@@ -126,18 +130,20 @@ vec3 DamnReflections()
                 }*/
 				//speccolor += blurByUV(color, clouv, distance(worldPosition, positionCenter));
                 speccolor += (closestColor / 1) * fresn;
+                fwpos = worldPosition;
                 sampls++;
                 break;
-			}
+			//}
 		}
 
 
 	}
-	return (sampls == 0 ? closestColor : (speccolor));
+	return vec4((sampls == 0 ? closestColor : (speccolor)), distance(positionCenter, fwpos)*rough*15);
 }
+uniform int UseSSReflections;
 void main()
 {
-    vec3 color1 = vec3(0);
-    //color1 += DamnReflections();
-    outColor = vec4(clamp(color1, 0, 1), 1);
+    vec4 color1 = vec4(0);
+    if(UseSSReflections == 1) color1 += DamnReflections();
+    outColor = vec4(clamp(color1.xyz, 0, 1), color1.a);
 }

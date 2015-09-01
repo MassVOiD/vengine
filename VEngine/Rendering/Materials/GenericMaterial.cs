@@ -12,6 +12,7 @@ namespace VEngine
         public float ReflectionStrength = 0;
         public float RefractionStrength = 0;
         public float Roughness = 0.5f;
+        public float Metalness = 0.5f;
 
         public bool CastShadows = true;
         public bool ReceiveShadows = true;
@@ -128,6 +129,7 @@ namespace VEngine
             prg.SetUniform("SpecularComponent", SpecularComponent);
             prg.SetUniform("DiffuseComponent", DiffuseComponent);
             prg.SetUniform("Roughness", Roughness);
+            prg.SetUniform("Metalness", Metalness);
             prg.SetUniform("ReflectionStrength", ReflectionStrength);
             prg.SetUniform("RefractionStrength", RefractionStrength);
             prg.SetUniform("IgnoreLighting", IgnoreLighting);
@@ -175,7 +177,7 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
-            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ? TesselatedProgram : Program;
+            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface || Type == MaterialType.Grass ? TesselatedProgram : Program;
         }
 
     }

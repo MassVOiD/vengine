@@ -1,8 +1,17 @@
 #version 430 core
 //in vec3 normal;
+#include LogDepth.glsl
+#include Lighting.glsl
+#include UsefulIncludes.glsl
+layout(binding = 0) uniform sampler2D Tex;
 smooth in vec3 vertexWorldSpace;
 uniform vec3 LightPosition;
-#include LogDepth.glsl
+uniform vec4 input_Color;
+uniform int DrawMode;
+#define MODE_TEXTURE_ONLY 0
+#define MODE_COLOR_ONLY 1
+#define MODE_TEXTURE_MULT_COLOR 2
+#define MODE_ONE_MINUS_COLOR_OVER_TEXTURE 3
 
 //uniform int Instances;
 
@@ -16,7 +25,11 @@ void discardIfAlphaMasked(){
 	}
 }
 
-out float outColor;	
+out vec4 outColor;	
+
+void finishFragment(vec4 c){
+    outColor = c;
+}
 
 void main()
 {
@@ -34,6 +47,10 @@ void main()
 //
     }    
 	float depth = distance(wpos, LightPosition);
+    if(DrawMode == MODE_TEXTURE_ONLY) finishFragment(texture(Tex, UV));
+	else if(DrawMode == MODE_COLOR_ONLY) finishFragment(input_Color);
+	else if(DrawMode == MODE_TEXTURE_MULT_COLOR) finishFragment(texture(Tex, UV) * input_Color);
+	else if(DrawMode == MODE_ONE_MINUS_COLOR_OVER_TEXTURE) 
+        finishFragment(vec4(1) - (input_Color / (texture(Tex, UV) + vec4(1, 1, 1, 0))));
 	gl_FragDepth = toLogDepth(depth);
-    //outColor = 0;
 }

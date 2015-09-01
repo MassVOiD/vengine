@@ -30,7 +30,7 @@ namespace VEngine
             sp.SetUniform("SimpleLightsCount", SimpleLights.Count);
             sp.SetUniformArray("SimpleLightsPos", SimpleLights.Select<SimplePointLight, Vector3>(a => a.Transformation.GetPosition()).ToArray());
             sp.SetUniformArray("SimpleLightsColors", SimpleLights.Select<SimplePointLight, Vector4>(a =>
-                new Vector4(a.Color.R / 255.0f, a.Color.G / 255.0f, a.Color.B / 255.0f, a.Color.A / 255.0f)).ToArray());
+                a.Color).ToArray());
         }
 
         public static void Add(ILight light)
@@ -97,7 +97,7 @@ namespace VEngine
             foreach(var light in Lights)
             {
                 light.UseTexture(i);
-                i++;
+                i+=2;
             }
         }
     }

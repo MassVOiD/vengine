@@ -273,7 +273,7 @@ float fresnel) {
     float D = beckmannDistribution(NdotH, roughness);
 
     //Fresnel term
-    float F = pow(1.0 - VdotN, fresnel);
+    float F = 1;
 
     //Multiply terms and done
     return  G * F * D / max(3.14159265 * VdotN, 0.001);
@@ -305,6 +305,7 @@ void main()
     meshDiffuse = normal.a;
     meshSpecular = texture(worldPosTex, nUV).a;
     meshRoughness = texture(meshDataTex, nUV).a;
+    float meshMetalness =  texture(meshDataTex, UV).z;
     vec3 color1 = vec3(0);
     if(normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0){
         color1 = colorOriginal;
@@ -359,7 +360,7 @@ void main()
             //}*/
         
             float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-            float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a;
+            float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * LightsColors[i].a*4;
             //att = 1;
             if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
             if(att < 0.002) continue;
@@ -404,66 +405,83 @@ void main()
             normalize(lightRelativeToVPos),
             normalize(cameraRelativeToVPos),
             normal.xyz,
-            meshRoughness, 0.07
-            ) * meshSpecular, 0.0, 1.0);
+            max(0.02, meshRoughness), 1
+            ), 0.0, 1.0);
 
             
             float diffuseComponent = clamp(orenNayarDiffuse(
             normalize(lightRelativeToVPos),
             normalize(cameraRelativeToVPos),
             normal.xyz,
-            meshRoughness, 0.07
-            ) * meshDiffuse *5 , 0.0, 1.0) * 0;   
+            meshRoughness, 1
+            ), 0.0, 1.0);   
             float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
             fresnel = fresnel * fresnel * fresnel + 1.0;
             
-            color1 += (((colorOriginal * (diffuseComponent * LightsColors[i].rgb)) * fresnel
-            + (mix(LightsColors[i].rgb, colorOriginal, meshRoughness) * specularComponent))
-            * att * max(0, percent)) * LightsColors[i].a * fresnel;      
+            vec3 illumalbedo = vec3((LightsColors[i].r+LightsColors[i].g+LightsColors[i].b)*0.333);
+            vec3 cc = mix(LightsColors[i].rgb*colorOriginal, LightsColors[i].rgb, meshMetalness);
+            
+            vec3 difcolor = cc * diffuseComponent;
+            vec3 difcolor2 = LightsColors[i].rgb*colorOriginal * diffuseComponent;
+            vec3 specolor = cc * specularComponent;
+            
+            vec3 radiance = mix(difcolor2 + specolor, difcolor*meshRoughness + specolor, meshMetalness);
+            
+            color1 += (radiance) * att * percent;
             
             
-            //if(percent < 0){
+         //   if(percent < 0){
                 //is in shadow! lets try subsufrace scattering
-                float subsc = max(0.007, abs(LastProbeDistance));
-                float amount = 1.0/(pow((subsc *200)+1, 3));
-                amount = max(0.03, abs(amount));
+                float subsc =  min(0.1, abs(LastProbeDistance));
+                float amount = 1.0/(pow((subsc *500)+1, 2));
+                amount = abs(amount);
                   
-               // color1 += colorOriginal *  max(0, amount);
-            //} else color1 += colorOriginal * 0.7;
+               // color1 += colorOriginal *  max(0.1, amount);
+        //    } 
             if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
         
         }
         
     }
-    /*
+    
     for(int i=0;i<SimpleLightsCount;i++){
-        if(SimpleLightsColors[i].rgb != vec3(1)) continue;
-        //vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(SimpleLightsPos[i], 1.0);
-        //vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
-        //if(clipspace.z < 0.0) continue;
         
-        
-        float distanceToLight = distance(fragmentPosWorld3d.xyz, SimpleLightsPos[i]);
-        //float dist = distance(CameraPosition, SimpleLightsPos[i]);
-        float att = 1.0 / pow(((distanceToLight/1.0) + 1.0), 2.0) * SimpleLightsColors[i].a;
-        //float revlog = reverseLog(texture(texDepth, nUV).r);
-        
-        vec3 lightRelativeToVPos = SimpleLightsPos[i] - fragmentPosWorld3d.xyz;
-        vec3 R = reflect(lightRelativeToVPos, normal.xyz);
-        float cosAlpha = -dot(normalize(cameraRelativeToVPos), normalize(R));
-        float specularComponent = clamp(pow(cosAlpha, 80.0 / normal.a), 0.0, 1.0) * fragmentPosWorld3d.a;
-        
-        lightRelativeToVPos = SimpleLightsPos[i] - fragmentPosWorld3d.xyz;
-        float dotdiffuse = dot(normalize(lightRelativeToVPos), normalize (normal.xyz));
-        float diffuseComponent = clamp(dotdiffuse, 0.0, 1.0);
-        if(testVisibility3d(nUV, SimpleLightsPos[i], fragmentPosWorld3d.xyz)){
-            color1 += ((colorOriginal * (diffuseComponent * SimpleLightsColors[i].rgb)) 
-            + (SimpleLightsColors[i].rgb * specularComponent))
-            *att;
-        }
+            vec3 abc = SimpleLightsPos[i];
+            
+            vec3 lightRelativeToVPos =normalize( abc - fragmentPosWorld3d.xyz);
+            float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
+            float att = 1.0 / pow(((distanceToLight/SimpleLightsColors[i].a) + 1.0), 2.0);
+            //att = 1;;
+            if(att < 0.002) continue;
+            
+            if(SimpleLightsColors[i].r < 0){
+                color1 += SimpleLightsColors[i].rgb * att;
+                continue;
+            }
+            
+            float specularComponent = clamp(cookTorranceSpecular(
+            normalize(lightRelativeToVPos),
+            normalize(cameraRelativeToVPos),
+            normal.xyz,
+            meshRoughness, 0
+            ) * meshSpecular, 0.0, 1.0);
+
+            float diffuseComponent = clamp(orenNayarDiffuse(
+            normalize(lightRelativeToVPos),
+            normalize(cameraRelativeToVPos),
+            normal.xyz,
+            meshRoughness, 0
+            ) * meshDiffuse, 0.0, 1.0);   
+            float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
+            fresnel = fresnel * fresnel * fresnel + 1.0;
+            
+            color1 +=  (((colorOriginal * (diffuseComponent * SimpleLightsColors[i].rgb)) * fresnel            + (mix(SimpleLightsColors[i].rgb, colorOriginal, meshMetalness) * specularComponent))
+            * att * fresnel);      
+            
+    }
     
         
-    }*/
+    
     //color1 += lightPoints();
     //if(UV.x < 0.4 && UV.y < 0.4){
     //    color1 = vec3(length(texture(worldPosTex, UV*2.5).rgb - texture(//worldPosTexBack, UV*2.5).rgb) * 0.1);

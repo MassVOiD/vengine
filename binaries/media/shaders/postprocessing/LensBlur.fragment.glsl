@@ -24,7 +24,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 	//float centerDepth = texture(texDepth, UV).r;
     for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0;y<samples;y+= 1.0){  
-			vec2 crd = vec2(sin(x) * ratio, cos(x)) * (y * 0.25);
+			vec2 crd = vec2(sin(x) * ratio, cos(x)) * (rand(UV + vec2(x, y)) * 0.25);
 			//if(length(crd) > 1.0) continue;
             vec2 coord = UV+crd * 0.01 * amount;  
 			//coord.x = clamp(abs(coord.x), 0.0, 1.0);

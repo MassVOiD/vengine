@@ -227,6 +227,24 @@ namespace ShadowsTester
                             Picked.MainMaterial.Roughness = 1;
                     }
                 }
+                if(e.Key == OpenTK.Input.Key.Semicolon)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.Metalness -= 0.05f;
+                        if(Picked.MainMaterial.Metalness < 0)
+                            Picked.MainMaterial.Metalness = 0;
+                    }
+                }
+                if(e.Key == OpenTK.Input.Key.Quote)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.Metalness += 0.05f;
+                        if(Picked.MainMaterial.Metalness > 1)
+                            Picked.MainMaterial.Metalness = 1;
+                    }
+                }
                 if(e.Key == OpenTK.Input.Key.Pause)
                 {
                     ShaderProgram.RecompileAll();
@@ -256,14 +274,10 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Number2)
                 {
-                    FreeCam.Cam.LookAt(new Vector3(0));
-                }
-                if(e.Key == OpenTK.Input.Key.Number3)
-                {
                     Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
                 }
                 if(e.Key == OpenTK.Input.Key.Number0)
-                    GLThread.GraphicsSettings.UseBilinearGI = !GLThread.GraphicsSettings.UseBilinearGI;
+                    GLThread.GraphicsSettings.UseVDAO = !GLThread.GraphicsSettings.UseVDAO;
                 if(e.Key == OpenTK.Input.Key.Number9)
                     GLThread.GraphicsSettings.UseBloom = !GLThread.GraphicsSettings.UseBloom;
                 if(e.Key == OpenTK.Input.Key.Number8)
@@ -275,7 +289,9 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Number5)
                     GLThread.GraphicsSettings.UseLightPoints = !GLThread.GraphicsSettings.UseLightPoints;
                 if(e.Key == OpenTK.Input.Key.Number4)
-                    GLThread.GraphicsSettings.UseSimpleGI = !GLThread.GraphicsSettings.UseSimpleGI;
+                    GLThread.GraphicsSettings.UseRSM = !GLThread.GraphicsSettings.UseRSM;
+                if(e.Key == OpenTK.Input.Key.Number3)
+                    GLThread.GraphicsSettings.UseSSReflections = !GLThread.GraphicsSettings.UseSSReflections;
             };
         }
     }

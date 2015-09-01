@@ -269,12 +269,12 @@ namespace VEngine
         {
             if(Current.Handle == -1)
                 return -1;
-            //if(UniformLocationsCache.ContainsKey(name) && !Lock)
-            //    return UniformLocationsCache[name];
+            if(Current.UniformLocationsCache.ContainsKey(name))
+                return Current.UniformLocationsCache[name];
             int location = GL.GetUniformLocation(Current.Handle, name);
             GLThread.CheckErrors("Locating " + name);
             //if(!Lock)
-            //    UniformLocationsCache.Add(name, location);
+            Current.UniformLocationsCache.Add(name, location);
             //if(Lock && name == "Time")
             //    return -1;
             return location;
@@ -333,7 +333,7 @@ namespace VEngine
         private int CompileSingleShader(ShaderType type, string source)
         {
             int shader = GL.CreateShader(type);
-
+                
             StringBuilder globalsString = new StringBuilder();
             foreach(var g in Globals)
             {

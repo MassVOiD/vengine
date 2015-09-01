@@ -121,7 +121,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 			
 			//ngon
 		
-			vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (y * 0.125);
+			vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (rand(UV + vec2(x, y)) * 0.125);
 			//if(length(crd) > 1.0) continue;
             vec2 coord = UV+crd * 0.01 * amount;  
 			//coord.x = clamp(abs(coord.x), 0.0, 1.0);
@@ -148,11 +148,11 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 	float counter = 0;
 	for(float g = 0; g < mPI2; g+=0.3)
 	{ 
-		for(float g2 = 0; g2 < 1.0; g2+=0.05)
+		for(float g2 = 0; g2 < 1.0; g2+=0.1131)
 		{ 
-			vec2 gauss = vec2(sin(g)*ratio, cos(g)) * (g2 * radius);
+			vec2 gauss = vec2(sin(g)*ratio, cos(g)) * (rand(UV+vec2(g, g2)) * radius);
 			vec4 color = texture(bloom, buv + gauss).rgba;
-            float w = max(0, (length(color) - 1.3) ) * 0.1;
+            float w = max(0, (length(color) - 1.3) ) * 1.1;
             counter += max(w, 0.1);
 			outc += (color.rgb * color.a) * w * (1.0 - g2) * 1.4;
 			//counter++;

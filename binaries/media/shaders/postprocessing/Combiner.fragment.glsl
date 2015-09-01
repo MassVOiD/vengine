@@ -27,21 +27,28 @@ layout(binding = 14) uniform sampler2D VDAOTex;
 float centerDepth;
 uniform float Brightness;
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 
 vec3 lookupFog(vec2 fuv){
     vec3 outc = vec3(0);
     int counter = 0;
+    float depthCenter = texture(depth, fuv).r;
     for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
     {
         for(float g2 = 0; g2 < 6.0; g2+=1.0)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001);
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.01);
             vec3 color = texture(fog, fuv + gauss).rgb;
-            outc += color;
-            counter++;
+            float depthThere = texture(fog, fuv + gauss).a;
+            if(abs(depthThere - depthCenter) < 0.001){
+                outc += color;
+                counter++;
+            }
         }
     }
-    return outc / counter;
+    return counter == 0 ? texture(fog, fuv).rgb : outc / counter;
 }
 vec3 blurByUV(sampler2D sampler, vec2 fuv, float force){
     vec3 outc = vec3(0);
@@ -60,47 +67,47 @@ vec3 blurByUV(sampler2D sampler, vec2 fuv, float force){
 }
 vec3 blurByUV2(sampler2D sampler, vec2 fuv, float force){
     vec3 outc = vec3(0);
-    int counter = 0;
+    float counter = 0;
     float depthCenter = texture(depth, fuv).r;
-    for(float g = 0; g < mPI2; g+=GOLDEN_RATIO)
+    for(float g = 0; g < mPI2; g+=0.3)
     {
-        for(float g2 = 0; g2 < 3.0; g2+=1.0)
+        for(float g2 = 0.02; g2 < 1.0; g2+=0.02)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001 * force);
-            vec3 color = texture(sampler, fuv + gauss).rgb;
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.01 * force);
+            vec3 color = clamp(texture(sampler, fuv + gauss).rgb, 0.02, 1);
             float depthThere = texture(depth, fuv + gauss).r;
-            if(abs(depthThere - depthCenter) < 0.001){
-                outc += color;
-                counter++;
-            }
+           // if(abs(depthThere - depthCenter) < 0.001){
+                outc += color*length(color);
+                counter+=length(color);
+           // }
         }
     }
-    return outc / counter;
+    return clamp(outc / counter, 0.02, 1);
 }
 vec3 blurssao(sampler2D sampler, vec2 fuv, float force){
     float roughs = texture(meshData, fuv).a;
-   /* vec3 outc = vec3(0);
+    vec3 outc = vec3(0);
     int counter = 0;
     vec3 norm = texture(normals, fuv).xyz;
     float depthCenter = texture(depth, fuv).r;
     for(float g = 0; g < mPI2; g+=0.61)
     {
-        for(float g2 = 0; g2 < 1.0; g2+=0.2)
+        for(float g2 = 0.0002; g2 < 1.0; g2+=0.1)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.005 * force);
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (rand(fuv) * force)*0.02;
             vec3 color = texture(sampler, fuv + gauss).rgb;
             vec3 anorm = texture(normals, fuv + gauss).xyz;
-            float depthd = texture(depth, fuv + gauss).x;
+            float depthd = texture(sampler, fuv + gauss).a;
             float roughd2 = texture(meshData, fuv).a;
-            if(dot(anorm, norm) > 0.99 && abs(depthCenter-depthd)<0.003 && abs(roughs-roughd2)<0.003){
+            if(dot(anorm, norm) > 0.97 && abs(depthCenter-depthd)<0.001&& abs(roughd2-roughs)<0.01 ){
                 outc += color;
                 counter++;
             }
         }
     }
-    if(counter == 0) return texture(sampler, fuv).rgb;*/
     vec3 a = texture(sampler, fuv).rgb;
-    return mix(a, a, roughs);
+    if(counter == 0) return a;
+    return outc/counter;
 }
 vec3 lookupFogSimple(vec2 fuv){
     return texture(fog, fuv).rgb;
@@ -205,12 +212,14 @@ vec3 motionBlurExperiment(vec2 uv){
     return outc / counter;
 }
 
-uniform int UseSimpleGI;
 uniform int UseFog;
 uniform int UseLightPoints;
 uniform int UseDepth;
 uniform int UseDeferred;
-uniform int UseBilinearGI;
+uniform int UseSSReflections;
+uniform int UseHBAO;
+uniform int UseVDAO;
+uniform int UseRSM;
 
 layout (std430, binding = 2) buffer SSBOTest
 {
@@ -602,9 +611,6 @@ vec2 getProjNormal(){
 	return normalize(sspace2 - sspace1);
 }
 
-float rand(vec2 co){
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
 vec3 DamnReflections()
 {
 	float reflectionStrength = texture(meshData, UV).r;
@@ -715,22 +721,23 @@ void main()
     vec2 nUV = UV;
     vec3 color1 = vec3(0);
     if(texture(meshData, UV).b < 0.01){
-        nUV = refractUV();
+        //nUV = refractUV();
         //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
     }
     if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
     //if(UseDeferred == 1) color1 += motionBlurExperiment(nUV);
     if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
     //if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
-    color1 += lightPoints();
+    //color1 += lightPoints();
     if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
     //if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
     //if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
 
    // if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
-    color1 += 
+    if(UseVDAO + UseHBAO > 0) color1 += 
    // blurssao(VDAOTex, nUV, 1.0)*1;
-    texture(VDAOTex, nUV).rgb * texture(diffuseColor, UV).rgb;
+    texture(VDAOTex, nUV).rgb* 0.05;
+    //blurssao(VDAOTex, nUV, 3);
     //color1 += texture(VDAOTex, nUV ).rrr;
 
     centerDepth = texture(depth, UV).r;
@@ -747,6 +754,9 @@ void main()
     //color1 = CurvesPass(color1);
     //color1 = DPXPass(color1);
     //color1 = TonemapPass(color1);
+    //color1 += texture(RSM, nUV).rgb;
+    if(UseRSM == 1) color1 += blurssao(RSM, nUV, 1)*2;
+    if(UseSSReflections == 1) color1 += blurByUV2(SSReflections, nUV, ( texture(SSReflections, nUV).a)).rgb;
     //float ddot = dot(normalize(texture(diffuseColor, UV).rgb), normalize(color1));
     //if(ddot < 0.4) color1.rgb = vec3(1.0 - abs(ddot))*5 + texture(diffuseColor, UV).rgb;
     vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
@@ -755,7 +765,5 @@ void main()
     pow(color1.b, gamma.b));
     //if(UseLightPoints == 1) color1 += DamnReflections();
     //color1 += blurByUV2(RSM, UV, 3.0);
-    color1 += texture(RSM, nUV).rgb;
-    color1 += texture(SSReflections, nUV).rgb;
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

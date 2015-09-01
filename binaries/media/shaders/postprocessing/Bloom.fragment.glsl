@@ -19,30 +19,30 @@ vec3 blurWhitening(){
 	//if(luminance > 1.0)
 	//{
 		//luminance = (luminance - 1.0) / 0.320;
-		outc += color;
+		outc += color * luminance;
 		//outc.a = (luminance - 1.0) / 0.320;
 	//}	
 	for(float g2 = -1.0; g2 < 1.0; g2+=0.08)
 	{ 
 		vec2 gauss = vec2(g2 * 0.5, 0);
-		vec4 color = texture(texColor, UV + gauss).rgba;
+		vec3 color = texture(texColor, UV + gauss).rgb;
 		float luminance = length(color); // luminance from 1.4 to 1.7320
 		//if(luminance > 1.2)
 		//{
-			outc += (color.rgb * color.a * vec3(0.13, 0.13, 0.54)) * (1.0 - sin(abs(g2)));
+			outc += (color * vec3(0.13, 0.13, 0.54));
 		//}			
 		counter++;
 		
 		gauss = vec2(0, g2 * 0.5);
-		color = texture(texColor, UV + gauss).rgba;
+		color = texture(texColor, UV + gauss).rgb;
 		luminance = length(color); // luminance from 1.4 to 1.7320
 		//if(luminance > 1.4)
 		//{
-			outc += (color.rgb * color.a * vec3(0.13, 0.13, 0.54)) * (1.0 - sin(abs(g2)));
+			outc += (color * vec3(0.13, 0.13, 0.54));
 		//}			
 		counter++;		
 	}	
-	return texture(texColor, UV).rgb + outc / counter;
+	return texture(texColor, UV).rgb + outc*1 / counter;
 }
 
 
