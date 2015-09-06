@@ -8,6 +8,7 @@ layout(binding = 0) uniform sampler2D Tex;
 smooth in vec3 vertexWorldSpace;
 uniform vec3 LightPosition;
 uniform vec4 input_Color;
+uniform vec4 LightColor;
 uniform int DrawMode;
 #define MODE_TEXTURE_ONLY 0
 #define MODE_COLOR_ONLY 1
@@ -28,7 +29,12 @@ void discardIfAlphaMasked(){
 out vec4 outColor;	
 
 void finishFragment(vec4 c){
-    outColor = c;
+    vec3 cc = mix(LightColor.rgb*c.rgb, LightColor.rgb, Metalness);
+    vec3 difcolor = cc;
+    vec3 difcolor2 = LightColor.rgb*c.rgb;
+    
+    vec3 radiance = mix(difcolor2, difcolor*Roughness, Metalness);
+    outColor = vec4(radiance, dot(normalize(normal.xyz), normalize(CameraPosition - vertexWorldSpace)));
 }
 
 void main()

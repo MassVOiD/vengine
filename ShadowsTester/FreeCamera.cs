@@ -9,7 +9,8 @@ namespace ShadowsTester
     {
         public FreeCamera(float aspectRatio, float fov)
         {
-            Cam = new Camera(new Vector3(0, 0, 20), new Vector3(0, 2, 0), aspectRatio, fov, 0.1f, 10000.0f);
+            float fovdegree = 90;
+            Cam = new Camera(new Vector3(0, 0, 20), new Vector3(0, 2, 0), aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
             Camera.MainDisplayCamera = Cam;
             collisionShape = new SphereShape(0.8f);
             //collisionShape.LinearDamping = 0.5f;
@@ -23,8 +24,23 @@ namespace ShadowsTester
             rigidBody.SetDamping(0.5f, 0.01f);
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
+
             GLThread.OnKeyUp += (o, e) =>
             {
+                if(e.Key == OpenTK.Input.Key.M)
+                {
+                    fovdegree += 5f;
+                    if(fovdegree >= 180)
+                        fovdegree = 180;
+                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out Cam.ProjectionMatrix);
+                }
+                if(e.Key == OpenTK.Input.Key.N)
+                {
+                    fovdegree -= 5f;
+                    if(fovdegree <= 10)
+                        fovdegree = 10;
+                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out Cam.ProjectionMatrix);
+                }
                 if(e.Key == OpenTK.Input.Key.P)
                 {
                     GravityEnabled = !GravityEnabled;
@@ -48,14 +64,15 @@ namespace ShadowsTester
         private SphereShape collisionShape;
         private RigidBody rigidBody;
         private bool GravityEnabled = false;
+        public bool Freeze = false;
 
         private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
-            if(GLThread.DisplayAdapter.IsCursorVisible)
+            if(Freeze)
                 return;
             Cam.Pitch += (float)e.XDelta / 100.0f;
             if(Cam.Pitch > MathHelper.TwoPi)
-                Cam.Pitch = 0.0f;
+                Cam.Pitch -= MathHelper.TwoPi;
 
             Cam.Roll += (float)e.YDelta / 100.0f;
             if(Cam.Roll > MathHelper.Pi / 2)

@@ -116,7 +116,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float radius = max_radius;  
 	float centerDepthDistance = abs((centerDepth) - (depthfocus));
 	//float centerDepth = texture(texDepth, UV).r;
-    float focus = texture(texDepth, vec2(0.5)).r;
+    float focus = length(texture(worldPosTex, vec2(0.5)).rgb);
     for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0.1;y<1.0;y+= 0.1){  
 			
@@ -132,7 +132,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
                 //if((depth - focus) > 0.005) continue;     
                 vec3 texel = texture(textureIn, coord).rgb;
                 float w = length(texel) + 0.2;
-                float dpf = abs(focus - toLogDepth(depth))*0.2+0.8;
+                float dpf = abs(focus - (depth))*0.2+0.8;
                 w*=dpf;
                 weight+=w;
                 finalColor += texel * w;
@@ -147,15 +147,16 @@ uniform int UseBloom;
 vec3 lookupBloomBlurred(vec2 buv, float radius){
 	vec3 outc = vec3(0);
 	float counter = 0;
-	for(float g = 0; g < mPI2; g+=0.3)
+	for(float g = 0; g < mPI2*2; g+=0.3)
 	{ 
-		for(float g2 = 0; g2 < 1.0; g2+=0.1131)
+		for(float g2 = 0; g2 < 3.14; g2+=0.3)
 		{ 
-			vec2 gauss = vec2(sin(g)*ratio, cos(g)) * (rand(UV+vec2(g, g2)) * radius);
-			vec4 color = texture(bloom, buv + gauss).rgba;
+            float h = rand(UV+vec2(g, g2));
+			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (h * radius);
+			vec4 color = texture(bloom, buv + gauss).rgba * (log(1.0-h + 1)*2);
             float w = max(0, (length(color) - 1.3) ) * 1.1;
             counter += max(w, 0.1);
-			outc += (color.rgb * color.a) * w * (1.0 - g2) * 1.4;
+			outc += (color.rgb * color.a) * w ;
 			//counter++;
 		}
 	}
@@ -164,32 +165,25 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 
 float avgdepth(vec2 buv){
 	float outc = float(0);
-	float counter = 0;
     float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).rgb);
-	for(float g = 0; g < mPI2; g+=0.5)
-	{ 
-		for(float g2 = 0; g2 < 1.0; g2+=0.33)
-		{ 
-			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.2 * LensBlurAmount);
-			vec3 color = texture(worldPosTex, buv + gauss).xyz;
-            float adepth = length(color);
-            //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-            float f = log((LensBlurAmount+1))*11; //focal length in mm
-            float d = fDepth*1000.0; //focal plane in mm
-            float o = adepth*1000.0; //depth in mm
-            
-            float fstop = 8.0;
-            float CoC = 0.07;
-            float a = (o*f)/(o-f); 
-            float b = (d*f)/(d-f); 
-            float c = (d-f)/(d*fstop*CoC); 
-            
-            float blur = abs(a-b)*c;
-            outc += clamp(blur * 50,0.0,4.0) * 10;
-			counter++;
-		}
-	}
-	return (outc / counter)*2;
+
+    vec3 color = texture(worldPosTex, buv).xyz;
+    float adepth = length(color);
+    //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
+    float f = log((LensBlurAmount+1))*11; //focal length in mm
+    float d = fDepth*1000.0; //focal plane in mm
+    float o = adepth*1000.0; //depth in mm
+    
+    float fstop = 16.0;
+    float CoC = 0.03;
+    float a = (o*f)/(o-f); 
+    float b = (d*f)/(d-f); 
+    float c = (d-f)/(d*fstop*CoC); 
+    
+    float blur = abs(a-b)*c;
+    outc += clamp(blur * 50,0.0,4.0) * 10;
+
+	return (outc);
 }
 void main()
 {

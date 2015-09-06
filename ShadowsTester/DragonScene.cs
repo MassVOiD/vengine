@@ -46,20 +46,14 @@ namespace ShadowsTester
             
             var lod1 = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
             lod1.ScaleUV(8.0f);
-            var vertices = lod1.GetOrderedVertices();
-            GLThread.Invoke(() =>
-            {
-                GLThread.DisplayAdapter.Pipeline.PostProcessor.DensityPointsCount = vertices.Count;
-                GLThread.DisplayAdapter.Pipeline.PostProcessor.DensityPoints.MapData(vertices.Select<Vector3, Vector4>((a) => new Vector4(a, 1)).ToArray());
-            });
-            
-           // var chairInfo = Object3dInfo.LoadFromObjSingle(Media.Get("nicechair.obj"));
-          //  var chair = new Mesh3d(lod1, GenericMaterial.FromMedia("168.JPG"));
+
+            var chairInfo = Object3dInfo.LoadFromObjSingle(Media.Get("nicechair.obj"));
+            var chair = new Mesh3d(lod1, GenericMaterial.FromMedia("168.JPG"));
            // var chair = new Mesh3d(lod1, new GenericMaterial(Color.Yellow));
           //  chair.MainMaterial.Roughness = 0.7f;
           //  chair.MainMaterial.SetNormalMapFromMedia("clothnorm.png");
           //  chair.MainMaterial.ReflectionStrength = 1.0f;
-          //  Add(chair);
+            Add(chair);
            /* var scene = Object3dInfo.LoadSceneFromObj(Media.Get("gold.obj"), Media.Get("gold.mtl"), 1.0f);
             foreach(var ob in scene)
             {

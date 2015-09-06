@@ -31,7 +31,7 @@ namespace ShadowsTester
             //var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
 
             Media.SearchPath = Config.MediaPath;
-            GLThread.Resolution = new Size(1366, 768);
+            GLThread.Resolution = new Size(Config.Width, Config.Height);
 
             GLThread.SetCurrentThreadCores(1);
 
@@ -61,14 +61,14 @@ namespace ShadowsTester
           // new PathTraceTest().Create();
           //  new NatureScene().Create();
           //  new IndirectTestScene().Create();
-       //   new DragonScene().Create();
+         // new DragonScene().Create();
          //   new ManyCubesScene().Create();
           //  new ComputeBallsScene().Create();
            //new CarScene().Create();
 
            // new FortressScene().Create();
 
-            //new HallScene().Create();
+           // new HallScene().Create();
            // new RoadScene().Create();
           //  new HomeScene().Create();
 

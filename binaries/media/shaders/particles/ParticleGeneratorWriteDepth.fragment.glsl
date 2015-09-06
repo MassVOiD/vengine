@@ -1,9 +1,6 @@
 /*fragment*/
 #version 430 core
 in vec2 UV;
-uniform vec3 CameraPosition;
-uniform float LogEnchacer;
-uniform float FarPlane;
 
 #include LogDepth.glsl
 

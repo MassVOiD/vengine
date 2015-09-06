@@ -31,7 +31,7 @@ namespace ShadowsTester
         public static ProjectionLight AddControllableLight()
         {
 
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.PiOver3, 0.1f, 10000.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 1024, 1024, MathHelper.PiOver3, 0.1f, 10000.0f);
             RedLight = redConeLight;
             redConeLight.LightColor = new Vector4(1, 1, 1, 25);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
@@ -42,6 +42,19 @@ namespace ShadowsTester
             {
                 MouseX = e.X;
                 MouseY = e.Y;
+
+                var kb = OpenTK.Input.Keyboard.GetState();
+                if(kb.IsKeyDown(OpenTK.Input.Key.T))
+                {
+                    FreeCam.Freeze = true;
+                    if(Picked != null)
+                    {
+                        Picked.SetPosition(Picked.GetPosition() + FreeCam.Cam.GetOrientation().GetTangent(MathExtensions.TangentDirection.Right) * (float)e.XDelta * -0.01f);
+                        Picked.SetPosition(Picked.GetPosition() + FreeCam.Cam.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up) * (float)e.YDelta * -0.01f);
+                    }
+                }
+                else
+                    FreeCam.Freeze = GLThread.DisplayAdapter.IsCursorVisible;
             };
 
             GLThread.OnUpdate += (o, e) =>
@@ -208,6 +221,7 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Tab)
                 {
                     GLThread.DisplayAdapter.IsCursorVisible = !GLThread.DisplayAdapter.IsCursorVisible;
+                    FreeCam.Freeze = GLThread.DisplayAdapter.IsCursorVisible;
                 }
                 if(e.Key == OpenTK.Input.Key.Comma)
                 {
