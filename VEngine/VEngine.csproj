@@ -129,6 +129,7 @@
     <Compile Include="Rendering\Framebuffer.cs" />
     <Compile Include="Rendering\CubeMapTexture.cs" />
     <Compile Include="Rendering\TreeGenerator.cs" />
+    <Compile Include="Script.cs" />
     <Compile Include="Texture3D.cs" />
     <Compile Include="Utilities\Generators\MeshGenerator.cs" />
     <Compile Include="Utilities\Generators\Object3dGenerator.cs" />

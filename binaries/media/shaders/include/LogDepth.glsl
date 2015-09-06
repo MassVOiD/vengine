@@ -31,7 +31,7 @@ float getDepth(){
 }
 #define MATH_E 2.7182818284
 float reverseLogEx(float dd, float far){
-	return pow(2, dd * log2(far+1.0));
+	return pow(2, dd * log2(far+1.0)) - 1;
 }
 float reverseLog(float dd){
 	return reverseLogEx(dd, FarPlane);

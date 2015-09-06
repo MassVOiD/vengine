@@ -32,9 +32,9 @@ namespace ShadowsTester
             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
             */
              Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
-             var color = GenericMaterial.FromMedia("06_DIFFUSE.jpg");
-            color.SetNormalMapFromMedia("06_NORMAL.jpg");
-            //color.SetBumpMapFromMedia("lightref.png");
+             var color = GenericMaterial.FromMedia("bluetex.png");
+            //color.SetNormalMapFromMedia("06_NORMAL.jpg");
+            color.SetBumpMapFromMedia("1bump.jpg");
             color.Roughness = 1.0f;
              Mesh3d water = new Mesh3d(waterInfo, color);
              water.SetMass(0);
@@ -46,21 +46,30 @@ namespace ShadowsTester
             
             var lod1 = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
             lod1.ScaleUV(8.0f);
+            var vertices = lod1.GetOrderedVertices();
+            GLThread.Invoke(() =>
+            {
+                GLThread.DisplayAdapter.Pipeline.PostProcessor.DensityPointsCount = vertices.Count;
+                GLThread.DisplayAdapter.Pipeline.PostProcessor.DensityPoints.MapData(vertices.Select<Vector3, Vector4>((a) => new Vector4(a, 1)).ToArray());
+            });
             
            // var chairInfo = Object3dInfo.LoadFromObjSingle(Media.Get("nicechair.obj"));
-            var chair = new Mesh3d(lod1, GenericMaterial.FromMedia("168.JPG"));
+          //  var chair = new Mesh3d(lod1, GenericMaterial.FromMedia("168.JPG"));
            // var chair = new Mesh3d(lod1, new GenericMaterial(Color.Yellow));
-            chair.MainMaterial.Roughness = 0.7f;
-            chair.MainMaterial.SetNormalMapFromMedia("clothnorm.png");
-            chair.MainMaterial.ReflectionStrength = 1.0f;
-            Add(chair);
-            var scene = Object3dInfo.LoadSceneFromObj(Media.Get("head2.obj"), Media.Get("head2.mtl"), 1.0f);
+          //  chair.MainMaterial.Roughness = 0.7f;
+          //  chair.MainMaterial.SetNormalMapFromMedia("clothnorm.png");
+          //  chair.MainMaterial.ReflectionStrength = 1.0f;
+          //  Add(chair);
+           /* var scene = Object3dInfo.LoadSceneFromObj(Media.Get("gold.obj"), Media.Get("gold.mtl"), 1.0f);
             foreach(var ob in scene)
             {
                 ob.SetMass(0);
-                ob.MainMaterial.Roughness = 0.8f;
-               // this.Add(ob);
-            }
+                ob.MainMaterial.Roughness = 0.05f;
+                ob.MainMaterial.Metalness = 0.7f;
+                ob.MainMaterial.Color = new Vector4(((float)229 / (float)0xFF), ((float)179 / (float)0xFF), ((float)44 / (float)0xFF), 1);
+                ob.MainMaterial.Mode = GenericMaterial.DrawMode.ColorOnly;
+                this.Add(ob);
+            }*/
 
         }
 

@@ -181,9 +181,9 @@ void main()
             positionWorldSpace += binormal * (factor) * 0.4 * sns(positionWorldSpace.xz, 1, 1.0);
             normal = normalize(cross(sp2, positionWorldSpace));
         } else if(UseBumpMap == 1){
-            //float factor = (texture(bumpMap, UV*0.01).r - 0.5);
-            float factor = snoise(positionWorldSpace*normal / 4) * 0.2;
-            factor += snoise(positionWorldSpace *10) * 0.03;
+            float factor = (texture(bumpMap, UV).r - 0.5) * 0.07;
+          //  float factor = snoise(positionWorldSpace*normal / 4) * 0.2;
+          //  factor += snoise(positionWorldSpace *10) * 0.03;
             positionWorldSpace += normal * (factor) * 1.3;
             normal = normalize(normal - (tangent * factor * 0.05));
         }

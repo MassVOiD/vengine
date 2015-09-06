@@ -10,19 +10,19 @@ using VEngine.Generators;
 using UI = VEngine.UI;
 using System.Threading;
 
-namespace ShadowsTester
+namespace GameLauncher
 {
-    internal class Program
+    static class Program
     {
-        public static FreeCamera FreeCam;
-        public static
-            ConsoleManager cmg = new ConsoleManager();
+        //public static FreeCamera FreeCam;
+        //public static
+       //     ConsoleManager cmg = new ConsoleManager();
 
         class Config
         {
             public static string MediaPath = "media";
-            public static int Width = 1280;
-            public static int Height = 768;
+            public static int Width = 1920;
+            public static int Height = 1079;
         }
 
         private static void Main(string[] args)
@@ -49,28 +49,28 @@ namespace ShadowsTester
                 GLThread.SetCurrentThreadCores(2);
             });
             World.Root = new World();
-
+            /*
             var freeCamera = Commons.SetUpFreeCamera();
             Commons.AddControllableLight();
 
 
             //new PlanetScene().Create();
-          // new SculptScene().Create();
-        //    new SponzaScene().Create();
-            new OldCityScene().Create();
-          // new PathTraceTest().Create();
-          //  new NatureScene().Create();
-          //  new IndirectTestScene().Create();
-       //   new DragonScene().Create();
-         //   new ManyCubesScene().Create();
-          //  new ComputeBallsScene().Create();
-           //new CarScene().Create();
+            // new SculptScene().Create();
+            new SponzaScene().Create();
+            //  new OldCityScene().Create();
+            /// new PathTraceTest().Create();
+            //  new NatureScene().Create();
+            //  new IndirectTestScene().Create();
+            //   new DragonScene().Create();
+            //   new ManyCubesScene().Create();
+            //  new ComputeBallsScene().Create();
+            //new CarScene().Create();
 
-           // new FortressScene().Create();
+            // new FortressScene().Create();
 
             //new HallScene().Create();
-           // new RoadScene().Create();
-          //  new HomeScene().Create();
+            // new RoadScene().Create();
+            //  new HomeScene().Create();
 
 
             World.Root.SortByDepthMasking();
@@ -78,11 +78,11 @@ namespace ShadowsTester
             System.Threading.Thread.Sleep(1000);
 
             Commons.SetUpInputBehaviours();
-            
+
             //World.Root.SortByObject3d();
 
             GLThread.Invoke(() => window.StartPhysicsThread());
-            renderThread.Wait();
+            renderThread.Wait();*/
         }
     }
 }

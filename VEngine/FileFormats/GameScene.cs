@@ -34,11 +34,11 @@ namespace VEngine.FileFormats
         {
             if(vbo.Length == 0 || ibo.Length == 0)
                 return;
-            var obj = Object3dInfo.LoadFromRaw(vbo, ibo);
+            var obj = Object3dInfo.LoadFromRaw(Media.Get(vbo), Media.Get(ibo));
             mesh.MainObjectInfo = obj;
         }
 
-        public static string FromMesh3dList(List<Mesh3d> meshes, string nameprefix = "mesh_")
+        public static string FromMesh3dList(List<Mesh3d> meshes, string directory, string nameprefix = "mesh_")
         {
             var materials = meshes.Select<Mesh3d, GenericMaterial>((a) => a.MainMaterial).Distinct();
             var output = new StringBuilder();
@@ -108,17 +108,17 @@ namespace VEngine.FileFormats
                 vboStream.Flush();
                 indicesStream.Flush();
 
-                if(File.Exists(nameprefix + element.Name + ".vbo.raw"))
-                    File.Delete(element.Name + ".vbo.raw");
-                File.WriteAllBytes(element.Name + ".vbo.raw", vboStream.ToArray());
+                if(File.Exists(directory + nameprefix + element.Name + ".vbo.raw"))
+                    File.Delete(directory + nameprefix + element.Name + ".vbo.raw");
+                File.WriteAllBytes(directory + nameprefix + element.Name + ".vbo.raw", vboStream.ToArray());
                 output.Append("vbo ");
-                output.AppendLine(element.Name + ".vbo.raw");
+                output.AppendLine(nameprefix + element.Name + ".vbo.raw");
 
-                if(File.Exists(element.Name + ".indices.raw"))
-                    File.Delete(element.Name + ".indices.raw");
-                File.WriteAllBytes(element.Name + ".indices.raw", indicesStream.ToArray());
+                if(File.Exists(directory + nameprefix + element.Name + ".indices.raw"))
+                    File.Delete(directory + nameprefix + element.Name + ".indices.raw");
+                File.WriteAllBytes(directory + nameprefix + element.Name + ".indices.raw", indicesStream.ToArray());
                 output.Append("ibo ");
-                output.AppendLine(element.Name + ".indices.raw");
+                output.AppendLine(nameprefix + element.Name + ".indices.raw");
 
                 output.Append("usematerial ");
                 output.Append(nameprefix);
@@ -220,6 +220,7 @@ namespace VEngine.FileFormats
                     {
                         flush();
                         tempMesh = new Mesh3d();
+                        tempMesh.SetMass(0);
                         tempMesh.Name = data;
                         break;
                     }

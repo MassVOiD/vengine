@@ -90,16 +90,16 @@ vec3 blurssao(sampler2D sampler, vec2 fuv, float force){
     int counter = 0;
     vec3 norm = texture(normals, fuv).xyz;
     float depthCenter = texture(depth, fuv).r;
-    for(float g = 0; g < mPI2; g+=0.61)
+    for(float g = 0; g < mPI2; g+=0.33)
     {
-        for(float g2 = 0.0002; g2 < 1.0; g2+=0.1)
+        for(float g2 = 0.0002; g2 < 1.0; g2+=0.08)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (rand(fuv) * force)*0.02;
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * force)*0.018;
             vec3 color = texture(sampler, fuv + gauss).rgb;
             vec3 anorm = texture(normals, fuv + gauss).xyz;
             float depthd = texture(sampler, fuv + gauss).a;
             float roughd2 = texture(meshData, fuv).a;
-            if(dot(anorm, norm) > 0.97 && abs(depthCenter-depthd)<0.001&& abs(roughd2-roughs)<0.01 ){
+            if(dot(anorm, norm) > 0.93 && abs(depthCenter-depthd)<0.005&& abs(roughd2-roughs)<0.01 ){
                 outc += color;
                 counter++;
             }
@@ -716,6 +716,23 @@ vec3 lightPoints(){
 
     return color;
 }
+uniform int DensityPointsCount;
+layout (std430, binding = 6) buffer DensityBuffer
+{
+    vec4 DensityPoints[]; 
+};
+mat4 PV = (ProjectionMatrix * ViewMatrix);
+float getDensity(vec2 uv){
+    float accum = 0;
+    for(int i=0;i<DensityPointsCount;i+=15){
+        vec4 clipspace = (PV) * vec4(DensityPoints[i].xyz*6, 1.0);
+        vec2 sspace = (clipspace.xyz / clipspace.w).xy * 0.5 + 0.5;
+        if(clipspace.z < 0)continue;
+        accum += max(0, 0.01 -  distance(sspace, uv))*5;
+    }
+    return accum;
+}
+
 void main()
 {
     vec2 nUV = UV;
@@ -734,11 +751,12 @@ void main()
     //if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
 
    // if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
-    if(UseVDAO + UseHBAO > 0) color1 += 
+   // if(UseVDAO + UseHBAO > 0) color1 += 
    // blurssao(VDAOTex, nUV, 1.0)*1;
-    texture(VDAOTex, nUV).rgb* 0.05;
-    //blurssao(VDAOTex, nUV, 3);
+   // texture(VDAOTex, nUV).rgb*0.2;
+   // blurssao(VDAOTex, nUV, 1) * 0.05;
     //color1 += texture(VDAOTex, nUV ).rrr;
+    //color1 += vec3(getDensity(UV));
 
     centerDepth = texture(depth, UV).r;
 
@@ -755,7 +773,8 @@ void main()
     //color1 = DPXPass(color1);
     //color1 = TonemapPass(color1);
     //color1 += texture(RSM, nUV).rgb;
-    if(UseRSM == 1) color1 += blurssao(RSM, nUV, 1)*2;
+  //  if(UseRSM == 1) color1 += blurssao(RSM, nUV, 1);
+    //if(UseRSM == 1) color1 += texture(RSM, nUV).rgb;
     if(UseSSReflections == 1) color1 += blurByUV2(SSReflections, nUV, ( texture(SSReflections, nUV).a)).rgb;
     //float ddot = dot(normalize(texture(diffuseColor, UV).rgb), normalize(color1));
     //if(ddot < 0.4) color1.rgb = vec3(1.0 - abs(ddot))*5 + texture(diffuseColor, UV).rgb;
@@ -765,5 +784,6 @@ void main()
     pow(color1.b, gamma.b));
     //if(UseLightPoints == 1) color1 += DamnReflections();
     //color1 += blurByUV2(RSM, UV, 3.0);
+   // color1 += texture(diffuseColor, nUV).rgb*0.1;
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

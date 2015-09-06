@@ -177,7 +177,7 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
-            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface || Type == MaterialType.Grass ? TesselatedProgram : Program;
+            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface || Type == MaterialType.Grass? TesselatedProgram : Program;
         }
 
     }

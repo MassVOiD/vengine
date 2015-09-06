@@ -1,4 +1,4 @@
-layout(binding = 1) uniform sampler2D normalMap;
+
 layout(binding = 2) uniform sampler2D lightDepth0Color;
 layout(binding = 3) uniform sampler2D lightDepth0;
 layout(binding = 4) uniform sampler2D lightDepth1Color;

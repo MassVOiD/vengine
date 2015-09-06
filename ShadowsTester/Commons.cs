@@ -33,7 +33,7 @@ namespace ShadowsTester
 
             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.PiOver3, 0.1f, 10000.0f);
             RedLight = redConeLight;
-            redConeLight.LightColor = new Vector4(1, 1, 1, 50);
+            redConeLight.LightColor = new Vector4(1, 1, 1, 25);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
             LightPool.Add(redConeLight);
@@ -272,7 +272,7 @@ namespace ShadowsTester
                     RedLight.GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition());
                     RedLight.GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
                 }
-                if(e.Key == OpenTK.Input.Key.Number2)
+                if(e.Key == OpenTK.Input.Key.Tilde)
                 {
                     Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
                 }
@@ -292,6 +292,8 @@ namespace ShadowsTester
                     GLThread.GraphicsSettings.UseRSM = !GLThread.GraphicsSettings.UseRSM;
                 if(e.Key == OpenTK.Input.Key.Number3)
                     GLThread.GraphicsSettings.UseSSReflections = !GLThread.GraphicsSettings.UseSSReflections;
+                if(e.Key == OpenTK.Input.Key.Number2)
+                    GLThread.GraphicsSettings.UseHBAO = !GLThread.GraphicsSettings.UseHBAO;
             };
         }
     }

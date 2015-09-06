@@ -1,5 +1,6 @@
 #version 430 core
 //in vec3 normal;
+in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
@@ -18,7 +19,6 @@ uniform int DrawMode;
 layout(binding = 2) uniform sampler2D AlphaMask;
 uniform int UseAlphaMask;
 layout(binding = 31) uniform sampler2D bumpMap;
-in vec2 UV;
 void discardIfAlphaMasked(){
 	if(UseAlphaMask == 1){
 		if(texture(AlphaMask, UV).r < 0.5) discard;

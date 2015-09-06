@@ -15,21 +15,28 @@ namespace ShadowsTester
     {
         public OldCityScene()
         {
-          /*  var scene = Object3dInfo.LoadSceneFromObj(Media.Get("desertcity.obj"), Media.Get("desertcity.mtl"), 1.0f);
-            foreach(var ob in scene)
-            {
-                ob.SetMass(0);
-                this.Add(ob);
-            }*/
-           // var scene = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"), Media.Get("cryteksponza.mtl"), 0.03f);
-            var scene = new VEngine.FileFormats.GameScene("Scene.scene");
+            /*  var scene = Object3dInfo.LoadSceneFromObj(Media.Get("desertcity.obj"), Media.Get("desertcity.mtl"), 1.0f);
+              foreach(var ob in scene)
+              {
+                  ob.SetMass(0);
+                  this.Add(ob);
+              }*/
+            // var scene = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"), Media.Get("cryteksponza.mtl"), 0.03f);
+
+            var script = System.IO.File.ReadAllText(Media.Get("init.js"));
+            var js = new Script();
+            js.SetValue("Scene", this);
+            js.Execute("var VEngine = importNamespace('VEngine');");
+            js.Execute(script);
+            /*
+            var scene = new VEngine.FileFormats.GameScene("home1.scene");
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             scene.OnObjectFinish += (o, a) =>
             {
                 if(!(a is Mesh3d))
                     return;
                 var ob = a as Mesh3d;
-                ob.SetMass(0);
+                ob.SetOrientation(ob.GetPosition());
                 //ob.SetCollisionShape(ob.MainObjectInfo.GetAccurateCollisionShape());
                 //ob.SpecularComponent = 0.1f;
                 //ob.MainMaterial.ReflectionStrength = ob.MainMaterial.SpecularComponent;
@@ -52,7 +59,7 @@ namespace ShadowsTester
                     p.Color = new Vector4(p.Color.X, p.Color.Y, p.Color.Z, p.Color.W + 1);
                 if(e.KeyChar == 'k')
                     p.Color = new Vector4(p.Color.X, p.Color.Y, p.Color.Z, p.Color.W - 1);
-            };
+            };*/
             // var s = VEngine.FileFormats.GameScene.FromMesh3dList(scene);
             // System.IO.File.WriteAllText("Scene.scene", s);
             //  Object3dInfo[] skydomeInfo = Object3dInfo.LoadFromObj(Media.Get("sponza_verysimple.obj"));

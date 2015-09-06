@@ -90,7 +90,7 @@ void main()
         gl_TessLevelOuter[1] = GetTessLevelAlternative(EyeToVertexDistance2, EyeToVertexDistance0, surfaceSize) * TesselationMultiplier;
         gl_TessLevelOuter[2] = GetTessLevelAlternative(EyeToVertexDistance0, EyeToVertexDistance1, surfaceSize) * TesselationMultiplier;
         gl_TessLevelInner[0] = gl_TessLevelOuter[0];
-        gl_TessLevelInner[1] = gl_TessLevelOuter[1];
+        gl_TessLevelInner[1] = gl_TessLevelOuter[0];
     }
 
 }

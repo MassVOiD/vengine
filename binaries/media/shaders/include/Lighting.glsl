@@ -42,7 +42,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
     float maxval = 0;
     for(float x = 0; x < mPI2; x+=1.2){ 
         for(float y=0.01;y<1.0;y+= 0.3){  
-			vec2 crd = vec2(sin(x + y), cos(x + y)) * (y * AInv * 0.2);
+			vec2 crd = vec2(sin(x + y), cos(x + y)) * (rand2s(UV/2-vec2(x,y)) * AInv * 0.4);
 			vec2 fakeUV = uv + crd;
 			float bval = (lookupDepthFromLight(i, fakeUV));
             if(bval < distance2) average += bval;
@@ -51,10 +51,13 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	}
     if(counter == 0) return 0.0;
     float bbb = average/counter;
-	return clamp((distance2 - bbb) * 21, 0, 11) * 1;
+	return clamp((distance2 - bbb) *7, 0, 11);
 }
 
 float LastProbeDistance = 0.0;
+float rand2d(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 0.0;
 	
@@ -98,9 +101,9 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
        LastProbeDistance = 1.0;
         float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
         //float pssblur = 0;
-        for(float x = 0; x < mPI2; x+=0.3){ 
+        for(float x = 0; x < mPI2; x+=0.5){ 
             for(float y=0.05;y<1.0;y+= 0.2 ){  
-                vec2 crd = vec2(sin(x+y), cos(x+y)) * y * pssblur * 0.005;
+                vec2 crd = vec2(sin(x+y), cos(x+y)) * rand2d(UV+vec2(x,y)) * pssblur * 0.009;
                 fakeUV = uv + crd;
                 distance1 = lookupDepthFromLight(i, fakeUV);
                 float diff = (distance3 -  distance1);

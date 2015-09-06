@@ -9,6 +9,7 @@ layout(binding = 3) uniform sampler2D texDepth;
 layout(binding = 4) uniform sampler2D bloom;
 layout(binding = 5) uniform sampler2D worldPosTex;
 layout(binding = 9) uniform sampler2D numbersTex;
+layout(binding = 10) uniform sampler2D lastworldPos;
 
 uniform int Numbers[12];
 uniform int NumbersCount;
@@ -173,12 +174,12 @@ float avgdepth(vec2 buv){
 			vec3 color = texture(worldPosTex, buv + gauss).xyz;
             float adepth = length(color);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-            float f = log((LensBlurAmount+1))*10; //focal length in mm
+            float f = log((LensBlurAmount+1))*11; //focal length in mm
             float d = fDepth*1000.0; //focal plane in mm
             float o = adepth*1000.0; //depth in mm
             
-            float fstop = 4.0;
-            float CoC = 0.03;
+            float fstop = 8.0;
+            float CoC = 0.07;
             float a = (o*f)/(o-f); 
             float b = (d*f)/(d-f); 
             float c = (d-f)/(d*fstop*CoC); 
@@ -188,9 +189,8 @@ float avgdepth(vec2 buv){
 			counter++;
 		}
 	}
-	return outc / counter;
+	return (outc / counter)*2;
 }
-
 void main()
 {
 	vec2 fragCoord = UV * resolution;

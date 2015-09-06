@@ -7,6 +7,8 @@ layout(location = 2) out vec4 outNormals;
 layout(location = 3) out vec4 outMeshData;
 layout(location = 4) out vec4 outId;
 
+layout(binding = 1) uniform sampler2D normalMap;
+
 //layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
 
 #include LogDepth.glsl
@@ -246,7 +248,7 @@ void finishFragment(vec4 color){
             factor = factor * 2 - 1;
             vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
             nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
-            normalNew =  nee;
+           // normalNew =  nee;
     
 		} else {
 
@@ -263,11 +265,15 @@ void finishFragment(vec4 color){
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
 		if(Instances == 0){
-            outId = vec4(ColoredID.xyz, Metalness);
-			outNormals = vec4((RotationMatrix * vec4(normalNew, 0)).xyz, DiffuseComponent);
+            outId = vec4(ColoredID.xyz, worldBumpMapSize);
+            vec3 rn = (RotationMatrix * vec4(normalNew, 0)).xyz;
+            if(dot(rn, CameraPosition -positionWorldSpace) <=0) rn *= -1;
+			outNormals = vec4(rn, DiffuseComponent);
 		} else {
-            outId = vec4(InstancedIds[instanceId].xyz, Metalness);
-			outNormals = vec4((RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz, DiffuseComponent);
+            outId = vec4(InstancedIds[instanceId].xyz, worldBumpMapSize);
+            vec3 rn = (RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz;
+            if(dot(rn, CameraPosition -positionWorldSpace) <=0) rn *= -1;
+			outNormals = vec4(rn, DiffuseComponent);
 		}
 	//} else {
 	//	outNormals = vec4(0, 0, 0, 1);

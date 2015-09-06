@@ -25,6 +25,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GaeMaker", "GaeMaker\GaeMak
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleCarGame", "SimpleCarGame\SimpleCarGame.csproj", "{D7ACB2F2-9BB8-4478-BF64-8AEF57517883}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjToSceneConverter", "ObjToSceneConverter\ObjToSceneConverter.csproj", "{32C40238-C588-4C83-B573-D636E1701915}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameLauncher", "GameLauncher\GameLauncher.csproj", "{4DBB2359-7052-4B92-9FAC-F8E8283DC002}"
+EndProject
 Global
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
@@ -173,6 +177,42 @@ Global
 		{D7ACB2F2-9BB8-4478-BF64-8AEF57517883}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{D7ACB2F2-9BB8-4478-BF64-8AEF57517883}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{D7ACB2F2-9BB8-4478-BF64-8AEF57517883}.Release|x86.ActiveCfg = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Debug|x86.Build.0 = Debug|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Optimized|Any CPU.ActiveCfg = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Optimized|Any CPU.Build.0 = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Optimized|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Optimized|Mixed Platforms.Build.0 = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Optimized|x86.ActiveCfg = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Optimized|x86.Build.0 = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Release|x86.ActiveCfg = Release|Any CPU
+		{32C40238-C588-4C83-B573-D636E1701915}.Release|x86.Build.0 = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Debug|x86.Build.0 = Debug|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Optimized|Any CPU.ActiveCfg = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Optimized|Any CPU.Build.0 = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Optimized|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Optimized|Mixed Platforms.Build.0 = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Optimized|x86.ActiveCfg = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Optimized|x86.Build.0 = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|x86.ActiveCfg = Release|Any CPU
+		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

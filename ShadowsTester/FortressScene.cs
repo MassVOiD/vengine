@@ -56,7 +56,8 @@ namespace ShadowsTester
             {
                 for(int z = 0; z < 1; z++)
                 {
-                    var tree = TreeGenerator.CreateTree(MathHelper.DegreesToRadians(40), MathHelper.DegreesToRadians(80), 5, 5, 6666, 0.3f, true);
+                    Console.WriteLine(x+" "+z);
+                    var tree = TreeGenerator.CreateTree(MathHelper.DegreesToRadians(60), MathHelper.DegreesToRadians(90), 3, 5, 122, 0.31f, true);
                     var scale = (float)rand.NextDouble() * 2 + 1;
                     var tx = (float)rand.NextDouble() * 2 + 4;
                     var ty = (float)rand.NextDouble() * 2 + 4;
@@ -87,6 +88,7 @@ namespace ShadowsTester
             {
                 for(int z = 0; z < 1; z++)
                 {
+                    Console.WriteLine(x + " " + z);
                     nodes.Transformations.Add(new TransformationManager(new Vector3(x * 50, 0, z * 50)));
                     leaves.Transformations.Add(new TransformationManager(new Vector3(x * 50, 0, z * 50)));
                 }
@@ -111,6 +113,7 @@ namespace ShadowsTester
             water.Translate(0, 0, 0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
             Add(water);
+            Console.WriteLine("ready");
         }
         /*
         unsafe void read()
