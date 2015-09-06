@@ -6,6 +6,11 @@ OpenGL engine for writing robust and threaded graphical applications in C#.
 If you want to check out how does it behave - Run Tester project binaries with correct Media path in Config.cs.
 
 The software is licensed under MIT license - so do what you want.
+![A screenshot](http://i.imgur.com/cSFmoSf.jpgg "Screenshot")
+![A screenshot](http://i.imgur.com/fADbS3s.jpg "Screenshot")
+![A screenshot](http://i.imgur.com/fLacH56.jpg "Screenshot")
+![A screenshot](http://i.imgur.com/ImolpBP.jpg "Screenshot")
+![A screenshot](http://i.imgur.com/f9hYvog.jpg "Screenshot")
 
 ![A screenshot](http://i.imgur.com/YeSWlGI.png "Screenshot")
 
