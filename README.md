@@ -1,3 +1,7 @@
+You can download a demo now!
+Read attached readme file and enjoy.
+http://chlubek.pl/vengine_demo_1.7z
+
 OpenGL engine for writing robust and threaded graphical applications in C#.
 If you want to check out how does it behave - Run Tester project binaries with correct Media path in Config.cs.
 
