@@ -31,6 +31,8 @@ namespace VEngine
         private Framebuffer
             Pass1FrameBuffer,
             Pass2FrameBuffer,
+            LastWorldPosFramebuffer,
+            LastDeferredFramebuffer,
             BloomFrameBuffer,
             FogFramebuffer;
 
@@ -91,9 +93,11 @@ namespace VEngine
             Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
             Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
             
-            BloomFrameBuffer = new Framebuffer(initialWidth / 5, initialHeight / 5);
-            FogFramebuffer = new Framebuffer(initialWidth/2, initialHeight/2);
-           
+            BloomFrameBuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
+            FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            LastWorldPosFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            LastDeferredFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
+
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
             HDRShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "HDR.fragment.glsl");
@@ -308,6 +312,7 @@ namespace VEngine
             stopwatch.Start();
             
             DisableBlending();
+            RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
 
             Mesh3d.PostProcessingUniformsOnly = false;
             GL.CullFace(CullFaceMode.Back);
@@ -332,7 +337,11 @@ namespace VEngine
                 MRT.UseTextureNormals(31);
                 MRT.UseTextureMeshData(33);
                 MRT.UseTextureId(34);
+                LastDeferredFramebuffer.UseTexture(35);
                 Deferred();
+                SwitchToFB(LastDeferredFramebuffer);
+                Pass2FrameBuffer.UseTexture(0);
+                Blit();
             }
             
 
@@ -362,6 +371,11 @@ namespace VEngine
 
             HDR(lastTime == 0 ? 0 : 1000000 / lastTime);
             EnableFullBlend();
+
+            SwitchToFB(LastWorldPosFramebuffer);
+            MRT.UseTextureWorldPosition(0);
+            Blit();
+
             if(World.Root != null && World.Root.UI != null)
                 World.Root.UI.DrawAll();
             Mesh3d.PostProcessingUniformsOnly = false;

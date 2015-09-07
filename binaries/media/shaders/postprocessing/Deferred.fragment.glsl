@@ -8,9 +8,9 @@ layout(binding = 0) uniform sampler2D texColor;
 layout(binding = 1) uniform sampler2D texDepth;
 layout(binding = 30) uniform sampler2D worldPosTex;
 layout(binding = 31) uniform sampler2D normalsTex;
-layout(binding = 32) uniform sampler2D worldPosTexBack;
 layout(binding = 33) uniform sampler2D meshDataTex;
 layout(binding = 34) uniform sampler2D meshIdTex;
+layout(binding = 35) uniform sampler2D lastTex;
 layout(binding = 29) uniform samplerCube CubeMap;
 
 layout (std430, binding = 6) buffer RandomsBuffer
@@ -140,17 +140,17 @@ float hbao(){
     float octaves[] = float[2](0.5, 2.0);
     float roughness =  1.0-texture(meshDataTex, UV).a;
     for(int p=0;p<octaves.length();p++){
-        for(float g = 0; g < mPI2; g+=0.1){
+        for(float g = 0; g < mPI2; g+=0.4){
            // float rda = getRand() * mPI2;
             vec3 pos = texture(worldPosTex,  UV + (vec2(sin(g)*ratio, cos(g)) * (getRand() * octaves[p])) * div).rgb;
             buf += max(0, sign(length(posc) - length(pos)))
             * (max(0, 1.0-pow(1.0-max(0, dot(norm, normalize(pos - posc))), (roughness)*26+1)))
             * max(0, (6.0 - length(pos - posc))/10.0);
-            counter+=0.3;
+            counter+=0.4;
         }
     }
 
-    return pow(1.0 - buf / counter, 1.9);
+    return pow(1.0 - buf / counter, 1.1);
 }
 
 vec3 RSM(){
@@ -191,7 +191,7 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 258
+    #define RSMSamples 8
     for(int i=0;i<LightsCount;i++){
         //break;
         if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && foundSun == 1) continue;
@@ -266,7 +266,7 @@ vec3 RSM(){
         }
     
     }
-    return color1 / (RSMSamples)*2;
+    return color1 / (RSMSamples);
 }
 
 
@@ -344,7 +344,7 @@ vec3 Radiosity()
         }
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    return (rs *0.3);
+    return (rs *0.2);
 }
 
 void main()
@@ -459,30 +459,33 @@ void main()
     }
     Seed(UV+2);
     randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
+    vec4 last = texture(lastTex, UV);
+    vec4 ou = vec4(0);
     if(UseRSM == 1 && UseHBAO == 1 && UseVDAO == 1){
-        outColor = vec4(color1 + hbao() * (Radiosity() + RSM()), 1);
+        ou = vec4(color1 + hbao() * (Radiosity() + RSM()), 1);
         
     } else if(UseRSM == 0 && UseHBAO == 1 && UseVDAO == 1){
-        outColor = vec4(color1 + hbao() * Radiosity(), 1);
+        ou = vec4(color1 + hbao() * Radiosity(), 1);
         
     } else if(UseRSM == 1 && UseHBAO == 0 && UseVDAO == 1){
-        outColor = vec4(color1 + Radiosity() + RSM(), 1);
+        ou = vec4(color1 + Radiosity() + RSM(), 1);
         
     } else if(UseRSM == 1 && UseHBAO == 1 && UseVDAO == 0){
-        outColor = vec4(color1 + hbao() * (RSM()), 1);
+        ou = vec4(color1 + hbao() * (RSM()), 1);
         
     } else if(UseRSM == 0 && UseHBAO == 0 && UseVDAO == 1){
-        outColor = vec4(color1 + Radiosity(), 1);
+        ou = vec4(color1 + Radiosity(), 1);
         
     } else if(UseRSM == 1 && UseHBAO == 0 && UseVDAO == 0){
-        outColor = vec4(color1 + RSM(), 1);
+        ou = vec4(color1 + RSM(), 1);
         
     } else if(UseRSM == 0 && UseHBAO == 1 && UseVDAO == 0){
-        outColor = vec4(color1 + hbao(), 1);
+        ou = vec4(color1 + hbao(), 1);
         
     } else {
-        outColor = vec4(color1, 1);
+        ou = vec4(color1, 1);
     }
+    outColor = clamp(mix(ou, last, 0.9), 0.0, 1.0);
     
     
 }

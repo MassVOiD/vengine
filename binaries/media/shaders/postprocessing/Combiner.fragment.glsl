@@ -737,53 +737,18 @@ void main()
 {
     vec2 nUV = UV;
     vec3 color1 = vec3(0);
-    if(texture(meshData, UV).b < 0.01){
-        //nUV = refractUV();
-        //color1 += texture(color, UV).rgb * texture(diffuseColor, UV).a;
-    }
     if(UseDeferred == 1) color1 += texture(color, nUV).rgb;
-    //if(UseDeferred == 1) color1 += motionBlurExperiment(nUV);
     if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
-    //if(UseFog == 1) color1 += lookupFogSimple(nUV) * FogContribution;
-    //color1 += lightPoints();
-    if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
-    //if(UseBilinearGI == 1) color1 += lookupGIBilinearDepthNearest(nUV);
-    //if(UseSimpleGI == 1) color1 += texture(diffuseColor, UV).rgb * lookupGIBlurred(nUV, 0.0005);
 
-   // if(UseSimpleGI == 1) color1 += texture(globalIllumination, nUV ).rgb + texture(globalIllumination, nUV ).a * texture(diffuseColor, UV).rgb;
-   // if(UseVDAO + UseHBAO > 0) color1 += 
-   // blurssao(VDAOTex, nUV, 1.0)*1;
-   // texture(VDAOTex, nUV).rgb*0.2;
-   // blurssao(VDAOTex, nUV, 1) * 0.05;
-    //color1 += texture(VDAOTex, nUV ).rrr;
-    //color1 += vec3(getDensity(UV));
+    if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
 
     centerDepth = texture(depth, UV).r;
 
     gl_FragDepth = centerDepth;
 
-    /*if(UV.x > 0 && UV.x < 0.05) color1 = (BufValues[0]);
-    if(UV.x > 0.05 && UV.x < 0.1) color1 = (BufValues[1]);
-    if(UV.x > 0.1 && UV.x < 0.15) color1 = (BufValues[2]);
-    if(UV.x > 0.15 && UV.x < 0.2) color1 = (BufValues[3]);  
-    */
-    //color1 = TechnicolorPass(color1);
-    //color1 = VignettePass(color1, UV);
-    //color1 = CurvesPass(color1);
-    //color1 = DPXPass(color1);
-    //color1 = TonemapPass(color1);
-    //color1 += texture(RSM, nUV).rgb;
-  //  if(UseRSM == 1) color1 += blurssao(RSM, nUV, 1);
-    //if(UseRSM == 1) color1 += texture(RSM, nUV).rgb;
-    if(UseSSReflections == 1) color1 += blurByUV2(SSReflections, nUV, ( texture(SSReflections, nUV).a)).rgb;
-    //float ddot = dot(normalize(texture(diffuseColor, UV).rgb), normalize(color1));
-    //if(ddot < 0.4) color1.rgb = vec3(1.0 - abs(ddot))*5 + texture(diffuseColor, UV).rgb;
     vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
     color1.rgb = vec3(pow(color1.r, gamma.r),
     pow(color1.g, gamma.g),
     pow(color1.b, gamma.b));
-    //if(UseLightPoints == 1) color1 += DamnReflections();
-    //color1 += blurByUV2(RSM, UV, 3.0);
-   // color1 += texture(diffuseColor, nUV).rgb*0.1;
     outColor = vec4(clamp(color1, 0, 1), 1);
 }

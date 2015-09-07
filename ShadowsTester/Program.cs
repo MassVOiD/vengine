@@ -56,8 +56,8 @@ namespace ShadowsTester
 
             //new PlanetScene().Create();
           // new SculptScene().Create();
-        //    new SponzaScene().Create();
-            new OldCityScene().Create();
+            new SponzaScene().Create();
+           // new OldCityScene().Create();
           // new PathTraceTest().Create();
           //  new NatureScene().Create();
           //  new IndirectTestScene().Create();
@@ -70,7 +70,7 @@ namespace ShadowsTester
 
            // new HallScene().Create();
            // new RoadScene().Create();
-          //  new HomeScene().Create();
+           // new HomeScene().Create();
 
 
             World.Root.SortByDepthMasking();
