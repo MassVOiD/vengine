@@ -80,9 +80,6 @@
       <HintPath>..\packages\Jint.2.5.0\lib\portable-net40+sl50+win+wpa81+wp80\Jint.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Noesis.Javascript" Condition="'$(PlatformTarget)' == 'x86'">
-      <HintPath>..\packages\Noesis.Javascript.0.7.1.0\lib\net40\x86\Noesis.Javascript.dll</HintPath>
-    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\opentk-2014-07-23\Binaries\OpenTK\Release\OpenTK.dll</HintPath>

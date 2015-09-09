@@ -7,8 +7,6 @@ layout(location = 2) out vec4 outNormals;
 layout(location = 3) out vec4 outMeshData;
 layout(location = 4) out vec4 outId;
 
-layout(binding = 1) uniform sampler2D normalMap;
-
 //layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
 
 #include LogDepth.glsl
@@ -21,8 +19,6 @@ uniform int MaterialType;
 #define MaterialTypeWater 2
 #define MaterialTypeSky 3
 #define MaterialTypeWetDrops 4
-
-layout(binding = 31) uniform sampler2D bumpMap;
 
 vec3 rotate_vector_by_quat( vec4 quat, vec3 vec )
 {
@@ -60,7 +56,7 @@ vec3 perturb_normal( vec3 N, vec3 V, vec2 texcoord )
 {
     // assume N, the interpolated vertex normal and 
     // V, the view vector (vertex to eye)
-   vec3 map = -texture(normalMap, texcoord ).xyz;
+   vec3 map = -texture(normalMapTex, texcoord ).xyz;
    map.x = - map.x;
    map.y = - map.y;
    map.z = - map.z;
@@ -194,11 +190,10 @@ float getwater( vec2 position ) {
 }
 uniform float NormalMapScale;
 
-layout(binding = 2) uniform sampler2D AlphaMask;
 uniform int UseAlphaMask;
 void discardIfAlphaMasked(){
 	if(UseAlphaMask == 1){
-		if(texture(AlphaMask, UV).r < 1.0) discard;
+		if(texture(alphaMaskTex, UV).r < 1.0) discard;
 	}
 }
 
@@ -211,7 +206,7 @@ void finishFragment(vec4 color){
     vec3 normalNew  = normalize(normal);
     float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
-        float factor = (texture(bumpMap, UV).r);
+        float factor = (texture(bumpMapTex, UV).r);
        // wpos += (normalNew * factor * 0.02);
     }
     mat3 TBN = inverse(transpose(mat3(
@@ -232,7 +227,7 @@ void finishFragment(vec4 color){
 	//if(IgnoreLighting == 0){
 		if(UseNormalMap == 1){
 			//normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);   
-            vec3 map = texture(normalMap, UV ).xyz;
+            vec3 map = texture(normalMapTex, UV ).xyz;
           // map.x = - map.x;
          //  map.y = - map.y;
            map = map * 255./127. - 128./127.;
@@ -240,7 +235,7 @@ void finishFragment(vec4 color){
             normalNew = TBN * map; 
     
 		} else if(UseBumpMap == 1){
-            float factor = ( texture(bumpMap, UV).r);
+            float factor = ( texture(bumpMapTex, UV).r);
             //factor = factor - 119;
             factor = (factor) ;
             worldBumpMapSize = factor;

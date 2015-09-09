@@ -93,7 +93,7 @@ namespace VEngine
             {
                 prg.SetUniform("UseNormalMap", 1);
                 prg.SetUniform("NormalMapScale", NormalMapScale);
-                NormalMap.Use(TextureUnit.Texture1);
+                NormalMap.Use(TextureUnit.Texture27);
             }
             else
                 prg.SetUniform("UseNormalMap", 0);
@@ -101,14 +101,14 @@ namespace VEngine
             if(BumpMap != null)
             {
                 prg.SetUniform("UseBumpMap", 1);
-                BumpMap.Use(TextureUnit.Texture31);
+                BumpMap.Use(TextureUnit.Texture29);
             }
             else
                 prg.SetUniform("UseBumpMap", 0);
             if(AlphaMask != null)
             {
                 prg.SetUniform("UseAlphaMask", 1);
-                AlphaMask.Use(TextureUnit.Texture2);
+                AlphaMask.Use(TextureUnit.Texture28);
                 //GL.DepthFunc(DepthFunction.Always);
                 GL.Disable(EnableCap.CullFace);
             }

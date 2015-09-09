@@ -1,4 +1,4 @@
-#include LightingSamplers.glsl
+#include_once LightingSamplers.glsl
 /*
 Insane lighting
 Part of: https://github.com/achlubek/vengine
@@ -15,14 +15,14 @@ float lookupDepthFromLight(uint i, vec2 uv){
 	else if(i==5)distance1 = texture(lightDepth5, uv).r;
 	return distance1;
 }
-vec4 lookupColorFromLight(uint i, vec2 uv){
-	vec4 distance1 = vec4(0.0);
-	if(i==0)distance1 = texture(lightDepth0Color, uv).rgba;
-	else if(i==1)distance1 = texture(lightDepth1Color, uv).rgba;
-	else if(i==2)distance1 = texture(lightDepth2Color, uv).rgba;
-	else if(i==3)distance1 = texture(lightDepth3Color, uv).rgba;
-	else if(i==4)distance1 = texture(lightDepth4Color, uv).rgba;
-	else if(i==5)distance1 = texture(lightDepth5Color, uv).rgba;
+uvec2 lookupColorFromLight(uint i, vec2 uv){
+	uvec2 distance1 = uvec2(0.0);
+	if(i==0)distance1 = texture(lightDepth0Color, uv).rg;
+	else if(i==1)distance1 = texture(lightDepth1Color, uv).rg;
+	else if(i==2)distance1 = texture(lightDepth2Color, uv).rg;
+	else if(i==3)distance1 = texture(lightDepth3Color, uv).rg;
+	else if(i==4)distance1 = texture(lightDepth4Color, uv).rg;
+	else if(i==5)distance1 = texture(lightDepth5Color, uv).rg;
 	return distance1;
 }
 #define mPI (3.14159265)

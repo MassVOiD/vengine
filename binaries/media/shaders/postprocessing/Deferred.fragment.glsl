@@ -4,14 +4,6 @@ in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
-layout(binding = 0) uniform sampler2D texColor;
-layout(binding = 1) uniform sampler2D texDepth;
-layout(binding = 30) uniform sampler2D worldPosTex;
-layout(binding = 31) uniform sampler2D normalsTex;
-layout(binding = 33) uniform sampler2D meshDataTex;
-layout(binding = 34) uniform sampler2D meshIdTex;
-layout(binding = 35) uniform sampler2D lastTex;
-layout(binding = 29) uniform samplerCube CubeMap;
 
 layout (std430, binding = 6) buffer RandomsBuffer
 {
@@ -133,224 +125,10 @@ float CalculateFallof( float dist){
     
 }
 
-float hbao(){
-    vec3 posc = texture(worldPosTex, UV).rgb;
-    vec3 norm = texture(normalsTex, UV).rgb;
-    float buf = 0, counter = 0, div = 1.0/(length(posc)+1.0);
-    float octaves[] = float[2](0.5, 2.0);
-    float roughness =  1.0-texture(meshDataTex, UV).a;
-    for(int p=0;p<octaves.length();p++){
-        for(float g = 0; g < mPI2; g+=0.4){
-           // float rda = getRand() * mPI2;
-            vec3 pos = texture(worldPosTex,  UV + (vec2(sin(g)*ratio, cos(g)) * (getRand() * octaves[p])) * div).rgb;
-            buf += max(0, sign(length(posc) - length(pos)))
-            * (max(0, 1.0-pow(1.0-max(0, dot(norm, normalize(pos - posc))), (roughness)*26+1)))
-            * max(0, (6.0 - length(pos - posc))/10.0);
-            counter+=0.4;
-        }
-    }
-
-    return pow(1.0 - buf / counter, 1.1);
-}
-
-vec3 RSM(){
-    if(UseRSM != 1) return vec3(0);
-    float alpha = texture(texColor, UV).a;
-    vec2 nUV = UV;
-    if(alpha < 0.99){
-        //nUV = refractUV();
-    }
-    vec3 colorOriginal = texture(texColor, nUV).rgb;
-    vec4 normal = texture(normalsTex, nUV);
-    meshDiffuse = normal.a;
-    meshSpecular = texture(worldPosTex, nUV).a;
-    vec3 poscenter = texture(worldPosTex, nUV).rgb;
-    meshRoughness = texture(meshDataTex, nUV).a;
-    float meshMetalness =  texture(meshDataTex, UV).z;
-    vec3 color1 = vec3(0);
-    if(normal.x == 0.0 && normal.y == 0.0 && normal.z == 0.0){
-        color1 = colorOriginal;
-        IgnoreLightingFragment = true;
-    } else {
-        color1 = vec3(0);
-    }
-
-    //vec3 color1 = colorOriginal * 0.2;
-    if(texture(texColor, UV).a < 0.99){
-        color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
-    }
-    gl_FragDepth = texture(texDepth, nUV).r;
-    vec4 fragmentPosWorld3d = texture(worldPosTex, nUV);
-    vec3 cameraRelativeToVPos = normalize(-vec3(fragmentPosWorld3d.xyz));
-    fragmentPosWorld3d.xyz = FromCameraSpace(fragmentPosWorld3d.xyz);
-
-
-    //vec3 cameraRelativeToVPos = normalize( CameraPosition - fragmentPosWorld3d.xyz);
-    float len = length(cameraRelativeToVPos);
-    int foundSun = 0;
-
-    float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
-    
-    #define RSMSamples 8
-    for(int i=0;i<LightsCount;i++){
-        //break;
-        if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && foundSun == 1) continue;
-        if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
-        mat4 lightPV = (LightsPs[i] * LightsVs[i]);
-        mat4 invlightPV = inverse(LightsPs[i] * LightsVs[i]);
-        vec3 centerpos = LightsPos[i];
-        
-        vec2 scruv;
-        vec4 reconstructDir;
-        vec3 dir;
-        for(int x=0;x<RSMSamples;x++){
-            //float rd = rand(UV);
-           // vec2 scruv = vec2(float(x) / RSMSamples, float(y) /RSMSamples);
-            //scruv = vec2(sin(scruv.x+scruv.y), cos(scruv.x+scruv.y)) * scruv.y;
-            //scruv = scruv * 0.5 + 0.5;
-            scruv = vec2(getRand(), getRand());
-            
-            float ldep = lookupDepthFromLight(i, scruv);            
-            vec3 lcolor =  lookupColorFromLight(i, scruv).rgb;
-            
-            scruv.y = 1.0 - scruv.y;
-            scruv = scruv * 2 - 1;
-            reconstructDir = invlightPV * vec4(scruv, 1.0, 1.0);
-            reconstructDir.xyz /= reconstructDir.w;
-            float revlog = reverseLogEx(ldep, LightsFarPlane[i]);
-            // not optimizable
-            vec3 newpos = normalize(reconstructDir.xyz - centerpos) * revlog + LightsPos[i];
-            
-            float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
-            vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
-            float att = CalculateFallof(distanceToLight + revlog) *  LightsColors[i].a*10;
-
-           // if(dot(normal.xyz, lightRelativeToVPos) < 0) continue;
-           // if(dot(lightRelativeToVPos, normalize(reconstructDir.xyz - centerpos)) < 0.5) continue;
-            
-            float specularComponent = clamp(cookTorranceSpecular(
-            lightRelativeToVPos,
-            cameraRelativeToVPos,
-            normal.xyz,
-            max(0.01, meshRoughness), 1
-            ), 0.0, 1.0);
-
-            
-            float diffuseComponent = clamp(orenNayarDiffuse(
-            lightRelativeToVPos,
-            cameraRelativeToVPos,
-            normal.xyz,
-            meshRoughness, 1
-            ), 0.0, 1.0);   
-            
-
-            
-            //float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
-            //fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(1.0-meshRoughness)*0.4 + 1.0;
-            
-            vec3 cc = mix(lcolor*colorOriginal, lcolor, meshMetalness);
-            
-            vec3 difcolor = cc * diffuseComponent;
-            vec3 difcolor2 = lcolor*colorOriginal * diffuseComponent;
-            vec3 specolor = cc * specularComponent;
-            
-            vec3 radiance = mix(difcolor2 + specolor, difcolor*meshRoughness + specolor, meshMetalness);
-            
-            color1 += (radiance * att);
-            
-            
-            // color1 += ((colorOriginal * (diffuseComponent * lcolor)) 
-            // + (mix(colorOriginal, lcolor*colorOriginal, meshRoughness) * specularComponent))
-            // * att * vi * LightsColors[i].a;   
-            
-        }
-    
-    }
-    return color1 / (RSMSamples);
-}
-
-
-vec3 random3dSample(){
-    return normalize(vec3(
-    getRand() * 2 - 1, 
-    getRand() * 2 - 1, 
-    getRand() * 2 - 1
-    ));
-}
-// using this brdf makes cosine diffuse automatically correct
-vec3 BRDF(vec3 reflectdir, vec3 norm, float roughness){
-    vec3 displace = random3dSample();
-    displace = displace * sign(dot(norm, displace));
-    // at this point displace is hemisphere sampled "uniformly"
-    
-    float dt = dot(displace, reflectdir) * 0.5 + 0.5;
-    // dt is difference between sample and ideal mirror reflection, 0 means completely other direction
-    // dt will be used as "drag" to mirror reflection by roughness
-    
-    // for roughness 1 - mixfactor must be 0, for rughness 0, mixfactor must be 1
-    float mixfactor = mix(0, 1, roughness);
-    
-    return mix(displace, reflectdir, roughness);
-}
-vec3 vec3pow(vec3 inputx, float po){
-    return vec3(
-    pow(inputx.x, po),
-    pow(inputx.y, po),
-    pow(inputx.z, po)
-    );
-}
-vec3 adjustGamma(vec3 c, float gamma){
-    return vec3pow(c, 1.0/gamma)/gamma;
-}
-vec2 saturatev2(vec2 v){
-    return clamp(v, 0.0, 1.0);
-}
-
-uniform int UseVDAO;
-uniform int UseHBAO;
-vec3 Radiosity()
-{
-    
-    vec3 posCenter = texture(worldPosTex, UV).rgb;
-    vec3 albedo = texture(texColor, UV).rgb;
-    vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
-    vec3 ambient = vec3(0);
-    const int samples = 16;
-    
-    float octaves[] = float[4](0.8, 3.0, 7.9, 10.0);
-    vec3 dir = normalize(reflect(posCenter, normalCenter));
-    float fresnel = 1.0 - max(0, dot(-normalize(posCenter), normalize(normalCenter)));
-    
-    float initialAmbient = 0.0;
-
-    uint counter = 0;   
-    float meshRoughness1 = 1.0 - texture(meshDataTex, UV).a;
-    float meshMetalness =  texture(meshDataTex, UV).z;
-    fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(meshRoughness1)*0.4 + 1.0;
-    
-    vec3 colorplastic = vec3(0.851, 0.788, 0);
-    float brfds[] = float[1]( meshRoughness1);
-    for(int bi = 0; bi < brfds.length(); bi++)
-    {
-        for(int i=0; i<samples; i++)
-        {
-            float meshRoughness =brfds[bi];
-            vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
-            vec3 color = adjustGamma(texture(CubeMap, displace).rgb, mix(0.7, 1.0, meshMetalness)) ;
-            color = mix(color*albedo, color, meshMetalness);
-            float dotdiffuse = max(0, dot(displace, normalCenter));
-            ambient += color* dotdiffuse * fresnel;
-            counter++;
-        }
-    }
-    vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    return (rs *0.2);
-}
-
 void main()
 {   
-    if(texture(texColor, UV).r >= 999){ 
-        outColor = texture(CubeMap, normalize(texture(worldPosTex, UV).rgb)).rgba;
+    if(texture(diffuseColorTex, UV).r >= 999){ 
+        outColor = texture(cubeMapTex, normalize(texture(worldPosTex, UV).rgb)).rgba;
         return;
     }
   //  float alpha = texture(texColor, UV).a;
@@ -358,7 +136,7 @@ void main()
    // if(alpha < 0.99){
         //nUV = refractUV();
    // }
-    vec3 colorOriginal = texture(texColor, nUV).rgb;    
+    vec3 colorOriginal = texture(diffuseColorTex, nUV).rgb;    
     vec4 normal = texture(normalsTex, nUV);
     meshDiffuse = normal.a;
     meshSpecular = texture(worldPosTex, nUV).a;
@@ -376,7 +154,7 @@ void main()
     //if(texture(texColor, UV).a < 0.99){
     //    color1 += texture(texColor, UV).rgb * texture(texColor, UV).a;
     //}
-    gl_FragDepth = texture(texDepth, nUV).r;
+    gl_FragDepth = texture(depthTex, nUV).r;
     vec4 fragmentPosWorld3d = texture(worldPosTex, nUV);
     vec3 cameraRelativeToVPos = normalize(-fragmentPosWorld3d.xyz);
     fragmentPosWorld3d.xyz = FromCameraSpace(fragmentPosWorld3d.xyz);
@@ -457,35 +235,7 @@ void main()
            // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
         }
     }
-    Seed(UV+2);
-    randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
-    vec4 last = texture(lastTex, UV);
-    vec4 ou = vec4(0);
-    if(UseRSM == 1 && UseHBAO == 1 && UseVDAO == 1){
-        ou = vec4(color1 + hbao() * (Radiosity() + RSM()), 1);
-        
-    } else if(UseRSM == 0 && UseHBAO == 1 && UseVDAO == 1){
-        ou = vec4(color1 + hbao() * Radiosity(), 1);
-        
-    } else if(UseRSM == 1 && UseHBAO == 0 && UseVDAO == 1){
-        ou = vec4(color1 + Radiosity() + RSM(), 1);
-        
-    } else if(UseRSM == 1 && UseHBAO == 1 && UseVDAO == 0){
-        ou = vec4(color1 + hbao() * (RSM()), 1);
-        
-    } else if(UseRSM == 0 && UseHBAO == 0 && UseVDAO == 1){
-        ou = vec4(color1 + Radiosity(), 1);
-        
-    } else if(UseRSM == 1 && UseHBAO == 0 && UseVDAO == 0){
-        ou = vec4(color1 + RSM(), 1);
-        
-    } else if(UseRSM == 0 && UseHBAO == 1 && UseVDAO == 0){
-        ou = vec4(color1 + hbao(), 1);
-        
-    } else {
-        ou = vec4(color1, 1);
-    }
-    outColor = clamp(mix(ou, last, 0.9), 0.0, 1.0);
+    outColor = clamp(vec4(color1, 1.0), 0.0, 1.0);
     
     
 }

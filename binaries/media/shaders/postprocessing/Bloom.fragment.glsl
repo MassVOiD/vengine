@@ -8,13 +8,11 @@ in vec2 UV;
 
 out vec4 outColor;
 
-layout(binding = 0) uniform sampler2D texColor;
-layout(binding = 1) uniform sampler2D texDepth;
 
 vec3 blurWhitening(){
 	vec3 outc = vec3(0.01);
 	int counter = 0;
-	vec3 color = texture(texColor, UV).rgb;
+	vec3 color = texture(currentTex, UV).rgb;
 	float luminance = length(color); // luminance from 1.4 to 1.7320
 	//if(luminance > 1.0)
 	//{
@@ -25,7 +23,7 @@ vec3 blurWhitening(){
 	for(float g2 = -1.0; g2 < 1.0; g2+=0.08)
 	{ 
 		vec2 gauss = vec2(g2 * 0.5, 0);
-		vec3 color = texture(texColor, UV + gauss).rgb;
+		vec3 color = texture(currentTex, UV + gauss).rgb;
 		float luminance = length(color); // luminance from 1.4 to 1.7320
 		//if(luminance > 1.2)
 		//{
@@ -34,7 +32,7 @@ vec3 blurWhitening(){
 		counter++;
 		
 		gauss = vec2(0, g2 * 0.5);
-		color = texture(texColor, UV + gauss).rgb;
+		color = texture(currentTex, UV + gauss).rgb;
 		luminance = length(color); // luminance from 1.4 to 1.7320
 		//if(luminance > 1.4)
 		//{
@@ -42,7 +40,7 @@ vec3 blurWhitening(){
 		//}			
 		counter++;		
 	}	
-	return texture(texColor, UV).rgb + outc*1 / counter;
+	return texture(currentTex, UV).rgb + outc*1 / counter;
 }
 
 

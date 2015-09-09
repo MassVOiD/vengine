@@ -5,10 +5,6 @@ in vec2 UV;
 #include Lighting.glsl
 #include UsefulIncludes.glsl
 
-layout(binding = 0) uniform sampler2D texColor;
-layout(binding = 1) uniform sampler2D texDepth;
-layout(binding = 30) uniform sampler2D worldPosTex;
-layout(binding = 31) uniform sampler2D normalsTex;
 
 out vec4 outColor;
 
@@ -180,5 +176,5 @@ vec3 makeFog(){
 
 void main()
 {
-    outColor = vec4(makeFog(), texture(texDepth, UV).r);
+    outColor = vec4(makeFog(), texture(depthTex, UV).r);
 }

@@ -4,13 +4,6 @@ in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
 
-layout(binding = 0) uniform sampler2D textureIn;
-layout(binding = 3) uniform sampler2D texDepth;
-layout(binding = 4) uniform sampler2D bloom;
-layout(binding = 5) uniform sampler2D worldPosTex;
-layout(binding = 9) uniform sampler2D numbersTex;
-layout(binding = 10) uniform sampler2D lastworldPos;
-
 uniform int Numbers[12];
 uniform int NumbersCount;
 
@@ -130,7 +123,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             float depth = length(texture(worldPosTex, coord).xyz);
             if(distance(coord, UV.xy) < max_radius){  
                 //if((depth - focus) > 0.005) continue;     
-                vec3 texel = texture(textureIn, coord).rgb;
+                vec3 texel = texture(currentTex, coord).rgb;
                 float w = length(texel) + 0.2;
                 float dpf = abs(focus - (depth))*0.2+0.8;
                 w*=dpf;
@@ -153,7 +146,7 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 		{ 
             float h = rand(UV+vec2(g, g2));
 			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (h * radius);
-			vec4 color = texture(bloom, buv + gauss).rgba * (log(1.0-h + 1)*2);
+			vec4 color = texture(bloomTex, buv + gauss).rgba * (log(1.0-h + 1)*2);
             float w = max(0, (length(color) - 1.3) ) * 1.1;
             counter += max(w, 0.1);
 			outc += (color.rgb * color.a) * w ;
@@ -189,9 +182,9 @@ void main()
 {
 	vec2 fragCoord = UV * resolution;
 	texcoords(fragCoord);
-	vec4 color1 = fxaa(textureIn, fragCoord);
+	vec4 color1 = fxaa(currentTex, fragCoord);
     //vec4 color1 = vec4(0,0,0,1);
-	float depth = texture(texDepth, UV).r;
+	float depth = texture(depthTex, UV).r;
 	centerDepth = depth;
 	if(LensBlurAmount > 0.001){
 		float focus = CameraCurrentDepth;
