@@ -164,12 +164,12 @@ namespace VEngine
             return body;
         }
 
-        public void Draw()
+        public void Draw(Matrix4 parentTransformation)
         {
-            Draw(false);
+            Draw(parentTransformation, false);
         }
 
-        public void Draw(bool ignoreDisableDepthWriteFlag = false)
+        public void Draw(Matrix4 parentTransformation, bool ignoreDisableDepthWriteFlag = false)
         {
             //if(IsOddframe && DrawOddOnly)
             //    return;
@@ -185,8 +185,11 @@ namespace VEngine
                 return;
 
             SetUniforms();
-            GetCurrentMaterial().GetShaderProgram().SetUniform("ModelMatrix",  Matrix);
-            GetCurrentMaterial().GetShaderProgram().SetUniform("RotationMatrix",  RotationMatrix);
+            GetCurrentMaterial().GetShaderProgram().SetUniform("ModelMatrix", Matrix);
+            GetCurrentMaterial().GetShaderProgram().SetUniform("RotationMatrix", RotationMatrix);
+
+            ShaderProgram.Current.SetUniform("InitialTransformation", parentTransformation);
+            ShaderProgram.Current.SetUniform("InitialRotation", Matrix4.CreateFromQuaternion(parentTransformation.ExtractRotation()));
 
             if(!ignoreDisableDepthWriteFlag)
             {

@@ -30,7 +30,7 @@ vec3 lookupFog(vec2 fuv){
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.01);
             vec3 color = texture(fogTex, fuv + gauss).rgb;
             float depthThere = texture(fogTex, fuv + gauss).a;
-            if(abs(depthThere - depthCenter) < 0.001){
+            if(abs(depthThere - depthCenter) < 0.01){
                 outc += color;
                 counter++;
             }
@@ -166,7 +166,7 @@ void main()
         color1 += texture(HBAOTex, nUV).rrr;
     }
     
-    color1 += lightPoints();
+   // color1 += lightPoints();
     if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 
     if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
@@ -175,12 +175,12 @@ void main()
 
     gl_FragDepth = centerDepth;
 
-    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) ;
+    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
     color1.rgb = vec3(pow(color1.r, gamma.r),
     pow(color1.g, gamma.g),
     pow(color1.b, gamma.b));
-    float Y = dot(vec3(0.30, 0.59, 0.11), color1);
-    float YD = Brightness * (Brightness + 1.0) / (Brightness + 1.0);
-    color1 *= YD * Y;
+    //float Y = dot(vec3(0.30, 0.59, 0.11), color1);
+    //float YD = Brightness * (Brightness + 1.0) / (Brightness + 1.0);
+    //color1 *= YD * Y;
     outColor = vec4(clamp(color1, 0.0, 1.0), texture(depthTex, nUV).r);
 }

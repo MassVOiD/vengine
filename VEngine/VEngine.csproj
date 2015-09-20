@@ -36,7 +36,7 @@
     <OutputPath>..\binaries\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Optimize>false</Optimize>
@@ -98,11 +98,9 @@
     <Compile Include="AMCParser.cs" />
     <Compile Include="FileFormats\GameScene.cs" />
     <Compile Include="Game\KeyboardController.cs" />
-    <Compile Include="Game\Water.cs" />
     <Compile Include="PathTracing\JitterRandomSequenceGenerator.cs" />
     <Compile Include="PathTracing\PathTracer.cs" />
     <Compile Include="PathTracing\SceneOctalTree.cs" />
-    <Compile Include="Rendering\AbsMesh.cs" />
     <Compile Include="Rendering\ArmatureAnimation.cs" />
     <Compile Include="Rendering\Camera.cs" />
     <Content Include="Config.css">
@@ -120,7 +118,6 @@
     <Compile Include="Rendering\GraphicsSettings.cs" />
     <Compile Include="Internals\Interpolator.cs" />
     <Compile Include="Internals\IntHashGenerator.cs" />
-    <Compile Include="Rendering\KeyframeAnimatedMesh3d.cs" />
     <Compile Include="Rendering\Lights\PointLight.cs" />
     <Compile Include="Rendering\Lights\ProjectionLight.cs" />
     <Compile Include="Rendering\Framebuffer.cs" />
@@ -132,9 +129,6 @@
     <Compile Include="Utilities\Generators\Object3dGenerator.cs" />
     <Compile Include="Rendering\GLThread.cs" />
     <Compile Include="Rendering\Lights\SimplePointLight.cs" />
-    <Compile Include="Rendering\Line2d.cs" />
-    <Compile Include="Rendering\Line2dPool.cs" />
-    <Compile Include="Rendering\Lights\LightPool.cs" />
     <Compile Include="Internals\MathExtensions.cs" />
     <Compile Include="Rendering\InstancedMesh3d.cs" />
     <Compile Include="Rendering\MeshLinker.cs" />
@@ -155,7 +149,6 @@
     <Compile Include="Internals\ShaderCache.cs" />
     <Compile Include="Internals\ShaderPreparser.cs" />
     <Compile Include="Rendering\ShaderStorageBuffer.cs" />
-    <Compile Include="Rendering\BufferTexture.cs" />
     <Compile Include="Internals\TransformationManager.cs" />
     <Compile Include="Rendering\UI\AbsUIElement.cs" />
     <Compile Include="Rendering\UI\Picture.cs" />

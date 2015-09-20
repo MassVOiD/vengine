@@ -19,7 +19,7 @@ void main(){
     vec4 v = vec4(in_position,1);
     mat4 mmat = ModelMatrix;
     if(Instances > 0) mmat = ModelMatrixes[gl_InstanceID];
-    mat4 mvp = ProjectionMatrix * ViewMatrix * mmat;
+    mat4 mvp = ProjectionMatrix * CameraTransformation * ViewMatrix * InitialTransformation *mmat;
 
     vec3 mspace = v.xyz;
     if(UseBoneSystem == 1){
@@ -28,7 +28,7 @@ void main(){
         //inorm = applyBoneRotationChainNormal(inorm, bone);
     }
     v = vec4(mspace, 1);    
-    vertexWorldSpace = (mmat * v).xyz;
+    vertexWorldSpace = (InitialTransformation * mmat * v).xyz;
 
     normal = in_normal;
     instanceId = gl_InstanceID;

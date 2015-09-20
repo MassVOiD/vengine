@@ -274,12 +274,12 @@ void finishFragment(vec4 color){
         }
 		if(Instances == 0){
             outId = vec4(ColoredID.xyz, worldBumpMapSize);
-            vec3 rn = (RotationMatrix * vec4(normalNew, 0)).xyz;
+            vec3 rn = (InitialRotation * RotationMatrix * vec4(normalNew, 0)).xyz;
             if(dot(rn, CameraPosition -positionWorldSpace) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);
 		} else {
             outId = vec4(InstancedIds[instanceId].xyz, worldBumpMapSize);
-            vec3 rn = (RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz;
+            vec3 rn = (InitialRotation * RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz;
             if(dot(rn, CameraPosition -positionWorldSpace) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);
 		}

@@ -10,16 +10,14 @@ uniform mat4 LightsVs[MAX_LIGHTS];
 uniform vec3 LightsPos[MAX_LIGHTS];
 uniform float LightsFarPlane[MAX_LIGHTS];
 uniform vec4 LightsColors[MAX_LIGHTS];
-uniform vec2 LightsRanges[MAX_LIGHTS];
-uniform int LightsMixModes[MAX_LIGHTS];
-#define LIGHT_MIX_MODE_ADDITIVE 0
-#define LIGHT_MIX_MODE_EXCLUSIVE 1
-#define LIGHT_MIX_MODE_SUN_CASCADE 2
 
 
 uniform int Instances;
 uniform mat4 ModelMatrix;
 uniform mat4 RotationMatrix;
+uniform mat4 InitialTransformation;
+uniform mat4 InitialRotation;
+uniform mat4 CameraTransformation;
 
 layout (std430, binding = 0) buffer MMBuffer
 {

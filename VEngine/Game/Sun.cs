@@ -35,7 +35,6 @@ namespace VEngine
                 casc.LightMixRange.Start = start;
                 casc.LightMixRange.End = start;
                 casc.LightMixMode = LightMixMode.SunCascade;
-                LightPool.Add(casc);
             }
 
 

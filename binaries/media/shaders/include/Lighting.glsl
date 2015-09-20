@@ -84,33 +84,22 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 		
 	float counter = 0;
 	//distance1 = lookupDepthFromLight(i, uv);
-    if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE){
-        float distance3 = toLogDepth(distance2);
-        fakeUV = uv;
-        distance1 = lookupDepthFromLight(i, uv);
-        float diff = (distance3 -  distance1);
-        if(diff > 0.00003) {
-          //  LastProbeDistance = bval;
-           // return -abs(bval);
-        }
-        
-        return 1.0;
-    } else {
-        float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
-       // float pssblur =0.9;
-      // LastProbeDistance = 1.0;
-        float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
-        //float pssblur = 0;
-        for(float x = 0; x < mPI2; x+=0.5){ 
-            for(float y=0.05;y<1.0;y+= 0.4 ){  
-                fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2d(UV+vec2(x,y)) * pssblur * 0.009;
-                distance1 = lookupDepthFromLight(i, fakeUV);
-                if(distance3 -  distance1 > 0.00003) accum += 1.0 ;
-               // LastProbeDistance = min(LastProbeDistance, abs(badass_depth - distance1));
-                counter+=1;
-            }
+  
+    float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
+   // float pssblur =0.9;
+  // LastProbeDistance = 1.0;
+    float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
+    //float pssblur = 0;
+    for(float x = 0; x < mPI2; x+=0.5){ 
+        for(float y=0.05;y<1.0;y+= 0.04 ){  
+            fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2d(UV+vec2(x,y)) * pssblur * 0.009;
+            distance1 = lookupDepthFromLight(i, fakeUV);
+            if(distance3 -  distance1 > 0.00003) accum += 1.0 ;
+           // LastProbeDistance = min(LastProbeDistance, abs(badass_depth - distance1));
+            counter+=1;
         }
     }
+
 	
     //LastProbeDistance = LastProbeDistance / counter;
     float rs = 1.0 - (accum / counter);

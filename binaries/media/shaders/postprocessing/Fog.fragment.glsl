@@ -18,11 +18,6 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 	
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
         vec4 lightClipSpace = lightPV * vec4(end, 1.0);
-        if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && lightClipSpace.z < 0.0){
-            if(foundSun) continue;
-            else foundSun = true;
-            //att = 1;
-        }
 		
 		
 		float fogDensity = 0.0;
@@ -36,7 +31,6 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
             lastPos = pos;
 			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
 			att = 1;
-            if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) att = 0.1;
 			lightClipSpace = lightPV * vec4(pos, 1.0);
 			
 			float fogNoise = 1.0;

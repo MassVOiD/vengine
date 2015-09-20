@@ -26,18 +26,23 @@ namespace VEngine
     public interface ILight
     {
         Vector4 GetColor();
+        
+        Vector3 GetPosition();
+        
+        LightMixMode GetMixMode();
+        MixRange GetMixRange();
+        
+    }
 
+    public interface IShadowMapableLight
+    {
         float GetFarPlane();
 
         Matrix4 GetPMatrix();
-
-        Vector3 GetPosition();
-
+        
         Matrix4 GetVMatrix();
-        LightMixMode GetMixMode();
-        MixRange GetMixRange();
 
-        void Map();
+        void Map(Matrix4 parentTransformation);
 
         void UseTexture(int index);
     }
@@ -51,7 +56,7 @@ namespace VEngine
 
     public interface IRenderable
     {
-        void Draw();
+        void Draw(Matrix4 parentTransformation);
     }
 
     public interface ITransformable

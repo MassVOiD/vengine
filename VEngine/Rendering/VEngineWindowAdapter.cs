@@ -54,7 +54,7 @@ namespace VEngine
 
             GLThread.InvokeQueue();
 
-            LightPool.MapAll();
+            World.Root.RootScene.MapLights(Matrix4.Identity);
 
             //LightPool.UseTextures(2);
             // this is here so you can issue draw calls from there if you want

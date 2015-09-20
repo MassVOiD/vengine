@@ -31,9 +31,9 @@ void finishFragment(vec4 c){
     vec3 difcolor2 = LightColor.rgb*c.rgb;
     vec3 rn;
     if(Instances == 0){
-        rn = (RotationMatrix * vec4(normal, 0)).xyz;
+        rn = (InitialRotation * RotationMatrix * vec4(normal, 0)).xyz;
     } else {
-        rn = (RotationMatrixes[instanceId] * vec4(normal, 0)).xyz;
+        rn = (InitialRotation * RotationMatrixes[instanceId] * vec4(normal, 0)).xyz;
     }
     vec3 radiance = mix(difcolor2, difcolor*Roughness, Metalness);
     outColor = uvec4(packUnorm4x8(vec4(radiance, Roughness)), packSnorm4x8(vec4(rn, Metalness)), 0,0);

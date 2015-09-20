@@ -88,12 +88,12 @@ namespace VEngine
                 }
             }
         }
-        public void Draw()
+        public void Draw(Matrix4 parentTransformation)
         {
-            Draw(false);
+            Draw(parentTransformation, false);
         }
 
-        public void Draw(bool ignoreDisableDepthWriteFlag = false)
+        public void Draw(Matrix4 parentTransformation, bool ignoreDisableDepthWriteFlag = false)
         {
             if(Instances < 1)
                 return;
@@ -105,6 +105,8 @@ namespace VEngine
             {
 
                 SetUniforms(Material);
+                ShaderProgram.Current.SetUniform("InitialTransformation", parentTransformation);
+                ShaderProgram.Current.SetUniform("InitialRotation", Matrix4.CreateFromQuaternion(parentTransformation.ExtractRotation()));
                 if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
                     OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
 

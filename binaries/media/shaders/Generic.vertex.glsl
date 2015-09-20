@@ -35,7 +35,7 @@ void main(){
         inorm = applyBoneRotationChainNormal(inorm, bone);
     }
     v = vec4(mspace, 1);
-    positionWorldSpace = (mmat * v).xyz;	
+    positionWorldSpace = (InitialTransformation * mmat * v).xyz;	
 
 	normal = inorm;
 	

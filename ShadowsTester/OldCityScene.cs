@@ -11,7 +11,7 @@ using VEngine.PathTracing;
 
 namespace ShadowsTester
 {
-    public class OldCityScene : Scene
+    public class OldCityScene
     {
         public OldCityScene()
         {
@@ -25,7 +25,7 @@ namespace ShadowsTester
 
             var script = System.IO.File.ReadAllText(Media.Get("init.js"));
             var js = new Script();
-            js.SetValue("Scene", this);
+            js.SetValue("Scene", World.Root.RootScene);
             js.Execute("var VEngine = importNamespace('VEngine');");
             js.Execute(script);
             /*

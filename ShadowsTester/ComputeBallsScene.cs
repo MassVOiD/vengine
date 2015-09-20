@@ -10,13 +10,13 @@ using OpenTK;
 
 namespace ShadowsTester
 {
-    public class ComputeBallsScene : Scene
+    public class ComputeBallsScene
     {
         private ShaderStorageBuffer SBuffer;
 
         public ComputeBallsScene()
         {
-
+            var scene = World.Root.RootScene;
             int instancesAxis = 10;
             int instances = instancesAxis * instancesAxis * instancesAxis;
             var ballInfo = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
@@ -82,13 +82,13 @@ namespace ShadowsTester
                     cshader.Dispatch(10, 10, 100/50);
                 };
             });
-            Add(instanced);
+            scene.Add(instanced);
 
             var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
             var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
             whitebox.Scale(300);
             whitebox.Translate(0, -2, 0);
-            Add(whitebox);
+            scene.Add(whitebox);
             var whiteboxInfo2 = Object3dInfo.LoadFromObjSingle(Media.Get("reflector.obj"));
             //whiteboxInfo2.ScaleUV(33.0f);
             var whitebox2 = new Mesh3d(whiteboxInfo2, new GenericMaterial(Color.White));
@@ -112,7 +112,7 @@ namespace ShadowsTester
             //chair.MainMaterial.SetNormalMapFromMedia("clothnorm.png");
             chair2.MainMaterial.ReflectionStrength = 1.0f;
             chair2.Scale(15);
-            Add(chair2);
+            scene.Add(chair2);
             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
             var color = GenericMaterial.FromMedia("checked.png");
             //color.SetBumpMapFromMedia("lightref.png");
@@ -121,7 +121,7 @@ namespace ShadowsTester
             water.SetMass(0);
             //water.Translate(0, -0.941f * 2.0f, 0);
             water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
-            Add(water);
+            scene.Add(water);
         }
 
     }

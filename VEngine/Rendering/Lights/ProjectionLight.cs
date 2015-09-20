@@ -4,7 +4,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
-    public class ProjectionLight : ILight, ITransformable
+    public class ProjectionLight : ILight, IShadowMapableLight, ITransformable
     {
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
@@ -95,7 +95,7 @@ namespace VEngine
             return camera.ViewMatrix;
         }
 
-        public void Map()
+        public void Map(Matrix4 parentTransformation)
         {
             if(IsStatic && !NeedsRefreshing)
                 return;
@@ -113,6 +113,7 @@ namespace VEngine
             ShaderProgram.Lock = true;
             Shader.GetShaderProgram().SetUniform("LightPosition", camera.Transformation.GetPosition());
             Shader.GetShaderProgram().SetUniform("LightColor", LightColor);
+            Shader.GetShaderProgram().SetUniform("CameraTransformation", parentTransformation);
             //Shader.GetShaderProgram().SetUniform("FarPlane", Camera.MainDisplayCamera.Far);
             //Shader.GetShaderProgram().SetUniform("LogEnchacer", 0.01f);
             World.Root.Draw(false, true);

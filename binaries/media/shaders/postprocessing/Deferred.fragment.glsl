@@ -236,9 +236,11 @@ float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     return mx;
 }
 uniform int UseVDAO;
+uniform int UseHBAO;
 vec3 Radiosity()
 {
-    
+    Seed(UV);
+    randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     float meshSpecular = texture(worldPosTex, UV).a;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
@@ -386,9 +388,8 @@ void main()
            // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
         }
     }
-    Seed(UV);
-    randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
-    if(UseVDAO == 1) color1 += Radiosity();
+    if(UseVDAO == 1 && UseHBAO == 0) color1 += Radiosity();
+    if(UseVDAO == 1 && UseHBAO == 1) color1 += Radiosity() * texture(HBAOTex, UV).r;
     outColor = clamp(vec4(color1, 1.0), 0.0, 1.0);
     
     

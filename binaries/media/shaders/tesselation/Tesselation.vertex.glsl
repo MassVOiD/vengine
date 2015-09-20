@@ -20,10 +20,10 @@ void main(){
 
     
 	if(Instances > 0){
-		WorldPos_CS_in = (ModelMatrixes[gl_InstanceID] * v).xyz;
+		WorldPos_CS_in = (InitialTransformation * ModelMatrixes[gl_InstanceID] * v).xyz;
 
 	} else {
-		WorldPos_CS_in = (ModelMatrix * v).xyz;
+		WorldPos_CS_in = (InitialTransformation * ModelMatrix * v).xyz;
 	}
     ModelPos_CS_in = v.xyz;
     Normal_CS_in = in_normal;

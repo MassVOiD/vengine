@@ -10,15 +10,16 @@ using OpenTK;
 
 namespace ShadowsTester
 {
-    public class DragonScene : Scene
+    public class DragonScene
     {
         public DragonScene()
         {
+            var scene = World.Root.RootScene;
             var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
             var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
             whitebox.Scale(3000);
             whitebox.Translate(0, -1500, 0);
-            Add(whitebox);
+            scene.Add(whitebox);
             /*  Func<uint, uint, float> terrainGen = (x, y) =>
               {
                   return
@@ -53,8 +54,8 @@ namespace ShadowsTester
            // gcx.IgnoreLighting = true;
             Mesh3d gex = new Mesh3d(gridx, gcx);
             gex.SetMass(0);
-           // gex.Translate(0, x, 0);
-            Add(gex);
+            // gex.Translate(0, x, 0);
+            scene.Add(gex);
 
             
            /* for(int z = 0; z < 20; z++)

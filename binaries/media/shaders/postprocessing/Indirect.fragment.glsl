@@ -201,8 +201,6 @@ vec3 RSM(){
     #define RSMSamples 27
     for(int i=0;i<LightsCount;i++){
         //break;
-        if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && foundSun == 1) continue;
-        if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
         mat4 lightPV = (LightsPs[i] * LightsVs[i]);
         mat4 invlightPV = inverse(LightsPs[i] * LightsVs[i]);
         vec3 centerpos = LightsPos[i];

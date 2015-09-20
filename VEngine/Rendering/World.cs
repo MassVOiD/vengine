@@ -12,7 +12,7 @@ namespace VEngine
         public World()
         {
             Children = new List<IRenderable>();
-            LinesPool = new Line2dPool();
+            RootScene = new Scene();
             CollisionConf = new DefaultCollisionConfiguration();
             Dispatcher = new CollisionDispatcher(CollisionConf);
             Broadphase = new DbvtBroadphase();
@@ -28,8 +28,8 @@ namespace VEngine
         }
 
         public static World Root;
+        public Scene RootScene;
         public volatile bool Disposed;
-        public Line2dPool LinesPool;
         public UIRenderer UI;
         public Quaternion Orientation = Quaternion.Identity;
         public DiscreteDynamicsWorld PhysicalWorld;
@@ -104,37 +104,7 @@ namespace VEngine
 
         public void Draw(bool ignoreMeshWithDisabledDepthTest = false, bool ignoreDisableDepthWriteFlag = false)
         {
-            //if(Camera.Current != null) SortByCameraDistance();
-           // GL.CullFace(CullFaceMode.Back);
-            for(int i = 0; i < Children.Count; i++)
-            {
-                if(Children[i] != null)
-                {
-                    if(Children[i] is Mesh3d && ((Mesh3d)Children[i]).DisableDepthWrite == true)
-                        continue;
-                    Children[i].Draw();
-
-                }
-            }
-            if(!ignoreMeshWithDisabledDepthTest)
-            {
-               // GL.Enable(EnableCap.Blend);
-               // GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-               // GL.BlendEquation(BlendEquationMode.FuncAdd);
-               // GL.CullFace(CullFaceMode.Front);
-                for(int i = 0; i < Children.Count; i++)
-                {
-                    if(Children[i] != null)
-                    {
-                        if((Children[i] is Mesh3d) && ((Mesh3d)Children[i]).DisableDepthWrite == true)
-                            ((Mesh3d)Children[i]).Draw(ignoreDisableDepthWriteFlag);
-                        if((Children[i] is InstancedMesh3d) && ((InstancedMesh3d)Children[i]).DisableDepthWrite == true)
-                            ((InstancedMesh3d)Children[i]).Draw(ignoreDisableDepthWriteFlag);
-                    }
-                }
-               // GL.Disable(EnableCap.Blend);
-               // GL.CullFace(CullFaceMode.Back);
-            }
+            RootScene.Draw(Matrix4.Identity);
         }
 
         public void Remove(IRenderable renderable)
