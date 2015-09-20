@@ -68,7 +68,7 @@ vec3 perturb_normalRaw( vec3 N, vec3 V, vec3 map )
 {
     // assume N, the interpolated vertex normal and 
     // V, the view vector (vertex to eye)
-   map = map * 255./127. - 128./127.;
+  // map = map * 255./127. - 128./127.;
     mat3 TBN = cotangent_frame(N, -V, UV);
     return normalize(TBN * map);
 }
@@ -197,6 +197,15 @@ void discardIfAlphaMasked(){
 	}
 }
 
+uniform int UseSpecularMap;
+uniform int UseRoughnessMap;
+uniform int UseMetalnessMap;
+
+vec3 examineBumpMap(){
+    float bumpCenter = texture(bumpMapTex, UV).r;
+    return mix(vec3(0, 1, 0), normalize(vec3(1, 1, 0)), bumpCenter);
+}
+
 void finishFragment(vec4 color){
     discardIfAlphaMasked();
    // if(Selected) color *= 3;
@@ -220,19 +229,23 @@ void finishFragment(vec4 color){
         normal.xyz
     )));
     vec3 tangentwspace = TBN * tangent;
-	outWorldPos = vec4(ToCameraSpace(wpos), Roughness); 
+    float outSpecular = 0;
+    if(UseSpecularMap) outSpecular = texture(specularMapTex, UV).r; 
+    else outSpecular = SpecularComponent;
+	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
     
     
     
-	//if(IgnoreLighting == 0){
+	if(IgnoreLighting == 0){
 		if(UseNormalMap == 1){
 			//normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);   
-            vec3 map = texture(normalMapTex, UV ).xyz;
+            vec3 map = texture(normalMapTex, UV ).rgb;
           // map.x = - map.x;
          //  map.y = - map.y;
-           map = map * 255./127. - 128./127.;
+           map = map * 2 - 1;
            map.y = - map.y;
             normalNew = TBN * map; 
+          //  normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
     
 		} else if(UseBumpMap == 1){
             float factor = ( texture(bumpMapTex, UV).r);
@@ -243,7 +256,7 @@ void finishFragment(vec4 color){
             factor = factor * 2 - 1;
             vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
             nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
-           // normalNew =  nee;
+          //  normalNew =  TBN * examineBumpMap();
     
 		} else {
 
@@ -270,9 +283,9 @@ void finishFragment(vec4 color){
             if(dot(rn, CameraPosition -positionWorldSpace) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);
 		}
-	//} else {
-	//	outNormals = vec4(0, 0, 0, 1);
-	//}	
+	} else {
+		outNormals = vec4(0, 0, 0, 1);
+	}	
 	// mesh data is packed as follows:
 	/*
 	outColor.a - invalid to read
@@ -281,7 +294,14 @@ void finishFragment(vec4 color){
 	outMeshData.r - reflection strength
 	outMeshData.g - refraction strength
 	*/
-	outMeshData = vec4(ReflectionStrength, RefractionStrength,Metalness, Roughness);
+    float outRoughness = 0;
+    float outMetalness = 0;
+    if(UseRoughnessMap) outRoughness = texture(roughnessMapTex, UV).r; 
+    else outRoughness = Roughness;
+    if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, UV).r; 
+    else outMetalness = Metalness;
+    
+	outMeshData = vec4(ReflectionStrength, RefractionStrength, outMetalness, outRoughness);
 	updateDepth();
     // lets do it, from -32 to 32
     /*vec3 normalized = (wpos)  *3;

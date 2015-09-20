@@ -7,27 +7,13 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using VEngine;
 
-namespace ShadowsTester
+namespace AirplanesGame
 {
     class Commons
     {
-        public static FreeCamera FreeCam;
+       // public static FreeCamera FreeCam;
         static ProjectionLight RedLight;
-        private static ShaderStorageBuffer PickingResult;
-        static ComputeShader MousePicker;
-        static int MouseX, MouseY;
-        static Mesh3d Picked;
-        public static FreeCamera SetUpFreeCamera()
-        {
-
-            float aspect = GLThread.Resolution.Height > GLThread.Resolution.Width ? GLThread.Resolution.Height / GLThread.Resolution.Width : GLThread.Resolution.Width / GLThread.Resolution.Height;
-            var freeCamera = new FreeCamera((float)GLThread.Resolution.Width / (float)GLThread.Resolution.Height, MathHelper.PiOver3/1);
-            FreeCam = freeCamera;
-            PickingResult = new ShaderStorageBuffer();
-            MousePicker = new ComputeShader("MousePicker.compute.glsl");
-            return freeCamera;
-        }
-
+        
         public static ProjectionLight AddControllableLight()
         {
 
@@ -37,58 +23,10 @@ namespace ShadowsTester
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
             LightPool.Add(redConeLight);
-
-            GLThread.OnMouseMove += (o, e) =>
-            {
-                MouseX = e.X;
-                MouseY = e.Y;
-
-                var kb = OpenTK.Input.Keyboard.GetState();
-                if(kb.IsKeyDown(OpenTK.Input.Key.T))
-                {
-                    FreeCam.Freeze = true;
-                    if(Picked != null)
-                    {
-                        Picked.SetPosition(Picked.GetPosition() + FreeCam.Cam.GetOrientation().GetTangent(MathExtensions.TangentDirection.Right) * (float)e.XDelta * -0.01f);
-                        Picked.SetPosition(Picked.GetPosition() + FreeCam.Cam.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up) * (float)e.YDelta * -0.01f);
-                    }
-                }
-                else
-                    FreeCam.Freeze = GLThread.DisplayAdapter.IsCursorVisible;
-            };
+            
 
             GLThread.OnUpdate += (o, e) =>
             {
-                if(GLThread.DisplayAdapter.IsCursorVisible)
-                {
-                    PickingResult.MapData(Vector4.One);
-                    MousePicker.Use();
-                    var state = OpenTK.Input.Mouse.GetState();
-                    MousePicker.SetUniform("Mouse", new Vector2(MouseX, GLThread.Resolution.Height  - MouseY));
-                    PickingResult.Use(0);
-                    GL.BindImageTexture(0, GLThread.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba8);
-                    MousePicker.Dispatch(GLThread.Resolution.Width / 32, GLThread.Resolution.Height / 32, 1);
-                    OpenTK.Graphics.OpenGL4.GL.MemoryBarrier(OpenTK.Graphics.OpenGL4.MemoryBarrierFlags.ShaderStorageBarrierBit);
-                    byte[] result = PickingResult.Read(0, 4 * 3);
-                    Vector3 id = new Vector3(
-                        BitConverter.ToSingle(result, 0),
-                        BitConverter.ToSingle(result, 4),
-                        BitConverter.ToSingle(result, 8)
-                    );
-                    foreach(var m in World.Root.Children)
-                    {
-                        if(m is Mesh3d)
-                        {
-                            if(((m as Mesh3d).MeshColoredID - id).Length < 0.05f)
-                            {
-                                (m as Mesh3d).Selected = true;
-                                Picked = m as Mesh3d;
-                            }
-                            else
-                                (m as Mesh3d).Selected = false;
-                        }
-                    }
-                }
                 var kb = OpenTK.Input.Keyboard.GetState();
                 if(kb.IsKeyDown(OpenTK.Input.Key.Left))
                 {
@@ -120,26 +58,6 @@ namespace ShadowsTester
                     var pos = redConeLight.camera.Transformation.GetPosition();
                     redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitY / 12.0f);
                 }
-                /*if(kb.IsKeyDown(OpenTK.Input.Key.U))
-                {
-                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.J))
-                {
-                    var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), 0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.H))
-                {
-                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, -0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }
-                if(kb.IsKeyDown(OpenTK.Input.Key.K))
-                {
-                    var quat = Quaternion.FromAxisAngle(Vector3.UnitY, 0.01f);
-                    sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
-                }*/
             };
             return redConeLight;
         }
@@ -171,7 +89,7 @@ namespace ShadowsTester
                     if(mesh != null && mesh.GetCollisionShape() != null && !mesh.PhysicalBody.IsStaticObject && !inPickingMode)
                     {
                         Console.WriteLine(mesh.GetCollisionShape().ToString());
-                        pickedLink = MeshLinker.Link(FreeCam.Cam, mesh, new Vector3(0, 0, -(FreeCam.Cam.Transformation.GetPosition() - mesh.Transformation.GetPosition()).Length),
+                        pickedLink = MeshLinker.Link(Camera.MainDisplayCamera, mesh, new Vector3(0, 0, -(Camera.MainDisplayCamera.Transformation.GetPosition() - mesh.Transformation.GetPosition()).Length),
                             Quaternion.Identity);
                         pickedLink.UpdateRotation = false;
                         inPickingMode = true;
@@ -221,44 +139,8 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Tab)
                 {
                     GLThread.DisplayAdapter.IsCursorVisible = !GLThread.DisplayAdapter.IsCursorVisible;
-                    FreeCam.Freeze = GLThread.DisplayAdapter.IsCursorVisible;
                 }
-                if(e.Key == OpenTK.Input.Key.Comma)
-                {
-                    if(Picked != null)
-                    {
-                        Picked.MainMaterial.Roughness -= 0.05f;
-                        if(Picked.MainMaterial.Roughness < 0)
-                            Picked.MainMaterial.Roughness = 0;
-                    }
-                }
-                if(e.Key == OpenTK.Input.Key.Period)
-                {
-                    if(Picked != null)
-                    {
-                        Picked.MainMaterial.Roughness += 0.05f;
-                        if(Picked.MainMaterial.Roughness > 1)
-                            Picked.MainMaterial.Roughness = 1;
-                    }
-                }
-                if(e.Key == OpenTK.Input.Key.Semicolon)
-                {
-                    if(Picked != null)
-                    {
-                        Picked.MainMaterial.Metalness -= 0.05f;
-                        if(Picked.MainMaterial.Metalness < 0)
-                            Picked.MainMaterial.Metalness = 0;
-                    }
-                }
-                if(e.Key == OpenTK.Input.Key.Quote)
-                {
-                    if(Picked != null)
-                    {
-                        Picked.MainMaterial.Metalness += 0.05f;
-                        if(Picked.MainMaterial.Metalness > 1)
-                            Picked.MainMaterial.Metalness = 1;
-                    }
-                }
+               
                 if(e.Key == OpenTK.Input.Key.Pause)
                 {
                     ShaderProgram.RecompileAll();
@@ -266,11 +148,11 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.LBracket)
                 {
-                    FreeCam.Cam.Brightness -= 0.1f;
+                    Camera.MainDisplayCamera.Brightness -= 0.1f;
                 }
                 if(e.Key == OpenTK.Input.Key.RBracket)
                 {
-                    FreeCam.Cam.Brightness += 0.1f;
+                    Camera.MainDisplayCamera.Brightness += 0.1f;
                 }
                 if(e.Key == OpenTK.Input.Key.T)
                 {
@@ -283,12 +165,12 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Number1)
                 {
                     //redConeLight.SetPosition(freeCamera.Cam.Transformation.GetPosition(), freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection());
-                    RedLight.GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition());
-                    RedLight.GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
+                    RedLight.GetTransformationManager().SetPosition(Camera.MainDisplayCamera.Transformation.GetPosition());
+                    RedLight.GetTransformationManager().SetOrientation(Camera.MainDisplayCamera.Transformation.GetOrientation());
                 }
                 if(e.Key == OpenTK.Input.Key.Tilde)
                 {
-                    Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
+                    Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, Camera.MainDisplayCamera.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
                 }
                 if(e.Key == OpenTK.Input.Key.Number0)
                     GLThread.GraphicsSettings.UseVDAO = !GLThread.GraphicsSettings.UseVDAO;

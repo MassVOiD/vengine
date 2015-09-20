@@ -46,5 +46,5 @@ vec3 motionBlurExperiment(vec2 uv){
 void main()
 {
 	gl_FragDepth = texture(depthTex, UV).r;
-    outColor = vec4(texture(currentTex, UV).rgb, 1);
+    outColor = vec4(texture(currentTex, UV).rgb, texture(depthTex, UV).r);
 }

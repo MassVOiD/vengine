@@ -584,6 +584,17 @@ namespace VEngine
             }
             return ot;
         }
+        public List<Vector3> GetRawVertexList()
+        {
+            var ot = new List<Vector3>();
+            for(int i = 0; i < VBO.Length; i+=8)
+            {
+                // for 1
+                var pos1 = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                ot.Add(pos1);
+            }
+            return ot;
+        }
         public List<Vector3> GetOrderedNormals()
         {
             var ot = new List<Vector3>();
@@ -610,8 +621,8 @@ namespace VEngine
         public BvhTriangleMeshShape GetAccurateCollisionShape(float scale = 1.0f)
         {
             //if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
-            List<Vector3> vectors = GetOrderedVertices();
-            var smesh = new TriangleIndexVertexArray(GetOrderedIndices().ToArray(), vectors.ToArray());
+            List<Vector3> vectors = GetRawVertexList();
+            var smesh = new TriangleIndexVertexArray(GetOrderedIndices().ToArray(), vectors.Select((a) => a * scale).ToArray());
             CachedBvhTriangleMeshShape = new BvhTriangleMeshShape(smesh, false);
             //CachedBvhTriangleMeshShape.LocalScaling = new Vector3(scale);
             return CachedBvhTriangleMeshShape;
@@ -841,7 +852,7 @@ namespace VEngine
                 }
                 if(line.StartsWith("vt"))
                 {
-                    match = Regex.Match(line, @"vt ([0-9.-]+) ([0-9.-]+)");
+                    match = Regex.Match(line.Replace("nan", "0"), @"vt ([0-9.-]+) ([0-9.-]+)");
                     temp_uvs.Add(new Vector2(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture)));
                 }
                 else if(line.StartsWith("vn"))
@@ -1035,6 +1046,8 @@ namespace VEngine
 
             }
             VBO = floats.ToArray();
+            List<Vector3> t1a = new List<Vector3>();
+            List<Vector3> t2a = new List<Vector3>();
             for(int i = 0; i < Indices.Length; i += 3)
             {
                 // 8 vbo stride
@@ -1065,6 +1078,14 @@ namespace VEngine
                 float r = 1.0F / (s1 * t2 - s2 * t1);
                 Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
                         (t2 * z1 - t1 * z2) * r);
+                Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, 
+                        (s1 * z2 - s2 * z1) * r);
+                t1a.Add(sdir);
+                t1a.Add(sdir);
+                t1a.Add(sdir);
+                t2a.Add(tdir);
+                t2a.Add(tdir);
+                t2a.Add(tdir);
                 VBO[vboIndex1 + 8] += sdir.X;
                 VBO[vboIndex1 + 9] += sdir.Y;
                 VBO[vboIndex1 + 10] += sdir.Z;
@@ -1080,8 +1101,9 @@ namespace VEngine
                 // 8 vbo stride
                 int vboIndex1 = (int)Indices[i] * 11;
                 var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
-                var tan1 = new Vector3(VBO[vboIndex1 + 8], VBO[vboIndex1 + 9], VBO[vboIndex1 + 10]);
+                var tan1 = t1a[i];
                 var tan = (tan1 - nor1 * Vector3.Dot(nor1, tan1)).Normalized();
+                tan *= (Vector3.Dot(Vector3.Cross(nor1, tan1), t2a[i]) < 0.0f) ? -1.0f : 1.0f;
                 VBO[vboIndex1 + 8] = tan.X;
                 VBO[vboIndex1 + 9] = tan.Y;
                 VBO[vboIndex1 + 10] = tan.Z;

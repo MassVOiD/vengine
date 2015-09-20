@@ -18,7 +18,8 @@ namespace VEngine
             Broadphase = new DbvtBroadphase();
             PhysicalWorld = new DiscreteDynamicsWorld(Dispatcher, Broadphase, null, CollisionConf);
             PhysicalWorld.Gravity = new Vector3(0, -10, 0);
-            PhysicalWorld.SolverInfo.SolverMode = SolverModes.InterleaveContactAndFrictionConstraints;
+            PhysicalWorld.SolverInfo.SolverMode = SolverModes.RandomizeOrder;
+            PhysicalWorld.DispatchInfo.UseContinuous = true;
             PhysicalWorld.SolverInfo.Restitution = 0;
             CollisionObjects = new Dictionary<IRenderable, CollisionObject>();
             UI = new UIRenderer();
@@ -59,6 +60,7 @@ namespace VEngine
                         mesh.PhysicalBody.SetSleepingThresholds(0, 0);
                         mesh.PhysicalBody.ContactProcessingThreshold = 0;
                         mesh.PhysicalBody.CcdMotionThreshold = 0;
+                        mesh.PhysicalBody.SetDamping(0, 0);
                         PhysicalWorld.AddRigidBody(mesh.PhysicalBody);
                     }
                 }

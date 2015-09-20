@@ -18,6 +18,12 @@ namespace VEngine
         public bool ReceiveShadows = true;
         public bool IgnoreLighting = false;
 
+        public ShaderProgram Program, TesselatedProgram;
+        public Texture NormalMap, BumpMap, AlphaMask, RoughnessMap, MetalnessMap, SpecularMap;
+        public float NormalMapScale = 1.0f;
+        public float TesselationMultiplier = 1.0f;
+        public string Name;
+
         public enum DrawMode
         {
             TextureOnly,
@@ -105,6 +111,30 @@ namespace VEngine
             }
             else
                 prg.SetUniform("UseBumpMap", 0);
+
+            if(SpecularMap != null)
+            {
+                prg.SetUniform("UseSpecularMap", 1);
+                SpecularMap.Use(TextureUnit.Texture31 + 1);
+            }
+            else
+                prg.SetUniform("UseSpecularMap", 0);
+            if(RoughnessMap != null)
+            {
+                prg.SetUniform("UseRoughnessMap", 1);
+                RoughnessMap.Use(TextureUnit.Texture30);
+            }
+            else
+                prg.SetUniform("UseRoughnessMap", 0);
+            if(MetalnessMap != null)
+            {
+                prg.SetUniform("UseMetalnessMap", 1);
+                MetalnessMap.Use(TextureUnit.Texture31);
+            }
+            else
+                prg.SetUniform("UseMetalnessMap", 0);
+
+
             if(AlphaMask != null)
             {
                 prg.SetUniform("UseAlphaMask", 1);
@@ -140,11 +170,6 @@ namespace VEngine
             return res;
         }
 
-        public ShaderProgram Program, TesselatedProgram;
-        public Texture NormalMap, BumpMap, AlphaMask;
-        public float NormalMapScale = 1.0f;
-        public float TesselationMultiplier = 1.0f;
-        public string Name;
 
         public enum MaterialType
         {
@@ -154,21 +179,38 @@ namespace VEngine
             Sky,
             WetDrops,
             Grass,
-            PlanetSurface
+            PlanetSurface, 
+            TessellatedTerrain
         }
         public MaterialType Type;
-        
-        public void SetBumpMapFromMedia(string bumpmapKey)
+
+
+        public void SetRoughnessMapFromMedia(string key)
         {
-            BumpMap = new Texture(Media.Get(bumpmapKey));
+            RoughnessMap = new Texture(Media.Get(key));
         }
-        public void SetTextureFromMedia(string textKey)
+
+        public void SetMetalnessMapFromMedia(string key)
         {
-            Tex = new Texture(Media.Get(textKey));
+            MetalnessMap = new Texture(Media.Get(key));
         }
-        public void SetNormalMapFromMedia(string mapKey)
+
+        public void SetSpecularMapFromMedia(string key)
         {
-            NormalMap = new Texture(Media.Get(mapKey));
+            SpecularMap = new Texture(Media.Get(key));
+        }
+
+        public void SetBumpMapFromMedia(string key)
+        {
+            BumpMap = new Texture(Media.Get(key));
+        }
+        public void SetTextureFromMedia(string key)
+        {
+            Tex = new Texture(Media.Get(key));
+        }
+        public void SetNormalMapFromMedia(string key)
+        {
+            NormalMap = new Texture(Media.Get(key));
         }
         public void SetAlphaMaskFromMedia(string key)
         {
@@ -177,7 +219,8 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
-            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface || Type == MaterialType.Grass? TesselatedProgram : Program;
+            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
+               Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? TesselatedProgram : Program;
         }
 
     }

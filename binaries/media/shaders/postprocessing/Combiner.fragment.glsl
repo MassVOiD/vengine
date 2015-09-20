@@ -4,6 +4,7 @@ in vec2 UV;
 #include LogDepth.glsl
 #include UsefulIncludes.glsl
 #include_once LightingSamplers.glsl
+#include FXAA.glsl
 
 #define mPI (3.14159265)
 #define mPI2 (2.0*3.14159265)
@@ -61,7 +62,7 @@ vec3 blurByUV2(sampler2D sampler, vec2 fuv, float force){
         for(float g2 = 0.02; g2 < 1.0; g2+=0.02)
         {
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.01 * force);
-            vec3 color = clamp(texture(sampler, fuv + gauss).rgb, 0.02, 1);
+            vec3 color = clamp(texture(sampler, fuv + gauss).rgb, 0.02, 1.0);
             float depthThere = texture(depthTex, fuv + gauss).r;
            // if(abs(depthThere - depthCenter) < 0.001){
                 outc += color*length(color);
@@ -69,32 +70,34 @@ vec3 blurByUV2(sampler2D sampler, vec2 fuv, float force){
            // }
         }
     }
-    return clamp(outc / counter, 0.02, 1);
+    return clamp(outc / counter, 0.02, 1.0);
 }
 vec3 blurssao(sampler2D sampler, vec2 fuv, float force){
     float roughs = texture(meshDataTex, fuv).a;
     vec3 outc = vec3(0);
-    int counter = 0;
+    float counter = 0;
     vec3 norm = texture(normalsTex, fuv).xyz;
     float depthCenter = texture(depthTex, fuv).r;
-    for(float g = 0; g < mPI2; g+=0.33)
+    for(float g = 0; g < mPI2; g+=0.1)
     {
-        for(float g2 = 0.0002; g2 < 1.0; g2+=0.08)
+        for(float g2 = 0.0002; g2 < 1.0; g2+=0.05)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * force)*0.018;
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * force)*0.004;
             vec3 color = texture(sampler, fuv + gauss).rgb;
-            vec3 anorm = texture(normalsTex, fuv + gauss).xyz;
             float depthd = texture(sampler, fuv + gauss).a;
-            float roughd2 = texture(meshDataTex, fuv).a;
-            if(dot(anorm, norm) > 0.93 && abs(depthCenter-depthd)<0.005&& abs(roughd2-roughs)<0.01 ){
+            if(abs(depthCenter-depthd)<0.005){
                 outc += color;
-                counter++;
+                counter+=1;
             }
         }
     }
     vec3 a = texture(sampler, fuv).rgb;
     if(counter == 0) return a;
     return outc/counter;
+}
+
+vec3 mixAlbedo(vec3 a){
+    return mix(a*texture(diffuseColorTex, UV).rgb, a, texture(meshDataTex, UV).z);
 }
 
 
@@ -111,7 +114,7 @@ vec3 emulateSkyWithDepth(vec2 uv){
     vec3 worldPos = (texture(worldPosTex, uv).rgb);
     float depth = length(worldPos)*0.001;
     worldPos = FromCameraSpace(worldPos);
-    depth = depth * clamp(1.0 / (abs(worldPos.y) * 0.0001), 0, 1);
+    depth = depth * clamp(1.0 / (abs(worldPos.y) * 0.0001), 0.0, 1.0);
     return vec3(1) * depth;
 }
 
@@ -138,7 +141,7 @@ vec3 lightPoints(){
         float mixv = 1.0 - smoothstep(0.1, 2.5, distance(sspace1*resolution.xy * 0.01, UV*resolution.xy * 0.009));
 
         if(logg > badass_depth) {
-            color += mix(vec3(0), ball(vec3(LightsColors[i].rgb*1.0),LightPointSize / ( badass_depth) * 0.01, sspace1.x, sspace1.y), mixv);
+            color += ball(vec3(LightsColors[i].rgb*1.0),LightPointSize / ( badass_depth) * 0.1, sspace1.x, sspace1.y);
             //color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
         }
 
@@ -146,6 +149,9 @@ vec3 lightPoints(){
 
     return color;
 }
+
+
+
 void main()
 {
     vec2 nUV = UV;
@@ -153,14 +159,14 @@ void main()
     if(UseDeferred == 1) color1 += texture(currentTex, nUV).rgb;
     
     if(UseRSM + UseVDAO > 0 && UseHBAO == 1){
-        color1 += texture(indirectTex, nUV).rgb * texture(HBAOTex, nUV).r;
+        color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * texture(HBAOTex, nUV).r;
     } else if(UseRSM + UseVDAO > 0 && UseHBAO == 0){
-        color1 += texture(indirectTex, nUV).rgb;
+        color1 += mixAlbedo(texture(indirectTex, nUV).rgb);
     } else if(UseRSM + UseVDAO == 0 && UseHBAO == 1){
-        color1 += texture(HBAOTex, nUV).rgb;
+        color1 += texture(HBAOTex, nUV).rrr;
     }
     
-    
+    color1 += lightPoints();
     if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 
     if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
@@ -169,9 +175,12 @@ void main()
 
     gl_FragDepth = centerDepth;
 
-    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
+    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) ;
     color1.rgb = vec3(pow(color1.r, gamma.r),
     pow(color1.g, gamma.g),
     pow(color1.b, gamma.b));
-    outColor = vec4(clamp(color1, 0, 1), 1);
+    float Y = dot(vec3(0.30, 0.59, 0.11), color1);
+    float YD = Brightness * (Brightness + 1.0) / (Brightness + 1.0);
+    color1 *= YD * Y;
+    outColor = vec4(clamp(color1, 0.0, 1.0), texture(depthTex, nUV).r);
 }

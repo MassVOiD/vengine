@@ -21,9 +21,10 @@ uniform int MaterialType;
 #define MaterialTypeWetDrops 4
 #define MaterialTypeGrass 5
 #define MaterialTypePlanetSurface 6
+#define MaterialTypeTessellatedTerrain 7
 
 uniform int UseBumpMap;
-layout(binding = 31) uniform sampler2D bumpMap;
+layout(binding = 29) uniform sampler2D bumpMap;
 smooth out vec3 normal;
 smooth out vec3 tangent;
 smooth out vec3 positionWorldSpace;
@@ -171,6 +172,16 @@ void main()
         float factor = getPlanetSurface();
         positionWorldSpace -= normal * (factor) * 11.0;
     }
+    if(MaterialType == MaterialTypeTessellatedTerrain){
+        float factor = texture(bumpMap, UV).r * 90;
+        float factorx = texture(bumpMap, UV+vec2(0.0001, 0)).r * 90;
+        float factory = texture(bumpMap, UV+vec2(0, 0.0001)).r * 90;
+        vec3 p1 = positionWorldSpace - tangent * 4 + normal * factorx;
+        vec3 p2 = positionWorldSpace + cross(tangent, normal) * 4 + normal * factory;
+        positionWorldSpace += normal * factor;
+        vec3 n = normalize(cross(positionWorldSpace - p1, positionWorldSpace - p2));
+        normal = n;
+    }
     
         if(MaterialType == MaterialTypeGrass){
             float factor = (texture(bumpMap, UV).r);
@@ -184,8 +195,8 @@ void main()
             float factor = (texture(bumpMap, UV).r - 0.5) * 0.07;
           //  float factor = snoise(positionWorldSpace*normal / 4) * 0.2;
           //  factor += snoise(positionWorldSpace *10) * 0.03;
-            positionWorldSpace += normal * (factor) * 1.3;
-            normal = normalize(normal - (tangent * factor * 0.05));
+         //   positionWorldSpace += normal * (factor) * 1.3;
+         //   normal = normalize(normal - (tangent * factor * 0.05));
         }
     
     

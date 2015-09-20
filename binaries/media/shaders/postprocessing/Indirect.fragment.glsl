@@ -121,13 +121,13 @@ float fresnel) {
 
 float CalculateFallof( float dist){
     //return 1.0 / pow(((dist) + 1.0), 2.0);
-    return dist == 0 ? 3 : (3) / (4*PI*dist*dist+1);
+    return dist == 0 ? 3 : (3) / (14*PI*dist*dist+1);
     
 }
 vec2 HitPos = vec2(-2);
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(int i=0; i<16; i++){
+    for(int i=0; i<5; i++){
         float ix = getRand();
         vec2 muv = mix(p1, p2, ix);
         float expr = min(muv.x, muv.y) * -(max(muv.x, muv.y)-1.0);
@@ -198,7 +198,7 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 25
+    #define RSMSamples 27
     for(int i=0;i<LightsCount;i++){
         //break;
         if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && foundSun == 1) continue;
@@ -213,16 +213,16 @@ vec3 RSM(){
         vec3 dir;
         for(int x=0;x<RSMSamples;x++){
             //float rd = rand(UV);
-           // vec2 scruv = vec2(float(x) / RSMSamples, float(y) /RSMSamples);
+            //scruv = vec2(float(x) / RSMSamples, float(y) /RSMSamples);
             //scruv = vec2(sin(scruv.x+scruv.y), cos(scruv.x+scruv.y)) * scruv.y;
             //scruv = scruv * 0.5 + 0.5;
             scruv = vec2(getRand(), getRand());
             
             float ldep = lookupDepthFromLight(i, scruv);            
-            uvec2 packed =  lookupColorFromLight(i, scruv);
+            uvec2 lcolord =  lookupColorFromLight(i, scruv);
             //packUnorm4x8(vec4(radiance, Roughness)), packSnorm4x8(vec4(normal, Metalness))
-            vec4 upackA = unpackUnorm4x8(packed.r);
-            vec4 upackB = unpackSnorm4x8(packed.g);
+            vec4 upackA = unpackUnorm4x8(lcolord.r);
+            vec4 upackB = unpackSnorm4x8(lcolord.g);
             vec3 lcolor = upackA.rgb;
             float lrough = upackA.a;
             vec3 lnormal = upackB.rgb;
@@ -242,8 +242,8 @@ vec3 RSM(){
             vec3 lightRelativeToVPos2 = normalize(newpos - centerpos);
             float att = CalculateFallof(distanceToLight + revlog) *  LightsColors[i].a*10;
             
-            float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*3.2, fragmentPosWorld3d.xyz);
-            vi = HitPos.x > 0 ? mix(1.0, 0.0, distance(FromCameraSpace(texture(worldPosTex, HitPos).rgb), fragmentPosWorld3d.xyz) / 3.2) : 1;
+           // float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*3.2, fragmentPosWorld3d.xyz);
+           // vi = HitPos.x > 0 ? mix(1.0, 0.0, distance(FromCameraSpace(texture(worldPosTex, HitPos).rgb), fragmentPosWorld3d.xyz) / 3.2) : 1;
 
            // if(dot(normal.xyz, lightRelativeToVPos) < 0) continue;
            // if(dot(lightRelativeToVPos, normalize(reconstructDir.xyz - centerpos)) < 0.5) continue;
@@ -270,8 +270,8 @@ vec3 RSM(){
             
             vec3 cc = mix(lcolor*colorOriginal, lcolor, meshMetalness);
             
-            vec3 difcolor = cc * diffuseComponent;
-            vec3 difcolor2 = lcolor*colorOriginal * diffuseComponent;
+            vec3 difcolor = cc * diffuseComponent * att;
+            vec3 difcolor2 = lcolor*colorOriginal * diffuseComponent * att;
             vec3 specolor = cc * specularComponent;
             
             vec3 radiance = mix(difcolor2 + specolor, difcolor*meshRoughness + specolor, meshMetalness);
@@ -286,7 +286,7 @@ vec3 RSM(){
             max(0.01, lrough), 1
             ), 0.0, 1.0)*5;
             
-            color1 += (radiance * att * spfsm) * vi;
+            color1 += (radiance * spfsm);
             
             
             // color1 += ((colorOriginal * (diffuseComponent * lcolor)) 
@@ -300,103 +300,21 @@ vec3 RSM(){
 }
 
 
-vec3 random3dSample(){
-    return normalize(vec3(
-    getRand() * 2 - 1, 
-    getRand() * 2 - 1, 
-    getRand() * 2 - 1
-    ));
-}
-// using this brdf makes cosine diffuse automatically correct
-vec3 BRDF(vec3 reflectdir, vec3 norm, float roughness){
-    vec3 displace = random3dSample();
-    displace = displace * sign(dot(norm, displace));
-    // at this point displace is hemisphere sampled "uniformly"
-    
-    float dt = dot(displace, reflectdir) * 0.5 + 0.5;
-    // dt is difference between sample and ideal mirror reflection, 0 means completely other direction
-    // dt will be used as "drag" to mirror reflection by roughness
-    
-    // for roughness 1 - mixfactor must be 0, for rughness 0, mixfactor must be 1
-    float mixfactor = mix(0, 1, roughness);
-    
-    return mix(displace, reflectdir, roughness);
-}
-vec3 vec3pow(vec3 inputx, float po){
-    return vec3(
-    pow(inputx.x, po),
-    pow(inputx.y, po),
-    pow(inputx.z, po)
-    );
-}
-vec3 adjustGamma(vec3 c, float gamma){
-    return vec3pow(c, 1.0/gamma)/gamma;
-}
-uniform int UseVDAO;
-vec3 Radiosity()
-{
-    
-    vec3 posCenter = texture(worldPosTex, UV).rgb;
-    vec3 albedo = texture(diffuseColorTex, UV).rgb;
-    vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
-    vec3 ambient = vec3(0);
-    const int samples = 16;
-    
-    float octaves[] = float[4](0.8, 3.0, 7.9, 10.0);
-    vec3 dir = normalize(reflect(posCenter, normalCenter));
-    float fresnel = 1.0 - max(0, dot(-normalize(posCenter), normalize(normalCenter)));
-    
-    float initialAmbient = 0.0;
-
-    uint counter = 0;   
-    float meshRoughness1 = 1.0 - texture(meshDataTex, UV).a;
-    float meshMetalness =  texture(meshDataTex, UV).z;
-    fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(meshRoughness1)*0.4 + 1.0;
-    
-    vec3 colorplastic = vec3(0.851, 0.788, 0);
-    float brfds[] = float[2](min(meshMetalness, meshRoughness1), meshRoughness1);
-    for(int bi = 0; bi < brfds.length(); bi++)
-    {
-        for(int i=0; i<samples; i++)
-        {
-            float meshRoughness =brfds[bi];
-            vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
-            vec3 color = adjustGamma(texture(cubeMapTex, displace).rgb, mix(0.7, 1.0, meshMetalness)) ;
-            color = mix(color*albedo, color, meshMetalness);
-            float dotdiffuse = max(0, dot(displace, normalCenter));
-            ambient += color* dotdiffuse * fresnel;
-            counter++;
-        }
-    }
-    vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    return (rs);
-}
-
 void main()
 {   
     if(texture(diffuseColorTex, UV).r >= 999){ 
-        outColor = texture(cubeMapTex, normalize(texture(worldPosTex, UV).rgb)).rgba;
+        outColor = vec4(0,0,0,1);
         return;
     }
     vec3 color1 = vec3(0);
     
-    Seed(UV+2);
+    Seed(UV+3);
     randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec4 last = texture(lastIndirectTex, UV);
     vec4 ou = vec4(0);
-    if(UseRSM == 1 && UseVDAO == 1){
-        ou = vec4(Radiosity() + RSM(), 1);
-        
-    } else if(UseRSM == 0 && UseVDAO == 1){
-        ou = vec4(Radiosity(), 1);
-        
-    } else if(UseRSM == 1 && UseVDAO == 0){
-        ou = vec4(RSM(), 1);
-        
-    } else {
-        ou = vec4(color1, 1);
-    }
-    outColor = clamp(mix(ou, last, 0.99), 0.0, 1.0);
+    if(UseRSM == 1)ou = vec4(RSM(), 1);
+    ou.a = texture(depthTex, UV).r;
+    outColor = clamp(mix(ou, last, 0.0), 0.0, 1.0);
     
     
 }

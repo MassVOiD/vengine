@@ -132,7 +132,7 @@ namespace VEngine
             if(isDynamic)
                 shape.CalculateLocalInertia(Mass, out localInertia);
 
-            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) * Matrix4.CreateTranslation(Transformation.GetPosition()));
+            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) *  Matrix4.CreateTranslation(Transformation.GetPosition()));
 
             RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(Mass, myMotionState, shape, localInertia);
             RigidBody body = new RigidBody(rbInfo);
@@ -153,7 +153,7 @@ namespace VEngine
             if(isDynamic)
                 shape.CalculateLocalInertia(Mass, out localInertia);
 
-            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) * Matrix4.CreateTranslation(Transformation.GetPosition()));
+            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) *  Matrix4.CreateTranslation(Transformation.GetPosition()));
 
             RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(Mass, myMotionState, shape, localInertia);
             RigidBody body = new RigidBody(rbInfo);
@@ -397,7 +397,7 @@ namespace VEngine
             if(!noPhysics && PhysicalBody != null)
             {
                 PhysicalBody.WorldTransform = RotationMatrix
-                    * Matrix;
+                    * Matrix4.CreateTranslation(Transformation.GetPosition());
             }
         }
     }

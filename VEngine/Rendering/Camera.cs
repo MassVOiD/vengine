@@ -59,8 +59,8 @@ namespace VEngine
 
         public void LookAt(Vector3 location)
         {
-            RotationMatrix = Matrix4.LookAt(Vector3.Zero, ( Transformation.GetPosition() + location).Normalized(), new Vector3(0, 1, 0));
-            ViewMatrix = Matrix4.LookAt(Transformation.GetPosition(), location, new Vector3(0, 1, 0));
+            RotationMatrix = Matrix4.CreateFromQuaternion(Matrix4.LookAt(Vector3.Zero, -( location - Transformation.GetPosition()).Normalized(), new Vector3(0, 1, 0)).ExtractRotation());
+            ViewMatrix = RotationMatrix * Matrix4.CreateTranslation(-Transformation.GetPosition());
             Transformation.SetOrientation(RotationMatrix.ExtractRotation());
             Transformation.ClearModifiedFlag();
         }

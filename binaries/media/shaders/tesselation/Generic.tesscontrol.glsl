@@ -29,6 +29,7 @@ uniform int MaterialType;
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2
 #define MaterialTypeSky 3
+#define MaterialTypeTessellatedTerrain 7
 uniform int UseBumpMap;
 
 float GetTessLevel(float Distance0, float Distance1)
@@ -85,6 +86,12 @@ void main()
         gl_TessLevelOuter[2] = GetTessLevelAlternative(EyeToVertexDistance0, EyeToVertexDistance1, surfaceSize) * TesselationMultiplier;
         gl_TessLevelInner[0] = gl_TessLevelOuter[0];
         gl_TessLevelInner[1] = gl_TessLevelOuter[1];
+    } else if(MaterialType == MaterialTypeTessellatedTerrain){
+        gl_TessLevelOuter[0] = max(15, GetTessLevelAlternative(EyeToVertexDistance1, EyeToVertexDistance2, surfaceSize)) * TesselationMultiplier*10;
+        gl_TessLevelOuter[1] = max(15, GetTessLevelAlternative(EyeToVertexDistance2, EyeToVertexDistance0, surfaceSize)) * TesselationMultiplier*10;
+        gl_TessLevelOuter[2] = max(15, GetTessLevelAlternative(EyeToVertexDistance0, EyeToVertexDistance1, surfaceSize)) * TesselationMultiplier*10;
+        gl_TessLevelInner[0] = gl_TessLevelOuter[0];
+        gl_TessLevelInner[1] = gl_TessLevelOuter[0];
     } else {
         gl_TessLevelOuter[0] = GetTessLevelAlternative(EyeToVertexDistance1, EyeToVertexDistance2, surfaceSize) * TesselationMultiplier;
         gl_TessLevelOuter[1] = GetTessLevelAlternative(EyeToVertexDistance2, EyeToVertexDistance0, surfaceSize) * TesselationMultiplier;

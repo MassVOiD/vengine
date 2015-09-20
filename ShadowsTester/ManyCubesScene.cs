@@ -14,7 +14,23 @@ namespace ShadowsTester
     {
         public ManyCubesScene()
         {
-
+            var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
+            var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
+            whitebox.Scale(3000);
+            whitebox.Translate(0, -1500, 0);
+            Add(whitebox);
+            Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY, 333, (x, y) => 0);
+            var color = GenericMaterial.FromMedia("bluetex.png");
+            //color.SetNormalMapFromMedia("06_NORMAL.jpg");
+            color.SetBumpMapFromMedia("1bump.jpg");
+            color.Roughness = 1.0f;
+            Mesh3d water = new Mesh3d(waterInfo, color);
+            water.SetMass(0);
+            // color.Type = GenericMaterial.MaterialType.Grass;
+            //  color.TesselationMultiplier = 0.1f;
+            // water.Translate(0, -0.941f*2.0f, 0);
+            // water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
+            Add(water);
             Object3dInfo wall = Object3dGenerator.CreateCube(new Vector3(10.0f, 10.0f, 1.0f), new Vector2(1, 1));
             InstancedMesh3d wallsInst = new InstancedMesh3d(wall, new GenericMaterial(Color.Red));
             wallsInst.Transformations.Add(new TransformationManager(new Vector3(0, 5, 10), Quaternion.Identity, 1));

@@ -1,3 +1,5 @@
+layout(binding = 0) uniform sampler2D currentTex;
+layout(binding = 1) uniform sampler2D depthTex;
 
 layout(binding = 2) uniform usampler2D lightDepth0Color;
 layout(binding = 3) uniform sampler2D lightDepth0;
@@ -12,8 +14,6 @@ layout(binding = 11) uniform sampler2D lightDepth4;
 layout(binding = 12) uniform usampler2D lightDepth5Color;
 layout(binding = 13) uniform sampler2D lightDepth5;
 
-layout(binding = 0) uniform sampler2D currentTex;
-layout(binding = 1) uniform sampler2D depthTex;
 
 layout(binding = 14) uniform sampler2D diffuseColorTex;
 layout(binding = 15) uniform sampler2D worldPosTex;
@@ -33,4 +33,7 @@ layout(binding = 26) uniform sampler2D bloomTex;
 layout(binding = 27) uniform sampler2D normalMapTex;
 layout(binding = 28) uniform sampler2D alphaMaskTex;
 layout(binding = 29) uniform sampler2D bumpMapTex;
+layout(binding = 30) uniform sampler2D roughnessMapTex;
+layout(binding = 31) uniform sampler2D metalnessMapTex;
+layout(binding = 32) uniform sampler2D specularMapTex;
 

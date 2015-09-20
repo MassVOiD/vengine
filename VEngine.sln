@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjToSceneConverter", "ObjT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameLauncher", "GameLauncher\GameLauncher.csproj", "{4DBB2359-7052-4B92-9FAC-F8E8283DC002}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirplanesGame", "AirplanesGame\AirplanesGame.csproj", "{B1912A7B-D428-4F68-A651-280A5D6DE2AD}"
+EndProject
 Global
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
@@ -213,6 +215,24 @@ Global
 		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|x86.ActiveCfg = Release|Any CPU
 		{4DBB2359-7052-4B92-9FAC-F8E8283DC002}.Release|x86.Build.0 = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Debug|x86.Build.0 = Debug|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Optimized|Any CPU.ActiveCfg = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Optimized|Any CPU.Build.0 = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Optimized|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Optimized|Mixed Platforms.Build.0 = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Optimized|x86.ActiveCfg = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Optimized|x86.Build.0 = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Release|x86.ActiveCfg = Release|Any CPU
+		{B1912A7B-D428-4F68-A651-280A5D6DE2AD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

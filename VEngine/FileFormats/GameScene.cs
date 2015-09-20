@@ -388,6 +388,20 @@ namespace VEngine.FileFormats
                         tempMaterial.AlphaMask = new Texture(Media.Get(data));
                         break;
                     }
+                    case "roughnessmap":
+                    {
+                        if(tempMaterial == null)
+                            throw new Exception("Invalid line in scene string: " + l);
+                        tempMaterial.RoughnessMap = new Texture(Media.Get(data));
+                        break;
+                    }
+                    case "metalnessmap":
+                    {
+                        if(tempMaterial == null)
+                            throw new Exception("Invalid line in scene string: " + l);
+                        tempMaterial.MetalnessMap = new Texture(Media.Get(data));
+                        break;
+                    }
                     case "roughness":
                     {
                         if(tempMaterial == null)

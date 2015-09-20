@@ -46,5 +46,5 @@ vec3 blurWhitening(){
 
 void main()
 {
-    outColor = clamp(vec4(blurWhitening(), 1.0), 0.0, 2.0);
+    outColor = clamp(vec4(blurWhitening(), texture(depthTex, UV).r), 0.0, 2.0);
 }
