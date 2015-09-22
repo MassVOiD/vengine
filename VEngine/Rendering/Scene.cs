@@ -9,9 +9,9 @@ namespace VEngine
 {
     sealed public class Scene : IRenderable, ITransformable
     {
-        public List<ILight> Lights = new List<ILight>();
-        public List<IRenderable> Renderables = new List<IRenderable>();
-        public static ShaderStorageBuffer SSBO = new ShaderStorageBuffer();
+        private List<ILight> Lights = new List<ILight>();
+        private List<IRenderable> Renderables = new List<IRenderable>();
+        private static ShaderStorageBuffer SSBO = new ShaderStorageBuffer();
         public TransformationManager Transformation;
 
         public Scene()
@@ -41,9 +41,19 @@ namespace VEngine
         {
             Renderables.Remove(e);
         }
-
         public void Draw(Matrix4 parentTransformation)
         {
+            var cpos = Camera.MainDisplayCamera.GetPosition();
+            Renderables.Sort((a, b) => {
+                if(a is ITransformable && b is ITransformable)
+                {
+                    var e1 = (a as ITransformable).GetPosition();
+                    var e2 = (b as ITransformable).GetPosition();
+                    var x = (e1 - cpos).Length;
+                    var y = (e2 - cpos).Length;
+                    return x < y ? -1 : 1;
+                } else return 0;
+            });
             for(int i=0;i<Renderables.Count;i++)
                 Renderables[i].Draw(parentTransformation * Transformation.GetWorldTransform());
         }
@@ -160,35 +170,39 @@ namespace VEngine
         private static List<byte> Buffer;
         private static List<float> ShadowMapsFarPlanes;
         private static int LastBufferElements = 0;
+        private static int SimpleLightsCount = 0;
 
-        public void UseShadowMapsTexturesAndUpdateSSBO(int startindex = -1)
+        public List<IRenderable> GetFlatRenderableList()
         {
-            if(startindex > -1)
+            var o = new List<IRenderable>();
+            Renderables.ForEach((a) =>
             {
-                ipointer = startindex;
-                Buffer = new List<byte>();
-                LastBufferElements = 0;
-            }
+                if(a is Scene)
+                    o.AddRange((a as Scene).GetFlatRenderableList());
+                else
+                    o.Add(a);
+            });
+            return o;
+        }
 
+        public void RecreateSimpleLightsSSBO()
+        {
             foreach(var e in Lights)
             {
-                if(e is IShadowMapableLight)
-                    (e as IShadowMapableLight).UseTexture(ipointer);
+                if(e is SimplePointLight)
+                {
 
+                }
                 Buffer.AddRange(Bytes(e.GetPosition(), e is IShadowMapableLight ? 1 : 0));
                 Buffer.AddRange(Bytes(e.GetColor()));
 
-                LastBufferElements++;
-                ipointer += 2;
+                SimpleLightsCount++;
             }
             foreach(var e in Renderables)
                 if(e is Scene)
-                    (e as Scene).UseShadowMapsTexturesAndUpdateSSBO();
+                    (e as Scene).RecreateSimpleLightsSSBO();
 
-            if(startindex > -1)
-            {
-                SSBO.MapData(Buffer.ToArray());
-            }
+            SSBO.MapData(Buffer.ToArray());
         }
 
     }

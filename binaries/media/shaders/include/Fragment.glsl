@@ -193,7 +193,7 @@ uniform float NormalMapScale;
 uniform int UseAlphaMask;
 void discardIfAlphaMasked(){
 	if(UseAlphaMask == 1){
-		if(texture(alphaMaskTex, UV).r < 1.0) discard;
+		if(texture(alphaMaskTex, UV).r < 0.5) discard;
 	}
 }
 
@@ -215,7 +215,7 @@ void finishFragment(vec4 color){
     vec3 normalNew  = normalize(normal);
     float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
-        float factor = (texture(bumpMapTex, UV).r);
+     //   float factor = (texture(bumpMapTex, UV).r);
        // wpos += (normalNew * factor * 0.02);
     }
     mat3 TBN = inverse(transpose(mat3(
@@ -244,18 +244,18 @@ void finishFragment(vec4 color){
          //  map.y = - map.y;
            map = map * 2 - 1;
            map.y = - map.y;
-            normalNew = TBN * map; 
+            normalNew = TBN * mix(vec3(0, 0, 1), map, 0.3); 
           //  normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
     
 		} else if(UseBumpMap == 1){
-            float factor = ( texture(bumpMapTex, UV).r);
+          //  float factor = ( texture(bumpMapTex, UV).r);
             //factor = factor - 119;
-            factor = (factor) ;
-            worldBumpMapSize = factor;
-            vec3 bitan = cross(normal, tangent);
-            factor = factor * 2 - 1;
-            vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
-            nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
+        //    factor = (factor) ;
+        //    worldBumpMapSize = factor;
+        //    vec3 bitan = cross(normal, tangent);
+        //    factor = factor * 2 - 1;
+        //    vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
+        //    nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
           //  normalNew =  TBN * examineBumpMap();
     
 		} else {
@@ -301,7 +301,7 @@ void finishFragment(vec4 color){
     if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, UV).r; 
     else outMetalness = Metalness;
     
-	outMeshData = vec4(ReflectionStrength, RefractionStrength, outMetalness, outRoughness);
+	outMeshData = vec4(0, 0, outMetalness, outRoughness);
 	updateDepth();
     // lets do it, from -32 to 32
     /*vec3 normalized = (wpos)  *3;

@@ -87,13 +87,20 @@ namespace VEngine
             return new GenericMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)), new Texture(Media.Get(bump_map)));
         }
 
-
+        private ShaderProgram lastUserProgram = null;
         public bool Use()
         {
             var prg = GetShaderProgram();
-            bool res = prg.Use();
-            if(res == false)
+            if(lastUserProgram == null)
+                lastUserProgram = ShaderProgram.Current;
+            ShaderProgram.SwitchResult res = prg.Use();
+            if(res == ShaderProgram.SwitchResult.Locked)
+            {
                 prg = ShaderProgram.Current;
+            }
+            if(lastUserProgram == ShaderProgram.Current)
+                return true;
+            lastUserProgram = ShaderProgram.Current;
             prg.SetUniform("TesselationMultiplier", TesselationMultiplier);
             if(NormalMap != null)
             {
@@ -167,7 +174,7 @@ namespace VEngine
 
          //   GL.BindImageTexture(22u, (uint)PostProcessing.FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
 
-            return res;
+            return true;
         }
 
 

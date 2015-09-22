@@ -21,8 +21,8 @@ namespace ShadowsTester
         class Config
         {   
             public static string MediaPath = "media";
-            public static int Width = 1920;
-            public static int Height = 1010;
+            public static int Width = 2944;
+            public static int Height = 1040;
         }
 
         private static void Main(string[] args)
@@ -39,13 +39,15 @@ namespace ShadowsTester
             {
                 GLThread.SetCurrentThreadCores(2);
 
-                window = new VEngineWindowAdapter("Test", Config.Width, Config.Height);
+                window = new VEngineWindowAdapter("Test", Config.Width, Config.Height, GameWindowFlags.Default);
 
                 GLThread.GraphicsSettings.UseDeferred = true;
                 GLThread.GraphicsSettings.UseRSM = true;
                 GLThread.GraphicsSettings.UseFog = false;
                 GLThread.GraphicsSettings.UseBloom = false;
                 GLThread.GraphicsSettings.UseLightPoints = false;
+
+                window.CursorVisible = false;
 
                 window.Run(60);
             });

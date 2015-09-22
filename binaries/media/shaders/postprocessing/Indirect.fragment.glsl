@@ -4,6 +4,7 @@ in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
+#include Shade.glsl
 
 layout (std430, binding = 6) buffer RandomsBuffer
 {
@@ -50,80 +51,6 @@ vec2 refractUV(){
 mat4 PV = (ProjectionMatrix * ViewMatrix);
 #define PI 3.14159265
 
-float orenNayarDiffuse(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfaceNormal,
-float roughness,
-float albedo) {
-
-    float LdotV = dot(lightDirection, viewDirection);
-    float NdotL = dot(lightDirection, surfaceNormal);
-    float NdotV = dot(surfaceNormal, viewDirection);
-
-    float s = LdotV - NdotL * NdotV;
-    float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));
-
-    float sigma2 = roughness * roughness;
-    float A = 1.0 + sigma2 * (albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
-    float B = 0.45 * sigma2 / (sigma2 + 0.09);
-
-    return albedo * max(0.0, NdotL) * (A + B * s / t) / PI;
-}
-
-float beckmannDistribution(float x, float roughness) {
-    float NdotH = max(x, 0.001);
-    float cos2Alpha = NdotH * NdotH;
-    float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
-    float roughness2 = roughness * roughness;
-    float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
-    return exp(tan2Alpha / roughness2) / denom;
-}
-
-float beckmannSpecular(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfaceNormal,
-float roughness) {
-    return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
-}
-
-float cookTorranceSpecular(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfaceNormal,
-float roughness,
-float fresnel) {
-
-    float VdotN = max(dot(viewDirection, surfaceNormal), 0.0);
-    float LdotN = max(dot(lightDirection, surfaceNormal), 0.0);
-
-    //Half angle vector
-    vec3 H = normalize(lightDirection + viewDirection);
-
-    //Geometric term
-    float NdotH = max(abs(dot(surfaceNormal, H)), 0.0);
-    float VdotH = max(abs(dot(viewDirection, H)), 0.0001);
-    float LdotH = max(abs(dot(lightDirection, H)), 0.0001);
-    float G1 = (2.0 * NdotH * VdotN) / VdotH;
-    float G2 = (2.0 * NdotH * LdotN) / LdotH;
-    float G = min(1.0, min(G1, G2));
-
-    //Distribution term
-    float D = beckmannDistribution(NdotH, roughness);
-
-    //Fresnel term
-    float F = 1;
-
-    //Multiply terms and done
-    return  G * F * D / max(3.14159265 * VdotN, 0.001);
-}
-
-float CalculateFallof( float dist){
-    //return 1.0 / pow(((dist) + 1.0), 2.0);
-    return dist == 0 ? 3 : (3) / (14*PI*dist*dist+1);
-    
-}
 vec2 HitPos = vec2(-2);
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
@@ -198,7 +125,7 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 27
+    #define RSMSamples 227
     for(int i=0;i<LightsCount;i++){
         //break;
         mat4 lightPV = (LightsPs[i] * LightsVs[i]);
@@ -226,10 +153,11 @@ vec3 RSM(){
             vec3 lnormal = upackB.rgb;
             float lmetal = upackB.a;
             
-            scruv.y = 1.0 - scruv.y;
-            scruv = scruv * 2 - 1;
+          //  scruv.y = 1.0 - scruv.y;
+            scruv = (scruv * 2 - 1);
             reconstructDir = invlightPV * vec4(scruv, 1.0, 1.0);
             reconstructDir.xyz /= reconstructDir.w;
+            
             float revlog = reverseLogEx(ldep, LightsFarPlane[i]);
             // not optimizable
             vec3 newpos = normalize(reconstructDir.xyz - centerpos) * revlog + LightsPos[i];
@@ -238,7 +166,7 @@ vec3 RSM(){
             float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
             vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
             vec3 lightRelativeToVPos2 = normalize(newpos - centerpos);
-            float att = CalculateFallof(distanceToLight + revlog) *  LightsColors[i].a*10;
+            float att = CalculateFallof(distanceToLight + revlog) *  LightsColors[i].a;
             
            // float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*3.2, fragmentPosWorld3d.xyz);
            // vi = HitPos.x > 0 ? mix(1.0, 0.0, distance(FromCameraSpace(texture(worldPosTex, HitPos).rgb), fragmentPosWorld3d.xyz) / 3.2) : 1;
@@ -272,11 +200,11 @@ vec3 RSM(){
             vec3 difcolor2 = lcolor*colorOriginal * diffuseComponent * att;
             vec3 specolor = cc * specularComponent;
             
-            vec3 radiance = mix(difcolor2 + specolor, difcolor*meshRoughness + specolor, meshMetalness);
+            vec3 radiance = mix(difcolor2 + specolor, difcolor * meshRoughness + specolor, meshMetalness);
             
             vec3 refl = reflect(-lightRelativeToVPos2, lnormal);
             float spfsm = max(0, dot(refl, lightRelativeToVPos));
-            spfsm = pow(spfsm, 255 * (1.0-lrough) + 1) * max(0, sign(dot(lightRelativeToVPos, lnormal))) * (5-lrough);
+            spfsm = pow(spfsm, fma(255, (1.0-lrough), 1)) * max(0, sign(dot(lightRelativeToVPos, lnormal))) * (5-lrough);
             spfsm = clamp(cookTorranceSpecular(
             -lightRelativeToVPos2,
             -lightRelativeToVPos,

@@ -250,19 +250,25 @@ namespace VEngine
             }
         }
 
-        public bool Use()
+        public enum SwitchResult
+        {
+            Switched,
+            AlreadyInUse,
+            Locked
+        }
+        public SwitchResult Use()
         {
             if(!Lock)
             {
-                //if(Current == this)
-                //    return false;
                 if(!Compiled)
                     Compile();
+                if(Current == this)
+                    return SwitchResult.AlreadyInUse;
                 GL.UseProgram(Handle);
                 Current = this;
-                return true;
+                return SwitchResult.Switched;
             }
-            return false;
+            return SwitchResult.Locked;
         }
 
         private static int GetUniformLocation(string name)

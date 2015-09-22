@@ -4,6 +4,7 @@ in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
+#include Shade.glsl
 
 layout (std430, binding = 6) buffer RandomsBuffer
 {
@@ -48,125 +49,47 @@ vec2 refractUV(){
 }
 
 mat4 PV = (ProjectionMatrix * ViewMatrix);
-#define PI 3.14159265
 
-float orenNayarDiffuse(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfaceNormal,
-float roughness,
-float albedo) {
+struct AABox
+{
+    vec4 Minimum;
+    vec4 Maximum;
+    vec4 Color;
+};
+uniform int AABoxesCount;
 
-    float LdotV = dot(lightDirection, viewDirection);
-    float NdotL = dot(lightDirection, surfaceNormal);
-    float NdotV = dot(surfaceNormal, viewDirection);
+layout (std430, binding = 7) buffer BoxesBuffer
+{
+    AABox AABoxes[]; 
+}; 
 
-    float s = LdotV - NdotL * NdotV;
-    float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));
-
-    float sigma2 = roughness * roughness;
-    float A = 1.0 + sigma2 * (albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
-    float B = 0.45 * sigma2 / (sigma2 + 0.09);
-
-    return albedo * max(0.0, NdotL) * (A + B * s / t) / PI;
+float NearHitPos = 0.0;
+bool tryIntersectBox(vec3 origin, vec3 direction,
+vec3 bMin,
+vec3 bMax)
+{
+    vec3 OMIN = ( bMin - origin ) / direction;    
+    vec3 OMAX = ( bMax - origin ) / direction;    
+    vec3 MAX = max ( OMAX, OMIN );    
+    vec3 MIN = min ( OMAX, OMIN );  
+    float final = min ( MAX.x, min ( MAX.y, MAX.z ) );
+    float start = max ( max ( MIN.x, 0.0 ), max ( MIN.y, MIN.z ) );    
+    NearHitPos = start;
+    return final > start;
 }
 
-float beckmannDistribution(float x, float roughness) {
-    float NdotH = max(x, 0.001);
-    float cos2Alpha = NdotH * NdotH;
-    float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
-    float roughness2 = roughness * roughness;
-    float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
-    return exp(tan2Alpha / roughness2) / denom;
+vec3 getIntersect(vec3 originalColor, vec3 origin, vec3 direction){
+    float lastDistance = 9999999;
+    vec3 color = originalColor*0.1;
+    for(int i=0;i<AABoxesCount;i++){
+        if(tryIntersectBox(origin, direction, AABoxes[i].Minimum.xyz, AABoxes[i].Maximum.xyz) &&
+                NearHitPos < lastDistance){
+            lastDistance = NearHitPos;
+            color = CalculateFallof(lastDistance) * AABoxes[i].Color.a * AABoxes[i].Color.rgb; 
+        }
+    }
+    return color;
 }
-
-float beckmannSpecular(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfaceNormal,
-float roughness) {
-    return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
-}
-
-float cookTorranceSpecular(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfaceNormal,
-float roughness,
-float fresnel) {
-
-    float VdotN = max(dot(viewDirection, surfaceNormal), 0.0);
-    float LdotN = max(dot(lightDirection, surfaceNormal), 0.0);
-
-    //Half angle vector
-    vec3 H = normalize(lightDirection + viewDirection);
-
-    //Geometric term
-    float NdotH = max(abs(dot(surfaceNormal, H)), 0.0);
-    float VdotH = max(abs(dot(viewDirection, H)), 0.0001);
-    float LdotH = max(abs(dot(lightDirection, H)), 0.0001);
-    float G1 = (2.0 * NdotH * VdotN) / VdotH;
-    float G2 = (2.0 * NdotH * LdotN) / LdotH;
-    float G = min(1.0, min(G1, G2));
-
-    //Distribution term
-    float D = beckmannDistribution(NdotH, roughness);
-
-    //Fresnel term
-    float F = 1;
-
-    //Multiply terms and done
-    return  G * F * D / max(3.14159265 * VdotN, 0.001);
-}
-
-float CalculateFallof( float dist){
-    //return 1.0 / pow(((dist) + 1.0), 2.0);
-    return dist == 0 ? 3 : (3) / (14*PI*dist*dist+1);
-    
-}
-
-vec3 shade(
-    vec3 albedo, 
-    vec3 normal,
-    vec3 fragmentPosition, 
-    vec3 lightPosition, 
-    vec4 lightColor, 
-    float roughness, 
-    float metalness, 
-    float specular
-){
-    vec3 lightRelativeToVPos =normalize( lightPosition - fragmentPosition);
-    
-    vec3 cameraRelativeToVPos = normalize(-ToCameraSpace(fragmentPosition));
-    
-    float distanceToLight = distance(fragmentPosition, lightPosition);
-    float att = CalculateFallof(distanceToLight)* lightColor.a*10;
-    if(att < 0.002) return vec3(0);
-    
-    float specularComponent = specular * clamp(cookTorranceSpecular(
-        lightRelativeToVPos,
-        cameraRelativeToVPos,
-        normal,
-        max(0.02, roughness), 1
-        ), 0.0, 1.0);
-
-    
-    float diffuseComponent = clamp(orenNayarDiffuse(
-        lightRelativeToVPos,
-        cameraRelativeToVPos,
-        normal,
-        max(0.02, roughness), 1
-        ), 0.0, 1.0);   
-
-    vec3 cc = mix(lightColor.rgb*albedo, lightColor.rgb, metalness);
-    
-    vec3 difcolor = cc * diffuseComponent * att;
-    vec3 difcolor2 = lightColor.rgb * albedo * diffuseComponent * att;
-    vec3 specolor = cc * specularComponent;
-    
-    return mix(difcolor2 + specolor, difcolor*roughness + specolor, metalness);
-}
-
 
 vec3 random3dSample(){
     return normalize(vec3(
@@ -209,11 +132,11 @@ float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler
         vec2 muv = mix(p1, p2, ix);
         float expr = min(muv.x, muv.y) * -(max(muv.x, muv.y)-1.0);
         float tmp = min(0, sign(expr)) * 
-            ret + 
-            min(0, -sign(expr)) * 
-            max(
-                mix(v1, v2, ix) - texture(sampler, muv).r,
-                ret);
+        ret + 
+        min(0, -sign(expr)) * 
+        max(
+        mix(v1, v2, ix) - texture(sampler, muv).r,
+        ret);
         if(tmp > ret) HitPos = muv;
         ret = tmp;
     }
@@ -245,7 +168,7 @@ vec3 Radiosity()
     float meshSpecular = texture(worldPosTex, UV).a;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 14;
+    const int samples = 114;
     
     float octaves[] = float[4](0.8, 3.0, 7.9, 10.0);
     vec3 dir = normalize(reflect(posCenter, normalCenter));
@@ -269,9 +192,11 @@ vec3 Radiosity()
             float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace * 0.3) <= 0 ? 1: 0;
             vi = HitPos.x > 0 ? mix(1.0, 0.0, distance(FromCameraSpace(texture(worldPosTex, HitPos).rgb), FromCameraSpace(posCenter)) / 3.2) : 1;
             
-            vec3 color = adjustGamma(texture(cubeMapTex, displace).rgb, mix(0.7, 1.0, meshMetalness)) ;
+            vec3 color = texture(cubeMapTex, displace).rgb;
+            color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, normalCenter));
-            ambient += color* dotdiffuse * fresnel ;
+            vec3 radiance = shadeUV(UV, FromCameraSpace(posCenter) + displace, vec4(color, 1));
+            ambient += radiance;
             counter++;
         }
     }
@@ -284,11 +209,11 @@ void main()
         outColor = texture(cubeMapTex, normalize(texture(worldPosTex, UV).rgb)).rgba;
         return;
     }
-  //  float alpha = texture(texColor, UV).a;
+    //  float alpha = texture(texColor, UV).a;
     vec2 nUV = UV;
-   // if(alpha < 0.99){
-        //nUV = refractUV();
-   // }
+    // if(alpha < 0.99){
+    //nUV = refractUV();
+    // }
     vec3 colorOriginal = texture(diffuseColorTex, nUV).rgb;    
     vec4 normal = texture(normalsTex, nUV);
     meshDiffuse = normal.a;
@@ -315,10 +240,10 @@ void main()
 
     //vec3 cameraRelativeToVPos = normalize( CameraPosition - fragmentPosWorld3d.xyz);
     float len = length(cameraRelativeToVPos);
-   // int foundSun = 0;
+    // int foundSun = 0;
     if(!IgnoreLightingFragment) for(int i=0;i<LightsCount;i++){
         
-       // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && foundSun > 0)continue;
+        // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && foundSun > 0)continue;
         //if(len < LightsRanges[i].x) continue;
         //if(len > LightsRanges[i].y) continue;
 
@@ -334,46 +259,7 @@ void main()
         // do shadows
         if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0){ 
             float percent = getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i);
-            vec3 abc = LightsPos[i];
-            
-            vec3 lightRelativeToVPos =normalize( abc - fragmentPosWorld3d.xyz);
-            
-            
-            float distanceToLight = distance(fragmentPosWorld3d.xyz, abc);
-            float att = CalculateFallof(distanceToLight)* LightsColors[i].a*10;
-            //att = 1;
-           // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE)att = 1;
-            if(att < 0.002) continue;
-            
-            float specularComponent = meshSpecular * clamp(cookTorranceSpecular(
-            lightRelativeToVPos,
-            cameraRelativeToVPos,
-            normal.xyz,
-            max(0.02, meshRoughness), 1
-            ), 0.0, 1.0);
-
-            
-            float diffuseComponent = clamp(orenNayarDiffuse(
-            lightRelativeToVPos,
-            cameraRelativeToVPos,
-            normal.xyz,
-            meshRoughness, 1
-            ), 0.0, 1.0);   
-            
-          //  float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
-          //  fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(1.0-meshRoughness)*0.4 + 1.0;
-            
-            //vec3 illumalbedo = vec3((LightsColors[i].r+LightsColors[i].g+LightsColors[i].b)*0.333);
-            vec3 cc = mix(LightsColors[i].rgb*colorOriginal, LightsColors[i].rgb, meshMetalness);
-            
-            vec3 difcolor = cc * diffuseComponent * att;
-            vec3 difcolor2 = LightsColors[i].rgb*colorOriginal * diffuseComponent * att;
-            vec3 specolor = cc * specularComponent;
-            
-            vec3 radiance = mix(difcolor2 + specolor, difcolor*meshRoughness + specolor, meshMetalness);
-            
-          //  float culler = max(0, 1.0-distance(lightScreenSpace, vec2(0.5))*2);
-            
+            vec3 radiance = shadeUV(UV, LightsPos[i], LightsColors[i]);
             color1 += (radiance) * percent;
             
             
@@ -385,11 +271,16 @@ void main()
             
             // color1 += colorOriginal *  max(0.1, amount);
             //    } 
-           // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
+            // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
         }
     }
     if(UseVDAO == 1 && UseHBAO == 0) color1 += Radiosity();
     if(UseVDAO == 1 && UseHBAO == 1) color1 += Radiosity() * texture(HBAOTex, UV).r;
+    //   if(UseVDAO == 0 && UseHBAO == 1) color1 += texture(HBAOTex, UV).rrr;
+    
+    // experiment
+    
+    
     outColor = clamp(vec4(color1, 1.0), 0.0, 1.0);
     
     

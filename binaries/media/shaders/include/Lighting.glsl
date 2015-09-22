@@ -51,7 +51,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	}
     if(counter == 0) return 0.0;
     float bbb = average/counter;
-	return clamp((distance2 - bbb) *7-0.1, 0, 11);
+	return clamp((distance2 - bbb) *7-0.1, 0, 12);
 }
 
 float LastProbeDistance = 0.0;

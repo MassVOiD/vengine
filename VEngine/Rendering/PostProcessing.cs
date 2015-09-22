@@ -47,7 +47,7 @@ namespace VEngine
         public MRTFramebuffer MRT;
         ShaderStorageBuffer RandomsSSBO = new ShaderStorageBuffer();
 
-        private ShaderStorageBuffer TestBuffer;
+        private ShaderStorageBuffer AABoxesBuffer;
 
         private Mesh3d PostProcessingMesh;
 
@@ -78,7 +78,7 @@ namespace VEngine
         public PostProcessing(int initialWidth, int initialHeight)
         {
             //FullScene3DTexture = new Texture3D(new Vector3(64, 64, 64));
-            TestBuffer = new ShaderStorageBuffer();
+            AABoxesBuffer = new ShaderStorageBuffer();
             DensityPoints = new ShaderStorageBuffer();
             NumbersTexture = new Texture(Media.Get("numbers.png"));
             CShader = new ComputeShader("Blur.compute.glsl");
@@ -86,9 +86,11 @@ namespace VEngine
                 Media.Get("negx.jpg"), Media.Get("negy.jpg"), Media.Get("negz.jpg"));
             GLThread.Invoke(() =>
             {
-                TestBuffer.MapData(new Vector3[4]{
-                    new Vector3(1, 0.25f, 1), new Vector3(0, 0.55f, 0.75f),
-                    new Vector3(1, 0.25f, 0), new Vector3(0.55f, 0, 0.75f)
+                AABoxesBuffer.MapData(new Vector4[4 * 3]{
+                    new Vector4(-5.826700f, 0.183174f, -4.040090f, 0), new Vector4(-5.277061f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
+                    new Vector4(-5.218601f, 0.183174f, -4.040090f, 0), new Vector4(-4.668962f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
+                    new Vector4(-7.154271f, 0.183174f, -4.040090f, 0), new Vector4(-6.604632f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
+                    new Vector4(-6.554271f, 0.183174f, -4.040090f, 0), new Vector4(-6.004632f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
                 });
 
             });
@@ -106,7 +108,7 @@ namespace VEngine
             LastWorldPosFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             HelperFullResFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             LastDeferredFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
-            IndirectFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             SSAOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
 
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
@@ -224,12 +226,7 @@ namespace VEngine
         private void Deferred()
         {
             DeferredShader.Use();
-            // GL.BindImageTexture(11, (uint)FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
-            MRT.UseTextureWorldPosition(15);
-            MRT.UseTextureNormals(16);
-            MRT.UseTextureMeshData(17);
             World.Root.RootScene.SetLightingUniforms(DeferredShader, Matrix4.Identity);
-            MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureDepth(1);
             DeferredShader.SetUniform("UseVDAO", GLThread.GraphicsSettings.UseVDAO);
             DeferredShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
@@ -238,6 +235,8 @@ namespace VEngine
             LastDeferredFramebuffer.UseTexture(20);
             DeferredShader.SetUniform("RandomsCount", 16 * 16 * 16);
             RandomsSSBO.Use(6);
+            AABoxesBuffer.Use(7);
+            DeferredShader.SetUniform("AABoxesCount", 4);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw(Matrix4.Identity);
@@ -246,11 +245,7 @@ namespace VEngine
         private void SSAO()
         {
             SSAOShader.Use();
-            // GL.BindImageTexture(11, (uint)FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
-            MRT.UseTextureWorldPosition(15);
             MRT.UseTextureDepth(1);
-            MRT.UseTextureNormals(16);
-            MRT.UseTextureMeshData(17);
             SSAOShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
             SSAOShader.SetUniform("RandomsCount", 16 * 16 * 16);
             RandomsSSBO.Use(6);
@@ -261,17 +256,10 @@ namespace VEngine
         private void Indirect()
         {
             IndirectShader.Use();
-            // GL.BindImageTexture(11, (uint)FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
-            MRT.UseTextureWorldPosition(15);
-            MRT.UseTextureNormals(16);
-            MRT.UseTextureMeshData(17);
             World.Root.RootScene.SetLightingUniforms(IndirectShader, Matrix4.Identity);
-            MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureDepth(1);
             IndirectShader.SetUniform("UseVDAO", GLThread.GraphicsSettings.UseVDAO);
             IndirectShader.SetUniform("UseRSM", GLThread.GraphicsSettings.UseRSM);
-            CubeMap.Use(TextureUnit.Texture19);
-            LastDeferredFramebuffer.UseTexture(20);
             IndirectShader.SetUniform("RandomsCount", 16 * 16 * 16);
             RandomsSSBO.Use(6);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
@@ -283,8 +271,6 @@ namespace VEngine
         {
             FogShader.Use();
             World.Root.RootScene.SetLightingUniforms(FogShader, Matrix4.Identity);
-            MRT.UseTextureWorldPosition(15);
-            MRT.UseTextureNormals(16);
             FogShader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw(Matrix4.Identity);
@@ -304,7 +290,6 @@ namespace VEngine
                 HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
                 HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
-            MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureDepth(1);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw(Matrix4.Identity);
@@ -322,7 +307,7 @@ namespace VEngine
         private void Combine()
         {
             CombinerShader.Use();
-            World.Root.RootScene.SetLightingUniforms(CombinerShader, Matrix4.Identity);
+           // World.Root.RootScene.SetLightingUniforms(CombinerShader, Matrix4.Identity, false);
             CombinerShader.SetUniform("UseFog", GLThread.GraphicsSettings.UseFog);
             CombinerShader.SetUniform("UseLightPoints", GLThread.GraphicsSettings.UseLightPoints);
             CombinerShader.SetUniform("UseDepth", GLThread.GraphicsSettings.UseDepth);
@@ -409,27 +394,29 @@ namespace VEngine
             MRT.Use();
             World.Root.Draw();
             Mesh3d.PostProcessingUniformsOnly = true;
-            
+
+            MRT.UseTextureDiffuseColor(14);
+            MRT.UseTextureWorldPosition(15);
+            MRT.UseTextureNormals(16);
+            MRT.UseTextureMeshData(17);
+            MRT.UseTextureId(18);
+            LastWorldPosFramebuffer.UseTexture(21);
+
             if(GLThread.GraphicsSettings.UseFog)
             {
                 SwitchToFB(FogFramebuffer);
-                MRT.UseTextureDiffuseColor(14);
-                MRT.UseTextureWorldPosition(15);
                 MRT.UseTextureDepth(1);
                 Fog();
             }
             if(GLThread.GraphicsSettings.UseRSM || GLThread.GraphicsSettings.UseHBAO)
             {
-                SwitchToFB(IndirectFramebuffer);
-                Indirect();
-                SwitchToFB(LastDeferredFramebuffer);
-                IndirectFramebuffer.UseTexture(0);
-                Blit();
+               
                 SwitchToFB(SSAOFramebuffer);
                 SSAO();
 
                 SwitchToFB(HelperFullResFrameBuffer);
                 Blur(HelperFullResFrameBuffer, HelperFullResFrameBuffer, SSAOFramebuffer, 14);
+                HelperFullResFrameBuffer.UseTexture(23);
             }
             // Blur(IndirectFramebuffer.TexColor, 8, IndirectFramebuffer.Width, IndirectFramebuffer.Height, BlurMode.Temporal);
             // Blur(SSAOFramebuffer.TexColor, 8, SSAOFramebuffer.Width, SSAOFramebuffer.Height, BlurMode.Temporal);
@@ -437,16 +424,16 @@ namespace VEngine
             if(GLThread.GraphicsSettings.UseDeferred)
             {
                 SwitchToFB(Pass2FrameBuffer);
-                MRT.UseTextureDiffuseColor(14);
                 MRT.UseTextureDepth(1);
-                MRT.UseTextureWorldPosition(15);
-                MRT.UseTextureNormals(16);
-                MRT.UseTextureMeshData(17);
-                MRT.UseTextureId(18);
-                HelperFullResFrameBuffer.UseTexture(23);
                 Deferred();
             }
-
+            SwitchToFB(IndirectFramebuffer);
+            Indirect();
+            SwitchToFB(LastDeferredFramebuffer);
+            IndirectFramebuffer.UseTexture(0);
+            Blit();
+            FogFramebuffer.UseTexture(24);
+            IndirectFramebuffer.UseTexture(22);
 
             // SwitchToFB(Pass2FrameBuffer);
 
@@ -459,14 +446,6 @@ namespace VEngine
 
             Pass2FrameBuffer.UseTexture(0);
             MRT.UseTextureDepth(1);
-            MRT.UseTextureDiffuseColor(14);
-            MRT.UseTextureWorldPosition(15);
-            MRT.UseTextureNormals(16);
-            MRT.UseTextureMeshData(17);
-            LastWorldPosFramebuffer.UseTexture(21);
-            IndirectFramebuffer.UseTexture(22);
-            HelperFullResFrameBuffer.UseTexture(23);
-            FogFramebuffer.UseTexture(24);
 
             Combine();
 
@@ -476,6 +455,7 @@ namespace VEngine
                 SwitchToFB(BloomFrameBuffer);
                 Pass1FrameBuffer.UseTexture(0);
                 Bloom();
+                BloomFrameBuffer.UseTexture(26);
             }
 
          /*   SwitchToFB(Pass2FrameBuffer);
@@ -491,8 +471,6 @@ namespace VEngine
 
             Pass1FrameBuffer.UseTexture(0);
             MRT.UseTextureDepth(1);
-            BloomFrameBuffer.UseTexture(26);
-            MRT.UseTextureWorldPosition(15);
             NumbersTexture.Use(TextureUnit.Texture25);
 
             HDR(lastTime == 0 ? 0 : 1000000 / lastTime);

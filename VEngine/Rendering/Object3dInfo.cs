@@ -26,6 +26,44 @@ namespace VEngine
             Indices = indices;
             AreBuffersGenerated = false;
         }
+        private static float Max(float a, float b)
+        {
+            return a > b ? a : b;
+        }
+        private static float Min(float a, float b)
+        {
+            return a < b ? a : b;
+        }
+        private static Vector3 Max(Vector3 a, Vector3 b)
+        {
+            return new Vector3(
+                Max(a.X, b.X),
+                Max(a.Y, b.Y),
+                Max(a.Z, b.Z)
+            );
+        }
+        private static Vector3 Min(Vector3 a, Vector3 b)
+        {
+            return new Vector3(
+                Min(a.X, b.X),
+                Min(a.Y, b.Y),
+                Min(a.Z, b.Z)
+            );
+        }
+        private void UpdateBoundingBox()
+        {
+            var vertices = GetRawVertexList();
+            var a = vertices[0];
+            var b = vertices[0];
+            foreach(var v in vertices)
+            {
+                a = Min(a, v);
+                b = Max(b, v);
+            }
+            AABB = new AxisAlignedBoundingBox() {
+                Minimum = a, Maximum = b
+            };
+        }
 
         public static Object3dInfo Empty
         {
@@ -51,6 +89,11 @@ namespace VEngine
             return CachedHash;
         }
 
+        public struct AxisAlignedBoundingBox
+        {
+            public Vector3 Minimum, Maximum;
+        }
+
         public uint[] Indices;
         public string MaterialName = "", Name = "";
         public float[] VBO;
@@ -58,6 +101,7 @@ namespace VEngine
         //private Object3dInfo Current = null;
         private bool AreBuffersGenerated;
         private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
+        public AxisAlignedBoundingBox AABB;
         private int VertexBuffer, IndexBuffer, VAOHandle, IndicesCount = 0;
 
         public static void CompressAndSave(string infile, string outdir)

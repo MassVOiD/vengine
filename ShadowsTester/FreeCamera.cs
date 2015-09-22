@@ -93,7 +93,7 @@ namespace ShadowsTester
             var keyboard = OpenTK.Input.Keyboard.GetState();
             KeyboardHandler.Process();
 
-            float speed = 0.3f;
+            float speed = 0.05f;
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))
             {
                 speed *= 4;

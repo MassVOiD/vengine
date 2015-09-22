@@ -4,6 +4,7 @@ in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
+#include Shade.glsl
 
 
 out vec4 outColor;
@@ -26,10 +27,10 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 		vec3 lastPos = start - mix(start, end, sampling);
 		for(float m = 0.0; m< 1.0;m+= 0.01){
 			vec3 pos = mix(start, end, m);
-            float distanceMult = clamp(distance(lastPos, pos) * 2, 0, 33) * 6;
+            float distanceMult = 1;
             //float distanceMult = 5;
             lastPos = pos;
-			float att = 1.0 / pow(((distance(pos, LightsPos[i])/1.0) + 1.0), 2.0) * LightsColors[i].a;
+			float att = CalculateFallof(distance(pos, LightsPos[i])) * LightsColors[i].a;
 			att = 1;
 			lightClipSpace = lightPV * vec4(pos, 1.0);
 			

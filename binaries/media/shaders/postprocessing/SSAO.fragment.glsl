@@ -86,6 +86,7 @@ vec3 adjustGamma(vec3 c, float gamma){
 }
 
 vec2 HitPos = vec2(-2);
+float hitposMixPrecentage = 0;
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
     for(int i=0; i<5; i++){
@@ -98,7 +99,7 @@ float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler
             max(
                 mix(v1, v2, ix) - texture(sampler, muv).r,
                 ret);
-        if(tmp > ret) HitPos = muv;
+        if(tmp > ret) {HitPos = muv; hitposMixPrecentage = ix;}
         ret = tmp;
     }
     //if(abs(ret) > 0.1) return 0;
@@ -127,7 +128,7 @@ float Radiosity()
     float meshSpecular = texture(worldPosTex, UV).a;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     float ambient = 0;
-    const int samples = 8;
+    const int samples = 12;
     
     float octaves[] = float[4](0.8, 3.0, 7.9, 10.0);
     vec3 dir = normalize(reflect(posCenter, normalCenter));
@@ -148,11 +149,11 @@ float Radiosity()
             float meshRoughness =brfds[bi];
             vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
             
-            float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace * 1.3);
-            vi = HitPos.x > 0  && vi < 0.13 ? 0 : 1;
+            float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace);
+            vi = HitPos.x > 0  && vi < 0.13 ? hitposMixPrecentage : 1;
             
-            float dotdiffuse = max(0, dot(displace, normalCenter));
-            ambient += vi * dotdiffuse;
+           // float dotdiffuse = max(0, dot(displace, normalCenter));
+            ambient += vi;
             counter++;
         }
     }
