@@ -236,7 +236,7 @@ namespace VEngine
             DeferredShader.SetUniform("RandomsCount", 16 * 16 * 16);
             RandomsSSBO.Use(6);
             AABoxesBuffer.Use(7);
-            DeferredShader.SetUniform("AABoxesCount", 4);
+            DeferredShader.SetUniform("AABoxesCount", 0);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw(Matrix4.Identity);

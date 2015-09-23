@@ -80,7 +80,7 @@ vec3 bMax)
 
 vec3 getIntersect(vec3 originalColor, vec3 origin, vec3 direction){
     float lastDistance = 9999999;
-    vec3 color = originalColor*0.1;
+    vec3 color = originalColor*1;
     for(int i=0;i<AABoxesCount;i++){
         if(tryIntersectBox(origin, direction, AABoxes[i].Minimum.xyz, AABoxes[i].Maximum.xyz) &&
                 NearHitPos < lastDistance){
@@ -168,7 +168,7 @@ vec3 Radiosity()
     float meshSpecular = texture(worldPosTex, UV).a;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 114;
+    const int samples = 18;
     
     float octaves[] = float[4](0.8, 3.0, 7.9, 10.0);
     vec3 dir = normalize(reflect(posCenter, normalCenter));

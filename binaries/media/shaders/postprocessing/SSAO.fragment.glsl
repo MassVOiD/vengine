@@ -149,7 +149,7 @@ float Radiosity()
             float meshRoughness =brfds[bi];
             vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
             
-            float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace);
+            float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace*4);
             vi = HitPos.x > 0  && vi < 0.13 ? hitposMixPrecentage : 1;
             
            // float dotdiffuse = max(0, dot(displace, normalCenter));

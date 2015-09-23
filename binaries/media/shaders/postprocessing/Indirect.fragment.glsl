@@ -125,7 +125,7 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 227
+    #define RSMSamples 18
     for(int i=0;i<LightsCount;i++){
         //break;
         mat4 lightPV = (LightsPs[i] * LightsVs[i]);

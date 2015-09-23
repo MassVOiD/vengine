@@ -21,7 +21,7 @@ namespace ShadowsTester
         class Config
         {   
             public static string MediaPath = "media";
-            public static int Width = 2944;
+            public static int Width = 1920;
             public static int Height = 1040;
         }
 
