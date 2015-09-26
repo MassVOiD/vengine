@@ -66,10 +66,10 @@ IntersectionData triangleIntersection(Triangle triangle, vec3 origin, vec3 direc
     vec3 v3 = triangle.vertices[2].Position.xyz;
     vec3 incidentPosition = v1+(v2-v1)*u+(v3-v1)*v;
     
-    vec3 n1 = triangle.vertices[0].Normal.xyz;
-    vec3 n2 = triangle.vertices[1].Normal.xyz;
-    vec3 n3 = triangle.vertices[2].Normal.xyz;
-    vec3 incidentNormal = n1+(n2-n1)*u+(n3-n1)*v;
+    vec3 n1 = triangle.vertices[0].normal.xyz;
+    vec3 n2 = triangle.vertices[1].normal.xyz;
+    vec3 n3 = triangle.vertices[2].normal.xyz;
+    vec3 incidentnormal = n1+(n2-n1)*u+(n3-n1)*v;
     
     vec3 c1 = triangle.vertices[0].Albedo.xyz;
     vec3 c2 = triangle.vertices[1].Albedo.xyz;
@@ -78,9 +78,9 @@ IntersectionData triangleIntersection(Triangle triangle, vec3 origin, vec3 direc
     
 
     return IntersectionData(
-        reflect(direction, incidentNormal),
+        reflect(direction, incidentnormal),
         incidentPosition,
-        incidentNormal,
+        incidentnormal,
         incidentColor,
         triangle.vertices[0].Albedo.a,
         distance(origin, incidentPosition),

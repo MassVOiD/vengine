@@ -42,10 +42,10 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
     float maxval = 0;
     for(float x = 0; x < mPI2; x+=1.2){ 
         for(float y=0.01;y<1.0;y+= 0.3){  
-			vec2 crd = vec2(sin(x + y), cos(x + y)) * (rand2s(UV/2-vec2(x,y)) * AInv * 0.4);
+			vec2 crd = vec2(sin(x + y), cos(x + y)) * (rand2s(uv/2-vec2(x,y)) * AInv * 0.4);
 			vec2 fakeUV = uv + crd;
 			float bval = (lookupDepthFromLight(i, fakeUV));
-            if(bval < distance2) average += bval;
+            average += bval * sign(distance2 - bval);
             counter+=1;
 		}
 	}
@@ -60,42 +60,25 @@ float rand2d(vec2 co){
 }
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 0.0;
-	
-	
-	
+    
 	float distance2 = distance(pos, LightsPos[i]);
     
-	//float badass_depth = toLogDepth(distance2);
 	mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 	vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
     vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;   
-	//if(lightClipSpace.z <= 0.0) return 1;
-    //if(lightScreenSpace.x < 0.0 || lightScreenSpace.x > 1.0 || lightScreenSpace.y < 0.0 || lightScreenSpace.y > 1.0) return 1;
-	//float badass_depth = toLogDepthEx(distance2, LightsFarPlane[i]);
-	
-	
-	//float AInv = 1.0 / ((distance2) + 1.0);
-	//float bval = badass_depth - lookupDepthFromLight(i, uv);
-	//float distanceCam = distance(positionWorldSpace.xyz, CameraPosition);
+
 	float distance1 = 0.0;
 	vec2 fakeUV = vec2(0.0);
 	
-	//float centerDiff = abs(badass_depth - lookupDepthFromLight(i, uv)) * 10000.0;
-		
 	float counter = 0;
-	//distance1 = lookupDepthFromLight(i, uv);
   
     float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
-   // float pssblur =0.9;
-  // LastProbeDistance = 1.0;
     float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
-    //float pssblur = 0;
     for(float x = 0; x < mPI2; x+=0.5){ 
-        for(float y=0.05;y<1.0;y+= 0.04 ){  
-            fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2d(UV+vec2(x,y)) * pssblur * 0.009;
+        for(float y=0.05;y<1.0;y+= 0.2 ){  
+            fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2d(uv+vec2(x,y)) * pssblur * 0.009;
             distance1 = lookupDepthFromLight(i, fakeUV);
             if(distance3 -  distance1 > 0.00003) accum += 1.0 ;
-           // LastProbeDistance = min(LastProbeDistance, abs(badass_depth - distance1));
             counter+=1;
         }
     }

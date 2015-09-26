@@ -1,5 +1,3 @@
-in vec2 UV;
-in vec3 tangent;
 uniform vec4 input_Color;
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outWorldPos;
@@ -69,7 +67,7 @@ vec3 perturb_normalRaw( vec3 N, vec3 V, vec3 map )
     // assume N, the interpolated vertex normal and 
     // V, the view vector (vertex to eye)
   // map = map * 255./127. - 128./127.;
-    mat3 TBN = cotangent_frame(N, -V, UV);
+    mat3 TBN = cotangent_frame(N, -V, Input.TexCoord);
     return normalize(TBN * map);
 }
 vec3 perturb_bump( float B, vec3 N, vec3 V)
@@ -77,7 +75,7 @@ vec3 perturb_bump( float B, vec3 N, vec3 V)
 
    vec3 map = vec3(0.5, 0.5, 1);
    map = map * 255./127. - 128./127.;
-    mat3 TBN = cotangent_frame(N, -V - (N*B), UV);
+    mat3 TBN = cotangent_frame(N, -V - (N*B), Input.TexCoord);
     return normalize(TBN * map);
 }
 #ifdef GL_ES
@@ -193,7 +191,7 @@ uniform float NormalMapScale;
 uniform int UseAlphaMask;
 void discardIfAlphaMasked(){
 	if(UseAlphaMask == 1){
-		if(texture(alphaMaskTex, UV).r < 0.5) discard;
+		if(texture(alphaMaskTex, Input.TexCoord).r < 0.5) discard;
 	}
 }
 
@@ -202,35 +200,37 @@ uniform int UseRoughnessMap;
 uniform int UseMetalnessMap;
 
 vec3 examineBumpMap(){
-    float bumpCenter = texture(bumpMapTex, UV).r;
+    float bumpCenter = texture(bumpMapTex, Input.TexCoord).r;
     return mix(vec3(0, 1, 0), normalize(vec3(1, 1, 0)), bumpCenter);
 }
+
+
 
 void finishFragment(vec4 color){
     discardIfAlphaMasked();
    // if(Selected) color *= 3;
 	outColor = vec4((color.xyz), color.a);
     //outColor = vec4(1);
-    vec3 wpos = positionWorldSpace;
-    vec3 normalNew  = normalize(normal);
+    vec3 wpos = Input.WorldPos;
+    vec3 normalNew  = normalize(Input.Normal);
     float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
-     //   float factor = (texture(bumpMapTex, UV).r);
+     //   float factor = (texture(bumpMapTex, Input.TexCoord).r);
        // wpos += (normalNew * factor * 0.02);
     }
     mat3 TBN = inverse(transpose(mat3(
-        normalize(tangent.xyz),
-        cross(normal.xyz, normalize(tangent.xyz)),
-        normal.xyz
+        normalize(Input.Tangent),
+        cross(Input.Normal, normalize(Input.Tangent)),
+        Input.Normal
     )));
     mat3 TBN2 = (transpose(mat3(
-        normalize(tangent.xyz),
-        cross(normal.xyz, normalize(tangent.xyz)),
-        normal.xyz
+        normalize(Input.Tangent),
+        cross(Input.Normal, normalize(Input.Tangent)),
+        Input.Normal
     )));
-    vec3 tangentwspace = TBN * tangent;
+    vec3 tangentwspace = TBN * Input.Tangent;
     float outSpecular = 0;
-    if(UseSpecularMap) outSpecular = texture(specularMapTex, UV).r; 
+    if(UseSpecularMap) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
     else outSpecular = SpecularComponent;
 	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
     
@@ -238,8 +238,8 @@ void finishFragment(vec4 color){
     
 	if(IgnoreLighting == 0){
 		if(UseNormalMap == 1){
-			//normalNew = perturb_normal(normalNew, positionWorldSpace, UV * NormalMapScale);   
-            vec3 map = texture(normalMapTex, UV ).rgb;
+			//normalNew = perturb_normal(normalNew, Input.WorldPos, Input.TexCoord * NormalMapScale);   
+            vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
           // map.x = - map.x;
          //  map.y = - map.y;
            map = map * 2 - 1;
@@ -248,7 +248,7 @@ void finishFragment(vec4 color){
           //  normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
     
 		} else if(UseBumpMap == 1){
-          //  float factor = ( texture(bumpMapTex, UV).r);
+          //  float factor = ( texture(bumpMapTex, Input.TexCoord).r);
             //factor = factor - 119;
         //    factor = (factor) ;
         //    worldBumpMapSize = factor;
@@ -262,25 +262,25 @@ void finishFragment(vec4 color){
 
 		}
         if(MaterialType == MaterialTypeWater){
-            float factor = getwater(UV * 5) * 0.3;
-			normalNew = normalize(normalNew - (tangent * factor));
+            float factor = getwater(Input.TexCoord * 5) * 0.3;
+			normalNew = normalize(normalNew - (Input.Tangent * factor));
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
         if(MaterialType == MaterialTypeWetDrops){
-            float pn = snoise(positionWorldSpace* 13.);
+            float pn = snoise(Input.WorldPos* 13.);
             //pn = clamp(pow(pn, 3.0), 0.5, 1.0);
-			normalNew = normalize(normalNew - (tangent * pn * 0.05));
+			normalNew = normalize(normalNew - (Input.Tangent * pn * 0.05));
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
 		if(Instances == 0){
             outId = vec4(ColoredID.xyz, worldBumpMapSize);
             vec3 rn = (InitialRotation * RotationMatrix * vec4(normalNew, 0)).xyz;
-            if(dot(rn, CameraPosition -positionWorldSpace) <=0) rn *= -1;
+            if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);
 		} else {
             outId = vec4(InstancedIds[instanceId].xyz, worldBumpMapSize);
             vec3 rn = (InitialRotation * RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz;
-            if(dot(rn, CameraPosition -positionWorldSpace) <=0) rn *= -1;
+            if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);
 		}
 	} else {
@@ -296,9 +296,9 @@ void finishFragment(vec4 color){
 	*/
     float outRoughness = 0;
     float outMetalness = 0;
-    if(UseRoughnessMap) outRoughness = texture(roughnessMapTex, UV).r; 
+    if(UseRoughnessMap) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
     else outRoughness = Roughness;
-    if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, UV).r; 
+    if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
     else outMetalness = Metalness;
     
 	outMeshData = vec4(0, 0, outMetalness, outRoughness);

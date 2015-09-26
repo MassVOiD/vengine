@@ -5,13 +5,13 @@ layout( local_size_x = 32, local_size_y = 1, local_size_z = 32 ) in;
 layout (binding = 0, rgba16f) writeonly uniform image2D outImage;
 layout (binding = 1, rgba16f) readonly uniform image2D lastBuffer;
 layout (binding = 2, rgba8) readonly uniform image2D texAlbedo;
-layout (binding = 3, rgba16f) readonly uniform image2D texNormals;
+layout (binding = 3, rgba16f) readonly uniform image2D texnormals;
 layout (binding = 4, rgba16f) readonly uniform image2D texWorldPos;
 
 struct Vertex
 {
   vec4 Position;
-  vec4 Normal;
+  vec4 normal;
   vec4 Albedo;
 };
 
@@ -72,7 +72,7 @@ ivec2 iUV;
 struct IntersectionData{
     vec3 NewDirection;
     vec3 Origin;
-    vec3 Normal;
+    vec3 normal;
     vec3 Color;
     float Roughness;
     float Distance;
@@ -229,14 +229,14 @@ vec3 PathTrace(vec3 origin, vec3 direction){
             vec3 incidentColor = bestCandidate.Color;
            // raycolor *= 0.5;
             if(length(bestCandidate.Color) >= length(vec3(1))){
-                accumulator += CalculateFallof(totalDistance/60+1) * incidentColor*1 * max(0,dot(-direction, bestCandidate.Normal)) *raycolor; 
-                //accumulator += incidentColor * max(0,dot(vec3(0,1,0), bestCandidate.Normal));
+                accumulator += CalculateFallof(totalDistance/60+1) * incidentColor*1 * max(0,dot(-direction, bestCandidate.normal)) *raycolor; 
+                //accumulator += incidentColor * max(0,dot(vec3(0,1,0), bestCandidate.normal));
                 break;
             } 
-            raycolor *= bestCandidate.Color * max(0,dot(-direction, bestCandidate.Normal));
-               // incidentColor = TraceShadows(bestCandidate.Origin, bestCandidate.Normal);
-               // if(i > 0)accumulator += CalculateFallof(totalDistance + 5.0) * max(0,dot(-direction, bestCandidate.Normal)) / i; 
-               //rayStrength *= 1 * max(0,dot(-direction, bestCandidate.Normal));
+            raycolor *= bestCandidate.Color * max(0,dot(-direction, bestCandidate.normal));
+               // incidentColor = TraceShadows(bestCandidate.Origin, bestCandidate.normal);
+               // if(i > 0)accumulator += CalculateFallof(totalDistance + 5.0) * max(0,dot(-direction, bestCandidate.normal)) / i; 
+               //rayStrength *= 1 * max(0,dot(-direction, bestCandidate.normal));
            // }
         } else break;
         
@@ -250,7 +250,7 @@ vec3 PathTrace(vec3 origin, vec3 direction){
         direction = direction;
         //direction = normalize(direction);
         //if(!bestCandidate.HasHit) break;
-        //if(i==0)accumulator += TraceShadows(origin, bestCandidate.Normal);
+        //if(i==0)accumulator += TraceShadows(origin, bestCandidate.normal);
     }
    // accumulator*=0.2;
     return (accumulator);
@@ -262,7 +262,7 @@ vec3 ExecuteTracing(){
     vec3 albedo = imageLoad(texAlbedo, iUV).xyz;
     float albedoA = imageLoad(texAlbedo, iUV).a;
     vec3 worldPos = FromCameraSpace(imageLoad(texWorldPos, iUV).xyz);
-    vec3 normal = imageLoad(texNormals, iUV).xyz;
+    vec3 normal = imageLoad(texnormals, iUV).xyz;
     vec3 vwpos = normalize(worldPos - CameraPosition);
     float roughness = 1.0-imageLoad(texWorldPos, iUV).a;
     vec3 reflected = reflect(vwpos , normal);

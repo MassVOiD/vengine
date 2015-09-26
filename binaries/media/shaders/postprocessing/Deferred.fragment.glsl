@@ -27,11 +27,6 @@ float getRand(){
 
 uniform int UseRSM;
 
-const int MAX_SIMPLE_LIGHTS = 20;
-uniform int SimpleLightsCount;
-uniform vec3 SimpleLightsPos[MAX_SIMPLE_LIGHTS];
-uniform vec4 SimpleLightsColors[MAX_SIMPLE_LIGHTS];
-
 float meshRoughness;
 float meshSpecular;
 float meshDiffuse;
@@ -61,6 +56,18 @@ uniform int AABoxesCount;
 layout (std430, binding = 7) buffer BoxesBuffer
 {
     AABox AABoxes[]; 
+}; 
+
+struct SimplePointLight
+{
+    vec4 Position;
+    vec4 Color;
+};
+uniform int SimpleLightsCount;
+
+layout (std430, binding = 5) buffer SimplePointLightBuffer
+{
+    SimplePointLight simplePointLights[]; 
 }; 
 
 float NearHitPos = 0.0;
@@ -242,38 +249,22 @@ void main()
     float len = length(cameraRelativeToVPos);
     // int foundSun = 0;
     if(!IgnoreLightingFragment) for(int i=0;i<LightsCount;i++){
-        
-        // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE && foundSun > 0)continue;
-        //if(len < LightsRanges[i].x) continue;
-        //if(len > LightsRanges[i].y) continue;
 
         mat4 lightPV = (LightsPs[i] * LightsVs[i]);
         vec4 lightClipSpace = lightPV * vec4(fragmentPosWorld3d.xyz, 1.0);
         if(lightClipSpace.z <= 0.0) continue;
         vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;   
-        
-        
-        
-        //int counter = 0;  
 
-        // do shadows
         if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0){ 
             float percent = getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i);
             vec3 radiance = shadeUV(UV, LightsPos[i], LightsColors[i]);
             color1 += (radiance) * percent;
-            
-            
-            //   if(percent < 0){
-            //is in shadow! lets try subsufrace scattering
-            // float subsc =  min(0.1, abs(LastProbeDistance));
-            //  float amount = 1.0/(pow((subsc *500)+1, 2));
-            //  amount = abs(amount);
-            
-            // color1 += colorOriginal *  max(0.1, amount);
-            //    } 
-            // if(LightsMixModes[i] == LIGHT_MIX_MODE_SUN_CASCADE) foundSun = 1;
         }
     }
+    if(!IgnoreLightingFragment) for(int i=0;i<SimpleLightsCount;i++){
+        color1 += shadeUV(UV, simplePointLights[i].Position.xyz, simplePointLights[i].Color*0.1);
+    }
+
     if(UseVDAO == 1 && UseHBAO == 0) color1 += Radiosity();
     if(UseVDAO == 1 && UseHBAO == 1) color1 += Radiosity() * texture(HBAOTex, UV).r;
     //   if(UseVDAO == 0 && UseHBAO == 1) color1 += texture(HBAOTex, UV).rrr;

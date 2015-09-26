@@ -158,15 +158,15 @@ void main()
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) color1 += texture(currentTex, nUV).rgb;
     
-    if(UseRSM + UseVDAO > 0 && UseHBAO == 1){
+    if(UseRSM == 1 && UseHBAO == 1){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * texture(HBAOTex, nUV).r;
-    } else if(UseRSM + UseVDAO > 0 && UseHBAO == 0){
+    } else if(UseRSM == 1 && UseHBAO == 0){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb);
-    } else if(UseRSM + UseVDAO == 0 && UseHBAO == 1){
+    } else if(UseRSM == 0 && UseHBAO == 1){
         color1 += texture(HBAOTex, nUV).rrr;
     }
     
-   // color1 += lightPoints();
+    color1 += lightPoints();
     if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
 
     if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);

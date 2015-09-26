@@ -125,7 +125,7 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 18
+    #define RSMSamples 22
     for(int i=0;i<LightsCount;i++){
         //break;
         mat4 lightPV = (LightsPs[i] * LightsVs[i]);
@@ -137,42 +137,19 @@ vec3 RSM(){
         vec4 reconstructDir;
         vec3 dir;
         for(int x=0;x<RSMSamples;x++){
-            //float rd = rand(UV);
-            //scruv = vec2(float(x) / RSMSamples, float(y) /RSMSamples);
-            //scruv = vec2(sin(scruv.x+scruv.y), cos(scruv.x+scruv.y)) * scruv.y;
-            //scruv = scruv * 0.5 + 0.5;
-            scruv = vec2(getRand(), getRand());
-            
-            float ldep = lookupDepthFromLight(i, scruv);            
-            uvec2 lcolord =  lookupColorFromLight(i, scruv);
-            //packUnorm4x8(vec4(radiance, Roughness)), packSnorm4x8(vec4(normal, Metalness))
-            vec4 upackA = unpackUnorm4x8(lcolord.r);
-            vec4 upackB = unpackSnorm4x8(lcolord.g);
-            vec3 lcolor = upackA.rgb;
-            float lrough = upackA.a;
-            vec3 lnormal = upackB.rgb;
-            float lmetal = upackB.a;
-            
-          //  scruv.y = 1.0 - scruv.y;
-            scruv = (scruv * 2 - 1);
-            reconstructDir = invlightPV * vec4(scruv, 1.0, 1.0);
-            reconstructDir.xyz /= reconstructDir.w;
-            
-            float revlog = reverseLogEx(ldep, LightsFarPlane[i]);
-            // not optimizable
-            vec3 newpos = normalize(reconstructDir.xyz - centerpos) * revlog + LightsPos[i];
+        
+            RSMLight light = rsmLights[int(getRand() * 64*64)];
+            vec3 lcolor = light.Color.rgb;
+            float lrough = light.Position.a;
+            vec3 lnormal = light.normal.rgb;
+            float lmetal = light.normal.a;
+            vec3 newpos = light.Position.xyz;
             
             
             float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
             vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
             vec3 lightRelativeToVPos2 = normalize(newpos - centerpos);
-            float att = CalculateFallof(distanceToLight + revlog) *  LightsColors[i].a;
-            
-           // float vi = testVisibility3d(nUV, fragmentPosWorld3d.xyz + lightRelativeToVPos*3.2, fragmentPosWorld3d.xyz);
-           // vi = HitPos.x > 0 ? mix(1.0, 0.0, distance(FromCameraSpace(texture(worldPosTex, HitPos).rgb), fragmentPosWorld3d.xyz) / 3.2) : 1;
-
-           // if(dot(normal.xyz, lightRelativeToVPos) < 0) continue;
-           // if(dot(lightRelativeToVPos, normalize(reconstructDir.xyz - centerpos)) < 0.5) continue;
+            float att = CalculateFallof(distanceToLight + distance(centerpos, newpos)) *  LightsColors[i].a;
             
             float specularComponent = clamp(cookTorranceSpecular(
             lightRelativeToVPos,
@@ -210,9 +187,9 @@ vec3 RSM(){
             -lightRelativeToVPos,
             lnormal,
             max(0.01, lrough), 1
-            ), 0.0, 1.0)*5;
+            ), 0.0, 1.0)*25;
             
-            color1 += (radiance * spfsm);
+            color1 += clamp(radiance * spfsm, 0.0, 0.5);
             
             
             // color1 += ((colorOriginal * (diffuseComponent * lcolor)) 

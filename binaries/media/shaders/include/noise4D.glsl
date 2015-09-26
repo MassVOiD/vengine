@@ -109,7 +109,7 @@ float snoise(vec4 v)
   vec4 p3 = grad4(j1.z, ip);
   vec4 p4 = grad4(j1.w, ip);
 
-// Normalise gradients
+// normalise gradients
   vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
   p0 *= norm.x;
   p1 *= norm.y;

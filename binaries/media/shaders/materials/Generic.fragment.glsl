@@ -8,10 +8,9 @@ uniform int DrawMode;
 
 void main()
 {
-	discardIfAlphaMasked();
-    if(DrawMode == MODE_TEXTURE_ONLY) finishFragment(texture(currentTex, UV));
+    if(DrawMode == MODE_TEXTURE_ONLY) finishFragment(texture(currentTex, Input.TexCoord));
 	else if(DrawMode == MODE_COLOR_ONLY) finishFragment(input_Color);
-	else if(DrawMode == MODE_TEXTURE_MULT_COLOR) finishFragment(texture(currentTex, UV) * input_Color);
+	else if(DrawMode == MODE_TEXTURE_MULT_COLOR) finishFragment(texture(currentTex, Input.TexCoord) * input_Color);
 	else if(DrawMode == MODE_ONE_MINUS_COLOR_OVER_TEXTURE) 
-        finishFragment(vec4(1) - (input_Color / (texture(currentTex, UV) + vec4(1, 1, 1, 0))));
+        finishFragment(vec4(1) - (input_Color / (texture(currentTex, Input.TexCoord) + vec4(1, 1, 1, 0))));
 }

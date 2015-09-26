@@ -89,7 +89,7 @@ vec2 HitPos = vec2(-2);
 float hitposMixPrecentage = 0;
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(int i=0; i<5; i++){
+    for(int i=0; i<4; i++){
         float ix = getRand();
         vec2 muv = mix(p1, p2, ix);
         float expr = min(muv.x, muv.y) * -(max(muv.x, muv.y)-1.0);
@@ -128,15 +128,15 @@ float Radiosity()
     float meshSpecular = texture(worldPosTex, UV).a;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     float ambient = 0;
-    const int samples = 12;
+    const int samples = 25;
     
-    float octaves[] = float[4](0.8, 3.0, 7.9, 10.0);
+    float octaves[] = float[](0.1, 0.5, 1.9);
     vec3 dir = normalize(reflect(posCenter, normalCenter));
     float fresnel = 1.0 - max(0, dot(-normalize(posCenter), normalize(normalCenter)));
     
     float initialAmbient = 0.0;
 
-    uint counter = 0;   
+    float counter = 0;   
     float meshRoughness1 = 1.0 - texture(meshDataTex, UV).a;
     float meshMetalness =  texture(meshDataTex, UV).z;
     fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(meshRoughness1)*0.4 + 1.0;
@@ -144,21 +144,24 @@ float Radiosity()
     float brfds[] = float[2](min(meshMetalness, meshRoughness1), meshRoughness1);
     for(int bi = 0; bi < brfds.length(); bi++)
     {
-        for(int i=0; i<samples; i++)
+        for(int p=0; p<octaves.length(); p++)
         {
-            float meshRoughness =brfds[bi];
-            vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
-            
-            float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace*4);
-            vi = HitPos.x > 0  && vi < 0.13 ? hitposMixPrecentage : 1;
-            
-           // float dotdiffuse = max(0, dot(displace, normalCenter));
-            ambient += vi;
-            counter++;
+            for(int i=0; i<samples; i++)
+            {
+                float meshRoughness =brfds[bi];
+                vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
+                
+                float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace*octaves[p]);
+                vi = HitPos.x > 0  && reverseLog(vi) < 0.1 ? hitposMixPrecentage : 1;
+                
+               // float dotdiffuse = max(0, dot(displace, normalCenter));
+                ambient += vi;
+                counter+=1.0;
+            }
         }
     }
-    float rs = counter == 0 ? 0 : (ambient / (counter));
-    return (rs);
+    float rs = counter == 0 ? 0 : max(0, (ambient / (counter)) - 0.35);
+    return pow(rs*1.5, 3.6);
 }
 void main()
 {   
@@ -166,12 +169,13 @@ void main()
     
     Seed(UV+1);
     randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
-    vec4 ou = vec4(0);
+    vec4 au = vec4(0);
     if(UseHBAO == 1){
-        ou = vec4(Radiosity(), 0, 0, 1);
+        au = vec4(Radiosity(), 0, 0, 1);
     }
-    ou.a = texture(depthTex, UV).r;
-    outColor = clamp(ou.rrra, 0.0, 1.0);
+    au.b = 0.5;
+    au.a = texture(depthTex, UV).r;
+    outColor = clamp(au.rgba, 0.0, 1.0);
     
     
 }

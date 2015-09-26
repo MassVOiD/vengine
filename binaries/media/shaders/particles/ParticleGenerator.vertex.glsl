@@ -3,8 +3,8 @@
 #include AttributeLayout.glsl
 
 //smooth out vec3 normal;
-smooth out vec3 positionWorldSpace;
-//smooth out vec3 positionModelSpace;
+smooth out vec3 Input.WorldPos;
+//smooth out vec3 Input.ModelPos;
 
 uniform mat4 ModelMatrix;
 uniform mat4 ViewMatrix;
@@ -58,10 +58,10 @@ void main(){
 	
 	//depth = temp.z / temp.w;// + (gl_InstanceID / MaxInstances / 10.0);
 	
-	//positionModelSpace = in_position;
+	//Input.ModelPos = in_position;
 	//normal = (OrientationOriginal * vec4(0.0, 1.0, 0.0, 0.0)).xyz;
 	
-	positionWorldSpace = transformed;
+	Input.WorldPos = transformed;
     vec4 v = vec4(transformed,1);
     
 	gl_Position = (ProjectionMatrix  * ViewMatrix) * v;	

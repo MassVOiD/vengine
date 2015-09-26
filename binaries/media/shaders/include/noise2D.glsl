@@ -58,7 +58,7 @@ float snoise(vec2 v)
   vec3 ox = floor(x + 0.5);
   vec3 a0 = x - ox;
 
-// Normalise gradients implicitly by scaling m
+// normalise gradients implicitly by scaling m
 // Approximation of: m *= inversesqrt( a0*a0 + h*h );
   m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
 

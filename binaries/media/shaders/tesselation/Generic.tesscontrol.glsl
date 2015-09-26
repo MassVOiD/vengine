@@ -5,24 +5,22 @@
 layout (vertices = 3) out;
 
 uniform vec3 gEyeWorldPos;
-
-// attributes of the input CPs
-in int instanceId_CS_in[];
-in vec3 ModelPos_CS_in[];
-in vec3 WorldPos_CS_in[];
-in vec2 TexCoord_CS_in[];
-in vec3 Normal_CS_in[];
-//in vec3 Barycentric_CS_in[];
-in vec3 Tangent_CS_in[];
-
-// attributes of the output CPs
-out int instanceId_ES_in[];
-out vec3 ModelPos_ES_in[];
-out vec3 WorldPos_ES_in[];
-out vec2 TexCoord_ES_in[];
-out vec3 Normal_ES_in[];
-//out vec3 Barycentric_ES_in[];
-out vec3 Tangent_ES_in[];
+in Data {
+    int instanceId;
+    vec3 ModelPos;
+    vec3 WorldPos;
+    vec2 TexCoord;
+    vec3 Normal;
+    vec3 Tangent;
+} Input[];
+out Data {
+    int instanceId;
+    vec3 ModelPos;
+    vec3 WorldPos;
+    vec2 TexCoord;
+    vec3 Normal;
+    vec3 Tangent;
+} Output[];
 
 uniform int MaterialType;
 #define MaterialTypeSolid 0
@@ -54,27 +52,27 @@ uniform float TesselationMultiplier;
 void main()
 {
     // Set the control points of the output patch
-    TexCoord_ES_in[gl_InvocationID] = TexCoord_CS_in[gl_InvocationID];
-    Normal_ES_in[gl_InvocationID] = Normal_CS_in[gl_InvocationID];
-    WorldPos_ES_in[gl_InvocationID] = WorldPos_CS_in[gl_InvocationID];
-    ModelPos_ES_in[gl_InvocationID] = ModelPos_CS_in[gl_InvocationID];
-   // Barycentric_ES_in[gl_InvocationID] = Barycentric_CS_in[gl_InvocationID];
-    Tangent_ES_in[gl_InvocationID] = Tangent_CS_in[gl_InvocationID];
-    instanceId_ES_in[gl_InvocationID] = instanceId_CS_in[gl_InvocationID];
-   	//Barycentric_ES_in = Barycentric_ES_in[0];
+    Output[gl_InvocationID].TexCoord = Input[gl_InvocationID].TexCoord;
+    Output[gl_InvocationID].Normal = Input[gl_InvocationID].Normal;
+    Output[gl_InvocationID].WorldPos = Input[gl_InvocationID].WorldPos;
+    Output[gl_InvocationID].ModelPos = Input[gl_InvocationID].ModelPos;
+   // Output[gl_InvocationID].Barycentric = Barycentric_CS_in[gl_InvocationID];
+    Output[gl_InvocationID].Tangent = Input[gl_InvocationID].Tangent;
+    Output[gl_InvocationID].instanceId = Input[gl_InvocationID].instanceId;
+   	//Barycentric_ES_in = Output[0].Barycentric;
 	
 	// Calculate the distance from the camera to the three control points
-    float EyeToVertexDistance0 = distance(CameraPosition, WorldPos_CS_in[0]);
-    float EyeToVertexDistance1 = distance(CameraPosition, WorldPos_CS_in[1]);
-    float EyeToVertexDistance2 = distance(CameraPosition, WorldPos_CS_in[2]);
+    float EyeToVertexDistance0 = distance(CameraPosition, Input[0].WorldPos);
+    float EyeToVertexDistance1 = distance(CameraPosition, Input[1].WorldPos);
+    float EyeToVertexDistance2 = distance(CameraPosition, Input[2].WorldPos);
     
     /*float surfaceSize = (distance(WorldPos_CS_in[0], WorldPos_CS_in[1]) +
         distance(WorldPos_CS_in[1], WorldPos_CS_in[2]) + 
         distance(WorldPos_CS_in[2], WorldPos_CS_in[0])) * 0.33;*/
         
-    vec3 a = WorldPos_CS_in[0];
-    vec3 b = WorldPos_CS_in[1];
-    vec3 c = WorldPos_CS_in[2];
+    vec3 a = Input[0].WorldPos;
+    vec3 b = Input[1].WorldPos;
+    vec3 c = Input[2].WorldPos;
     vec3 hp = mix(a, b, 0.5);
     float h = distance(hp, c);
     float p = distance(a, b);

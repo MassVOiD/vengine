@@ -25,7 +25,7 @@ void main(){
     if(UseBoneSystem == 1){
         int bone = determineBone(mspace);
         mspace = applyBoneRotationChain(mspace, bone);
-        //inorm = applyBoneRotationChainNormal(inorm, bone);
+        //inorm = applyBoneRotationChainnormal(inorm, bone);
     }
     v = vec4(mspace, 1);    
     vertexWorldSpace = (InitialTransformation * mmat * v).xyz;

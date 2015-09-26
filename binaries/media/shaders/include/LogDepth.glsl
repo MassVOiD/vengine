@@ -1,9 +1,13 @@
 
-#include Mesh3dUniforms.glsl
-smooth in vec3 positionModelSpace;
-smooth in vec3 positionWorldSpace;
-smooth in vec3 normal;
-smooth in vec3 barycentric;
+#include_once Mesh3dUniforms.glsl
+in Data {
+    int instanceId;
+    vec3 ModelPos;
+    vec3 WorldPos;
+    vec2 TexCoord;
+    vec3 Normal;
+    vec3 Tangent;
+} Input;
 flat in int instanceId;
 uniform int UseNormalMap;
 uniform int UseBumpMap;
@@ -19,13 +23,15 @@ float toLogDepthEx(float depth, float far){
 float toLogDepth(float depth){
 	return toLogDepthEx(depth, FarPlane);
 }
+#ifndef NO_FS
 void updateDepth(){
-	float depth = distance(positionWorldSpace, CameraPosition);
+	float depth = distance(Input.WorldPos, CameraPosition);
 	float badass_depth = toLogDepth(depth);
 	gl_FragDepth = badass_depth;
 }
+#endif
 float getDepth(){
-	float depth = distance(positionWorldSpace, CameraPosition);
+	float depth = distance(Input.WorldPos, CameraPosition);
 	float badass_depth = toLogDepth(depth);
 	return badass_depth;
 }
@@ -38,10 +44,10 @@ float reverseLog(float dd){
 }
 /*
 void updateDepth(){
-	float depth = distance(positionWorldSpace, CameraPosition);
+	float depth = distance(Input.WorldPos, CameraPosition);
 	gl_FragDepth = depth;
 }
 float getDepth(){
-	float depth = distance(positionWorldSpace, CameraPosition);
+	float depth = distance(Input.WorldPos, CameraPosition);
 	return depth;
 }*/
