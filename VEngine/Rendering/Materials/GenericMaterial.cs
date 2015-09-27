@@ -6,6 +6,26 @@ namespace VEngine
 {
     public class GenericMaterial
     {
+
+        public class ShaderPack
+        {
+            public ShaderProgram Program, TesselatedProgram, GeometryProgram, TesselatedGeometryProgram;
+            public ShaderPack(string vs, string fs, string gs, string tcs, string tes)
+            {
+                if(Program == null)
+                    Program = ShaderProgram.Compile(vs,
+                       fs);
+                if(TesselatedProgram == null)
+                    TesselatedProgram = ShaderProgram.Compile(vs,
+                        fs, null, tcs, tes);
+                if(GeometryProgram == null)
+                    GeometryProgram = ShaderProgram.Compile(vs,
+                        fs, gs);
+                if(TesselatedGeometryProgram == null)
+                    TesselatedGeometryProgram = ShaderProgram.Compile(vs,
+                       fs, gs, tcs, tes);
+            }
+        }
         public Texture Tex;
         public Vector4 Color;
         public float SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
@@ -13,12 +33,14 @@ namespace VEngine
         public float RefractionStrength = 0;
         public float Roughness = 0.5f;
         public float Metalness = 0.5f;
+        public static ShaderPack MainShaderPack = new ShaderPack("Generic.vertex.glsl",
+                        "Generic.fragment.glsl", "Generic.geometry.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+        public static ShaderPack OverrideShaderPack = null;
 
         public bool CastShadows = true;
         public bool ReceiveShadows = true;
         public bool IgnoreLighting = false;
 
-        public ShaderProgram Program, TesselatedProgram;
         public Texture NormalMap, BumpMap, AlphaMask, RoughnessMap, MetalnessMap, SpecularMap;
         public float NormalMapScale = 1.0f;
         public float TesselationMultiplier = 1.0f;
@@ -35,44 +57,24 @@ namespace VEngine
 
         public DrawMode Mode;
 
-        void CompileShaders()
-        {
-            if(Program == null)
-                Program = ShaderProgram.Compile("Generic.vertex.glsl",
-                    "Generic.fragment.glsl");
-            if(TesselatedProgram == null)
-                TesselatedProgram = ShaderProgram.Compile("Tesselation.vertex.glsl",
-                    "Generic.fragment.glsl", null, "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-        }
-        public static GenericMaterial FromMedia(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
-        {
-            return new GenericMaterial(Vector4.Zero){
-                Program = ShaderProgram.Compile(vertex, fragment, geometry, tesscontrol, tesseval)
-            };
-        }
-        public static GenericMaterial FromName(string name)
-        {
-            return GenericMaterial.FromMedia(name + ".vertex.glsl", name + ".fragment.glsl");
-        }
+       
+        
 
         public GenericMaterial(Texture tex, Texture normalMap = null, Texture bumpMap = null)
         {
-            CompileShaders();
             Tex = tex;
             NormalMap = normalMap;
-            bumpMap = bumpMap;
+            BumpMap = bumpMap;
             Color = Vector4.One;
             Mode = GenericMaterial.DrawMode.TextureOnly;
         }
         public GenericMaterial(Vector4 color)
         {
-            CompileShaders();
             Color = color;
             Mode = GenericMaterial.DrawMode.ColorOnly;
         }
         public GenericMaterial(Color color)
         {
-            CompileShaders();
             Color = new Vector4(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
             Mode = GenericMaterial.DrawMode.ColorOnly;
         }
@@ -91,6 +93,10 @@ namespace VEngine
         public bool Use()
         {
             var prg = GetShaderProgram();
+         //   if(prg.)
+         //   {
+                GL.Disable(EnableCap.CullFace);
+          //  }
             if(lastUserProgram == null)
                 lastUserProgram = ShaderProgram.Current;
             ShaderProgram.SwitchResult res = prg.Use();
@@ -152,7 +158,7 @@ namespace VEngine
             else
             {
                 prg.SetUniform("UseAlphaMask", 0);
-                GL.Enable(EnableCap.CullFace);
+               // GL.Enable(EnableCap.CullFace);
                 //GL.DepthFunc(DepthFunction.Lequal);
             }
 
@@ -187,7 +193,8 @@ namespace VEngine
             WetDrops,
             Grass,
             PlanetSurface, 
-            TessellatedTerrain
+            TessellatedTerrain,
+            Flag
         }
         public MaterialType Type;
 
@@ -226,8 +233,13 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
+            ShaderPack pack = OverrideShaderPack != null ? OverrideShaderPack : MainShaderPack;
+            if(Type == MaterialType.Grass || Type == MaterialType.Flag)
+                return pack.GeometryProgram;
+            if(Type == MaterialType.TessellatedTerrain)
+                return pack.TesselatedGeometryProgram;
             return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
-               Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? TesselatedProgram : Program;
+               Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
         }
 
     }

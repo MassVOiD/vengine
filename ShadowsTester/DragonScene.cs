@@ -32,30 +32,37 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-2120, -1120), new Vector2(2120, 1120), new Vector2(-1, 1), Vector3.UnitY, 10, (x, y) => 0);
-             var color = GenericMaterial.FromMedia("168.JPG");
-            color.SetBumpMapFromMedia("testbump.png");
-            color.Type = GenericMaterial.MaterialType.TessellatedTerrain;
-            //color.SetBumpMapFromMedia("1bump.jpg");
+             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-5, -5), new Vector2(5, 5), new Vector2(-1, 1), Vector3.UnitY, 22, (x, y) => 0);
+            var color = new GenericMaterial(Color.Green);
             color.Roughness = 1.0f;
-             Mesh3d water = new Mesh3d(waterInfo, color);
-             water.SetMass(0);
-            // color.Type = GenericMaterial.MaterialType.Grass;
-            //  color.TesselationMultiplier = 0.1f;
-            // water.Translate(0, -0.941f*2.0f, 0);
-            // water.SetCollisionShape(new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0));
-            //  Add(water);
+            color.SetBumpMapFromMedia("grasstest.png");
+            color.Type = GenericMaterial.MaterialType.Grass;
+            var color2 = new GenericMaterial(Color.Brown);
+            Mesh3d water = new Mesh3d(waterInfo, color);
+            water.SetMass(0);
+           // scene.Add(water);
 
-            Object3dInfo gridx = Object3dInfo.LoadFromObjSingle(Media.Get("3axisplanes.obj"));
-            var gcx = GenericMaterial.FromMedia("3daxisalbedo.png");
-            gcx.SetNormalMapFromMedia("3daxisnormal.png");
-            gcx.SetAlphaMaskFromMedia("3daxisalpha.png");
-            gcx.Roughness = 1.0f;
-           // gcx.IgnoreLighting = true;
-            Mesh3d gex = new Mesh3d(gridx, gcx);
-            gex.SetMass(0);
-            // gex.Translate(0, x, 0);
-            scene.Add(gex);
+            Mesh3d water2 = new Mesh3d(waterInfo, color2);
+            water2.SetMass(0);
+           // color2.SetBumpMapFromMedia("usamap.png");
+            //color2.Type = GenericMaterial.MaterialType.TessellatedTerrain;
+            scene.Add(water2);
+
+            for(int i = 0; i < 200; i++)
+            {
+                // Object3dInfo gridx = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
+                Object3dInfo gridx = Object3dInfo.LoadFromObjSingle(Media.Get("flagplane.obj"));
+                gridx.Normalize();
+                var gcx = new GenericMaterial(Color.White);
+                gcx.Type = GenericMaterial.MaterialType.Flag;
+                gcx.Roughness = 1.0f;
+                // gcx.IgnoreLighting = true;
+                Mesh3d gex = new Mesh3d(gridx, gcx);
+                gex.SetMass(0);
+                gex.Scale(4f, 12, 4);
+                gex.Translate(i * 4, 0, 0);
+                scene.Add(gex);
+            }
 
             
            /* for(int z = 0; z < 20; z++)

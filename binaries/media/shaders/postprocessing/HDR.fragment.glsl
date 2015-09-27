@@ -85,6 +85,29 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 	}
 	return outc / counter;
 }
+#include noise3D.glsl
+vec3 lookupSelected(vec2 buv, float radius){
+	vec3 outc = vec3(0);
+	float counter = 0;
+    float s = texture(meshDataTex, buv ).r;
+    if(s == 1) return vec3(0);
+	for(float g = 0; g < mPI2*2; g+=0.3)
+	{ 
+		for(float g2 = 0; g2 < 3.14; g2+=0.3)
+		{ 
+            float h = rand(UV+vec2(g, g2));
+			vec2 gauss =buv +  vec2(sin(g + g2)*ratio, cos(g + g2)) * (h * radius);
+			vec3 color = vec3(0.5, 0.6, 1.0) * (log(1.0-h + 1)*2);
+			float selected = texture(meshDataTex, gauss).r;
+            if(selected == 1){
+                counter += 1;
+                outc += color ;
+            }
+			//counter++;
+		}
+	}
+	return counter == 0 ? vec3(0) : (outc / counter) * (snoise(vec3(buv.x*400, buv.y*400, Time*55.4))*0.5+0.5);
+}
 
 float avgdepth(vec2 buv){
 	float outc = float(0);
@@ -93,7 +116,7 @@ float avgdepth(vec2 buv){
     vec3 color = texture(worldPosTex, buv).xyz;
     float adepth = length(color);
     //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-    float f = log((LensBlurAmount+1))*11; //focal length in mm
+    float f = (LensBlurAmount)*1; //focal length in mm
     float d = fDepth*1000.0; //focal plane in mm
     float o = adepth*1000.0; //depth in mm
     
@@ -111,6 +134,7 @@ float avgdepth(vec2 buv){
 void main()
 {
 	vec4 color1 = fxaa(currentTex, UV);
+    //color1.rgb += lookupSelected(UV, 0.02);
     //vec4 color1 = vec4(0,0,0,1);
 	float depth = texture(depthTex, UV).r;
 	centerDepth = depth;

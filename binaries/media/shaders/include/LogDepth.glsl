@@ -2,11 +2,11 @@
 #include_once Mesh3dUniforms.glsl
 in Data {
     int instanceId;
-    vec3 ModelPos;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
     vec3 Tangent;
+    vec3 Data;
 } Input;
 flat in int instanceId;
 uniform int UseNormalMap;

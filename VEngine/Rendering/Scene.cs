@@ -60,20 +60,23 @@ namespace VEngine
         
         public void MapLights(Matrix4 parentTransformation)
         {
-            foreach(var e in Lights)
+            for(int i = 0; i < Lights.Count; i++)
+            {
+                var e = Lights[i];
                 if(e is IShadowMapableLight)
                 {
                     (e as IShadowMapableLight).Map(parentTransformation * Transformation.GetWorldTransform());
                 }
-
+            }
             foreach(var e in Renderables)
                 if(e is Scene)
                     (e as Scene).MapLights(parentTransformation * Transformation.GetWorldTransform());
         }
 
-        private void MapLightsSSBOToShader(ShaderProgram sp)
+        public void MapLightsSSBOToShader(ShaderProgram sp)
         {
-
+            SSBO.Use(5);
+            ShaderProgram.Current.SetUniform("SimpleLightsCount", SimpleLightsCount);
         }
 
         private static List<byte> Bytes(Vector4 vec)
@@ -185,24 +188,29 @@ namespace VEngine
             return o;
         }
 
-        public void RecreateSimpleLightsSSBO()
+        public void RecreateSimpleLightsSSBO() {
+            Buffer = new List<byte>();
+            SimpleLightsCount = 0;
+            RecreateSimpleLightsSSBO(Matrix4.Identity);
+            SSBO.MapData(Buffer.ToArray());
+        }
+
+        public void RecreateSimpleLightsSSBO(Matrix4 parentTransformation)
         {
             foreach(var e in Lights)
             {
                 if(e is SimplePointLight)
                 {
+                    Buffer.AddRange(Bytes(e.GetPosition(), e is IShadowMapableLight ? 1 : 0));
+                    Buffer.AddRange(Bytes(e.GetColor()));
 
+                    SimpleLightsCount++;
                 }
-                Buffer.AddRange(Bytes(e.GetPosition(), e is IShadowMapableLight ? 1 : 0));
-                Buffer.AddRange(Bytes(e.GetColor()));
-
-                SimpleLightsCount++;
             }
             foreach(var e in Renderables)
                 if(e is Scene)
-                    (e as Scene).RecreateSimpleLightsSSBO();
+                    (e as Scene).RecreateSimpleLightsSSBO(parentTransformation*Transformation.GetWorldTransform());
 
-            SSBO.MapData(Buffer.ToArray());
         }
 
     }

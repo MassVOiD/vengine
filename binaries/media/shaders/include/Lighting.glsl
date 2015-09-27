@@ -73,7 +73,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float counter = 0;
   
     float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
-    float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
+    float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur+2.2;
     for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
             fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2d(uv+vec2(x,y)) * pssblur * 0.009;

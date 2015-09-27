@@ -16,6 +16,8 @@ uniform int DrawMode;
 //uniform int Instances;
 
 uniform int UseAlphaMask;
+uniform int UseRoughnessMap;
+uniform int UseMetalnessMap;
 void discardIfAlphaMasked(){
 	if(UseAlphaMask == 1){
 		if(texture(alphaMaskTex, Input.TexCoord).r < 0.5) discard;
@@ -24,8 +26,14 @@ void discardIfAlphaMasked(){
 
 out uvec4 outColor;	
 
-void finishFragment(vec4 c){
-    vec3 cc = mix(LightColor.rgb*c.rgb, LightColor.rgb, Metalness);
+void finishFragment(vec4 c){    
+float outRoughness = 0;
+    float outMetalness = 0;
+    if(UseRoughnessMap) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
+    else outRoughness = Roughness;
+    if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
+    else outMetalness = Metalness;
+    vec3 cc = mix(LightColor.rgb*c.rgb, LightColor.rgb, outMetalness);
     vec3 difcolor = cc;
     vec3 difcolor2 = LightColor.rgb*c.rgb;
     vec3 rn;
@@ -34,8 +42,8 @@ void finishFragment(vec4 c){
     } else {
         rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Normal, 0)).xyz;
     }
-    vec3 radiance = mix(difcolor2, difcolor*Roughness, Metalness);
-    outColor = uvec4(packUnorm4x8(vec4(radiance, Roughness)), packSnorm4x8(vec4(rn, Metalness)), 0,0);
+    vec3 radiance = mix(difcolor2, difcolor*outRoughness, outMetalness);
+    outColor = uvec4(packUnorm4x8(vec4(radiance, outRoughness)), packSnorm4x8(vec4(rn, outMetalness)), 0,0);
 }
 
 void main()

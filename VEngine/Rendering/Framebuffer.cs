@@ -95,9 +95,9 @@ namespace VEngine
                     GL.BindTexture(TextureTarget.Texture2D, TexDepth);
                 }
             }
-            // this is because somebody recommended it on stackoverflow
-            GL.ActiveTexture(TextureUnit.Texture0);
         }
+
+        public int DrawBufferIndex = 0;
         
         private void Generate()
         {
@@ -152,11 +152,11 @@ namespace VEngine
           //  GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, RBO);
 
             if(!DepthOnly)
-                GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexColor, 0);
+                GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + DrawBufferIndex, TexColor, 0);
 
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TexDepth, 0);
 
-            GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+            GL.DrawBuffer(DrawBufferMode.ColorAttachment0 + DrawBufferIndex);
 
             if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             {

@@ -10,7 +10,7 @@ namespace ShadowsTester
         public FreeCamera(float aspectRatio, float fov)
         {
             float fovdegree = 90;
-            Cam = new Camera(new Vector3(0, 0, 20), new Vector3(0, 2, 0), aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
+            Cam = new Camera(new Vector3(0, 0, 0), new Vector3(0, 2, 0), aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
             Camera.MainDisplayCamera = Cam;
             collisionShape = new SphereShape(0.8f);
             //collisionShape.LinearDamping = 0.5f;

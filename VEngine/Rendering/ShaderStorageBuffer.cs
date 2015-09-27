@@ -13,6 +13,7 @@ namespace VEngine
 
         private bool Generated;
         private int Handle = -1;
+        public BufferUsageHint Type = BufferUsageHint.DynamicDraw;
 
         public void MapData(byte[] buffer)
         {
@@ -22,8 +23,20 @@ namespace VEngine
                 Generated = true;
             }
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, BufferUsageHint.DynamicDraw);
+            GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, Type);
         }
+
+        public void MapSubData(byte[] buffer, uint start, uint length)
+        {
+            if(!Generated)
+            {
+                Handle = GL.GenBuffer();
+                Generated = true;
+            }
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
+            GL.BufferSubData(BufferTarget.ShaderStorageBuffer, new IntPtr(start), new IntPtr(length), buffer);
+        }
+
         public void MapData(dynamic structure)
         {
             if(structure.GetType().IsArray)

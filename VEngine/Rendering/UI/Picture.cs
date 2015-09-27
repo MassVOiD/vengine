@@ -5,7 +5,7 @@ namespace VEngine.UI
 {
     public class Picture : AbsUIElement
     {
-        static public GenericMaterial Program = GenericMaterial.FromMedia("UI.vertex.glsl", "UI.Picture.fragment.glsl");
+        static public GenericMaterial Program = new GenericMaterial(Color.White);
         public Texture Tex;
         public float Alpha;
 

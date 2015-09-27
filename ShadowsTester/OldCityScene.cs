@@ -29,6 +29,32 @@ namespace ShadowsTester
             js.Execute("var VEngine = importNamespace('VEngine');");
             js.Execute(script);
             /*
+            List<Mesh3d> cubes = new List<Mesh3d>();
+            for(int i = 0; i < 80; i++)
+                cubes.Add(new Mesh3d(Object3dInfo.LoadFromObjSingle(Media.Get("normalizedcube.obj")), new GenericMaterial(Color.White)));
+            cubes.ForEach((a) => World.Root.RootScene.Add(a));
+
+            List<SimplePointLight> lights = new List<SimplePointLight>();
+            for(int i = 0; i < 80; i++)
+            {
+                lights.Add(new SimplePointLight(new Vector3(0), Vector4.Zero));
+                World.Root.RootScene.Add(lights[i]);
+            }
+                GLThread.OnBeforeDraw += (o, e) =>
+            {
+                float timeadd = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds * 0.00001f;
+                for(int x = 0; x < 80; x++)
+                {
+                    var center = new Vector3((x - 40) * 0.1f, (float)Math.Cos(x+ timeadd * x), (float)Math.Sin(x + timeadd * x));
+                    lights[x].SetPosition(center);
+                    lights[x].Color = new Vector4((float)Math.Sin(x + timeadd * x), (float)Math.Cos(x + timeadd * x), (float)Math.Cos(x + timeadd * 3 * x), 0.1f);
+    
+                    cubes[x].MainMaterial.Color = lights[x].Color;
+                    cubes[x].Transformation.SetPosition(center);
+                    cubes[x].Transformation.SetScale(0.05f);
+                }
+            };*/
+            /*
             var scene = new VEngine.FileFormats.GameScene("home1.scene");
             //var instances = InstancedMesh3d.FromMesh3dList(testroom);
             scene.OnObjectFinish += (o, a) =>

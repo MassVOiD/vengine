@@ -184,12 +184,7 @@ namespace VEngine
             if(Camera.Current == null)
                 return;
 
-            SetUniforms();
-            GetCurrentMaterial().GetShaderProgram().SetUniform("ModelMatrix", Matrix);
-            GetCurrentMaterial().GetShaderProgram().SetUniform("RotationMatrix", RotationMatrix);
-
-            ShaderProgram.Current.SetUniform("InitialTransformation", parentTransformation);
-            ShaderProgram.Current.SetUniform("InitialRotation", Matrix4.CreateFromQuaternion(parentTransformation.ExtractRotation()));
+            SetUniforms(parentTransformation);
 
             if(!ignoreDisableDepthWriteFlag)
             {
@@ -207,7 +202,7 @@ namespace VEngine
             GLThread.CheckErrors();
         }
 
-        public void SetUniforms()
+        public void SetUniforms(Matrix4 parentTransformation)
         {
             bool shaderSwitchResult = GetCurrentMaterial().Use();
             ShaderProgram shader = ShaderProgram.Current;
@@ -229,6 +224,12 @@ namespace VEngine
                 shader.SetUniform("ViewMatrix", Camera.MainDisplayCamera.ViewMatrix);
                 shader.SetUniform("ProjectionMatrix", Camera.MainDisplayCamera.ProjectionMatrix);
             }
+
+            shader.SetUniform("ModelMatrix", Matrix);
+            shader.SetUniform("RotationMatrix", RotationMatrix);
+
+            shader.SetUniform("InitialTransformation", parentTransformation);
+            shader.SetUniform("InitialRotation", Matrix4.CreateFromQuaternion(parentTransformation.ExtractRotation()));
 
             shader.SetUniform("Selected", Selected ? 1 : 0); //magic
             shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());

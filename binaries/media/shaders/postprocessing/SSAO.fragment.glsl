@@ -89,7 +89,7 @@ vec2 HitPos = vec2(-2);
 float hitposMixPrecentage = 0;
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(int i=0; i<4; i++){
+    for(int i=0; i<2; i++){
         float ix = getRand();
         vec2 muv = mix(p1, p2, ix);
         float expr = min(muv.x, muv.y) * -(max(muv.x, muv.y)-1.0);
@@ -128,7 +128,7 @@ float Radiosity()
     float meshSpecular = texture(worldPosTex, UV).a;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     float ambient = 0;
-    const int samples = 25;
+    const int samples = 66;
     
     float octaves[] = float[](0.1, 0.5, 1.9);
     vec3 dir = normalize(reflect(posCenter, normalCenter));
@@ -142,6 +142,7 @@ float Radiosity()
     fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(meshRoughness1)*0.4 + 1.0;
     
     float brfds[] = float[2](min(meshMetalness, meshRoughness1), meshRoughness1);
+    int smp = brfds.length() * octaves.length() * samples;
     for(int bi = 0; bi < brfds.length(); bi++)
     {
         for(int p=0; p<octaves.length(); p++)
@@ -156,12 +157,11 @@ float Radiosity()
                 
                // float dotdiffuse = max(0, dot(displace, normalCenter));
                 ambient += vi;
-                counter+=1.0;
             }
         }
     }
-    float rs = counter == 0 ? 0 : max(0, (ambient / (counter)) - 0.35);
-    return pow(rs*1.5, 3.6);
+    float rs = ambient / smp;
+    return pow(rs, 13.6);
 }
 void main()
 {   

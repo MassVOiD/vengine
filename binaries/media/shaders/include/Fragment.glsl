@@ -301,7 +301,7 @@ void finishFragment(vec4 color){
     if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
     else outMetalness = Metalness;
     
-	outMeshData = vec4(0, 0, outMetalness, outRoughness);
+	outMeshData = vec4(Selected, 0, outMetalness, outRoughness);
 	updateDepth();
     // lets do it, from -32 to 32
     /*vec3 normalized = (wpos)  *3;

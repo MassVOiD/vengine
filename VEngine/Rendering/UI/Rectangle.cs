@@ -5,7 +5,7 @@ namespace VEngine.UI
 {
     public class Rectangle : AbsUIElement
     {
-        static public GenericMaterial Program = GenericMaterial.FromMedia("UI.vertex.glsl", "UI.Rectangle.fragment.glsl");
+        static public GenericMaterial Program = new GenericMaterial(Color.White);
         public Color Color;
 
         public Rectangle(float x, float y, float width, float height, Color color)

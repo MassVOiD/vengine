@@ -125,20 +125,13 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 22
+    #define RSMSamples 32*32
     for(int i=0;i<LightsCount;i++){
         //break;
-        mat4 lightPV = (LightsPs[i] * LightsVs[i]);
-        mat4 invlightPV = inverse(LightsPs[i] * LightsVs[i]);
-        vec3 centerpos = LightsPos[i];
+        for(int x=0;x<RSMSamples;x+=3){
         
-        vec3 lightRelativeToSample = normalize(centerpos - fragmentPosWorld3d.xyz);
-        vec2 scruv;
-        vec4 reconstructDir;
-        vec3 dir;
-        for(int x=0;x<RSMSamples;x++){
-        
-            RSMLight light = rsmLights[int(getRand() * 64*64)];
+            //RSMLight light = rsmLights[int(getRand()*32*32)];
+            RSMLight light = rsmLights[x];
             vec3 lcolor = light.Color.rgb;
             float lrough = light.Position.a;
             vec3 lnormal = light.normal.rgb;
@@ -148,8 +141,8 @@ vec3 RSM(){
             
             float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
             vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
-            vec3 lightRelativeToVPos2 = normalize(newpos - centerpos);
-            float att = CalculateFallof(distanceToLight + distance(centerpos, newpos)) *  LightsColors[i].a;
+            vec3 lightRelativeToVPos2 = normalize(newpos - LightsPos[i]);
+            float att = CalculateFallof(distanceToLight + distance(LightsPos[i], newpos)) *  LightsColors[i].a;
             
             float specularComponent = clamp(cookTorranceSpecular(
             lightRelativeToVPos,
@@ -187,9 +180,11 @@ vec3 RSM(){
             -lightRelativeToVPos,
             lnormal,
             max(0.01, lrough), 1
-            ), 0.0, 1.0)*25;
+            ), 0.0, 1.0)*2;
             
-            color1 += clamp(radiance * spfsm, 0.0, 0.5);
+            color1 += clamp(radiance * spfsm, 0.0,1.0);
+            
+            //color1 += CalculateFallof(distanceToLight*5) * 15 * cc * (1.0 - texture(HBAOTex, UV).r);
             
             
             // color1 += ((colorOriginal * (diffuseComponent * lcolor)) 
@@ -199,7 +194,7 @@ vec3 RSM(){
         }
     
     }
-    return color1 / (RSMSamples);
+    return color1 / (RSMSamples/3);
 }
 
 

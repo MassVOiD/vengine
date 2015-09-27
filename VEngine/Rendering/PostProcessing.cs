@@ -47,7 +47,8 @@ namespace VEngine
         public MRTFramebuffer MRT;
         ShaderStorageBuffer RandomsSSBO = new ShaderStorageBuffer();
 
-        private ShaderStorageBuffer AABoxesBuffer;
+        public ShaderStorageBuffer AABoxesBuffer;
+        public int AABoxesCount;
 
         private Mesh3d PostProcessingMesh;
 
@@ -96,6 +97,7 @@ namespace VEngine
             });
             Width = initialWidth;
             Height = initialHeight;
+            RandomsSSBO.Type = BufferUsageHint.StreamRead;
             RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
 
             MRT = new MRTFramebuffer(initialWidth / 1, initialHeight / 1);
@@ -105,11 +107,11 @@ namespace VEngine
             
             BloomFrameBuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
             FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
-            LastWorldPosFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
+            LastWorldPosFramebuffer = new Framebuffer(initialWidth / 5, initialHeight / 5);
             HelperFullResFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            LastDeferredFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            LastDeferredFramebuffer = new Framebuffer(initialWidth / 5, initialHeight / 5);
             IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            SSAOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            SSAOFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
 
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
@@ -127,6 +129,38 @@ namespace VEngine
 
             Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
             PostProcessingMesh = new Mesh3d(postPlane3dInfo, new GenericMaterial(Color.Pink));
+        }
+
+        public class AAB
+        {
+            public Vector3 Minumum;
+            public Vector3 Maximum;
+            public Vector4 Color;
+        }
+
+        public void SetAABoxes(List<AAB> boxes)
+        {
+            List<byte> buffer = new List<byte>(boxes.Count * 4 * 3 * 4);
+            foreach(var b in boxes)
+            {
+                buffer.AddRange(BitConverter.GetBytes(b.Minumum.X));
+                buffer.AddRange(BitConverter.GetBytes(b.Minumum.Y));
+                buffer.AddRange(BitConverter.GetBytes(b.Minumum.Z));
+                buffer.AddRange(BitConverter.GetBytes(b.Minumum.Z));
+
+                buffer.AddRange(BitConverter.GetBytes(b.Maximum.X));
+                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Y));
+                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Z));
+                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Z));
+
+                buffer.AddRange(BitConverter.GetBytes(b.Color.X));
+                buffer.AddRange(BitConverter.GetBytes(b.Color.Y));
+                buffer.AddRange(BitConverter.GetBytes(b.Color.Z));
+                buffer.AddRange(BitConverter.GetBytes(b.Color.W));
+            }
+            AABoxesCount = boxes.Count;
+            AABoxesBuffer.MapData(buffer.ToArray());
+
         }
 
         private Framebuffer LastFrameBuffer;
@@ -236,7 +270,10 @@ namespace VEngine
             DeferredShader.SetUniform("RandomsCount", 16 * 16 * 16);
             RandomsSSBO.Use(6);
             AABoxesBuffer.Use(7);
-            DeferredShader.SetUniform("AABoxesCount", 0);
+            World.Root.RootScene.RecreateSimpleLightsSSBO();
+            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+            World.Root.RootScene.MapLightsSSBOToShader(DeferredShader);
+            DeferredShader.SetUniform("AABoxesCount", AABoxesCount);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw(Matrix4.Identity);
@@ -262,6 +299,8 @@ namespace VEngine
             IndirectShader.SetUniform("UseRSM", GLThread.GraphicsSettings.UseRSM);
             IndirectShader.SetUniform("RandomsCount", 16 * 16 * 16);
             RandomsSSBO.Use(6);
+            HelperFullResFrameBuffer.UseTexture(23);
+            ProjectionLight.RSMBuffer.Use(9);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw(Matrix4.Identity);
@@ -285,6 +324,7 @@ namespace VEngine
             HDRShader.SetUniform("UseBloom", GLThread.GraphicsSettings.UseBloom);
             HDRShader.SetUniform("NumbersCount", nums.Length);
             HDRShader.SetUniformArray("Numbers", nums);
+            MRT.UseTextureDepth(1);
             if(Camera.MainDisplayCamera != null)
             {
                 HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
@@ -408,7 +448,7 @@ namespace VEngine
                 MRT.UseTextureDepth(1);
                 Fog();
             }
-            if(GLThread.GraphicsSettings.UseRSM || GLThread.GraphicsSettings.UseHBAO)
+            if(GLThread.GraphicsSettings.UseHBAO)
             {
                
                 SwitchToFB(SSAOFramebuffer);
@@ -447,6 +487,8 @@ namespace VEngine
             Pass2FrameBuffer.UseTexture(0);
             MRT.UseTextureDepth(1);
 
+            HelperFullResFrameBuffer.UseTexture(23);
+            FogFramebuffer.UseTexture(24);
             Combine();
 
 

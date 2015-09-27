@@ -22,7 +22,7 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 		
 		
 		float fogDensity = 0.0;
-		float fogMultiplier = 2.4;
+		float fogMultiplier = 0.4;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
 		vec3 lastPos = start - mix(start, end, sampling);
 		for(float m = 0.0; m< 1.0;m+= 0.01){
@@ -31,7 +31,7 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
             //float distanceMult = 5;
             lastPos = pos;
 			float att = CalculateFallof(distance(pos, LightsPos[i])) * LightsColors[i].a;
-			att = 1;
+			//att = 1;
 			lightClipSpace = lightPV * vec4(pos, 1.0);
 			
 			float fogNoise = 1.0;
