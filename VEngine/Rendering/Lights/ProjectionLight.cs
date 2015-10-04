@@ -23,11 +23,10 @@ namespace VEngine
             if(RSMBuffer == null)
                 RSMBuffer = new ShaderStorageBuffer();
             RSMBuffer.Type = BufferUsageHint.StaticRead;
-            GLThread.Invoke(() => RSMBuffer.MapData(Enumerable.Repeat<byte>(1, 32 * 32 * 4 * 12).ToArray()));
+            GLThread.Invoke(() => RSMBuffer.MapData(Enumerable.Repeat<byte>(1, 64 * 64 * 4 * 12).ToArray()));
             RSMBufferShader = new ComputeShader("RSMBufferData.compute.glsl");
         }
-        public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack("Generic.vertex.glsl",
-                        "ConeLight.fragment.glsl", "Generic.geometry.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+        public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack("ConeLight.fragment.glsl");
 
         public MixRange LightMixRange = new MixRange()
         {
@@ -120,23 +119,14 @@ namespace VEngine
             Camera.Current = camera;
             GL.Viewport(0, 0, ViewPort.Width, ViewPort.Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            MainShaderPack.Program.Use();
-            ShaderProgram.Current.SetUniform("LightPosition", camera.Transformation.GetPosition());
-            ShaderProgram.Current.SetUniform("LightColor", LightColor);
-            ShaderProgram.Current.SetUniform("CameraTransformation", parentTransformation);
-            MainShaderPack.GeometryProgram.Use();
-            ShaderProgram.Current.SetUniform("LightPosition", camera.Transformation.GetPosition());
-            ShaderProgram.Current.SetUniform("LightColor", LightColor);
-            ShaderProgram.Current.SetUniform("CameraTransformation", parentTransformation);
-            MainShaderPack.TesselatedGeometryProgram.Use();
-            ShaderProgram.Current.SetUniform("LightPosition", camera.Transformation.GetPosition());
-            ShaderProgram.Current.SetUniform("LightColor", LightColor);
-            ShaderProgram.Current.SetUniform("CameraTransformation", parentTransformation);
-            MainShaderPack.TesselatedProgram.Use();
-            ShaderProgram.Current.SetUniform("LightPosition", camera.Transformation.GetPosition());
-            ShaderProgram.Current.SetUniform("LightColor", LightColor);
-            ShaderProgram.Current.SetUniform("CameraTransformation", parentTransformation);
+            
+            MainShaderPack.ProgramsList.ForEach((shader) =>
+            {
+                shader.Use();
+                ShaderProgram.Current.SetUniform("LightPosition", camera.Transformation.GetPosition());
+                ShaderProgram.Current.SetUniform("LightColor", LightColor);
+                ShaderProgram.Current.SetUniform("CameraTransformation", parentTransformation);
+            });
 
             GenericMaterial.OverrideShaderPack = MainShaderPack;
             //Shader.GetShaderProgram().SetUniform("FarPlane", Camera.MainDisplayCamera.Far);
@@ -158,7 +148,7 @@ namespace VEngine
             RSMBufferShader.SetUniform("MatI", (parentTransformation));
             RSMBufferShader.SetUniform("Far", camera.Far);
             RSMBufferShader.SetUniform("LightPos", GetPosition());
-            RSMBufferShader.Dispatch(32,32);
+            RSMBufferShader.Dispatch(64,64);
         }
 
         public void SetPosition(Vector3 position, Vector3 lookat)

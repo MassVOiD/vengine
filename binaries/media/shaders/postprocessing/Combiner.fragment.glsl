@@ -156,14 +156,14 @@ void main()
 {
     vec2 nUV = UV;
     vec3 color1 = vec3(0);
-    if(UseDeferred == 1) color1 += texture(currentTex, nUV).rgb;
+    if(UseDeferred == 1) color1 += fxaa(currentTex, nUV).rgb;
     
     if(UseRSM == 1 && UseHBAO == 1){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * texture(HBAOTex, nUV).r;
     } else if(UseRSM == 1 && UseHBAO == 0){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb);
     } else if(UseRSM == 0 && UseHBAO == 1){
-        color1 += texture(HBAOTex, nUV).rrr;
+      //  color1 += texture(HBAOTex, nUV).rrr;
     }
     
     color1 += lightPoints();
@@ -182,5 +182,5 @@ void main()
     //float Y = dot(vec3(0.30, 0.59, 0.11), color1);
     //float YD = Brightness * (Brightness + 1.0) / (Brightness + 1.0);
     //color1 *= YD * Y;
-    outColor = vec4(clamp(color1, 0.0, 1.0), texture(depthTex, nUV).r);
+    outColor = vec4(clamp(color1, 0.0, 1.0), fxaa(depthTex, nUV).r);
 }

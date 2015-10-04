@@ -97,6 +97,8 @@ namespace VEngine
             });
             Width = initialWidth;
             Height = initialHeight;
+        //    initialWidth = 1366;
+        //    initialHeight = 768;
             RandomsSSBO.Type = BufferUsageHint.StreamRead;
             RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
 
@@ -111,7 +113,7 @@ namespace VEngine
             HelperFullResFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             LastDeferredFramebuffer = new Framebuffer(initialWidth / 5, initialHeight / 5);
             IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            SSAOFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3);
+            SSAOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
 
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");

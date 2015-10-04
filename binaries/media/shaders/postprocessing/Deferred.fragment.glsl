@@ -208,7 +208,7 @@ vec3 Radiosity()
         }
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    return (rs*0.2);
+    return (rs*1);
 }
 void main()
 {   

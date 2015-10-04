@@ -125,12 +125,12 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 32*32
+    #define RSMSamples 64*64
     for(int i=0;i<LightsCount;i++){
         //break;
         for(int x=0;x<RSMSamples;x+=3){
         
-            //RSMLight light = rsmLights[int(getRand()*32*32)];
+            //RSMLight light = rsmLights[int(getRand()*64*64)];
             RSMLight light = rsmLights[x];
             vec3 lcolor = light.Color.rgb;
             float lrough = light.Position.a;
@@ -142,22 +142,22 @@ vec3 RSM(){
             float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
             vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
             vec3 lightRelativeToVPos2 = normalize(newpos - LightsPos[i]);
-            float att = CalculateFallof(distanceToLight + distance(LightsPos[i], newpos)) *  LightsColors[i].a;
+            float att = CalculateFallof(distanceToLight) *  LightsColors[i].a;
             
-            float specularComponent = clamp(cookTorranceSpecular(
+            float specularComponent = cookTorranceSpecular(
             lightRelativeToVPos,
             cameraRelativeToVPos,
             normal.xyz,
-            max(0.01, meshRoughness), 1
-            ), 0.0, 1.0);
+            max(0.01, meshRoughness)
+            );
 
             
-            float diffuseComponent = clamp(orenNayarDiffuse(
+            float diffuseComponent = orenNayarDiffuse(
             lightRelativeToVPos,
             cameraRelativeToVPos,
             normal.xyz,
-            meshRoughness, 1
-            ), 0.0, 1.0);   
+            meshRoughness
+            );   
             
 
             
@@ -168,7 +168,7 @@ vec3 RSM(){
             
             vec3 difcolor = cc * diffuseComponent * att;
             vec3 difcolor2 = lcolor*colorOriginal * diffuseComponent * att;
-            vec3 specolor = cc * specularComponent;
+            vec3 specolor = cc * specularComponent * att;
             
             vec3 radiance = mix(difcolor2 + specolor, difcolor * meshRoughness + specolor, meshMetalness);
             
@@ -179,12 +179,12 @@ vec3 RSM(){
             -lightRelativeToVPos2,
             -lightRelativeToVPos,
             lnormal,
-            max(0.01, lrough), 1
-            ), 0.0, 1.0)*2;
+            max(0.01, lrough)
+            ), 0.0, 1.0)*17;
             
             color1 += clamp(radiance * spfsm, 0.0,1.0);
             
-            //color1 += CalculateFallof(distanceToLight*5) * 15 * cc * (1.0 - texture(HBAOTex, UV).r);
+            //color1 += CalculateFallof(distanceToLight*4) * 33 * cc * (1.0 - texture(HBAOTex, UV).r);
             
             
             // color1 += ((colorOriginal * (diffuseComponent * lcolor)) 

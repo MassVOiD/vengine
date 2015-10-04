@@ -32,23 +32,29 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-             Object3dInfo waterInfo = Object3dGenerator.CreateTerrain(new Vector2(-5, -5), new Vector2(5, 5), new Vector2(-1, 1), Vector3.UnitY, 22, (x, y) => 0);
-            var color = new GenericMaterial(Color.Green);
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 11, (x, y) => 0);
+            Object3dInfo waterInfo = Object3dInfo.LoadFromObjSingle(Media.Get("robot.obj"));
+            Object3dInfo waterInfo2 = Object3dInfo.LoadFromObjSingle(Media.Get("terrain_simplified_normalized.obj"));
+            var color = new GenericMaterial(Color.PapayaWhip);
+            //color.SetNormalMapFromMedia("151_norm.JPG");
             color.Roughness = 1.0f;
-            color.SetBumpMapFromMedia("grasstest.png");
-            color.Type = GenericMaterial.MaterialType.Grass;
-            var color2 = new GenericMaterial(Color.Brown);
+            //color.SetBumpMapFromMedia("terrain_grassmap.png");
+           // color.Type = GenericMaterial.MaterialType.Grass;
+            var color2 = GenericMaterial.FromMedia("coastbeach01.jpg");
+            color2.SetNormalMapFromMedia("coastbeach01_n.jpg");
             Mesh3d water = new Mesh3d(waterInfo, color);
             water.SetMass(0);
-           // scene.Add(water);
+            water.Scale(3);
+            scene.Add(water);
 
-            Mesh3d water2 = new Mesh3d(waterInfo, color2);
+            Mesh3d water2 = new Mesh3d(groundInfo, color2);
             water2.SetMass(0);
-           // color2.SetBumpMapFromMedia("usamap.png");
+            //water2.Scale(300);
+            // color2.SetBumpMapFromMedia("usamap.png");
             //color2.Type = GenericMaterial.MaterialType.TessellatedTerrain;
             scene.Add(water2);
 
-            for(int i = 0; i < 200; i++)
+            /*for(int i = 0; i < 12; i++)
             {
                 // Object3dInfo gridx = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
                 Object3dInfo gridx = Object3dInfo.LoadFromObjSingle(Media.Get("flagplane.obj"));
@@ -62,7 +68,7 @@ namespace ShadowsTester
                 gex.Scale(4f, 12, 4);
                 gex.Translate(i * 4, 0, 0);
                 scene.Add(gex);
-            }
+            }*/
 
             
            /* for(int z = 0; z < 20; z++)

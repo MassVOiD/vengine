@@ -5,8 +5,7 @@ float orenNayarDiffuse(
 vec3 lightDirection,
 vec3 viewDirection,
 vec3 surfacenormal,
-float roughness,
-float albedo) {
+float roughness) {
 
     float LdotV = dot(lightDirection, viewDirection);
     float NdotL = dot(lightDirection, surfacenormal);
@@ -16,10 +15,10 @@ float albedo) {
     float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));
 
     float sigma2 = roughness * roughness;
-    float A = 1.0 + sigma2 * (albedo / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
+    float A = 1.0 + sigma2 * (1.0 / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
     float B = 0.45 * sigma2 / (sigma2 + 0.09);
 
-    return albedo * max(0.0, NdotL) * (A + B * s / t) / PI;
+    return max(0.0, NdotL) * (A + B * s / t) / PI;
 }
 
 float beckmannDistribution(float x, float roughness) {
@@ -43,8 +42,7 @@ float cookTorranceSpecular(
 vec3 lightDirection,
 vec3 viewDirection,
 vec3 surfacenormal,
-float roughness,
-float fresnel) {
+float roughness) {
 
     float VdotN = max(dot(viewDirection, surfacenormal), 0.0);
     float LdotN = max(dot(lightDirection, surfacenormal), 0.0);
@@ -63,11 +61,8 @@ float fresnel) {
     //Distribution term
     float D = beckmannDistribution(NdotH, roughness);
 
-    //Fresnel term
-    float F = 1;
-
     //Multiply terms and done
-    return  G * F * D / max(3.14159265 * VdotN, 0.001);
+    return  G * D / max(3.14159265 * VdotN, 0.001);
 }
 
 float CalculateFallof( float dist){
@@ -95,20 +90,20 @@ vec3 shade(
     float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight)* lightColor.a);
    // if(att < 0.002) return vec3(0);
     
-    float specularComponent = specular * clamp(cookTorranceSpecular(
+    float specularComponent = specular * cookTorranceSpecular(
         lightRelativeToVPos,
         cameraRelativeToVPos,
         normal,
-        max(0.02, roughness), 1
-        ), 0.0, 1.0);
+        max(0.02, roughness)
+        );
 
     
-    float diffuseComponent = clamp(orenNayarDiffuse(
+    float diffuseComponent = orenNayarDiffuse(
         lightRelativeToVPos,
         cameraRelativeToVPos,
         normal,
-        max(0.02, roughness), 1
-        ), 0.0, 1.0);   
+        max(0.02, roughness)
+        );   
 
     vec3 cc = mix(lightColor.rgb*albedo, lightColor.rgb, metalness);
     

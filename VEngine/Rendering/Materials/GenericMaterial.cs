@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -9,21 +10,117 @@ namespace VEngine
 
         public class ShaderPack
         {
-            public ShaderProgram Program, TesselatedProgram, GeometryProgram, TesselatedGeometryProgram;
-            public ShaderPack(string vs, string fs, string gs, string tcs, string tes)
+            public ShaderProgram
+                Program,
+                TesselatedProgram,
+                Geometry1iLines,
+                Geometry1iTriangles,
+                Geometry1iPoints,
+                Geometry32iLines,
+                Geometry32iTriangles,
+                Geometry32iPoints,
+                Geometry96iLines,
+                Geometry96iTriangles,
+                Geometry96iPoints,
+                TesselatedGeometry1iLines,
+                TesselatedGeometry1iTriangles,
+                TesselatedGeometry1iPoints,
+                TesselatedGeometry32iLines,
+                TesselatedGeometry32iTriangles,
+                TesselatedGeometry32iPoints,
+                TesselatedGeometry96iLines,
+                TesselatedGeometry96iTriangles,
+                TesselatedGeometry96iPoints;
+            public List<ShaderProgram> ProgramsList;
+            public ShaderPack(string fs)
             {
+                ProgramsList = new List<ShaderProgram>();
                 if(Program == null)
-                    Program = ShaderProgram.Compile(vs,
+                    Program = ShaderProgram.Compile("Generic.vertex.glsl",
                        fs);
                 if(TesselatedProgram == null)
-                    TesselatedProgram = ShaderProgram.Compile(vs,
-                        fs, null, tcs, tes);
-                if(GeometryProgram == null)
-                    GeometryProgram = ShaderProgram.Compile(vs,
-                        fs, gs);
-                if(TesselatedGeometryProgram == null)
-                    TesselatedGeometryProgram = ShaderProgram.Compile(vs,
-                       fs, gs, tcs, tes);
+                    TesselatedProgram = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, null, "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+
+
+                if(Geometry1iLines == null)
+                    Geometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry1iLines.glsl");
+                if(Geometry1iTriangles == null)
+                    Geometry1iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry1iTriangles.glsl");
+                if(Geometry1iPoints == null)
+                    Geometry1iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry1iPoints.glsl");
+                if(Geometry32iLines == null)
+                    Geometry32iLines = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry32iLines.glsl");
+                if(Geometry32iTriangles == null)
+                    Geometry32iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry32iTriangles.glsl");
+                if(Geometry32iPoints == null)
+                    Geometry32iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry32iPoints.glsl");
+                if(Geometry96iLines == null)
+                    Geometry96iLines = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry96iLines.glsl");
+                if(Geometry96iTriangles == null)
+                    Geometry96iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry96iTriangles.glsl");
+                if(Geometry96iPoints == null)
+                    Geometry96iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry96iPoints.glsl");
+
+
+                if(TesselatedGeometry1iLines == null)
+                    TesselatedGeometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry1iLines.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                if(TesselatedGeometry1iTriangles == null)
+                    TesselatedGeometry1iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry1iTriangles.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                if(TesselatedGeometry1iPoints == null)
+                    TesselatedGeometry1iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry1iPoints.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                if(TesselatedGeometry32iLines == null)
+                    TesselatedGeometry32iLines = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry32iLines.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                if(TesselatedGeometry32iTriangles == null)
+                    TesselatedGeometry32iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry32iTriangles.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                if(TesselatedGeometry32iPoints == null)
+                    TesselatedGeometry32iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry32iPoints.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                if(TesselatedGeometry96iLines == null)
+                    TesselatedGeometry96iLines = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry96iLines.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                if(TesselatedGeometry96iTriangles == null)
+                    TesselatedGeometry96iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry96iTriangles.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                if(TesselatedGeometry96iPoints == null)
+                    TesselatedGeometry96iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
+                        fs, "Generic.geometry96iPoints.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                ProgramsList.AddRange(new ShaderProgram[] {
+                    Program,
+                    TesselatedProgram,
+                    Geometry1iLines,
+                    Geometry1iTriangles,
+                    Geometry1iPoints,
+                    Geometry32iLines,
+                    Geometry32iTriangles,
+                    Geometry32iPoints,
+                    Geometry96iLines,
+                    Geometry96iTriangles,
+                    Geometry96iPoints,
+                    TesselatedGeometry1iLines,
+                    TesselatedGeometry1iTriangles,
+                    TesselatedGeometry1iPoints,
+                    TesselatedGeometry32iLines,
+                    TesselatedGeometry32iTriangles,
+                    TesselatedGeometry32iPoints,
+                    TesselatedGeometry96iLines,
+                    TesselatedGeometry96iTriangles,
+                    TesselatedGeometry96iPoints
+                });
             }
         }
         public Texture Tex;
@@ -33,8 +130,7 @@ namespace VEngine
         public float RefractionStrength = 0;
         public float Roughness = 0.5f;
         public float Metalness = 0.5f;
-        public static ShaderPack MainShaderPack = new ShaderPack("Generic.vertex.glsl",
-                        "Generic.fragment.glsl", "Generic.geometry.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+        public static ShaderPack MainShaderPack = new ShaderPack("Generic.fragment.glsl");
         public static ShaderPack OverrideShaderPack = null;
 
         public bool CastShadows = true;
@@ -235,9 +331,9 @@ namespace VEngine
         {
             ShaderPack pack = OverrideShaderPack != null ? OverrideShaderPack : MainShaderPack;
             if(Type == MaterialType.Grass || Type == MaterialType.Flag)
-                return pack.GeometryProgram;
+                return pack.Geometry96iTriangles;
             if(Type == MaterialType.TessellatedTerrain)
-                return pack.TesselatedGeometryProgram;
+                return pack.Geometry1iTriangles;
             return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
                Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
         }

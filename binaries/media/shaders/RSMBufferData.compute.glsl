@@ -18,8 +18,8 @@ uniform float Far;
 uniform vec3 LightPos;
 void main(){
 
-    float ax = float(gl_WorkGroupID.x) / 32.0;
-    float ay = float(gl_WorkGroupID.y) / 32.0;
+    float ax = float(gl_WorkGroupID.x) / 64.0;
+    float ay = float(gl_WorkGroupID.y) / 64.0;
     vec2 UV = vec2(ax, ay);
     ivec2 iUV = ivec2(vec2(ax, ay) * vec2(textureSize(LightData, 0)));
     uint gIndex = 

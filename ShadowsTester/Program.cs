@@ -21,8 +21,8 @@ namespace ShadowsTester
         class Config
         {   
             public static string MediaPath = "media";
-            public static int Width = 1200;
-            public static int Height = 800;
+            public static int Width = 1920;
+            public static int Height = 1030;
         }
 
         private static void Main(string[] args)
@@ -42,7 +42,8 @@ namespace ShadowsTester
                 window = new VEngineWindowAdapter("Test", Config.Width, Config.Height, GameWindowFlags.Default);
 
                 GLThread.GraphicsSettings.UseDeferred = true;
-                GLThread.GraphicsSettings.UseRSM = true;
+                GLThread.GraphicsSettings.UseRSM = false;
+                GLThread.GraphicsSettings.UseVDAO = true;
                 GLThread.GraphicsSettings.UseFog = false;
                 GLThread.GraphicsSettings.UseBloom = false;
                 GLThread.GraphicsSettings.UseLightPoints = false;
@@ -60,11 +61,11 @@ namespace ShadowsTester
             //new PlanetScene().Create();
             //   new SculptScene().Create();
             //   new SponzaScene().Create();
-          //  new OldCityScene();
+            new OldCityScene();
           // new PathTraceTest().Create();
           //  new NatureScene().Create();
           //  new IndirectTestScene().Create();
-          new DragonScene();
+         // new DragonScene();
            // new ManyCubesScene().Create();
           //  new ComputeBallsScene().Create();
            //new CarScene().Create();

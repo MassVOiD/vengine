@@ -70,13 +70,13 @@ uniform int UseBloom;
 vec3 lookupBloomBlurred(vec2 buv, float radius){
 	vec3 outc = vec3(0);
 	float counter = 0;
-	for(float g = 0; g < mPI2*2; g+=0.3)
+	for(float g = 0; g < mPI2*2; g+=0.5)
 	{ 
-		for(float g2 = 0; g2 < 3.14; g2+=0.3)
+		for(float g2 = 0; g2 < 3.14; g2+=0.5)
 		{ 
             float h = rand(UV+vec2(g, g2));
-			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (h * radius);
-			vec4 color = texture(bloomTex, buv + gauss).rgba * (log(1.0-h + 1)*2);
+			vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (h * radius*0.1);
+			vec4 color = texture(bloomTex, buv + gauss).rgba * (pow(1.0-h, 1.2));
             float w = max(0, (length(color) - 1.3) ) * 1.1;
             counter += max(w, 0.1);
 			outc += (color.rgb * color.a) * w ;

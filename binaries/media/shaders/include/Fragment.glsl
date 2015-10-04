@@ -204,6 +204,8 @@ vec3 examineBumpMap(){
     return mix(vec3(0, 1, 0), normalize(vec3(1, 1, 0)), bumpCenter);
 }
 
+uniform int ShadingMode;
+#define SHADING_MDOE_RM 0
 
 
 void finishFragment(vec4 color){

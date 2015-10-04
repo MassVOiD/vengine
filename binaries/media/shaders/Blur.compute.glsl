@@ -28,7 +28,7 @@ float reverseLog(float dd){
 	return reverseLogEx(dd, FarPlane);
 }
 
-vec3 doBlur(ivec2 uv){
+vec3 doBlurTemporalUpscale(ivec2 uv){
 
     ivec2 isize = imageSize(colorTexWRHelper);
     int clamper = ((Direction == DIRECTION_X) ? isize.x : isize.y);
@@ -37,7 +37,7 @@ vec3 doBlur(ivec2 uv){
     float weight = 0;
     float wposCenter = texture(worldPosTex, iUVtoUV(uv)).r;
     vec3 normCenter = texture(normalsTex, iUVtoUV(uv)).rgb;
-    for(int i = - 9; i < 9; i ++ ){
+    for(int i = - 29; i < 29; i ++ ){
         ivec2 nuv = uv + (Direction == DIRECTION_X ? ivec2(i, 0) : ivec2(0, i));
         vec3 s = Direction == DIRECTION_X ? 
           (texture(Input, iUVtoUV(nuv)).rgb) : 
@@ -65,7 +65,7 @@ void main(){
         gl_GlobalInvocationID.y
     );
     iSize = vec2(imageSize(colorTexWRHelper));
-    vec3 blur = doBlur(iUV);
+    vec3 blur = doBlurTemporalUpscale(iUV);
     if(Direction == DIRECTION_X){
         vec4 c = vec4(blur, texture(Input, iUVtoUV(iUV)).a);
         barrier();
