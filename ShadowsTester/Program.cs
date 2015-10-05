@@ -56,6 +56,7 @@ namespace ShadowsTester
 
             var freeCamera = Commons.SetUpFreeCamera();
             Commons.AddControllableLight();
+            Commons.SetUpInputBehaviours();
 
 
             //new PlanetScene().Create();
@@ -79,9 +80,8 @@ namespace ShadowsTester
 
             World.Root.SortByDepthMasking();
 
-            System.Threading.Thread.Sleep(1000);
+           // System.Threading.Thread.Sleep(1000);
 
-            Commons.SetUpInputBehaviours();
             
             //World.Root.SortByObject3d();
 

@@ -180,6 +180,10 @@ namespace VEngine
             return new GenericMaterial(new Texture(Media.Get(key)));
         }
 
+        public static GenericMaterial FromMedia(string key, string normalmap_key)
+        {
+            return new GenericMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)));
+        }
         public static GenericMaterial FromMedia(string key, string normalmap_key, string bump_map)
         {
             return new GenericMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)), new Texture(Media.Get(bump_map)));

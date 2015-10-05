@@ -28,6 +28,17 @@ namespace ShadowsTester
             js.SetValue("Scene", World.Root.RootScene);
             js.Execute("var VEngine = importNamespace('VEngine');");
             js.Execute(script);
+            GLThread.Invoke(() =>
+            {
+                GLThread.DisplayAdapter.Pipeline.PostProcessor.AABoxesBuffer.MapData(new Vector4[4 * 3]{
+                    new Vector4(-5.826700f, 0.183174f, -4.040090f, 0), new Vector4(-5.277061f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
+                    new Vector4(-5.218601f, 0.183174f, -4.040090f, 0), new Vector4(-4.668962f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
+                    new Vector4(-7.154271f, 0.183174f, -4.040090f, 0), new Vector4(-6.604632f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
+                    new Vector4(-6.554271f, 0.183174f, -4.040090f, 0), new Vector4(-6.004632f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
+                });
+                GLThread.DisplayAdapter.Pipeline.PostProcessor.AABoxesCount = 4;
+            });
+
             /*
             List<Mesh3d> cubes = new List<Mesh3d>();
             for(int i = 0; i < 80; i++)

@@ -97,8 +97,8 @@ namespace VEngine
             });
             Width = initialWidth;
             Height = initialHeight;
-        //    initialWidth = 1366;
-        //    initialHeight = 768;
+           // initialWidth *= 2;
+          //  initialHeight *= 2;
             RandomsSSBO.Type = BufferUsageHint.StreamRead;
             RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
 

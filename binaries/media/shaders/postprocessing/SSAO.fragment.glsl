@@ -128,9 +128,9 @@ float Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     float ambient = 0;
-    const int samples = 7;
+    const int samples = 27;
     
-    float octaves[] = float[](0.1, 0.5, 1.9);
+    float octaves[] = float[](0.1, 0.5, 1.2);
     vec3 dir = normalize(reflect(posCenter, normalCenter));
     posCenter = FromCameraSpace(posCenter);
     
@@ -156,7 +156,7 @@ float Radiosity()
         }
     }
     float rs = ambient / smp;
-    return pow(rs, 13.6);
+    return pow(rs, 10.6);
 }
 void main()
 {   

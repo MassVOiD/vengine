@@ -114,17 +114,24 @@ vec3 shade(
     return mix(difcolor2 + specolor, difcolor*(roughness) + specolor, metalness);
 }
 
+vec3 shadePhoton(vec2 uv, vec3 color){
+    vec3 albedo = texture(diffuseColorTex, uv).rgb;
+    float metalness =  texture(meshDataTex, uv).z;    
+    vec3 cc = mix(color*albedo, color, metalness);
+    return cc;
+}
+
 vec3 shadeUV(vec2 uv,
     vec3 lightPosition, 
     vec4 lightColor
 ){
-    vec3 position = FromCameraSpace(texture(worldPosTex, UV).rgb);
-    vec3 albedo = texture(diffuseColorTex, UV).rgb;
-    float specular = texture(worldPosTex, UV).a;
-    vec3 normal = normalize(texture(normalsTex, UV).rgb);
+    vec3 position = FromCameraSpace(texture(worldPosTex, uv).rgb);
+    vec3 albedo = texture(diffuseColorTex, uv).rgb;
+    float specular = texture(worldPosTex, uv).a;
+    vec3 normal = normalize(texture(normalsTex, uv).rgb);
       
-    float roughness = texture(meshDataTex, UV).a;
-    float metalness =  texture(meshDataTex, UV).z;
+    float roughness = texture(meshDataTex, uv).a;
+    float metalness =  texture(meshDataTex, uv).z;
     return shade(albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, false);
 }
 
@@ -132,12 +139,12 @@ vec3 shadeUVNoAtt(vec2 uv,
     vec3 lightPosition, 
     vec4 lightColor
 ){
-    vec3 position = FromCameraSpace(texture(worldPosTex, UV).rgb);
-    vec3 albedo = texture(diffuseColorTex, UV).rgb;
-    float specular = texture(worldPosTex, UV).a;
-    vec3 normal = normalize(texture(normalsTex, UV).rgb);
+    vec3 position = FromCameraSpace(texture(worldPosTex, uv).rgb);
+    vec3 albedo = texture(diffuseColorTex, uv).rgb;
+    float specular = texture(worldPosTex, uv).a;
+    vec3 normal = normalize(texture(normalsTex, uv).rgb);
       
-    float roughness = texture(meshDataTex, UV).a;
-    float metalness =  texture(meshDataTex, UV).z;
+    float roughness = texture(meshDataTex, uv).a;
+    float metalness =  texture(meshDataTex, uv).z;
     return shade(albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, true);
 }

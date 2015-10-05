@@ -130,8 +130,8 @@ vec3 RSM(){
         //break;
         for(int x=0;x<RSMSamples;x+=3){
         
-            //RSMLight light = rsmLights[int(getRand()*64*64)];
-            RSMLight light = rsmLights[x];
+            RSMLight light = rsmLights[int(getRand()*64*64)];
+            //RSMLight light = rsmLights[x];
             vec3 lcolor = light.Color.rgb;
             float lrough = light.Position.a;
             vec3 lnormal = light.normal.rgb;

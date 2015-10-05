@@ -12,6 +12,8 @@ namespace VEngine
     {
         private static List<ShaderProgram> AllPrograms = new List<ShaderProgram>();
 
+        private Dictionary<string, object> ValuesMap;
+
         private string VertexFile;
         private string FragmentFile;
         private string GeometryFile;
@@ -19,6 +21,7 @@ namespace VEngine
         private string TessEvalFile;
         private ShaderProgram(string vertexFile, string fragmentFile, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
         {
+            ValuesMap = new Dictionary<string, object>();
             VertexFile = vertexFile;
             FragmentFile = fragmentFile;
             GeometryFile = geometryFile;
@@ -26,6 +29,22 @@ namespace VEngine
             TessEvalFile = tessevalFile;
             Recompile();
             AllPrograms.Add(this);
+        }
+
+        bool CheckCache(string key, object value)
+        {
+            if(!ValuesMap.ContainsKey(key))
+            {
+                ValuesMap.Add(key, value);
+                return true;
+            }
+            else
+            {
+                if(ValuesMap[key] == value)
+                    return false;
+                else
+                    return true;
+            }
         }
 
         public static void RecompileAll()
@@ -94,20 +113,20 @@ namespace VEngine
         public void SetUniform(string name, Matrix4 data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
                 GL.UniformMatrix4(location, false, ref data);
         }
         public void SetUniform(string name, bool data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
                 GL.Uniform1(location, data ? 1 : 0);
         }
 
         public void SetUniform(string name, float data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
                 GL.Uniform1(location, data);
         }
 
@@ -116,35 +135,35 @@ namespace VEngine
             //if(name == "Instances")
            //     Console.WriteLine(data);
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
                 GL.Uniform1(location, data);
         }
 
         public void SetUniform(string name, Vector2 data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
                 GL.Uniform2(location, data);
         }
 
         public void SetUniform(string name, Vector3 data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
                 GL.Uniform3(location, data);
         }
 
         public void SetUniform(string name, Color4 data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
                 GL.Uniform4(location, data);
         }
 
         public void SetUniform(string name, Vector4 data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
                 GL.Uniform4(location, data);
         }
 
@@ -174,7 +193,7 @@ namespace VEngine
                 floats.Add(v.Row3.Z);
                 floats.Add(v.Row3.W);
             }
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
             {
                 GL.UniformMatrix4(location, data.Length, false, floats.ToArray());
                 GLThread.CheckErrors(name);
@@ -191,7 +210,7 @@ namespace VEngine
                 floats.Add(v.Y);
                 floats.Add(v.Z);
             }
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform3(location, data.Length, floats.ToArray());
                 GLThread.CheckErrors(name);
@@ -206,7 +225,7 @@ namespace VEngine
                 floats.Add(v.X);
                 floats.Add(v.Y);
             }
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform2(location, data.Length, floats.ToArray());
                 GLThread.CheckErrors(name);
@@ -224,7 +243,7 @@ namespace VEngine
                 floats.Add(v.Z);
                 floats.Add(v.W);
             }
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform4(location, data.Length, floats.ToArray());
                 GLThread.CheckErrors(name);
@@ -234,7 +253,7 @@ namespace VEngine
         public void SetUniformArray(string name, float[] data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform1(location, data.Length, data);
                 GLThread.CheckErrors(name);
@@ -243,7 +262,7 @@ namespace VEngine
         public void SetUniformArray(string name, int[] data)
         {
             int location = GetUniformLocation(name);
-            if(location >= 0)
+            if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform1(location, data.Length, data);
                 GLThread.CheckErrors(name);

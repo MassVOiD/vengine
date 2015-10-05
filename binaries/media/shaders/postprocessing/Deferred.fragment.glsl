@@ -188,27 +188,28 @@ vec3 Radiosity()
     float meshMetalness =  texture(meshDataTex, UV).z;
     fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(meshRoughness1)*0.4 + 1.0;
     
-    float brfds[] = float[2](min(meshMetalness, meshRoughness1), meshRoughness1);
+    float brfds[] = float[1](meshRoughness1);
     for(int bi = 0; bi < brfds.length(); bi++)
     {
         for(int i=0; i<samples; i++)
         {
             float meshRoughness =brfds[bi];
             vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
+            float fresnel = 1.0 - max(0, dot(-normalize(posCenter), normalize(displace))) + 0.5;
             
             float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace * 0.3) <= 0 ? 1: 0;
             vi = HitPos.x > 0 ? mix(1.0, 0.0, distance(FromCameraSpace(texture(worldPosTex, HitPos).rgb), FromCameraSpace(posCenter)) / 3.2) : 1;
             
-            vec3 color = texture(cubeMapTex, displace).rgb;
+            vec3 color = shadePhoton(UV, texture(cubeMapTex, displace).rgb);
             color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, normalCenter));
-            vec3 radiance = shadeUV(UV, FromCameraSpace(posCenter) + displace, vec4(color, 1));
-            ambient += radiance;
+            vec3 radiance = color * dotdiffuse;
+            ambient += radiance * fresnel;
             counter++;
         }
     }
     vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    return (rs*1);
+    return (rs*1.0);
 }
 void main()
 {   
