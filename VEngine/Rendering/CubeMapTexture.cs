@@ -1,22 +1,23 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
-using OldGL = OpenTK.Graphics.OpenGL;
 
 namespace VEngine
 {
     public class CubeMapTexture
     {
+        public int Handle = -1;
         public bool UseNearestFilter = false;
+
         private byte[] BitmapPosX,
             BitmapPosY,
             BitmapPosZ, BitmapNegX, BitmapNegY, BitmapNegZ;
+
         private bool Generated;
-        public int Handle = -1;
         private Size Size;
+
         public CubeMapTexture(string posx, string posy, string posz, string negx, string negy, string negz)
         {
             Update(ref BitmapPosX, posx);
@@ -27,7 +28,22 @@ namespace VEngine
             Update(ref BitmapNegZ, negz);
             Generated = false;
         }
-        
+
+        public void FreeCPU()
+        {
+            BitmapPosX = new byte[0];
+            BitmapPosY = new byte[0];
+            BitmapPosZ = new byte[0];
+            BitmapNegX = new byte[0];
+            BitmapNegY = new byte[0];
+            BitmapNegZ = new byte[0];
+        }
+
+        public void FreeGPU()
+        {
+            GL.DeleteTexture(Handle);
+        }
+
         public void Update(ref byte[] Bitmap, string file)
         {
             var bitmap = new Bitmap(Image.FromFile(file));
@@ -41,7 +57,7 @@ namespace VEngine
             bitmap.Dispose();
             GC.Collect();
         }
-        
+
         public void Use(TextureUnit unit)
         {
             if(!Generated)
@@ -84,21 +100,6 @@ namespace VEngine
             Marshal.Copy(ptr, bytedata, 0, numbytes);
             //bitmap.UnlockBits(bmpdata);
             return bytedata;
-        }
-        
-
-        public void FreeGPU() {
-            GL.DeleteTexture(Handle);
-        }
-
-        public void FreeCPU()
-        {
-            BitmapPosX = new byte[0];
-            BitmapPosY = new byte[0];
-            BitmapPosZ = new byte[0];
-            BitmapNegX = new byte[0];
-            BitmapNegY = new byte[0];
-            BitmapNegZ = new byte[0];
         }
     }
 }

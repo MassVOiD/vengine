@@ -5,11 +5,11 @@ namespace VEngine
 {
     public class Script
     {
-        Engine engine;
+        private Engine engine;
 
         public Script()
         {
-            engine = new Engine(cfg => 
+            engine = new Engine(cfg =>
                 cfg.Culture(System.Globalization.CultureInfo.InvariantCulture)
                 .AllowClr(new Assembly[] { typeof(VEngine.GLThread).Assembly, typeof(OpenTK.Vector3).Assembly })
                 .Strict(false));

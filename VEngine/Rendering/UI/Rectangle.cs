@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 using OpenTK;
-using OpenTK.Graphics.OpenGL4;
+
 namespace VEngine.UI
 {
     public class Rectangle : AbsUIElement
@@ -22,6 +22,15 @@ namespace VEngine.UI
             Color = color;
         }
 
+        public override void Draw()
+        {
+            Program.Use();
+            Program.GetShaderProgram().SetUniform("Position", Position);
+            Program.GetShaderProgram().SetUniform("Size", Size);
+            Program.GetShaderProgram().SetUniform("Color", Color);
+            Info3d.Draw();
+        }
+
         public void Update(float x, float y, float width, float height, Color color)
         {
             Position = new Vector2(x, y);
@@ -35,15 +44,5 @@ namespace VEngine.UI
             Size = size;
             Color = color;
         }
-
-        public override void Draw()
-        {
-            Program.Use();
-            Program.GetShaderProgram().SetUniform("Position", Position);
-            Program.GetShaderProgram().SetUniform("Size", Size);
-            Program.GetShaderProgram().SetUniform("Color", Color);
-            Info3d.Draw();
-        }
-
     }
 }

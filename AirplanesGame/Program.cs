@@ -1,25 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Threading.Tasks;
 using OpenTK;
-using System.IO;
 using VEngine;
-using BulletSharp;
-using VEngine.Generators;
-using UI = VEngine.UI;
-using System.Threading;
 using VEngine.FileFormats;
 
 namespace AirplanesGame
 {
     internal class Program
     {
-        class Config
+        private class Config
         {
+            public static int Height = 1010;
             public static string MediaPath = "media";
             public static int Width = 1920;
-            public static int Height = 1010;
         }
 
         private static void Main(string[] args)
@@ -79,12 +72,12 @@ namespace AirplanesGame
                 World.Root.Add(o);
             }
 
-           /* var lucyobj = VEngine.Object3dInfo.LoadFromRaw(VEngine.Media.Get("lucy.vbo.raw"), VEngine.Media.Get("lucy.indices.raw"));
-            lucyobj.ScaleUV(8.0f);
-            var lucy = new VEngine.Mesh3d(lucyobj, VEngine.GenericMaterial.FromMedia("168.JPG"));
-            lucy.Transformation.Scale(0.4f);
-            lucy.SetCollisionShape(lucy.MainObjectInfo.GetAccurateCollisionShape(0.4f));
-            World.Root.Add(lucy);*/
+            /* var lucyobj = VEngine.Object3dInfo.LoadFromRaw(VEngine.Media.Get("lucy.vbo.raw"), VEngine.Media.Get("lucy.indices.raw"));
+             lucyobj.ScaleUV(8.0f);
+             var lucy = new VEngine.Mesh3d(lucyobj, VEngine.GenericMaterial.FromMedia("168.JPG"));
+             lucy.Transformation.Scale(0.4f);
+             lucy.SetCollisionShape(lucy.MainObjectInfo.GetAccurateCollisionShape(0.4f));
+             World.Root.Add(lucy);*/
 
             Commons.SetUpInputBehaviours();
 

@@ -1,7 +1,4 @@
-﻿using System;
-using OpenTK;
-using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL4;
+﻿using OpenTK;
 
 namespace VEngine
 {
@@ -10,7 +7,6 @@ namespace VEngine
         public VEngineInvisibleAdapter()
             : base("", 1, 1, GameWindowFlags.Default)
         {
-
         }
     }
 }

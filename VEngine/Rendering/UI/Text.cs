@@ -16,26 +16,12 @@ namespace VEngine.UI
             var measured = Texture.MeasureText(text, font, size);
             Size = new Vector2(measured.Width / GLThread.Resolution.Width, measured.Height / GLThread.Resolution.Height);
         }
+
         public Text(Vector2 pos, string text, string font, float size, Color textColor)
         {
             Tex = Texture.FromText(text, font, size, textColor, Color.Transparent);
             Position = pos;
             var measured = Texture.MeasureText(text, font, size);
-            Size = new Vector2(measured.Width / GLThread.Resolution.Width, measured.Height / GLThread.Resolution.Height);
-        }
-
-        public void Update(float x, float y, string text, string font, float size, Color textColor)
-        {
-            Tex = Texture.FromText(text, font, size, textColor, Color.Transparent);
-            var measured = Texture.MeasureText(text, font, size);
-            Position = new Vector2(x, y);
-            Size = new Vector2(measured.Width / GLThread.Resolution.Width, measured.Height / GLThread.Resolution.Height);
-        }
-        public void Update(Vector2 pos, string text, string font, float size, Color textColor)
-        {
-            Tex = Texture.FromText(text, font, size, textColor, Color.Transparent);
-            var measured = Texture.MeasureText(text, font, size);
-            Position = pos;
             Size = new Vector2(measured.Width / GLThread.Resolution.Width, measured.Height / GLThread.Resolution.Height);
         }
 
@@ -48,5 +34,20 @@ namespace VEngine.UI
             Info3d.Draw();
         }
 
+        public void Update(float x, float y, string text, string font, float size, Color textColor)
+        {
+            Tex = Texture.FromText(text, font, size, textColor, Color.Transparent);
+            var measured = Texture.MeasureText(text, font, size);
+            Position = new Vector2(x, y);
+            Size = new Vector2(measured.Width / GLThread.Resolution.Width, measured.Height / GLThread.Resolution.Height);
+        }
+
+        public void Update(Vector2 pos, string text, string font, float size, Color textColor)
+        {
+            Tex = Texture.FromText(text, font, size, textColor, Color.Transparent);
+            var measured = Texture.MeasureText(text, font, size);
+            Position = pos;
+            Size = new Vector2(measured.Width / GLThread.Resolution.Width, measured.Height / GLThread.Resolution.Height);
+        }
     }
 }

@@ -169,47 +169,66 @@ uniform int UseVDAO;
 uniform int UseHBAO;
 vec3 Radiosity()
 {
+
+// gather data
+    uint idvals = texture(meshIdTex, UV).b;
+    /*
+    uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
+    uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
+    */
+    vec4 vals = unpackUnorm4x8(idvals);
+    float vdaomult = vals.x * 4 + 0.1;
+    float vdaosampling = vals.y * 2;
+    float vdaorefract = vals.z;
+
     Seed(UV);
     randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec3 posCenter = texture(worldPosTex, UV).rgb;
-    float meshSpecular = texture(worldPosTex, UV).a;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
-    const int samples = 18;
     
-    float octaves[] = float[4](0.8, 3.0, 7.9, 10.0);
     vec3 dir = normalize(reflect(posCenter, normalCenter));
-    float fresnel = 1.0 - max(0, dot(-normalize(posCenter), normalize(normalCenter)));
     
-    float initialAmbient = 0.0;
-
     uint counter = 0;   
-    float meshRoughness1 = 1.0 - texture(meshDataTex, UV).a;
-    float meshMetalness =  texture(meshDataTex, UV).z;
-    fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(meshRoughness1)*0.4 + 1.0;
+    float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     
-    float brfds[] = float[1](meshRoughness1);
-    for(int bi = 0; bi < brfds.length(); bi++)
+    int samples = int(mix(4, 200, 1.0 - meshRoughness));
+    
+    for(int i=0; i<samples; i++)
     {
+        vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
+                
+        vec3 color = shadePhoton(UV, texture(cubeMapTex, displace).rgb);
+        //color = getIntersect(color, FromCameraSpace(posCenter), displace);
+        float dotdiffuse = max(0, dot(displace, normalCenter));
+        vec3 radiance = color * dotdiffuse;
+        ambient += radiance;
+        counter++;
+    }
+    
+    vec3 vdaoMain = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaomult;
+    
+    ambient = vec3(0);
+    counter = 0;
+    
+    //if(vdaorefract > 0){
+        dir = normalize(refract(posCenter, normalCenter, 0.3));
         for(int i=0; i<samples; i++)
         {
-            float meshRoughness =brfds[bi];
-            vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
-            float fresnel = 1.0 - max(0, dot(-normalize(posCenter), normalize(displace))) + 0.5;
-            
-            float vi = testVisibility3d(UV, FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace * 0.3) <= 0 ? 1: 0;
-            vi = HitPos.x > 0 ? mix(1.0, 0.0, distance(FromCameraSpace(texture(worldPosTex, HitPos).rgb), FromCameraSpace(posCenter)) / 3.2) : 1;
-            
+            vec3 displace = normalize(BRDF(dir, -normalCenter, meshRoughness));
+                        
             vec3 color = shadePhoton(UV, texture(cubeMapTex, displace).rgb);
-            color = getIntersect(color, FromCameraSpace(posCenter), displace);
-            float dotdiffuse = max(0, dot(displace, normalCenter));
+            //color = getIntersect(color, FromCameraSpace(posCenter), displace);
+            float dotdiffuse = max(0, dot(displace, -normalCenter));
             vec3 radiance = color * dotdiffuse;
-            ambient += radiance * fresnel;
+            ambient += radiance;
             counter++;
         }
-    }
-    vec3 rs = counter == 0 ? vec3(0) : (ambient / (counter));
-    return (rs*1.0);
+   // }
+    
+    vec3 vdaoRefract = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaorefract;
+    
+    return vdaoMain + vdaoRefract;
 }
 void main()
 {   

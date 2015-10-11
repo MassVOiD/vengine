@@ -10,7 +10,7 @@ in vec2 UV;
 
 out vec4 outColor;
 
-vec3 raymarchFog(vec3 start, vec3 end, float sampling){
+vec3 raymarchFog(vec3 start, vec3 end){
 	vec3 color1 = vec3(0);
 
 	//vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;	
@@ -25,7 +25,7 @@ vec3 raymarchFog(vec3 start, vec3 end, float sampling){
 		float fogDensity = 0.0;
 		float fogMultiplier = 12.4;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
-		vec3 lastPos = start - mix(start, end, sampling);
+		vec3 lastPos = start - mix(start, end, 0.01);
         float samples = 1.0 / 0.01;
         float stepsize = distance(start, end) / samples;
 		for(float m = 0.0; m< 1.0;m+= 0.01){
@@ -68,7 +68,7 @@ vec3 makeFog(){
 	vec3 cspaceEnd = texture(worldPosTex, UV).xyz;
     if(length(cspaceEnd) > 800) cspaceEnd = normalize(cspaceEnd) * 800;
 	vec3 fragmentPosWorld3d = FromCameraSpace(cspaceEnd);
-    return clamp(vec3(raymarchFog(CameraPosition, fragmentPosWorld3d, FogSamples)), 0.0, 1.0);
+    return clamp(vec3(raymarchFog(CameraPosition, fragmentPosWorld3d)), 0.0, 1.0);
 }
 
 void main()

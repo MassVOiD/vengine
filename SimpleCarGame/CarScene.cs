@@ -1,27 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Drawing;
-using System.Threading.Tasks;
+using BulletSharp;
+using OpenTK;
 using VEngine;
 using VEngine.Generators;
-using OpenTK;
-using BulletSharp;
 
 namespace SimpleCarGame
 {
-    class CarScene : Scene
+    internal class CarScene : Scene
     {
         public static Mesh3d CurrentCar;
+
         public CarScene()
         {
-
-
             Object3dInfo waterInfo = Object3dGenerator.CreateGround(new Vector2(-200, -200), new Vector2(200, 200), new Vector2(100, 100), Vector3.UnitY);
-
 
             var color = GenericMaterial.FromMedia("checked.png", "183_norm.JPG");
             Mesh3d water = new Mesh3d(waterInfo, color);
@@ -60,7 +52,6 @@ namespace SimpleCarGame
             redConeLight.camera.LookAt(Vector3.Zero);
 
             LightPool.Add(redConeLight);
-
 
             var wheel3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("fcarwheel.obj"));
             var car3dInfo = Object3dInfo.LoadFromObjSingle(Media.Get("fcarbody.obj"));
@@ -108,7 +99,6 @@ namespace SimpleCarGame
             wheelRR.CreateRigidBody();
             World.Root.Add(wheelRR);
 
-
             wheelLF.PhysicalBody.SetSleepingThresholds(0, 0);
             wheelLF.PhysicalBody.ContactProcessingThreshold = 0;
             wheelLF.PhysicalBody.CcdMotionThreshold = 0;
@@ -139,7 +129,6 @@ namespace SimpleCarGame
             car.PhysicalBody.SetIgnoreCollisionCheck(wheelLR.PhysicalBody, true);
             car.PhysicalBody.SetIgnoreCollisionCheck(wheelRR.PhysicalBody, true);
 
-
             // location left rear x -5.27709 y 1.56474 z -3.13906
             // location right rear x -5.27709 y 1.56474 z 3.13906
             // location left front x 5.500539 y 1.56474 z -3.13906
@@ -157,7 +146,7 @@ namespace SimpleCarGame
             var centerAxis2 = new HingeConstraint(car.PhysicalBody, wheelRF.PhysicalBody,
                 new Vector3(1.640539f, -0.48866f, 1.94906f), new Vector3(0), Vector3.UnitZ, Vector3.UnitZ);
 
-            var centerAxis3 = new HingeConstraint(car.PhysicalBody, wheelLR.PhysicalBody, 
+            var centerAxis3 = new HingeConstraint(car.PhysicalBody, wheelLR.PhysicalBody,
                 new Vector3(-1.640539f, -0.48866f, 1.94906f), new Vector3(0), Vector3.UnitZ, Vector3.UnitZ);
             var centerAxis4 = new HingeConstraint(car.PhysicalBody, wheelRR.PhysicalBody,
                 new Vector3(-1.640539f, -0.48866f, -1.94906f), new Vector3(0), Vector3.UnitZ, Vector3.UnitZ);
@@ -169,8 +158,8 @@ namespace SimpleCarGame
 
             //World.Root.PhysicalWorld.AddConstraint(frontAxis);
             // World.Root.PhysicalWorld.AddConstraint(rearAxis);
-          //  centerAxis1.SetLimit(0, 0.01f);
-           // centerAxis2.SetLimit(0, 0.01f);
+            //  centerAxis1.SetLimit(0, 0.01f);
+            // centerAxis2.SetLimit(0, 0.01f);
             //centerAxis3.SetLimit(0, 0.01f);
             //centerAxis4.SetLimit(0, 0.01f);
             World.Root.PhysicalWorld.AddConstraint(centerAxis1);
@@ -198,7 +187,6 @@ namespace SimpleCarGame
                 }
                 if(e.Key == OpenTK.Input.Key.Down)
                 {
-
                     centerAxis1.EnableMotor = true;
                     centerAxis1.EnableAngularMotor(true, 100.0f, 6.0f);
                     centerAxis2.EnableMotor = true;
@@ -225,13 +213,11 @@ namespace SimpleCarGame
             {
                 if(e.Key == OpenTK.Input.Key.Up)
                 {
-
                     centerAxis1.EnableMotor = false;
                     centerAxis2.EnableMotor = false;
                 }
                 if(e.Key == OpenTK.Input.Key.Down)
                 {
-
                     centerAxis1.EnableMotor = false;
                     centerAxis2.EnableMotor = false;
                 }
@@ -244,16 +230,12 @@ namespace SimpleCarGame
                 }
                 if(e.Key == OpenTK.Input.Key.Right)
                 {
-                    centerAxis3.SetFrames( Matrix4.CreateTranslation(new Vector3(-1.640539f, -0.48866f, 1.94906f)), Matrix4.CreateTranslation(new Vector3(0)));
+                    centerAxis3.SetFrames(Matrix4.CreateTranslation(new Vector3(-1.640539f, -0.48866f, 1.94906f)), Matrix4.CreateTranslation(new Vector3(0)));
                     centerAxis4.SetFrames(Matrix4.CreateTranslation(new Vector3(-1.640539f, -0.48866f, -1.94906f)), Matrix4.CreateTranslation(new Vector3(0)));
                     //centerAxis3.SetAxis(new Vector3(0, 0, 1));
                     //centerAxis4.SetAxis(new Vector3(0, 0, 1));
                 }
             };
-
         }
-
-
-
     }
 }

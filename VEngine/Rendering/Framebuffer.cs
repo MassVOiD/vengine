@@ -1,11 +1,35 @@
 ﻿using System;
-using OpenTK.Graphics.OpenGL4;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
     public class Framebuffer
     {
+        public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.Rgba16f;
+
+        public PixelFormat ColorPixelFormat = PixelFormat.Rgba;
+
+        public PixelType ColorPixelType = PixelType.HalfFloat;
+
+        public PixelInternalFormat DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
+
+        public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
+
+        public PixelType DepthPixelType = PixelType.Float;
+
+        public int DrawBufferIndex = 0;
+
+        public bool Generated;
+
+        public int TexColor, TexDepth;
+
+        public int Width, Height;
+
+        private bool DepthOnly, MultiSample;
+
+        private int FBO, RBO;
+
         public Framebuffer(int width, int height, bool depthOnly = false)
         {
             Generated = false;
@@ -14,17 +38,21 @@ namespace VEngine
             DepthOnly = depthOnly;
         }
 
-        public int TexColor, TexDepth;
-        private int FBO, RBO;
-        public int Width, Height;
-        private bool DepthOnly, MultiSample;
-        public bool Generated;
-        public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.Rgba16f;
-        public PixelFormat ColorPixelFormat = PixelFormat.Rgba;
-        public PixelType ColorPixelType = PixelType.HalfFloat;
-        public PixelInternalFormat DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
-        public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
-        public PixelType DepthPixelType = PixelType.Float;
+        public Vector3h GetColor(float x, float y)
+        {
+            GL.BindTexture(TextureTarget.Texture2D, TexColor);
+            Vector3h[] pixels = new Vector3h[Width * Height];
+            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.HalfFloat, pixels);
+            return pixels[(int)(Width * x) + (int)((Height * y) * Width)];
+        }
+
+        public Vector3h[] GetColorBuffer()
+        {
+            GL.BindTexture(TextureTarget.Texture2D, TexColor);
+            Vector3h[] pixels = new Vector3h[Width * Height];
+            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgb, PixelType.HalfFloat, pixels);
+            return pixels;
+        }
 
         public float GetDepth(float x, float y)
         {
@@ -33,19 +61,10 @@ namespace VEngine
             GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.DepthComponent, PixelType.Float, pixels);
             return pixels[(int)(Width * x) + (int)((Height * y) * Width)];
         }
-        public Vector3h GetColor(float x, float y)
+
+        public void RevertToDefault()
         {
-            GL.BindTexture(TextureTarget.Texture2D, TexColor);
-            Vector3h[] pixels = new Vector3h[Width * Height];
-            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.HalfFloat, pixels);
-            return pixels[(int)(Width * x) + (int)((Height * y) * Width)];
-        }
-        public Vector3h[] GetColorBuffer()
-        {
-            GL.BindTexture(TextureTarget.Texture2D, TexColor);
-            Vector3h[] pixels = new Vector3h[Width * Height];
-            GL.GetTexImage(TextureTarget.Texture2D, 0, PixelFormat.Rgb, PixelType.HalfFloat, pixels);
-            return pixels;
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
         public void SetMultiSample(bool boolean)
@@ -55,18 +74,15 @@ namespace VEngine
             MultiSample = boolean;
         }
 
-        public void RevertToDefault()
-        {
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-        }
-
         public void Use(bool setViewport = true, bool clearViewport = true)
         {
             if(!Generated)
                 Generate();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
-            if(setViewport) GL.Viewport(0, 0, Width, Height);
-            if(clearViewport) GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            if(setViewport)
+                GL.Viewport(0, 0, Width, Height);
+            if(clearViewport)
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
         public void UseTexture(int startIndex)
@@ -80,7 +96,6 @@ namespace VEngine
             {
                 if(MultiSample)
                 {
-
                     GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
                     GL.BindTexture(TextureTarget.Texture2DMultisample, TexColor);
                     GL.ActiveTexture(TextureUnit.Texture1 + startIndex);
@@ -88,7 +103,6 @@ namespace VEngine
                 }
                 else
                 {
-
                     GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
                     GL.BindTexture(TextureTarget.Texture2D, TexColor);
                     GL.ActiveTexture(TextureUnit.Texture1 + startIndex);
@@ -97,8 +111,6 @@ namespace VEngine
             }
         }
 
-        public int DrawBufferIndex = 0;
-        
         private void Generate()
         {
             Generated = true;
@@ -112,7 +124,8 @@ namespace VEngine
 
             if(DepthOnly)
             {
-               // GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R8, Width, Height, 0, PixelFormat.Red, PixelType.Byte, (IntPtr)0);
+                // GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R8, Width, Height,
+                // 0, PixelFormat.Red, PixelType.Byte, (IntPtr)0);
             }
             else
             {
@@ -145,11 +158,12 @@ namespace VEngine
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
             }
-           // RBO = GL.GenRenderbuffer();
-          //  GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RBO);
-           // GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, Width, Height);
+            // RBO = GL.GenRenderbuffer(); GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer,
+            // RBO); GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer,
+            // RenderbufferStorage.DepthComponent, Width, Height);
 
-          //  GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, RBO);
+            // GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer,
+            // FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, RBO);
 
             if(!DepthOnly)
                 GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + DrawBufferIndex, TexColor, 0);
@@ -164,9 +178,8 @@ namespace VEngine
             }
         }
 
-        void GenerateMultisampled(int Samples)
+        private void GenerateMultisampled(int Samples)
         {
-
             // Generate multisampled textures
             TexColor = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2DMultisample, TexColor);

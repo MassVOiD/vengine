@@ -5,6 +5,14 @@ namespace VEngine
 {
     public class MeshLinker
     {
+        public class LinkInfo
+        {
+            public Vector3 Offset;
+            public ITransformable Parent, Child;
+            public Quaternion Rotation;
+            public bool UpdateRotation = true;
+        }
+
         private static List<LinkInfo> Links = new List<LinkInfo>();
 
         public static LinkInfo Link(ITransformable parent, ITransformable child, Vector3 offset, Quaternion Rotation)
@@ -41,7 +49,6 @@ namespace VEngine
                     }
                     else
                     {
-
                         link.Child.GetTransformationManager().SetPosition(link.Parent.GetTransformationManager().GetPosition() + link.Offset.Rotate(link.Parent.GetTransformationManager().GetOrientation()));
                         if(link.UpdateRotation)
                             link.Child.GetTransformationManager().SetOrientation(Quaternion.Multiply(link.Parent.GetTransformationManager().GetOrientation(), link.Rotation));
@@ -56,7 +63,6 @@ namespace VEngine
                 }
                 else
                 {
-
                     link.Child.GetTransformationManager().SetPosition(link.Parent.GetTransformationManager().GetPosition() + link.Offset.Rotate(link.Parent.GetTransformationManager().GetOrientation()));
                     if(link.UpdateRotation)
                         link.Child.GetTransformationManager().SetOrientation(Quaternion.Multiply(link.Parent.GetTransformationManager().GetOrientation(), link.Rotation));
@@ -67,14 +73,6 @@ namespace VEngine
         public static void Unlink(LinkInfo info)
         {
             Links.Remove(info);
-        }
-
-        public class LinkInfo
-        {
-            public Vector3 Offset;
-            public ITransformable Parent, Child;
-            public Quaternion Rotation;
-            public bool UpdateRotation = true;
         }
     }
 }

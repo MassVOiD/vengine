@@ -22,3 +22,4 @@ layout (std430, binding = 9) buffer RSMBuffer
 {
     RSMLight rsmLights[64*64]; 
 }; 
+

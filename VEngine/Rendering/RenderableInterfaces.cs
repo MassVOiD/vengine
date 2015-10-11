@@ -3,6 +3,16 @@ using OpenTK;
 
 namespace VEngine
 {
+    public class MixRange
+    {
+        public float Start, End;
+    }
+
+    public enum LightMixMode
+    {
+        Additive, Exclusive, SunCascade
+    }
+
     public interface IControllable
     {
         void Draw();
@@ -13,38 +23,15 @@ namespace VEngine
         void GetMass();
     }
 
-    public enum LightMixMode
-    {
-        Additive, Exclusive, SunCascade
-    }
-
-    public class MixRange
-    {
-        public float Start, End;
-    }
-
     public interface ILight
     {
         Vector4 GetColor();
-        
-        Vector3 GetPosition();
-        
+
         LightMixMode GetMixMode();
+
         MixRange GetMixRange();
-        
-    }
 
-    public interface IShadowMapableLight
-    {
-        float GetFarPlane();
-
-        Matrix4 GetPMatrix();
-        
-        Matrix4 GetVMatrix();
-
-        void Map(Matrix4 parentTransformation);
-
-        void UseTexture(int index);
+        Vector3 GetPosition();
     }
 
     public interface IPhysical
@@ -57,6 +44,19 @@ namespace VEngine
     public interface IRenderable
     {
         void Draw(Matrix4 parentTransformation);
+    }
+
+    public interface IShadowMapableLight
+    {
+        float GetFarPlane();
+
+        Matrix4 GetPMatrix();
+
+        Matrix4 GetVMatrix();
+
+        void Map(Matrix4 parentTransformation);
+
+        void UseTexture(int index);
     }
 
     public interface ITransformable

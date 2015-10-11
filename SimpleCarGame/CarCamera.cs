@@ -1,5 +1,4 @@
 ﻿using System;
-using BulletSharp;
 using OpenTK;
 using VEngine;
 
@@ -7,6 +6,10 @@ namespace SimpleCarGame
 {
     internal class CarCamera
     {
+        public Camera Cam;
+
+        private float Horizontal, Vertical;
+
         public CarCamera(float aspectRatio, float fov)
         {
             Cam = new Camera(new Vector3(20, 20, 20), new Vector3(0, 2, 0), aspectRatio, fov, 1.0f, 10000.0f);
@@ -14,7 +17,7 @@ namespace SimpleCarGame
             GLThread.OnUpdate += GLThread_OnUpdate;
         }
 
-        void GLThread_OnUpdate(object sender, EventArgs e)
+        private void GLThread_OnUpdate(object sender, EventArgs e)
         {
             if(CarScene.CurrentCar == null)
                 return;
@@ -30,7 +33,7 @@ namespace SimpleCarGame
             var res = initial + displace;
             if(res.Y < -10)
                 res.Y = -10;
-            Cam.SetPosition((Cam.GetPosition()*21 + res) / 22);
+            Cam.SetPosition((Cam.GetPosition() * 21 + res) / 22);
             Cam.LookAt(initial);
 
             //Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
@@ -38,9 +41,6 @@ namespace SimpleCarGame
             //Cam.Update();
             Cam.Transformation.ClearModifiedFlag();
         }
-
-        public Camera Cam;
-        private float Horizontal, Vertical;
 
         private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
@@ -57,8 +57,6 @@ namespace SimpleCarGame
                 Vertical = MathHelper.Pi / 2 - 0.01f;
             if(Vertical < -0.2f)
                 Vertical = -0.2f;
-
         }
-
     }
 }

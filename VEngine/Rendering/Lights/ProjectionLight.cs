@@ -7,6 +7,40 @@ namespace VEngine
 {
     public class ProjectionLight : ILight, IShadowMapableLight, ITransformable
     {
+        public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack("ConeLight.fragment.glsl");
+
+        public static ShaderStorageBuffer RSMBuffer;
+
+        public float Attenuation = 1.0f;
+
+        public Camera camera;
+
+        public float CullerMultiplier = 1.0f;
+
+        public Vector3 FakePosition = Vector3.Zero;
+
+        public Framebuffer FBO;
+
+        public bool IsStatic = false;
+
+        public Vector4 LightColor = new Vector4(1, 1, 1, 1);
+
+        public LightMixMode LightMixMode = LightMixMode.Additive;
+
+        public MixRange LightMixRange = new MixRange()
+        {
+            Start = 0,
+            End = 100000.0f
+        };
+
+        public bool NeedsRefreshing = true;
+
+        private float FarPlane;
+
+        private ComputeShader RSMBufferShader;
+
+        private Size ViewPort;
+
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
             FarPlane = far;
@@ -26,34 +60,13 @@ namespace VEngine
             GLThread.Invoke(() => RSMBuffer.MapData(Enumerable.Repeat<byte>(1, 64 * 64 * 4 * 12).ToArray()));
             RSMBufferShader = new ComputeShader("RSMBufferData.compute.glsl");
         }
-        public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack("ConeLight.fragment.glsl");
-
-        public MixRange LightMixRange = new MixRange()
-        {
-            Start = 0,
-            End = 100000.0f
-        };
-
-        public LightMixMode LightMixMode = LightMixMode.Additive;
-
-        public Camera camera;
-        public Framebuffer FBO;
-        public Vector4 LightColor = new Vector4(1, 1, 1, 1);
-        private float FarPlane;
-        private Size ViewPort;
-        private ComputeShader RSMBufferShader;
-
-        public float CullerMultiplier = 1.0f;
-        public float Attenuation = 1.0f;
-
-        public bool IsStatic = false;
-        public bool NeedsRefreshing = true;
 
         public void BuildOrthographicProjection(float width, float height, float near, float far)
         {
             camera.ProjectionMatrix = Matrix4.CreateOrthographic(width, height, near, far);
             camera.Update();
         }
+
         public void BuildOrthographicProjection(float left, float right, float bottom, float top, float near, float far)
         {
             camera.ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, near, far);
@@ -70,14 +83,14 @@ namespace VEngine
             return FarPlane;
         }
 
-        public MixRange GetMixRange()
-        {
-            return LightMixRange;
-        }
-
         public LightMixMode GetMixMode()
         {
             return LightMixMode;
+        }
+
+        public MixRange GetMixRange()
+        {
+            return LightMixRange;
         }
 
         public Matrix4 GetPMatrix()
@@ -85,7 +98,6 @@ namespace VEngine
             return camera.ProjectionMatrix;
         }
 
-        public Vector3 FakePosition = Vector3.Zero;
         public Vector3 GetPosition()
         {
             return camera.Transformation.GetPosition();
@@ -101,13 +113,11 @@ namespace VEngine
             return camera.ViewMatrix;
         }
 
-
-        public static ShaderStorageBuffer RSMBuffer;
         public void Map(Matrix4 parentTransformation)
         {
             if(IsStatic && !NeedsRefreshing)
                 return;
-           
+
             GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
             FBO.Use();
             if(camera.Transformation.HasBeenModified())
@@ -119,9 +129,11 @@ namespace VEngine
             Camera.Current = camera;
             GL.Viewport(0, 0, ViewPort.Width, ViewPort.Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            
+
             MainShaderPack.ProgramsList.ForEach((shader) =>
             {
+                if(!shader.Compiled)
+                    return;
                 shader.Use();
                 ShaderProgram.Current.SetUniform("LightPosition", camera.Transformation.GetPosition());
                 ShaderProgram.Current.SetUniform("LightColor", LightColor);
@@ -148,7 +160,7 @@ namespace VEngine
             RSMBufferShader.SetUniform("MatI", (parentTransformation));
             RSMBufferShader.SetUniform("Far", camera.Far);
             RSMBufferShader.SetUniform("LightPos", GetPosition());
-            RSMBufferShader.Dispatch(64,64);
+            RSMBufferShader.Dispatch(64, 64);
         }
 
         public void SetPosition(Vector3 position, Vector3 lookat)
@@ -164,14 +176,14 @@ namespace VEngine
             camera.Update();
         }
 
-        public void UpdateInverse()
-        {
-            camera.UpdateInverse();
-        }
-
         public void SetProjection(Matrix4 matrix)
         {
             camera.ProjectionMatrix = matrix;
+        }
+
+        public void UpdateInverse()
+        {
+            camera.UpdateInverse();
         }
 
         public void UseTexture(int index)

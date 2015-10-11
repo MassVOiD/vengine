@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK.Graphics.OpenGL4;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
     public class Texture3D
     {
+        public int Handle = -1;
 
+        private bool Generated;
+
+        private Vector3 Size;
 
         public Texture3D(int handle)
         {
@@ -24,9 +24,10 @@ namespace VEngine
             Generated = false;
         }
 
-        private bool Generated;
-        public int Handle = -1;
-        private Vector3 Size;
+        public void Clear()
+        {
+            GL.ClearTexImage(Handle, 0, PixelFormat.RedInteger, PixelType.UnsignedInt, new IntPtr(0));
+        }
 
         public void Use(TextureUnit unit)
         {
@@ -47,11 +48,5 @@ namespace VEngine
             GL.ActiveTexture(unit);
             GL.BindTexture(TextureTarget.Texture3D, Handle);
         }
-
-        public void Clear()
-        {
-            GL.ClearTexImage(Handle, 0, PixelFormat.RedInteger, PixelType.UnsignedInt, new IntPtr(0));
-        }
-
     }
 }

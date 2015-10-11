@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
@@ -10,6 +6,7 @@ namespace VEngine
     public class DeferredPipeline
     {
         public PostProcessing PostProcessor;
+
         public DeferredPipeline()
         {
             GLThread.StartTime = DateTime.Now;

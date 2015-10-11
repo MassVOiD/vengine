@@ -1,29 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
-using OpenTK.Graphics.OpenGL4;
 using VEngine;
 
 namespace AirplanesGame
 {
-    class Commons
+    internal class Commons
     {
-       // public static FreeCamera FreeCam;
-        static ProjectionLight RedLight;
-        
+        // public static FreeCamera FreeCam;
+        private static ProjectionLight RedLight;
+
         public static ProjectionLight AddControllableLight()
         {
-
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.PiOver2+0.3f, 0.1f, 10000.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.PiOver2 + 0.3f, 0.1f, 10000.0f);
             RedLight = redConeLight;
             redConeLight.LightColor = new Vector4(1, 1, 1, 95);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
             LightPool.Add(redConeLight);
-            
 
             GLThread.OnUpdate += (o, e) =>
             {
@@ -64,7 +57,6 @@ namespace AirplanesGame
 
         public static void SetUpInputBehaviours()
         {
-
             GLThread.OnMouseUp += (o, e) =>
             {
                 if(e.Button == OpenTK.Input.MouseButton.Middle)
@@ -74,7 +66,6 @@ namespace AirplanesGame
                     {
                         Console.WriteLine(mesh.GetCollisionShape().ToString());
                         mesh.PhysicalBody.LinearVelocity += (Camera.Current.GetDirection() * 120.0f);
-
                     }
                 }
             };
@@ -132,7 +123,6 @@ namespace AirplanesGame
                 {
                     World.Root.SimulationSpeed = 0.10f;
                 }
-
             };
             GLThread.OnKeyUp += (o, e) =>
             {
@@ -140,7 +130,7 @@ namespace AirplanesGame
                 {
                     GLThread.DisplayAdapter.IsCursorVisible = !GLThread.DisplayAdapter.IsCursorVisible;
                 }
-               
+
                 if(e.Key == OpenTK.Input.Key.Pause)
                 {
                     ShaderProgram.RecompileAll();

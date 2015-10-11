@@ -1,27 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 
 namespace VEngine.Rendering
 {
     public class TreeGenerator
     {
-
-        static Random Randomizer;
-
-        static Object3dInfo Node = Object3dInfo.LoadFromObjSingle(Media.Get("tree_singlenode.obj"));
-        static Object3dInfo Leaf = Object3dInfo.LoadFromObjSingle(Media.Get("tree_singleleaf.obj"));
-        static GenericMaterial NodeMaterial = new GenericMaterial(Color.Brown);
-        static GenericMaterial LeafMaterial = new GenericMaterial(Color.Green);
-
-        private static float Rand()
+        private class NodeOut
         {
-            return (float)Randomizer.NextDouble();
+            public List<Mesh3d> Nodes, Leafs;
         }
+
+        private static Object3dInfo Leaf = Object3dInfo.LoadFromObjSingle(Media.Get("tree_singleleaf.obj"));
+        private static GenericMaterial LeafMaterial = new GenericMaterial(Color.Green);
+        private static Object3dInfo Node = Object3dInfo.LoadFromObjSingle(Media.Get("tree_singlenode.obj"));
+        private static GenericMaterial NodeMaterial = new GenericMaterial(Color.Brown);
+        private static Random Randomizer;
 
         public static List<InstancedMesh3d> CreateTree(float minNodesAngle, float maxNodesAngle, int maxNodesCountPerLevel, int iterations, int randomSeed, float scaleDescendant, bool addLeaves)
         {
@@ -37,7 +32,8 @@ namespace VEngine.Rendering
 
             var tree = CreateNode(Vector3.Zero, Quaternion.Identity, minNodesAngle, maxNodesAngle, maxNodesCountPerLevel, 1.0f, iterations, scaleDescendant, addLeaves);
             elements.Add(InstancedMesh3d.FromSimilarMesh3dList(tree.Nodes));
-            if(addLeaves) elements.Add(InstancedMesh3d.FromSimilarMesh3dList(tree.Leafs));
+            if(addLeaves)
+                elements.Add(InstancedMesh3d.FromSimilarMesh3dList(tree.Leafs));
 
             return elements;
         }
@@ -71,15 +67,6 @@ namespace VEngine.Rendering
             return elements;
         }
 
-        private static float Mix(float a, float b, float f)
-        {
-            return a - a * f + b * f;
-        }
-
-        class NodeOut
-        {
-            public List<Mesh3d> Nodes, Leafs;
-        }
         private static NodeOut CreateNode(Vector3 origin, Quaternion rotation, float minNodesAngle, float maxNodesAngle, int maxNodesCountPerLevel, float scale, int iterations, float scaleDescendant, bool addLeaves, List<VEngine.Mesh3d.Bone> boneSystem = null, VEngine.Mesh3d.Bone boneParent = null)
         {
             List<Mesh3d> elements = new List<Mesh3d>();
@@ -158,5 +145,14 @@ namespace VEngine.Rendering
             };
         }
 
+        private static float Mix(float a, float b, float f)
+        {
+            return a - a * f + b * f;
+        }
+
+        private static float Rand()
+        {
+            return (float)Randomizer.NextDouble();
+        }
     }
 }

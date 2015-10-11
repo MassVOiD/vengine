@@ -8,9 +8,10 @@ namespace VEngine
 
         public static void CacheShaderProgram(string allnames, ShaderProgram compiled)
         {
-            lock(Cache)
+            lock (Cache)
             {
-                if(!Cache.ContainsKey(allnames))Cache.Add(allnames, compiled);
+                if(!Cache.ContainsKey(allnames))
+                    Cache.Add(allnames, compiled);
             }
         }
 

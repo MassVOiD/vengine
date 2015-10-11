@@ -42,6 +42,19 @@ float reverseLogEx(float dd, float far){
 float reverseLog(float dd){
 	return reverseLogEx(dd, FarPlane);
 }
+
+// it returns the cosine
+float calculateAngleOccupied(float dist, float radius){
+    float pp = sqrt(dist*dist+radius*radius);
+    return 2*(dist/pp);
+}
+
+bool intersectPoint(vec3 origin, vec3 direction, vec3 position, float radius){
+    float angle = dot(position - origin, direction);
+    float cosine = calculateAngleOccupied(distance(position, origin), radius);
+    return angle <= cosine;
+}
+
 /*
 void updateDepth(){
 	float depth = distance(Input.WorldPos, CameraPosition);

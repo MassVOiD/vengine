@@ -1,30 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using OpenTK;
-using System.IO;
 using VEngine;
-using BulletSharp;
-using VEngine.Generators;
-using UI = VEngine.UI;
-using System.Threading;
 
 namespace ShadowsTester
 {
     internal class Program
     {
-        public static FreeCamera FreeCam;
+        private class Config
+        {
+            public static int Width = 640;
+            public static int Height = 480;
+            public static string MediaPath = "media";
+        }
+
         public static
             ConsoleManager cmg = new ConsoleManager();
 
-        class Config
-        {   
-            public static string MediaPath = "media";
-            public static int Width = 1920;
-            public static int Height = 1030;
-        }
+        public static FreeCamera FreeCam;
 
+        [STAThread]
         private static void Main(string[] args)
         {
             VEngineWindowAdapter window = null;
@@ -34,6 +30,7 @@ namespace ShadowsTester
             GLThread.Resolution = new Size(Config.Width, Config.Height);
 
             GLThread.SetCurrentThreadCores(1);
+
 
             var renderThread = Task.Factory.StartNew(() =>
             {
@@ -58,34 +55,30 @@ namespace ShadowsTester
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
-
             //new PlanetScene().Create();
             //   new SculptScene().Create();
             //   new SponzaScene().Create();
             new OldCityScene();
-          // new PathTraceTest().Create();
-          //  new NatureScene().Create();
-          //  new IndirectTestScene().Create();
-         // new DragonScene();
-           // new ManyCubesScene().Create();
-          //  new ComputeBallsScene().Create();
-           //new CarScene().Create();
+            // new PathTraceTest().Create();
+            //  new NatureScene().Create();
+            //  new IndirectTestScene().Create();
+            //    new DragonScene();
+            // new ManyCubesScene().Create();
+            //  new ComputeBallsScene().Create();
+            //new CarScene().Create();
 
-           // new FortressScene().Create();
+            // new FortressScene().Create();
 
-           // new HallScene().Create();
-           // new RoadScene().Create();
-           // new HomeScene().Create();
-
+            // new HallScene().Create(); new RoadScene().Create(); new HomeScene().Create();
 
             World.Root.SortByDepthMasking();
 
-           // System.Threading.Thread.Sleep(1000);
+            // System.Threading.Thread.Sleep(1000);
 
-            
             //World.Root.SortByObject3d();
 
             GLThread.Invoke(() => window.StartPhysicsThread());
+            System.Windows.Forms.Application.Run(new SettingsController());
             renderThread.Wait();
         }
     }

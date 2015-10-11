@@ -5,6 +5,22 @@ namespace VEngine
 {
     public class Camera : ITransformable
     {
+        static public Camera Current;
+
+        static public Camera MainDisplayCamera;
+
+        public float Brightness = 1.0f;
+
+        public float CurrentDepthFocus = 0.06f;
+
+        public float LensBlurAmount = 0.0f;
+
+        public float Pitch, Roll, Far;
+
+        public TransformationManager Transformation;
+
+        public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
+
         public Camera(Vector3 position, Vector3 lookAt, float aspectRatio, float fov, float near, float far)
         {
             Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
@@ -33,15 +49,6 @@ namespace VEngine
             Update();
         }
 
-        static public Camera Current;
-        static public Camera MainDisplayCamera;
-        public float CurrentDepthFocus = 0.06f;
-        public float LensBlurAmount = 0.0f;
-        public float Brightness = 1.0f;
-        public float Pitch, Roll, Far;
-        public TransformationManager Transformation;
-        public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
-
         public Vector3 GetDirection()
         {
             var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, -Pitch);
@@ -59,7 +66,7 @@ namespace VEngine
 
         public void LookAt(Vector3 location)
         {
-            RotationMatrix = Matrix4.CreateFromQuaternion(Matrix4.LookAt(Vector3.Zero, -( location - Transformation.GetPosition()).Normalized(), new Vector3(0, 1, 0)).ExtractRotation());
+            RotationMatrix = Matrix4.CreateFromQuaternion(Matrix4.LookAt(Vector3.Zero, -(location - Transformation.GetPosition()).Normalized(), new Vector3(0, 1, 0)).ExtractRotation());
             ViewMatrix = RotationMatrix * Matrix4.CreateTranslation(-Transformation.GetPosition());
             Transformation.SetOrientation(RotationMatrix.ExtractRotation());
             Transformation.ClearModifiedFlag();
@@ -113,11 +120,6 @@ namespace VEngine
             RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());
             ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
         }
-        public void UpdateInverse()
-        {
-            RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
-            ViewMatrix = RotationMatrix * Matrix4.CreateTranslation(Transformation.GetPosition());
-        }
 
         public void UpdateFromRollPitch()
         {
@@ -126,6 +128,12 @@ namespace VEngine
             Transformation.SetOrientation(Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted()));
             RotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
             ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
+        }
+
+        public void UpdateInverse()
+        {
+            RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
+            ViewMatrix = RotationMatrix * Matrix4.CreateTranslation(Transformation.GetPosition());
         }
     }
 }

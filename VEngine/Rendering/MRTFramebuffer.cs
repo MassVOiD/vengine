@@ -1,28 +1,34 @@
 ﻿using System;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK;
 
 namespace VEngine
 {
     public class MRTFramebuffer
     {
+        public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.Rgba16f;
+
+        public PixelFormat ColorPixelFormat = PixelFormat.Rgba;
+
+        public PixelType ColorPixelType = PixelType.HalfFloat;
+
+        public PixelInternalFormat DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
+
+        public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
+
+        public PixelType DepthPixelType = PixelType.Float;
+
+        public bool Generated;
+
+        public int TexDiffuse, TexWorldPos, TexNormals, TexMeshData, TexDepth, TexId;
+
+        private int FBO, RBO, Width, Height;
+
         public MRTFramebuffer(int width, int height)
         {
             Generated = false;
             Width = width;
             Height = height;
         }
-
-        public int TexDiffuse, TexWorldPos, TexNormals, TexMeshData, TexDepth, TexId;
-
-        private int FBO, RBO, Width, Height;
-        public bool Generated;
-        public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.Rgba16f;
-        public PixelFormat ColorPixelFormat = PixelFormat.Rgba;
-        public PixelType ColorPixelType = PixelType.HalfFloat;
-        public PixelInternalFormat DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
-        public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
-        public PixelType DepthPixelType = PixelType.Float;
 
         public void RevertToDefault()
         {
@@ -34,8 +40,18 @@ namespace VEngine
             if(!Generated)
                 Generate();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
-            if(setViewport) GL.Viewport(0, 0, Width, Height);
-            if(clearViewport) GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            if(setViewport)
+                GL.Viewport(0, 0, Width, Height);
+            if(clearViewport)
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        }
+
+        public void UseTextureDepth(int startIndex)
+        {
+            GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
+            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+
+            GL.ActiveTexture(TextureUnit.Texture0);
         }
 
         public void UseTextureDiffuseColor(int startIndex)
@@ -45,20 +61,15 @@ namespace VEngine
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
-        public void UseTextureWorldPosition(int startIndex)
+
+        public void UseTextureId(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexWorldPos);
+            GL.BindTexture(TextureTarget.Texture2D, TexId);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
-        public void UseTextureNormals(int startIndex)
-        {
-            GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexNormals);
 
-            GL.ActiveTexture(TextureUnit.Texture0);
-        }
         public void UseTextureMeshData(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
@@ -66,17 +77,19 @@ namespace VEngine
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
-        public void UseTextureDepth(int startIndex)
+
+        public void UseTextureNormals(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+            GL.BindTexture(TextureTarget.Texture2D, TexNormals);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
-        public void UseTextureId(int startIndex)
+
+        public void UseTextureWorldPosition(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexId);
+            GL.BindTexture(TextureTarget.Texture2D, TexWorldPos);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
@@ -127,12 +140,12 @@ namespace VEngine
 
             TexId = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, TexId);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)0);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32ui, Width, Height, 0, PixelFormat.RgbaInteger, PixelType.UnsignedInt, (IntPtr)0);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 
             TexDepth = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, TexDepth);
@@ -141,7 +154,7 @@ namespace VEngine
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
-            
+
             RBO = GL.GenRenderbuffer();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RBO);
             GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent, Width, Height);
@@ -156,13 +169,12 @@ namespace VEngine
 
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TexDepth, 0);
 
-            GL.DrawBuffers(5, new DrawBuffersEnum[]{DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2, DrawBuffersEnum.ColorAttachment3, DrawBuffersEnum.ColorAttachment4 });
+            GL.DrawBuffers(5, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2, DrawBuffersEnum.ColorAttachment3, DrawBuffersEnum.ColorAttachment4 });
 
             if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             {
                 throw new Exception("Framebuffer not complete");
             }
         }
-
     }
 }

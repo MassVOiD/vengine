@@ -10,6 +10,18 @@ namespace VEngine
 {
     public class Texture
     {
+        public string FileName;
+
+        public int Handle = -1;
+
+        public bool UseNearestFilter = false;
+
+        private byte[] Bitmap;
+
+        private bool Generated;
+
+        private Size Size;
+
         public Texture(string file)
         {
             Update(file);
@@ -31,18 +43,31 @@ namespace VEngine
         {
         }
 
-        public bool UseNearestFilter = false;
-        private byte[] Bitmap;
-        private bool Generated;
-        public int Handle = -1;
-        public string FileName;
-        private Size Size;
-
         public static Texture FromText(string text, string font, float size, Color textColor, Color background)
         {
             var tex = new Texture();
             tex.UpdateFromText(text, font, size, textColor, background);
             return tex;
+        }
+
+        public static SizeF MeasureText(string text, string font, float size)
+        {
+            Bitmap bmp = new Bitmap(1, 1);
+            var textSize = Graphics.FromImage(bmp).MeasureString(text, new Font(font, size), new PointF(0, 0), StringFormat.GenericDefault);
+
+            bmp.Dispose();
+            GC.Collect();
+            return textSize;
+        }
+
+        public void FreeCPU()
+        {
+            Bitmap = new byte[0];
+        }
+
+        public void FreeGPU()
+        {
+            GL.DeleteTexture(Handle);
         }
 
         public void Update(string file)
@@ -91,17 +116,6 @@ namespace VEngine
             Update(bmp);
             bmp.Dispose();
             GC.Collect();
-        }
-
-        public static SizeF MeasureText(string text, string font, float size)
-        {
-            Bitmap bmp = new Bitmap(1, 1);
-            var textSize = Graphics.FromImage(bmp).MeasureString(text, new Font(font, size), new PointF(0, 0), StringFormat.GenericDefault);
-            
-
-            bmp.Dispose();
-            GC.Collect();
-            return textSize;
         }
 
         public void Use(TextureUnit unit)
@@ -154,15 +168,6 @@ namespace VEngine
             x |= (x >> 8);
             x |= (x >> 16);
             return (x + 1);
-        }
-        public void FreeGPU()
-        {
-            GL.DeleteTexture(Handle);
-        }
-
-        public void FreeCPU()
-        {
-            Bitmap = new byte[0];
         }
     }
 }

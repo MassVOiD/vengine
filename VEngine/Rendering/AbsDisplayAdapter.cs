@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
+
 namespace VEngine
 {
     public abstract class AbsDisplayAdapter : GameWindow
     {
         public DeferredPipeline Pipeline;
+
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(8, 0, 0, 0), title, flags,
@@ -49,8 +51,6 @@ namespace VEngine
             }
         }
 
-
-
         public void StartPhysicsThread()
         {
             Task.Factory.StartNew(PhysicsThread);
@@ -63,7 +63,6 @@ namespace VEngine
             var s = GL.GetString(StringName.Version);
             Console.WriteLine(s);
         }
-
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
@@ -177,6 +176,5 @@ namespace VEngine
         {
             GLThread.InvokeOnMouseWheel(e);
         }
-
     }
 }

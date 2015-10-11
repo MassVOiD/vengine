@@ -1,9 +1,4 @@
 #include_once LightingSamplers.glsl
-/*
-Insane lighting
-Part of: https://github.com/achlubek/vengine
-@author Adrian Chlubek
-*/
 
 float lookupDepthFromLight(uint i, vec2 uv){
 	float distance1 = 0.0;
@@ -40,7 +35,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
     float abcd = lookupDepthFromLight(i, uv);
     float minval = 999;
     float maxval = 0;
-    for(float x = 0; x < mPI2; x+=0.2){ 
+    for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0.01;y<1.0;y+= 0.3){  
 			vec2 crd = vec2(sin(x + y), cos(x + y)) * (rand2s(uv/2-vec2(x,y)) * AInv * 0.4);
 			vec2 fakeUV = uv + crd;
@@ -73,7 +68,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float counter = 0;
   
     float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
-    float pssblur = (getBlurAmount(uv, i, distance2, distance3)) * ShadowsBlur;
+    float pssblur = (getBlurAmount(uv, i, distance2, distance3));
     for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
             fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2d(uv+vec2(x,y)) * pssblur * 0.009;

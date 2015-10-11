@@ -9,15 +9,16 @@ namespace UDPDebugger
 {
     public partial class Form1 : Form
     {
+        private Dictionary<string, string> data = new Dictionary<string, string>();
+
+        private Dictionary<string, ListViewItem> items = new Dictionary<string, ListViewItem>();
+
+        private UdpClient server;
+
         public Form1()
         {
             InitializeComponent();
         }
-
-        private Dictionary<string, string> data = new Dictionary<string, string>();
-        private Dictionary<string, ListViewItem> items = new Dictionary<string, ListViewItem>();
-
-        private UdpClient server;
 
         private void Form1_Load(object sender, EventArgs e)
         {

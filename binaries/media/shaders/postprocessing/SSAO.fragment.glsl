@@ -28,29 +28,38 @@ float getRand(){
 
 uniform int UseHBAO;
 float hbao(){
+
+    // gather data
+    uint idvals = texture(meshIdTex, UV).g;
+    /*
+    uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
+    uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
+    */
+    vec4 vals = unpackUnorm4x8(idvals);
+    float aorange = vals.x * 2 + 0.1;
+    float aostrength = vals.y * 4 + 0.1;
+    float aocutoff = 1.0 - vals.z;
+    
+    
+
     vec3 posc = texture(worldPosTex, UV).rgb;
     vec3 norm = texture(normalsTex, UV).rgb;
-    float buf = 0, div = 1.0/(length(posc)+1.0);
-    float octaves[] = float[](0.5, 1.3, 2.0);
-    float roughness = 1.0 - texture(meshDataTex, UV).a;
-    //float roughness =  1.0-texture(meshDataTex, UV).a;
-    for(int p=0;p<octaves.length();p++){
-        for(int g = 0; g < 5; g++){
-            float rda = getRand() * mPI2;
-            vec3 pos = texture(worldPosTex,  UV + (vec2(sin(rda)*ratio, cos(rda)) * (getRand() * octaves[p])) * div).rgb;
-            float dt = 1.0 - max(0, dot(norm, normalize(pos - posc)));
-           // float dt = 1.0 - min(1, max(0, dot(norm, normalize(pos - posc))));
-            
-            dt = pow(dt, 1.0 + roughness);
-            
-            buf = max(max(0, sign(length(posc) - length(pos)))
-            * (1.0 - dt)
-            * max(0, (3.1 - length(pos - posc))/3.1), buf);
-            //counter+=dt;
+    float buf = 0.0, div = 1.0/(length(posc)+1.0);
+    float counter = 0.0;
+    for(float p=0.0;p<mPI2;p+=0.1){
+        float minang = 0;
+        vec2 disp = vec2(sin(p)*ratio, cos(p));
+        for(int g = 0; g < 12; g++){
+            vec3 pos = texture(worldPosTex,  UV + disp * rand2s(disp+g+p) * 0.2 * div * aorange).rgb;
+            float dt = max(0, dot(norm, normalize(pos - posc)));
+            if(dt > aocutoff) dt = 1;
+            minang = max(dt * max(0, (0.3 - length(pos - posc))/0.3), minang);
         }
+        buf += minang;
+        counter+=1.0;
     }
 
-    return pow(1.0 - buf, 1.0);
+    return pow(1.0 - (buf/counter), aostrength);
 }
 
 vec3 random3dSample(){
@@ -90,7 +99,7 @@ vec2 HitPos = vec2(-2);
 float hitposMixPrecentage = 0;
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(int i=0; i<2; i++){
+    for(int i=0; i<14; i++){
         float ix = getRand();
         vec2 muv = mix(p1, p2, ix);
         float expr = min(muv.x, muv.y) * -(max(muv.x, muv.y)-1.0);
@@ -128,9 +137,9 @@ float Radiosity()
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     float ambient = 0;
-    const int samples = 27;
+    const int samples = 115;
     
-    float octaves[] = float[](0.1, 0.5, 1.2);
+    float octaves[] = float[](0.02, 0.1, 0.25, 0.5);
     vec3 dir = normalize(reflect(posCenter, normalCenter));
     posCenter = FromCameraSpace(posCenter);
     
@@ -156,19 +165,19 @@ float Radiosity()
         }
     }
     float rs = ambient / smp;
-    return pow(rs, 10.6);
+    return pow(rs*1.0, 1.7);
 }
 void main()
 {   
     vec3 color1 = vec3(0);
     
     Seed(UV+1);
-    randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
+    //randsPointer = int(randomizer * 123.86786 ) % 128;
     vec4 au = vec4(0);
     if(UseHBAO == 1){
        // if(UV.x < 0.5) au = vec4(hbao(), 0, 0, 1);
        //else au = vec4(Radiosity(), 0, 0, 1);
-       au = vec4(Radiosity(), 0, 0, 1);
+       au = vec4(hbao(), 0, 0, 1);
     }
     au.b = 0.5;
     au.a = texture(depthTex, UV).r;

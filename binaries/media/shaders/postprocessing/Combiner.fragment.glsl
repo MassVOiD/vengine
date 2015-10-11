@@ -162,12 +162,12 @@ void main()
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * texture(HBAOTex, nUV).r;
     } else if(UseRSM == 1 && UseHBAO == 0){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb);
-    } else if(UseRSM == 0 && UseHBAO == 1){
-      //  color1 += texture(HBAOTex, nUV).rrr;
+    } else if(UseRSM == 0 && UseVDAO == 0 && UseHBAO == 1){
+        color1 += texture(HBAOTex, nUV).rrr;
     }
-    
+    //color1 += texture(HBAOTex, nUV).rrr;
     color1 += lightPoints();
-    if(UseFog == 1) color1 += lookupFog(nUV) * FogContribution;
+    if(UseFog == 1) color1 += lookupFog(nUV);
 
     if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
 

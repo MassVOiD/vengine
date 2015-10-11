@@ -7,7 +7,6 @@ namespace VEngine
 {
     public class GenericMaterial
     {
-
         public class ShaderPack
         {
             public ShaderProgram
@@ -31,7 +30,9 @@ namespace VEngine
                 TesselatedGeometry96iLines,
                 TesselatedGeometry96iTriangles,
                 TesselatedGeometry96iPoints;
+
             public List<ShaderProgram> ProgramsList;
+
             public ShaderPack(string fs)
             {
                 ProgramsList = new List<ShaderProgram>();
@@ -41,7 +42,6 @@ namespace VEngine
                 if(TesselatedProgram == null)
                     TesselatedProgram = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, null, "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-
 
                 if(Geometry1iLines == null)
                     Geometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
@@ -70,7 +70,6 @@ namespace VEngine
                 if(Geometry96iPoints == null)
                     Geometry96iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry96iPoints.glsl");
-
 
                 if(TesselatedGeometry1iLines == null)
                     TesselatedGeometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
@@ -123,38 +122,37 @@ namespace VEngine
                 });
             }
         }
-        public Texture Tex;
+
+        public static ShaderPack MainShaderPack = new ShaderPack("Generic.fragment.glsl");
+        public static ShaderPack OverrideShaderPack = null;
+        public bool CastShadows = true;
         public Vector4 Color;
-        public float SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
+        public bool IgnoreLighting = false;
+        public float Metalness = 0.5f;
+        public DrawMode Mode;
+        public string Name;
+        public Texture NormalMap, BumpMap, AlphaMask, RoughnessMap, MetalnessMap, SpecularMap;
+        public float NormalMapScale = 1.0f;
+        public bool ReceiveShadows = true;
         public float ReflectionStrength = 0;
         public float RefractionStrength = 0;
         public float Roughness = 0.5f;
-        public float Metalness = 0.5f;
-        public static ShaderPack MainShaderPack = new ShaderPack("Generic.fragment.glsl");
-        public static ShaderPack OverrideShaderPack = null;
-
-        public bool CastShadows = true;
-        public bool ReceiveShadows = true;
-        public bool IgnoreLighting = false;
-
-        public Texture NormalMap, BumpMap, AlphaMask, RoughnessMap, MetalnessMap, SpecularMap;
-        public float NormalMapScale = 1.0f;
+        public float SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
         public float TesselationMultiplier = 1.0f;
-        public string Name;
 
-        public enum DrawMode
-        {
-            TextureOnly,
-            ColorOnly,
-            TextureMultipleColor,
-            OneMinusColorOverTexture
-        }
+        public float 
+            AORange = 0.5f, 
+            AOStrength = 0.5f, 
+            AOAngleCutoff = 0.0f, 
+            VDAOMultiplier = 0.5f, 
+            VDAOSamplingMultiplier = 0.5f, 
+            VDAORefreactionMultiplier = 0.0f,
+            SubsurfaceScatteringMultiplier = 0.0f;
 
+        public Texture Tex;
+        public MaterialType Type;
 
-        public DrawMode Mode;
-
-       
-        
+        private ShaderProgram lastUserProgram = null;
 
         public GenericMaterial(Texture tex, Texture normalMap = null, Texture bumpMap = null)
         {
@@ -164,15 +162,38 @@ namespace VEngine
             Color = Vector4.One;
             Mode = GenericMaterial.DrawMode.TextureOnly;
         }
+
         public GenericMaterial(Vector4 color)
         {
             Color = color;
             Mode = GenericMaterial.DrawMode.ColorOnly;
         }
+
         public GenericMaterial(Color color)
         {
             Color = new Vector4(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
             Mode = GenericMaterial.DrawMode.ColorOnly;
+        }
+
+        public enum DrawMode
+        {
+            TextureOnly,
+            ColorOnly,
+            TextureMultipleColor,
+            OneMinusColorOverTexture
+        }
+
+        public enum MaterialType
+        {
+            Solid,
+            RandomlyDisplaced,
+            Water,
+            Sky,
+            WetDrops,
+            Grass,
+            PlanetSurface,
+            TessellatedTerrain,
+            Flag
         }
 
         public static GenericMaterial FromMedia(string key)
@@ -184,19 +205,64 @@ namespace VEngine
         {
             return new GenericMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)));
         }
+
         public static GenericMaterial FromMedia(string key, string normalmap_key, string bump_map)
         {
             return new GenericMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)), new Texture(Media.Get(bump_map)));
         }
 
-        private ShaderProgram lastUserProgram = null;
+        public ShaderProgram GetShaderProgram()
+        {
+            ShaderPack pack = OverrideShaderPack != null ? OverrideShaderPack : MainShaderPack;
+            if(Type == MaterialType.Grass || Type == MaterialType.Flag)
+                return pack.Geometry96iTriangles;
+            if(Type == MaterialType.TessellatedTerrain)
+                return pack.Geometry1iTriangles;
+            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
+               Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
+        }
+
+        public void SetAlphaMaskFromMedia(string key)
+        {
+            AlphaMask = new Texture(Media.Get(key));
+        }
+
+        public void SetBumpMapFromMedia(string key)
+        {
+            BumpMap = new Texture(Media.Get(key));
+        }
+
+        public void SetMetalnessMapFromMedia(string key)
+        {
+            MetalnessMap = new Texture(Media.Get(key));
+        }
+
+        public void SetNormalMapFromMedia(string key)
+        {
+            NormalMap = new Texture(Media.Get(key));
+        }
+
+        public void SetRoughnessMapFromMedia(string key)
+        {
+            RoughnessMap = new Texture(Media.Get(key));
+        }
+
+        public void SetSpecularMapFromMedia(string key)
+        {
+            SpecularMap = new Texture(Media.Get(key));
+        }
+
+        public void SetTextureFromMedia(string key)
+        {
+            Tex = new Texture(Media.Get(key));
+        }
+
         public bool Use()
         {
             var prg = GetShaderProgram();
-         //   if(prg.)
-         //   {
-                GL.Disable(EnableCap.CullFace);
-          //  }
+            // if(prg.) {
+            GL.Disable(EnableCap.CullFace);
+            // }
             if(lastUserProgram == null)
                 lastUserProgram = ShaderProgram.Current;
             ShaderProgram.SwitchResult res = prg.Use();
@@ -247,7 +313,6 @@ namespace VEngine
             else
                 prg.SetUniform("UseMetalnessMap", 0);
 
-
             if(AlphaMask != null)
             {
                 prg.SetUniform("UseAlphaMask", 1);
@@ -258,7 +323,7 @@ namespace VEngine
             else
             {
                 prg.SetUniform("UseAlphaMask", 0);
-               // GL.Enable(EnableCap.CullFace);
+                // GL.Enable(EnableCap.CullFace);
                 //GL.DepthFunc(DepthFunction.Lequal);
             }
 
@@ -276,71 +341,20 @@ namespace VEngine
             prg.SetUniform("ReflectionStrength", ReflectionStrength);
             prg.SetUniform("RefractionStrength", RefractionStrength);
             prg.SetUniform("IgnoreLighting", IgnoreLighting);
-           // prg.SetUniform("FrameINT", (int)PostProcessing.RandomIntFrame);
 
-         //   GL.BindImageTexture(22u, (uint)PostProcessing.FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
+            prg.SetUniform("AORange", AORange);
+            prg.SetUniform("AOStrength", AOStrength);
+            prg.SetUniform("AOAngleCutoff", AOAngleCutoff);
+            prg.SetUniform("VDAOMultiplier", VDAOMultiplier);
+            prg.SetUniform("VDAOSamplingMultiplier", VDAOSamplingMultiplier);
+            prg.SetUniform("VDAORefreactionMultiplier", VDAORefreactionMultiplier);
+            prg.SetUniform("SubsurfaceScatteringMultiplier", SubsurfaceScatteringMultiplier);
+            // prg.SetUniform("FrameINT", (int)PostProcessing.RandomIntFrame);
+
+            // GL.BindImageTexture(22u, (uint)PostProcessing.FullScene3DTexture.Handle, 0, false, 0,
+            // TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
 
             return true;
         }
-
-
-        public enum MaterialType
-        {
-            Solid,
-            RandomlyDisplaced,
-            Water,
-            Sky,
-            WetDrops,
-            Grass,
-            PlanetSurface, 
-            TessellatedTerrain,
-            Flag
-        }
-        public MaterialType Type;
-
-
-        public void SetRoughnessMapFromMedia(string key)
-        {
-            RoughnessMap = new Texture(Media.Get(key));
-        }
-
-        public void SetMetalnessMapFromMedia(string key)
-        {
-            MetalnessMap = new Texture(Media.Get(key));
-        }
-
-        public void SetSpecularMapFromMedia(string key)
-        {
-            SpecularMap = new Texture(Media.Get(key));
-        }
-
-        public void SetBumpMapFromMedia(string key)
-        {
-            BumpMap = new Texture(Media.Get(key));
-        }
-        public void SetTextureFromMedia(string key)
-        {
-            Tex = new Texture(Media.Get(key));
-        }
-        public void SetNormalMapFromMedia(string key)
-        {
-            NormalMap = new Texture(Media.Get(key));
-        }
-        public void SetAlphaMaskFromMedia(string key)
-        {
-            AlphaMask = new Texture(Media.Get(key));
-        }
-
-        public ShaderProgram GetShaderProgram()
-        {
-            ShaderPack pack = OverrideShaderPack != null ? OverrideShaderPack : MainShaderPack;
-            if(Type == MaterialType.Grass || Type == MaterialType.Flag)
-                return pack.Geometry96iTriangles;
-            if(Type == MaterialType.TessellatedTerrain)
-                return pack.Geometry1iTriangles;
-            return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
-               Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
-        }
-
     }
 }

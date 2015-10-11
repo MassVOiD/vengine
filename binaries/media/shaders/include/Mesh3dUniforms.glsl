@@ -27,9 +27,9 @@ layout (std430, binding = 1) buffer RMBuffer
 {
   mat4 RotationMatrixes[]; 
 }; 
-layout (std430, binding = 1) buffer IDMBuffer
+layout (std430, binding = 2) buffer IDMBuffer
 {
-  vec4 InstancedIds[]; 
+  uint InstancedIds[]; 
 }; 
 
 
@@ -51,7 +51,7 @@ uniform float Time;
 uniform int FrameINT;
 uniform int Selected;
 
-uniform vec3 ColoredID;
+uniform uint MeshID;
 
 uniform float DiffuseComponent;
 uniform float SpecularComponent;
@@ -65,21 +65,15 @@ float ratio = resolution.y/resolution.x;
 
 uniform int IgnoreLighting;
 
+uniform float AORange;
+uniform float AOStrength;
+uniform float AOAngleCutoff;
+uniform float VDAOMultiplier;
+uniform float VDAOSamplingMultiplier;
+uniform float VDAORefreactionMultiplier;
+uniform float SubsurfaceScatteringMultiplier;
 // settings
-uniform float HBAOContribution;
-uniform float GIContribution;
-uniform float MainLightAttentuation;
-uniform float SimpleLightAttentuation;
-uniform float FogContribution;
-uniform float FogSamples;
-uniform float GISamples;
-uniform float HBAOSamples;
 uniform float ShadowsBlur;
 uniform float ShadowsSamples;
 uniform float LightPointSize;
 uniform float SimpleLightPointSize;
-uniform float BloomSamples;
-uniform float BloomSize;
-uniform float BloomContribution;
-uniform float GIDiffuseComponent;
-uniform float HBAOStrength;

@@ -3,7 +3,7 @@ layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outWorldPos;
 layout(location = 2) out vec4 outNormals;
 layout(location = 3) out vec4 outMeshData;
-layout(location = 4) out vec4 outId;
+layout(location = 4) out uvec4 outId;
 
 //layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
 
@@ -205,7 +205,10 @@ vec3 examineBumpMap(){
 }
 
 uniform int ShadingMode;
-#define SHADING_MDOE_RM 0
+#define SHADING_MDOE_RAWROUGH_RAWMETAL 0
+#define SHADING_MDOE_RAWROUGH_ 1
+#define SHADING_MDOE_SPEC 1
+#define SHADING_MDOE_SPEC 1
 
 
 void finishFragment(vec4 color){
@@ -274,13 +277,23 @@ void finishFragment(vec4 color){
 			normalNew = normalize(normalNew - (Input.Tangent * pn * 0.05));
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
         }
+        /*AORange
+AOStrength
+AOAngleCutoff
+VDAOMultiplier
+VDAOSamplingMultiplier
+VDAORefreactionMultiplier
+SubsurfaceScatteringMultiplier*/
+        uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
+        uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
+        
 		if(Instances == 0){
-            outId = vec4(ColoredID.xyz, worldBumpMapSize);
+            outId = uvec4(MeshID, packpart1, packpart2, 0);
             vec3 rn = (InitialRotation * RotationMatrix * vec4(normalNew, 0)).xyz;
             if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);
 		} else {
-            outId = vec4(InstancedIds[instanceId].xyz, worldBumpMapSize);
+            outId = uvec4(InstancedIds[instanceId], packpart1, packpart2, 0);
             vec3 rn = (InitialRotation * RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz;
             if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);

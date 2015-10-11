@@ -1,65 +1,85 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using BulletSharp;
 using System.IO;
-using OpenTK;
-using OpenTK.Graphics.OpenGL4;
+using System.Linq;
 using System.Text.RegularExpressions;
+using BulletSharp;
+using OpenTK;
 
 namespace VEngine
 {
     public class Mesh3d : IRenderable, ITransformable
     {
+        public class Bone
+        {
+            public Vector3 Head, Tail;
+            public string Name, ParentName;
+            public Quaternion Orientation = Quaternion.Identity;
+            public Bone Parent;
+        }
+
+        private class LodLevelData
+        {
+            public float Distance;
+            public Object3dInfo Info3d;
+            public GenericMaterial Material;
+        }
+
+        public static bool PostProcessingUniformsOnly = false;
+
+        public List<Bone> Bones = null;
+
+        public bool DisableDepthWrite;
+
+        public int Instances;
+
+        public GenericMaterial MainMaterial;
+
+        public Object3dInfo MainObjectInfo;
+
+        public Matrix4 Matrix, RotationMatrix;
+
+        public uint MeshColoredID;
+
+        public string Name;
+
+        public RigidBody PhysicalBody;
+
+        public bool Selected = false;
+
+        public TransformationManager Transformation;
+
+        private static Random Randomizer = new Random();
+
+        private List<LodLevelData> LodLevels;
+
+        private float Mass = 1.0f;
+
+        //public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
+        private CollisionShape PhysicalShape;
+
         public Mesh3d(Object3dInfo objectInfo, GenericMaterial material)
         {
-            // ModelMatricesBuffer = new ShaderStorageBuffer();
-            // RotationMatricesBuffer = new ShaderStorageBuffer();
+            // ModelMatricesBuffer = new ShaderStorageBuffer(); RotationMatricesBuffer = new ShaderStorageBuffer();
             DisableDepthWrite = false;
             Instances = 1;
             MainObjectInfo = objectInfo;
             MainMaterial = material;
             Transformation = new TransformationManager(Vector3.Zero, Quaternion.Identity, 1.0f);
             UpdateMatrix();
-            MeshColoredID = new Vector3((float)Randomizer.NextDouble(), (float)Randomizer.NextDouble(), (float)Randomizer.NextDouble());
+            MeshColoredID = ObjectIDGenerator.GetNext();
         }
 
         public Mesh3d()
         {
-            // ModelMatricesBuffer = new ShaderStorageBuffer();
-            // RotationMatricesBuffer = new ShaderStorageBuffer();
+            // ModelMatricesBuffer = new ShaderStorageBuffer(); RotationMatricesBuffer = new ShaderStorageBuffer();
             DisableDepthWrite = false;
             Instances = 1;
             Transformation = new TransformationManager(Vector3.Zero, Quaternion.Identity, 1.0f);
             UpdateMatrix();
-            MeshColoredID = new Vector3((float)Randomizer.NextDouble(), (float)Randomizer.NextDouble(), (float)Randomizer.NextDouble());
+            MeshColoredID = ObjectIDGenerator.GetNext();
         }
 
-        public string Name;
-        public int Instances;
-        public GenericMaterial MainMaterial;
-        public Matrix4 Matrix, RotationMatrix;
-        public RigidBody PhysicalBody;
-        public TransformationManager Transformation;
-        public bool DisableDepthWrite;
-        public bool Selected = false;
-        //public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
-
-        private float Mass = 1.0f;
-        public Object3dInfo MainObjectInfo;
-        private CollisionShape PhysicalShape;
-        private static Random Randomizer = new Random();
-        public Vector3 MeshColoredID;
-
-        public static bool PostProcessingUniformsOnly = false;
-
-        class LodLevelData{
-            public Object3dInfo Info3d;
-            public GenericMaterial Material;
-            public float Distance;
-        }
-
-        private List<LodLevelData> LodLevels;
         public static Mesh3d Merge(List<Mesh3d> meshes)
         {
             Object3dInfo main = meshes[0].MainObjectInfo.CopyDeep();
@@ -85,41 +105,8 @@ namespace VEngine
                 Material = material,
                 Distance = distance
             });
-            LodLevels.Sort((a, b) => (int)((b.Distance - a.Distance)*100.0)); // *100 to preserve precision
+            LodLevels.Sort((a, b) => (int)((b.Distance - a.Distance) * 100.0)); // *100 to preserve precision
         }
-
-        private GenericMaterial GetCurrentMaterial()
-        {
-            if(LodLevels == null)
-                return MainMaterial;
-            float distance = (Camera.Current.GetPosition() - Transformation.GetPosition()).Length;
-            if(distance < LodLevels.Last().Distance)
-                return MainMaterial;
-            float d1 = float.MaxValue;
-            foreach(var l in LodLevels)
-            {
-                if(l.Distance < distance)
-                    return l.Material;
-            }
-            return LodLevels.Last().Material;
-        }
-        private Object3dInfo GetCurrent3dInfo()
-        {
-            if(LodLevels == null)
-                return MainObjectInfo;
-            float distance = (Camera.Current.GetPosition() - Transformation.GetPosition()).Length;
-            if(distance < LodLevels.Last().Distance)
-                return MainObjectInfo;
-            float d1 = float.MaxValue;
-            foreach(var l in LodLevels)
-            {
-                if(l.Distance < distance)
-                    return l.Info3d;
-            }
-            return LodLevels.Last().Info3d;
-        }
-
-
 
         public RigidBody CreateRigidBody(bool forceRecreate = false)
         {
@@ -132,7 +119,7 @@ namespace VEngine
             if(isDynamic)
                 shape.CalculateLocalInertia(Mass, out localInertia);
 
-            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) *  Matrix4.CreateTranslation(Transformation.GetPosition()));
+            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) * Matrix4.CreateTranslation(Transformation.GetPosition()));
 
             RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(Mass, myMotionState, shape, localInertia);
             RigidBody body = new RigidBody(rbInfo);
@@ -142,6 +129,7 @@ namespace VEngine
 
             return body;
         }
+
         public RigidBody CreateRigidBody(Vector3 massCenter, bool forceRecreate = false)
         {
             if(PhysicalBody != null && !forceRecreate)
@@ -153,7 +141,7 @@ namespace VEngine
             if(isDynamic)
                 shape.CalculateLocalInertia(Mass, out localInertia);
 
-            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) *  Matrix4.CreateTranslation(Transformation.GetPosition()));
+            DefaultMotionState myMotionState = new DefaultMotionState(Matrix4.CreateFromQuaternion(Transformation.GetOrientation()) * Matrix4.CreateTranslation(Transformation.GetPosition()));
 
             RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(Mass, myMotionState, shape, localInertia);
             RigidBody body = new RigidBody(rbInfo);
@@ -202,88 +190,20 @@ namespace VEngine
             GLThread.CheckErrors();
         }
 
-        public void SetUniforms(Matrix4 parentTransformation)
+        public CollisionShape GetCollisionShape()
         {
-            bool shaderSwitchResult = GetCurrentMaterial().Use();
-            ShaderProgram shader = ShaderProgram.Current;
-
-            //ModelMatricesBuffer.Use(0);
-            //RotationMatricesBuffer.Use(1);
-
-            // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
-            GLThread.GraphicsSettings.SetUniforms(shader);
-            if(!PostProcessingUniformsOnly)
-            {
-                shader.SetUniform("ColoredID", MeshColoredID); //magic
-                shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
-                shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
-                
-            }
-            else
-            {
-                shader.SetUniform("ViewMatrix", Camera.MainDisplayCamera.ViewMatrix);
-                shader.SetUniform("ProjectionMatrix", Camera.MainDisplayCamera.ProjectionMatrix);
-            }
-
-            shader.SetUniform("ModelMatrix", Matrix);
-            shader.SetUniform("RotationMatrix", RotationMatrix);
-
-            shader.SetUniform("InitialTransformation", parentTransformation);
-            shader.SetUniform("InitialRotation", Matrix4.CreateFromQuaternion(parentTransformation.ExtractRotation()));
-
-            shader.SetUniform("Selected", Selected ? 1 : 0); //magic
-            shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed4", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed5", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed6", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed7", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed8", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed9", (float)Randomizer.NextDouble());
-            shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
-            shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
-
-            shader.SetUniform("Instances", 0);
-            shader.SetUniform("Instanced", 0);
-            shader.SetUniform("LogEnchacer", 0.01f);
-
-            shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
-            shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
-            shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
-            shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
-            shader.SetUniform("FarPlane", Camera.Current.Far);
-            shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
-
-            if(Bones != null)
-            {
-                shader.SetUniform("UseBoneSystem", 1);
-                shader.SetUniform("BonesCount", Bones.Count);
-                shader.SetUniformArray("BonesHeads", Bones.Select<Bone, Vector3>((a) => a.Head).ToArray());
-                shader.SetUniformArray("BonesTails", Bones.Select<Bone, Vector3>((a) => a.Tail).ToArray());
-                shader.SetUniformArray("BonesRotationMatrices", Bones.Select<Bone, Matrix4>((a) => Matrix4.CreateFromQuaternion(a.Orientation)).ToArray());
-                shader.SetUniformArray("BonesParents", Bones.Select<Bone, int>((a) =>
-                {
-                    if(a.Parent == null)
-                        return -1;
-                    return Bones.IndexOf(a.Parent);
-                }).ToArray());
-            }
-            else
-            {
-                shader.SetUniform("UseBoneSystem", 0);
-            }
+            return PhysicalShape;
         }
 
-        public class Bone
+        public float GetMass()
         {
-            public string Name, ParentName;
-            public Vector3 Head, Tail;
-            public Bone Parent;
-            public Quaternion Orientation = Quaternion.Identity;
+            return Mass;
         }
 
-        public List<Bone> Bones = null;
+        public TransformationManager GetTransformationManager()
+        {
+            return Transformation;
+        }
 
         public void LoadSkeleton(string file, bool bonerelative = false)
         {
@@ -348,8 +268,7 @@ namespace VEngine
                     {
                         if(c.Parent == b)
                         {
-                           // c.Head += b.Head;
-                           // c.Tail += b.Head;
+                            // c.Head += b.Head; c.Tail += b.Head;
                             recursion(c);
                         }
                     }
@@ -362,21 +281,6 @@ namespace VEngine
                 }
             }
             Bones = bones;
-        }
-
-        public CollisionShape GetCollisionShape()
-        {
-            return PhysicalShape;
-        }
-
-        public float GetMass()
-        {
-            return Mass;
-        }
-
-        public TransformationManager GetTransformationManager()
-        {
-            return Transformation;
         }
 
         public Mesh3d SetCollisionShape(CollisionShape shape)
@@ -394,15 +298,119 @@ namespace VEngine
             return this;
         }
 
+        public void SetUniforms(Matrix4 parentTransformation)
+        {
+            bool shaderSwitchResult = GetCurrentMaterial().Use();
+            ShaderProgram shader = ShaderProgram.Current;
+
+            //ModelMatricesBuffer.Use(0);
+            //RotationMatricesBuffer.Use(1);
+
+            // if(Sun.Current != null) Sun.Current.BindToShader(shader); per mesh
+            GLThread.GraphicsSettings.SetUniforms(shader);
+            if(!PostProcessingUniformsOnly)
+            {
+                shader.SetUniform("MeshID", MeshColoredID); //magic
+                shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
+                shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
+            }
+            else
+            {
+                shader.SetUniform("ViewMatrix", Camera.MainDisplayCamera.ViewMatrix);
+                shader.SetUniform("ProjectionMatrix", Camera.MainDisplayCamera.ProjectionMatrix);
+            }
+
+            shader.SetUniform("ModelMatrix", Matrix);
+            shader.SetUniform("RotationMatrix", RotationMatrix);
+
+            shader.SetUniform("InitialTransformation", parentTransformation);
+            shader.SetUniform("InitialRotation", Matrix4.CreateFromQuaternion(parentTransformation.ExtractRotation()));
+
+            shader.SetUniform("Selected", Selected ? 1 : 0); //magic
+            shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed4", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed5", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed6", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed7", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed8", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed9", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
+            shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+
+            shader.SetUniform("Instances", 0);
+            shader.SetUniform("Instanced", 0);
+            shader.SetUniform("LogEnchacer", 0.01f);
+
+            shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+            shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+            shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+            shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
+            shader.SetUniform("FarPlane", Camera.Current.Far);
+            shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
+
+            if(Bones != null)
+            {
+                shader.SetUniform("UseBoneSystem", 1);
+                shader.SetUniform("BonesCount", Bones.Count);
+                shader.SetUniformArray("BonesHeads", Bones.Select<Bone, Vector3>((a) => a.Head).ToArray());
+                shader.SetUniformArray("BonesTails", Bones.Select<Bone, Vector3>((a) => a.Tail).ToArray());
+                shader.SetUniformArray("BonesRotationMatrices", Bones.Select<Bone, Matrix4>((a) => Matrix4.CreateFromQuaternion(a.Orientation)).ToArray());
+                shader.SetUniformArray("BonesParents", Bones.Select<Bone, int>((a) =>
+                {
+                    if(a.Parent == null)
+                        return -1;
+                    return Bones.IndexOf(a.Parent);
+                }).ToArray());
+            }
+            else
+            {
+                shader.SetUniform("UseBoneSystem", 0);
+            }
+        }
+
         public void UpdateMatrix(bool noPhysics = false)
         {
             RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
-            Matrix =  Matrix4.CreateScale(Transformation.GetScale()) * RotationMatrix * Matrix4.CreateTranslation(Transformation.GetPosition());
+            Matrix = Matrix4.CreateScale(Transformation.GetScale()) * RotationMatrix * Matrix4.CreateTranslation(Transformation.GetPosition());
             if(!noPhysics && PhysicalBody != null)
             {
                 PhysicalBody.WorldTransform = RotationMatrix
                     * Matrix4.CreateTranslation(Transformation.GetPosition());
             }
+        }
+
+        private Object3dInfo GetCurrent3dInfo()
+        {
+            if(LodLevels == null)
+                return MainObjectInfo;
+            float distance = (Camera.Current.GetPosition() - Transformation.GetPosition()).Length;
+            if(distance < LodLevels.Last().Distance)
+                return MainObjectInfo;
+            float d1 = float.MaxValue;
+            foreach(var l in LodLevels)
+            {
+                if(l.Distance < distance)
+                    return l.Info3d;
+            }
+            return LodLevels.Last().Info3d;
+        }
+
+        private GenericMaterial GetCurrentMaterial()
+        {
+            if(LodLevels == null)
+                return MainMaterial;
+            float distance = (Camera.Current.GetPosition() - Transformation.GetPosition()).Length;
+            if(distance < LodLevels.Last().Distance)
+                return MainMaterial;
+            float d1 = float.MaxValue;
+            foreach(var l in LodLevels)
+            {
+                if(l.Distance < distance)
+                    return l.Material;
+            }
+            return LodLevels.Last().Material;
         }
     }
 }

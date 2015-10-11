@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using OpenTK;
@@ -10,15 +11,25 @@ namespace VEngine
 {
     public class ShaderProgram
     {
+        public static ShaderProgram Current = null;
+        static public bool Lock = false;
+        public int Handle = -1;
+        public bool UsingTesselation = false;
         private static List<ShaderProgram> AllPrograms = new List<ShaderProgram>();
+        public bool Compiled;
+        private string FragmentFile;
+        private string GeometryFile;
+        private Dictionary<string, string> Globals = new Dictionary<string, string>();
+        private string lastCombinedSourcesHash;
 
+        private string TessControlFile;
+        private string TessEvalFile;
+        private Dictionary<string, int> UniformLocationsCache;
         private Dictionary<string, object> ValuesMap;
 
         private string VertexFile;
-        private string FragmentFile;
-        private string GeometryFile;
-        private string TessControlFile;
-        private string TessEvalFile;
+        private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
+
         private ShaderProgram(string vertexFile, string fragmentFile, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
         {
             ValuesMap = new Dictionary<string, object>();
@@ -27,29 +38,38 @@ namespace VEngine
             GeometryFile = geometryFile;
             TessControlFile = tesscontrolFile;
             TessEvalFile = tessevalFile;
+            lastCombinedSourcesHash = "";
             Recompile();
             AllPrograms.Add(this);
         }
 
-        bool CheckCache(string key, object value)
+        public enum SwitchResult
         {
-            if(!ValuesMap.ContainsKey(key))
-            {
-                ValuesMap.Add(key, value);
-                return true;
-            }
-            else
-            {
-                if(ValuesMap[key] == value)
-                    return false;
-                else
-                    return true;
-            }
+            Switched,
+            AlreadyInUse,
+            Locked
+        }
+
+        public static ShaderProgram Compile(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
+        {
+            string concatedNames = vertex + fragment + geometry + (tesscontrol != null ? tesscontrol : "notess") + (tesseval != null ? tesseval : "notessev");
+
+            var cached = ShaderCache.GetShaderProgramOrNull(concatedNames);
+            if(cached != null)
+                return cached;
+            var output = new ShaderProgram(vertex, fragment, geometry, tesscontrol, tesseval);
+            ShaderCache.CacheShaderProgram(concatedNames, output);
+            return output;
         }
 
         public static void RecompileAll()
         {
             AllPrograms.ForEach(a => a.Recompile());
+        }
+
+        public void BindAttributeLocation(int index, string name)
+        {
+            GL.BindAttribLocation(Handle, index, name);
         }
 
         public void Recompile()
@@ -68,17 +88,25 @@ namespace VEngine
                 TessEvaluationSource = ShaderPreparser.Preparse(TessEvalFile, Media.ReadAllText(TessEvalFile));
                 UsingTesselation = true;
             }
-            Compiled = false;
+            var sb = new StringBuilder();
+            sb.AppendLine(VertexSource);
+            sb.AppendLine(FragmentSource);
+            sb.AppendLine(GeometrySource);
+            sb.AppendLine(TessControlSource);
+            sb.AppendLine(TessEvaluationSource);
+            string hash = Hash(sb.ToString());
+            if(lastCombinedSourcesHash != hash)
+            {
+                Compiled = false;
+                lastCombinedSourcesHash = hash;
+            }
         }
 
-        public static ShaderProgram Current = null;
-        static public bool Lock = false;
-        public int Handle = -1;
-        public bool UsingTesselation = false;
-        private bool Compiled;
-        private Dictionary<string, int> UniformLocationsCache;
-        private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
-        private Dictionary<string, string> Globals = new Dictionary<string,string>();
+        public void RemoveGlobal(string key)
+        {
+            if(Globals.ContainsKey(key))
+                Globals.Remove(key);
+        }
 
         public void SetGlobal(string key, string value)
         {
@@ -87,28 +115,6 @@ namespace VEngine
             else
                 Globals.Add(key, value);
         }
-        public void RemoveGlobal(string key)
-        {
-            if(Globals.ContainsKey(key))
-                Globals.Remove(key);
-        }
-
-        public static ShaderProgram Compile(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
-        {
-            string concatedNames = vertex + fragment + geometry + (tesscontrol != null ? tesscontrol : "notess") + (tesseval != null ? tesseval : "notessev");
-
-            var cached = ShaderCache.GetShaderProgramOrNull(concatedNames);
-            if(cached != null)
-                return cached;
-            var output = new ShaderProgram(vertex, fragment, geometry, tesscontrol, tesseval);
-            ShaderCache.CacheShaderProgram(concatedNames, output);
-            return output;
-        }
-
-        public void BindAttributeLocation(int index, string name)
-        {
-            GL.BindAttribLocation(Handle, index, name);
-        }
 
         public void SetUniform(string name, Matrix4 data)
         {
@@ -116,6 +122,7 @@ namespace VEngine
             if(location >= 0 && CheckCache(name, data))
                 GL.UniformMatrix4(location, false, ref data);
         }
+
         public void SetUniform(string name, bool data)
         {
             int location = GetUniformLocation(name);
@@ -130,10 +137,18 @@ namespace VEngine
                 GL.Uniform1(location, data);
         }
 
+        public void SetUniform(string name, uint data)
+        {
+            //if(name == "Instances")
+            //     Console.WriteLine(data);
+            int location = GetUniformLocation(name);
+            if(location >= 0 && CheckCache(name, data))
+                GL.Uniform1(location, data);
+        }
         public void SetUniform(string name, int data)
         {
             //if(name == "Instances")
-           //     Console.WriteLine(data);
+            //     Console.WriteLine(data);
             int location = GetUniformLocation(name);
             if(location >= 0 && CheckCache(name, data))
                 GL.Uniform1(location, data);
@@ -216,6 +231,7 @@ namespace VEngine
                 GLThread.CheckErrors(name);
             }
         }
+
         public void SetUniformArray(string name, Vector2[] data)
         {
             int location = GetUniformLocation(name);
@@ -259,6 +275,7 @@ namespace VEngine
                 GLThread.CheckErrors(name);
             }
         }
+
         public void SetUniformArray(string name, int[] data)
         {
             int location = GetUniformLocation(name);
@@ -269,12 +286,6 @@ namespace VEngine
             }
         }
 
-        public enum SwitchResult
-        {
-            Switched,
-            AlreadyInUse,
-            Locked
-        }
         public SwitchResult Use()
         {
             if(!Lock)
@@ -303,6 +314,39 @@ namespace VEngine
             //if(Lock && name == "Time")
             //    return -1;
             return location;
+        }
+
+        private static string Hash(string input)
+        {
+            using(SHA1Managed sha1 = new SHA1Managed())
+            {
+                var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
+                var sb = new StringBuilder(hash.Length * 2);
+
+                foreach(byte b in hash)
+                {
+                    // can be "x2" if you want lowercase
+                    sb.Append(b.ToString("X2"));
+                }
+
+                return sb.ToString();
+            }
+        }
+
+        private bool CheckCache(string key, object value)
+        {
+            if(!ValuesMap.ContainsKey(key))
+            {
+                ValuesMap.Add(key, value);
+                return true;
+            }
+            else
+            {
+                if(ValuesMap[key] == value)
+                    return false;
+                else
+                    return true;
+            }
         }
 
         private void Compile()
@@ -358,7 +402,7 @@ namespace VEngine
         private int CompileSingleShader(ShaderType type, string source)
         {
             int shader = GL.CreateShader(type);
-                
+
             StringBuilder globalsString = new StringBuilder();
             foreach(var g in Globals)
             {

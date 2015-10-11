@@ -7,6 +7,16 @@ namespace ShadowsTester
 {
     internal class FreeCamera
     {
+        public Camera Cam;
+
+        public bool Freeze = false;
+
+        private SphereShape collisionShape;
+
+        private bool GravityEnabled = false;
+
+        private RigidBody rigidBody;
+
         public FreeCamera(float aspectRatio, float fov)
         {
             float fovdegree = 90;
@@ -59,12 +69,6 @@ namespace ShadowsTester
                 }
             };
         }
-
-        public Camera Cam;
-        private SphereShape collisionShape;
-        private RigidBody rigidBody;
-        private bool GravityEnabled = false;
-        public bool Freeze = false;
 
         private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
@@ -165,7 +169,8 @@ namespace ShadowsTester
                 rigidBody.LinearVelocity -= direction.Xyz * speed;
             }
 
-            // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f, rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
+            // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f,
+            // rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
             Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
 
             Cam.UpdateFromRollPitch();

@@ -1,28 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Threading.Tasks;
-using OpenTK;
-using System.IO;
 using VEngine;
-using BulletSharp;
-using VEngine.Generators;
-using UI = VEngine.UI;
-using System.Threading;
 
 namespace GameLauncher
 {
-    static class Program
+    internal static class Program
     {
         //public static FreeCamera FreeCam;
         //public static
-       //     ConsoleManager cmg = new ConsoleManager();
+        //     ConsoleManager cmg = new ConsoleManager();
 
-        class Config
+        private class Config
         {
+            public static int Height = 1079;
             public static string MediaPath = "media";
             public static int Width = 1920;
-            public static int Height = 1079;
         }
 
         private static void Main(string[] args)
@@ -53,11 +45,10 @@ namespace GameLauncher
             var freeCamera = Commons.SetUpFreeCamera();
             Commons.AddControllableLight();
 
-
             //new PlanetScene().Create();
             // new SculptScene().Create();
             new SponzaScene().Create();
-            //  new OldCityScene().Create();
+            // new OldCityScene().Create();
             /// new PathTraceTest().Create();
             //  new NatureScene().Create();
             //  new IndirectTestScene().Create();
@@ -71,7 +62,6 @@ namespace GameLauncher
             //new HallScene().Create();
             // new RoadScene().Create();
             //  new HomeScene().Create();
-
 
             World.Root.SortByDepthMasking();
 

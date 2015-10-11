@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using OpenTK;
 
@@ -10,6 +9,58 @@ namespace VEngine.Generators
     public class Object3dGenerator
     {
         public static bool UseCache = true;
+
+        public static Object3dInfo CreateCube(Vector3 dimensions, Vector2 uvScale)
+        {
+            float[] VBO = new float[288]{
+             -1,  1,  -1,  0.333333f,  0,  -1,  0,  0,
+             -1,  -1,  -1,  0.666667f,  0,  -1,  0,  0,
+             -1,  -1,  1,  0.666667f,  0.333333f,  -1,  0,  0,
+             1,  1,  -1,  0,  0.333333f,  0,  0,  -1,
+             1,  -1,  -1,  0.333333f,  0.333333f,  0,  0,  -1,
+             -1,  -1,  -1,  0.333333f,  0.666667f,  0,  0,  -1,
+             1,  1,  1,  0,  0,  1,  0,  0,
+             1,  -1,  1,  0.333333f,  0,  1,  0,  0,
+             1,  -1,  -1,  0.333333f,  0.333333f,  1,  0,  0,
+             -1,  1,  1,  0.666667f,  0.333333f,  0,  0,  1,
+             -1,  -1,  1,  0.666667f,  0.666667f,  0,  0,  1,
+             1,  -1,  1,  0.333333f,  0.666667f,  0,  0,  1,
+             -1,  -1,  -1,  1,  0.333333f,  0,  -1,  0,
+             1,  -1,  -1,  0.666667f,  0.333333f,  0,  -1,  0,
+             1,  -1,  1,  0.666667f,  0,  0,  -1,  0,
+             1,  1,  -1,  0.333333f,  0.666667f,  0,  1,  0,
+             -1,  1,  -1,  0.333333f,  1,  0,  1,  0,
+             -1,  1,  1,  0,  1,  0,  1,  0,
+             -1,  1,  1,  0.333333f,  0.333333f,  -1,  0,  0,
+             -1,  1,  -1,  0.333333f,  0,  -1,  0,  0,
+             -1,  -1,  1,  0.666667f,  0.333333f,  -1,  0,  0,
+             -1,  1,  -1,  0,  0.666667f,  0,  0,  -1,
+             1,  1,  -1,  0,  0.333333f,  0,  0,  -1,
+             -1,  -1,  -1,  0.333333f,  0.666667f,  0,  0,  -1,
+             1,  1,  -1,  0,  0.333333f,  1,  0,  0,
+             1,  1,  1,  0,  0,  1,  0,  0,
+             1,  -1,  -1,  0.333333f,  0.333333f,  1,  0,  0,
+             1,  1,  1,  0.333333f,  0.333333f,  0,  0,  1,
+             -1,  1,  1,  0.666667f,  0.333333f,  0,  0,  1,
+             1,  -1,  1,  0.333333f,  0.666667f,  0,  0,  1,
+             -1,  -1,  1,  1,  0,  0,  -1,  0,
+             -1,  -1,  -1,  1,  0.333333f,  0,  -1,  0,
+             1,  -1,  1,  0.666667f,  0,  0,  -1,  0,
+             1,  1,  1,  0,  0.666667f,  0,  1,  0,
+             1,  1,  -1,  0.333333f,  0.666667f,  0,  1,  0,
+             -1, 1, 1, 0, 1, 0, 1, 0
+            };
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                VBO[i] *= dimensions.X;
+                VBO[i + 1] *= dimensions.Y;
+                VBO[i + 2] *= dimensions.Z;
+                VBO[i + 3] *= uvScale.X;
+                VBO[i + 4] *= uvScale.Y;
+            }
+            uint[] indices = new uint[36] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 };
+            return new Object3dInfo(VBO, indices);
+        }
 
         public static Object3dInfo CreateGround(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal)
         {
@@ -24,6 +75,7 @@ namespace VEngine.Generators
             };
             return new Object3dInfo(VBO, indices);
         }
+
         public static Object3dInfo CreatePlane(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector2 uvScale, Vector3 normal)
         {
             float[] VBO = {
@@ -163,58 +215,6 @@ namespace VEngine.Generators
             SaveCache(start, end, uvScale, normal, subdivisions, finalObject);
 
             return finalObject;
-        }
-
-        public static Object3dInfo CreateCube(Vector3 dimensions, Vector2 uvScale)
-        {
-            float[] VBO = new float[288]{
-             -1,  1,  -1,  0.333333f,  0,  -1,  0,  0,
-             -1,  -1,  -1,  0.666667f,  0,  -1,  0,  0,
-             -1,  -1,  1,  0.666667f,  0.333333f,  -1,  0,  0,
-             1,  1,  -1,  0,  0.333333f,  0,  0,  -1,
-             1,  -1,  -1,  0.333333f,  0.333333f,  0,  0,  -1,
-             -1,  -1,  -1,  0.333333f,  0.666667f,  0,  0,  -1,
-             1,  1,  1,  0,  0,  1,  0,  0,
-             1,  -1,  1,  0.333333f,  0,  1,  0,  0,
-             1,  -1,  -1,  0.333333f,  0.333333f,  1,  0,  0,
-             -1,  1,  1,  0.666667f,  0.333333f,  0,  0,  1,
-             -1,  -1,  1,  0.666667f,  0.666667f,  0,  0,  1,
-             1,  -1,  1,  0.333333f,  0.666667f,  0,  0,  1,
-             -1,  -1,  -1,  1,  0.333333f,  0,  -1,  0,
-             1,  -1,  -1,  0.666667f,  0.333333f,  0,  -1,  0,
-             1,  -1,  1,  0.666667f,  0,  0,  -1,  0,
-             1,  1,  -1,  0.333333f,  0.666667f,  0,  1,  0,
-             -1,  1,  -1,  0.333333f,  1,  0,  1,  0,
-             -1,  1,  1,  0,  1,  0,  1,  0,
-             -1,  1,  1,  0.333333f,  0.333333f,  -1,  0,  0,
-             -1,  1,  -1,  0.333333f,  0,  -1,  0,  0,
-             -1,  -1,  1,  0.666667f,  0.333333f,  -1,  0,  0,
-             -1,  1,  -1,  0,  0.666667f,  0,  0,  -1,
-             1,  1,  -1,  0,  0.333333f,  0,  0,  -1,
-             -1,  -1,  -1,  0.333333f,  0.666667f,  0,  0,  -1,
-             1,  1,  -1,  0,  0.333333f,  1,  0,  0,
-             1,  1,  1,  0,  0,  1,  0,  0,
-             1,  -1,  -1,  0.333333f,  0.333333f,  1,  0,  0,
-             1,  1,  1,  0.333333f,  0.333333f,  0,  0,  1,
-             -1,  1,  1,  0.666667f,  0.333333f,  0,  0,  1,
-             1,  -1,  1,  0.333333f,  0.666667f,  0,  0,  1,
-             -1,  -1,  1,  1,  0,  0,  -1,  0,
-             -1,  -1,  -1,  1,  0.333333f,  0,  -1,  0,
-             1,  -1,  1,  0.666667f,  0,  0,  -1,  0,
-             1,  1,  1,  0,  0.666667f,  0,  1,  0,
-             1,  1,  -1,  0.333333f,  0.666667f,  0,  1,  0,
-             -1, 1, 1, 0, 1, 0, 1, 0
-            };
-            for(int i = 0; i < VBO.Length; i += 8)
-            {
-                VBO[i] *= dimensions.X;
-                VBO[i + 1] *= dimensions.Y;
-                VBO[i + 2] *= dimensions.Z;
-                VBO[i + 3] *= uvScale.X;
-                VBO[i + 4] *= uvScale.Y;
-            }
-            uint[] indices = new uint[36] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 };
-            return new Object3dInfo(VBO, indices);
         }
 
         static private Object3dInfo GetCachedOrNull(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions)

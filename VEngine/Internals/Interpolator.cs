@@ -1,24 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace VEngine
 {
     public class Interpolator
     {
-        class SingleInterpolation<T>
+        private class SingleInterpolation<T>
         {
-            public ValuePointer<T> Reference;
-            public ValuePointer<T> ValueStart;
-            public ValuePointer<T> ValueEnd;
-            public Easing Easing;
-            public float Duration;
             public Action Callback = null;
-            public long StartTime;
+            public float Duration;
+            public Easing Easing;
             public bool HasEnded = false;
+            public ValuePointer<T> Reference;
+            public long StartTime;
+            public ValuePointer<T> ValueEnd;
+            public ValuePointer<T> ValueStart;
+
+            public void Interpolate()
+            {
+                Reference.R = GetValue();
+                Reference.MarkAsModified();
+            }
 
             private T GetValue()
             {
@@ -38,26 +41,32 @@ namespace VEngine
                 {
                     case Easing.Linear:
                     return c * t / d + b;
+
                     case Easing.EaseIn:
                     t /= d;
                     return c * t * t * t + b;
+
                     case Easing.EaseOut:
                     t /= d;
                     t--;
                     return c * (t * t * t + 1) + b;
+
                     case Easing.EaseInOut:
                     t /= d / 2;
                     if(t < 1)
                         return c / 2 * t * t * t + b;
                     t -= 2;
                     return c / 2 * (t * t * t + 2) + b;
+
                     case Easing.QuadEaseIn:
                     t /= d;
                     return c * t * t * t * t + b;
+
                     case Easing.QuadEaseOut:
                     t /= d;
                     t--;
                     return -c * (t * t * t * t - 1) + b;
+
                     case Easing.QuadEaseInOut:
                     t /= d / 2;
                     if(t < 1)
@@ -67,13 +76,9 @@ namespace VEngine
                 }
                 return default(T);
             }
-
-            public void Interpolate()
-            {
-                Reference.R = GetValue();
-                Reference.MarkAsModified();
-            }
         }
+
+        private static List<object> Interpolators = new List<object>();
 
         public enum Easing
         {
@@ -85,8 +90,6 @@ namespace VEngine
             QuadEaseOut,
             QuadEaseInOut
         }
-
-        private static List<object> Interpolators = new List<object>();
 
         public static void Interpolate<T>(ValuePointer<T> value, T start, T end, float duration, Easing easing = Easing.Linear)
         {
@@ -100,7 +103,7 @@ namespace VEngine
                 Easing = easing
             });
         }
-         
+
         public static void StepAll()
         {
             var emp = new object[0];
@@ -112,8 +115,8 @@ namespace VEngine
                 if(ended)
                     toRemove.Add(i);
             }
-            foreach(var r in toRemove) Interpolators.Remove(r);
+            foreach(var r in toRemove)
+                Interpolators.Remove(r);
         }
-
     }
 }

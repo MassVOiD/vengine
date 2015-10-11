@@ -1,42 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using OpenTK;
-using System.IO;
 
 namespace VEngine.FileFormats
 {
     public class GameScene
     {
+        public List<Camera> Cameras;
+        public string FilePath;
         public List<ILight> Lights;
         public List<GenericMaterial> Materials;
         public List<Mesh3d> Meshes;
-        public List<Camera> Cameras;
-        public string FilePath;
-
-        public delegate void ObjectFinishEventArgs(object sender, object obj);
-        public event ObjectFinishEventArgs OnObjectFinish;
 
         public GameScene(string filekey)
         {
             FilePath = Media.Get(filekey);
         }
 
-        public void Load()
-        {
-            LoadFromString(File.ReadAllLines(FilePath));
-        }
+        public delegate void ObjectFinishEventArgs(object sender, object obj);
 
-        void ApplyVboIbo(Mesh3d mesh, string vbo, string ibo)
-        {
-            if(vbo.Length == 0 || ibo.Length == 0)
-                return;
-            var obj = Object3dInfo.LoadFromRaw(Media.Get(vbo), Media.Get(ibo));
-            mesh.MainObjectInfo = obj;
-        }
+        public event ObjectFinishEventArgs OnObjectFinish;
 
         public static string FromMesh3dList(List<Mesh3d> meshes, string directory, string nameprefix = "mesh_")
         {
@@ -124,7 +111,6 @@ namespace VEngine.FileFormats
                 output.Append(nameprefix);
                 output.AppendLine(mesh.MainMaterial.Name);
 
-
                 output.Append("translate ");
                 output.Append(mesh.GetPosition().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 output.Append(" ");
@@ -150,6 +136,19 @@ namespace VEngine.FileFormats
                 output.AppendLine();
             }
             return output.ToString();
+        }
+
+        public void Load()
+        {
+            LoadFromString(File.ReadAllLines(FilePath));
+        }
+
+        private void ApplyVboIbo(Mesh3d mesh, string vbo, string ibo)
+        {
+            if(vbo.Length == 0 || ibo.Length == 0)
+                return;
+            var obj = Object3dInfo.LoadFromRaw(Media.Get(vbo), Media.Get(ibo));
+            mesh.MainObjectInfo = obj;
         }
 
         private void LoadFromString(string[] lines)
@@ -211,7 +210,6 @@ namespace VEngine.FileFormats
                 string data = regout.Groups[2].Value.Trim();
                 if(command.Length == 0 || data.Length == 0)
                     throw new Exception("Invalid line in scene string: " + l);
-
 
                 switch(command)
                 {
@@ -288,8 +286,7 @@ namespace VEngine.FileFormats
                         {
                             if(tempLight is SimplePointLight)
                                 (tempLight as SimplePointLight).Transformation.Translate(x, y, z);
-
-                            else if (tempLight is ProjectionLight)
+                            else if(tempLight is ProjectionLight)
                                 (tempLight as ProjectionLight).camera.Transformation.Translate(x, y, z);
                         }
                         break;
@@ -314,7 +311,7 @@ namespace VEngine.FileFormats
                     case "rotate":
                     {
                         string[] literals = data.Split(' ');
-                        if(literals.Length < 3  || literals.Length > 4)
+                        if(literals.Length < 3 || literals.Length > 4)
                             throw new Exception("Invalid line in scene string: " + l);
                         float x, y, z;
                         if(!float.TryParse(literals[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x))
@@ -351,15 +348,13 @@ namespace VEngine.FileFormats
                         {
                             if(tempLight is SimplePointLight)
                                 (tempLight as SimplePointLight).Transformation.Rotate(rot);
-
                             else if(tempLight is ProjectionLight)
                                 (tempLight as ProjectionLight).camera.Transformation.Rotate(rot);
                         }
                         break;
                     }
 
-                    // Mesh3d end
-                    // Material start
+                    // Mesh3d end Material start
                     case "material":
                     {
                         flush();
@@ -446,7 +441,6 @@ namespace VEngine.FileFormats
                 }
             }
             flush();
-
         }
     }
 }

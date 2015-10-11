@@ -28,10 +28,9 @@
 
 namespace SimplexNoise
 {
-    /// <summary>
-    /// Implementation of the Perlin simplex noise, an improved Perlin noise algorithm.
+    /// <summary> Implementation of the Perlin simplex noise, an improved Perlin noise algorithm.
     /// Based loosely on SimplexNoise1234 by Stefan Gustavson <http://staffwww.itn.liu.se/~stegu/aqsis/aqsis-newnoise/>
-    ///
+    /// 
     /// </summary>
     public class Noise
     {
@@ -84,7 +83,8 @@ namespace SimplexNoise
             float t1 = 1.0f - x1 * x1;
             t1 *= t1;
             n1 = t1 * t1 * grad(perm[i1 & 0xff], x1);
-            // The maximum value of this noise is 8*(3/4)^4 = 2.53125 A factor of 0.395 scales to fit exactly within [-1,1]
+            // The maximum value of this noise is 8*(3/4)^4 = 2.53125 A factor of 0.395 scales to
+            // fit exactly within [-1,1]
             return 0.395f * (n0 + n1);
         }
 
@@ -114,7 +114,8 @@ namespace SimplexNoise
             float x0 = x - X0; // The x,y distances from the cell origin
             float y0 = y - Y0;
 
-            // For the 2D case, the simplex shape is an equilateral triangle. Determine which simplex we are in.
+            // For the 2D case, the simplex shape is an equilateral triangle. Determine which
+            // simplex we are in.
             int i1, j1; // Offsets for second (middle) corner of simplex in (i,j) coords
             if(x0 > y0)
             {
@@ -127,7 +128,8 @@ namespace SimplexNoise
                 j1 = 1;
             }      // upper triangle, YX order: (0,0)->(0,1)->(1,1)
 
-            // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and a step of (0,1) in (i,j) means a step of (-c,1-c) in (x,y), where c = (3-sqrt(3))/6
+            // A step of (1,0) in (i,j) means a step of (1-c,-c) in (x,y), and a step of (0,1) in
+            // (i,j) means a step of (-c,1-c) in (x,y), where c = (3-sqrt(3))/6
 
             float x1 = x0 - i1 + G2; // Offsets for middle corner in (x,y) unskewed coords
             float y1 = y0 - j1 + G2;
@@ -166,7 +168,8 @@ namespace SimplexNoise
                 n2 = t2 * t2 * grad(perm[ii + 1 + perm[jj + 1]], x2, y2);
             }
 
-            // Add contributions from each corner to get the final noise value. The result is scaled to return values in the interval [-1,1].
+            // Add contributions from each corner to get the final noise value. The result is scaled
+            // to return values in the interval [-1,1].
             return 40.0f * (n0 + n1 + n2); // TODO: The scale factor is preliminary!
         }
 
@@ -195,7 +198,8 @@ namespace SimplexNoise
             float y0 = y - Y0;
             float z0 = z - Z0;
 
-            // For the 3D case, the simplex shape is a slightly irregular tetrahedron. Determine which simplex we are in.
+            // For the 3D case, the simplex shape is a slightly irregular tetrahedron. Determine
+            // which simplex we are in.
             int i1, j1, k1; // Offsets for second corner of simplex in (i,j,k) coords
             int i2, j2, k2; // Offsets for third corner of simplex in (i,j,k) coords
 
@@ -261,7 +265,9 @@ namespace SimplexNoise
                 } // Y X Z order
             }
 
-            // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z), a step of (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and a step of (0,0,1) in (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where c = 1/6.
+            // A step of (1,0,0) in (i,j,k) means a step of (1-c,-c,-c) in (x,y,z), a step of
+            // (0,1,0) in (i,j,k) means a step of (-c,1-c,-c) in (x,y,z), and a step of (0,0,1) in
+            // (i,j,k) means a step of (-c,-c,1-c) in (x,y,z), where c = 1/6.
 
             float x1 = x0 - i1 + G3; // Offsets for second corner in (x,y,z) coords
             float y1 = y0 - j1 + G3;
@@ -315,7 +321,8 @@ namespace SimplexNoise
                 n3 = t3 * t3 * grad(perm[ii + 1 + perm[jj + 1 + perm[kk + 1]]], x3, y3, z3);
             }
 
-            // Add contributions from each corner to get the final noise value. The result is scaled to stay just inside [-1,1]
+            // Add contributions from each corner to get the final noise value. The result is scaled
+            // to stay just inside [-1,1]
             return 32.0f * (n0 + n1 + n2 + n3); // TODO: The scale factor is preliminary!
         }
 

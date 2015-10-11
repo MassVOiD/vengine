@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using OpenTK;
-using OpenTK.Graphics.OpenGL4;
-using System.Runtime.InteropServices;
-
 using System.Diagnostics;
-using System.Threading;
-using System.Timers;
 using System.Drawing;
+using System.Runtime.InteropServices;
+using OpenTK.Graphics.OpenGL4;
+
 namespace VEngine
 {
     public class GLThread
     {
-
+        static public AbsDisplayAdapter DisplayAdapter;
+        static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
         static public Size Resolution;
         static public DateTime StartTime;
         private static Queue<Action> ActionQueue = new Queue<Action>();
@@ -29,9 +27,6 @@ namespace VEngine
 
         static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw, OnLoad;
 
-        static public AbsDisplayAdapter DisplayAdapter;
-        static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
-        
         static public void CheckErrors(string message = "Global")
         {
             var error = GL.GetError();
@@ -51,10 +46,6 @@ namespace VEngine
         static public void Invoke(Action action)
         {
             ActionQueue.Enqueue(action);
-        }
-        static public System.Threading.Tasks.Task RunAsync(Action action)
-        {
-            return System.Threading.Tasks.Task.Run(action);
         }
 
         static public void InvokeOnAfterDraw()
@@ -129,12 +120,15 @@ namespace VEngine
             while(ActionQueue.Count > 0)
             {
                 var obj = ActionQueue.Dequeue();
-                if(obj != null) obj.Invoke();
+                if(obj != null)
+                    obj.Invoke();
             }
         }
 
-        [DllImport("kernel32")]
-        static extern int GetCurrentThreadId();
+        static public System.Threading.Tasks.Task RunAsync(Action action)
+        {
+            return System.Threading.Tasks.Task.Run(action);
+        }
 
         static public void SetCurrentThreadCores(int core)
         {
@@ -146,7 +140,9 @@ namespace VEngine
                     pt.ProcessorAffinity = (IntPtr)(1 << core);
                 }
             }
-
         }
+
+        [DllImport("kernel32")]
+        private static extern int GetCurrentThreadId();
     }
 }

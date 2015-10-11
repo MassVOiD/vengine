@@ -6,28 +6,6 @@ namespace VEngine.Particles
 {
     public class ParticleGenerator
     {
-        private ParticleGenerator(GeneratorMode mode, Vector3 position, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float scale, float bounciness, float alphaDecrease, Vector2 planeSize, Vector3 boxSize)
-        {
-            Mode = mode;
-            Position = position;
-            Orientation = orientation;
-            InitialVelocity = initialVelocity;
-            Gravity = gravity;
-            Bounciness = bounciness;
-            PlaneSize = planeSize;
-            BoxSize = boxSize;
-            Scale = scale;
-            AlphaDecrease = alphaDecrease;
-            Info3d = Generators.Object3dGenerator.CreateGround(new Vector2(-1, -1), new Vector2(1, 1), new Vector2(1), Vector3.UnitY);
-            Program = ShaderProgram.Compile("ParticleGenerator.vertex.glsl", "ParticleGenerator.fragment.glsl");
-            DepthWriter = ShaderProgram.Compile("ParticleGenerator.vertex.glsl", "ParticleGeneratorWriteDepth.fragment.glsl");
-            TimeRate = 9.0f / 1000000.0f;
-            TimeToLife = 9.0f;
-            MaxInstances = 1000000;
-            StartTime = DateTime.Now;
-            Tex = new Texture(Media.Get("smoke.png"));
-        }
-
         private float AlphaDecrease;
 
         private float Bounciness;
@@ -65,6 +43,28 @@ namespace VEngine.Particles
         private float TimeRate;
 
         private float TimeToLife;
+
+        private ParticleGenerator(GeneratorMode mode, Vector3 position, Quaternion orientation, Vector3 initialVelocity, Vector3 gravity, float scale, float bounciness, float alphaDecrease, Vector2 planeSize, Vector3 boxSize)
+        {
+            Mode = mode;
+            Position = position;
+            Orientation = orientation;
+            InitialVelocity = initialVelocity;
+            Gravity = gravity;
+            Bounciness = bounciness;
+            PlaneSize = planeSize;
+            BoxSize = boxSize;
+            Scale = scale;
+            AlphaDecrease = alphaDecrease;
+            Info3d = Generators.Object3dGenerator.CreateGround(new Vector2(-1, -1), new Vector2(1, 1), new Vector2(1), Vector3.UnitY);
+            Program = ShaderProgram.Compile("ParticleGenerator.vertex.glsl", "ParticleGenerator.fragment.glsl");
+            DepthWriter = ShaderProgram.Compile("ParticleGenerator.vertex.glsl", "ParticleGeneratorWriteDepth.fragment.glsl");
+            TimeRate = 9.0f / 1000000.0f;
+            TimeToLife = 9.0f;
+            MaxInstances = 1000000;
+            StartTime = DateTime.Now;
+            Tex = new Texture(Media.Get("smoke.png"));
+        }
 
         private enum GeneratorMode
         {

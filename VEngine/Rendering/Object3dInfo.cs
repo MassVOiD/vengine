@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+
 //using BEPUutilities;
 using BulletSharp;
 using OpenTK;
@@ -14,55 +15,99 @@ namespace VEngine
 {
     public class Object3dInfo
     {
+        public class MaterialInfo
+        {
+            public string AlphaMask;
+
+            public Color DiffuseColor, SpecularColor, AmbientColor;
+
+            public string TextureName, BumpMapName, NormapMapName, SpecularMapName;
+
+            public float Transparency, SpecularStrength;
+
+            public MaterialInfo()
+            {
+                DiffuseColor = Color.White;
+                SpecularColor = Color.White;
+                AmbientColor = Color.White;
+                Transparency = 1.0f;
+                SpecularStrength = 1.0f;
+                TextureName = "";
+                BumpMapName = "";
+                NormapMapName = "";
+                SpecularMapName = "";
+                AlphaMask = "";
+            }
+        }
+
+        private class ObjFileData
+        {
+            public List<uint> Indices;
+            public string Name, MaterialName;
+            public List<float> VBO;
+        }
+
+        private class TriangleInfo
+        {
+            private VertexInfo V1, V2, V3;
+
+            public List<float> ToFloatList()
+            {
+                var list = new List<float>();
+                list.AddRange(V1.ToFloatList());
+                list.AddRange(V2.ToFloatList());
+                list.AddRange(V3.ToFloatList());
+                return list;
+            }
+        }
+
+        private class VertexInfo
+        {
+            public Vector3 Position, Normal;
+            public Vector2 UV;
+
+            public List<float> ToFloatList()
+            {
+                return new List<float> { Position.X, Position.Y, Position.Z, UV.X, UV.Y, Normal.X, Normal.Y, Normal.Z };
+            }
+        }
+
+        public struct AxisAlignedBoundingBox
+        {
+            public Vector3 Minimum, Maximum;
+        }
+
+        public AxisAlignedBoundingBox AABB;
+
+        public uint[] Indices;
+
+        public string MaterialName = "", Name = "";
+
+        public float[] VBO;
+
+        public bool WireFrameRendering = false;
+
+        //private Object3dInfo Current = null;
+        private bool AreBuffersGenerated;
+
+        private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
+
+        private int CachedHash = -123;
+
+        private int VertexBuffer, IndexBuffer, VAOHandle, IndicesCount = 0;
+
         public Object3dInfo(List<float> vbo, List<uint> indices)
         {
             VBO = vbo.ToArray();
             Indices = indices.ToArray();
             AreBuffersGenerated = false;
         }
+
         public Object3dInfo(float[] vbo, uint[] indices)
         {
             VBO = vbo;
             Indices = indices;
             AreBuffersGenerated = false;
-        }
-        private static float Max(float a, float b)
-        {
-            return a > b ? a : b;
-        }
-        private static float Min(float a, float b)
-        {
-            return a < b ? a : b;
-        }
-        private static Vector3 Max(Vector3 a, Vector3 b)
-        {
-            return new Vector3(
-                Max(a.X, b.X),
-                Max(a.Y, b.Y),
-                Max(a.Z, b.Z)
-            );
-        }
-        private static Vector3 Min(Vector3 a, Vector3 b)
-        {
-            return new Vector3(
-                Min(a.X, b.X),
-                Min(a.Y, b.Y),
-                Min(a.Z, b.Z)
-            );
-        }
-        private void UpdateBoundingBox()
-        {
-            var vertices = GetRawVertexList();
-            var a = vertices[0];
-            var b = vertices[0];
-            foreach(var v in vertices)
-            {
-                a = Min(a, v);
-                b = Max(b, v);
-            }
-            AABB = new AxisAlignedBoundingBox() {
-                Minimum = a, Maximum = b
-            };
         }
 
         public static Object3dInfo Empty
@@ -72,37 +117,6 @@ namespace VEngine
                 return new Object3dInfo(new float[0], new uint[0]);
             }
         }
-
-        private int CachedHash = -123;
-        public int GetHash()
-        {
-            if(CachedHash == -123)
-            {
-                int i = VBO.Length;
-                i ^= VBO.Length;
-                for(int x = 0; x < VBO.Length; x++)
-                    i ^= VBO[x].GetHashCode();
-                for(int ix = 0; ix < Indices.Length; ix++)
-                    i ^= Indices[ix].GetHashCode();
-                CachedHash = i;
-            }
-            return CachedHash;
-        }
-
-        public struct AxisAlignedBoundingBox
-        {
-            public Vector3 Minimum, Maximum;
-        }
-
-        public uint[] Indices;
-        public string MaterialName = "", Name = "";
-        public float[] VBO;
-        public bool WireFrameRendering = false;
-        //private Object3dInfo Current = null;
-        private bool AreBuffersGenerated;
-        private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
-        public AxisAlignedBoundingBox AABB;
-        private int VertexBuffer, IndexBuffer, VAOHandle, IndicesCount = 0;
 
         public static void CompressAndSave(string infile, string outdir)
         {
@@ -174,77 +188,6 @@ namespace VEngine
             //File.WriteAllBytes(outfile + ".o3i", memstream.ToArray());
         }
 
-
-        public static List<Mesh3d> LoadSceneFromCollada(string infile)
-        {
-            List<Mesh3d> infos = new List<Mesh3d>();
-
-            XDocument xml = XDocument.Load(infile);
-            var colladaNode = xml.Elements().First();
-            var lib = colladaNode.SelectSingle("library_geometries");
-            var geometries = lib.SelectMany("geometry");
-
-            foreach(var geom in geometries)
-            {
-                try
-                {
-                    string geoID = geom.Attribute("id").Value;
-                    string geoName = geom.Attribute("name").Value;
-                    List<float> xyzs = geom.SelectSingle("mesh").SelectMany("source").ElementAt(0).SelectSingle("float_array").Value.Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
-                    List<float> normals = geom.SelectSingle("mesh").SelectMany("source").ElementAt(1).SelectSingle("float_array").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
-
-                    List<float> uvs = null;
-                    try
-                    {
-                        uvs = geom.SelectSingle("mesh").SelectMany("source").ElementAt(2).SelectSingle("float_array").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
-                    }
-                    catch
-                    {
-                        uvs = new List<float>();
-                    }
-                    List<int> indices = geom.SelectSingle("mesh").SelectSingle("polylist").SelectSingle("p").Value.Trim().Split(new char[] { ' ' }).Select<string, int>((a) => int.Parse(a)).ToList();
-                    List<float> VBO = new List<float>();
-                    List<uint> indicesNew = new List<uint>();
-                    uint vcount = 0;
-                    for(int i = 0; i < indices.Count; )
-                    {
-                        int vid = indices[i] * 3;
-                        int nid = indices[i + 1] * 3;
-                        int uid = indices[i + 2] * 2;
-                        indicesNew.Add(vcount++);
-                        VBO.AddRange(new float[] { -xyzs[vid + 1], xyzs[vid + 2], -xyzs[vid] });
-                        if(uvs.Count > 0)
-                        {
-                            VBO.AddRange(new float[] { uvs[uid], uvs[uid + 1] });
-                            i += 3;
-                        }
-                        else
-                        {
-                            VBO.AddRange(new float[] { 0, 0 });
-                            i += 2;
-                        }
-                        VBO.AddRange(new float[] { -normals[nid + 1], normals[nid + 2], -normals[nid] });
-                    }
-                    var objinfo = new Object3dInfo(VBO, indicesNew);
-                    var transformationNode = colladaNode.SelectSingle("library_visual_scenes").SelectSingle("visual_scene").SelectMany("node").First((a) => a.SelectSingle("instance_geometry").Attribute("url").Value == "#" + geoID);
-                    var mesh = new Mesh3d(objinfo, new GenericMaterial(Color.White));
-                    List<float> transVector = transformationNode.SelectMany("translate").First((a) => a.Attribute("sid").Value == "location").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
-                    List<List<float>> rots = transformationNode.SelectMany("rotate").Select<XElement, List<float>>((a) => a.Value.Trim().Split(new char[] { ' ' }).Select<string, float>((ax) => float.Parse(ax, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList()).ToList();
-                    List<float> scale = transformationNode.SelectMany("scale").First((a) => a.Attribute("sid").Value == "scale").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
-                    mesh.Translate(-transVector[1], transVector[2], -transVector[0]);
-                    foreach(var r in rots)
-                        mesh.Rotate(Quaternion.FromAxisAngle(new Vector3(-r[1], r[2], -r[0]), MathHelper.DegreesToRadians(r[3])));
-                    mesh.Scale(scale[1], scale[2], scale[0]);
-                    infos.Add(mesh);
-                }
-                catch
-                {
-                }
-            }
-
-            return infos;
-        }
-
         public static Object3dInfo LoadFromCompressed(string infile)
         {
             using(var fileStream = File.OpenRead(infile))
@@ -287,29 +230,6 @@ namespace VEngine
                 return new Object3dInfo(vertices, indices);
             }
         }
-        public static Object3dInfo LoadFromRaw(string vboFile, string indicesFile)
-        {
-            var vboBytes = File.ReadAllBytes(vboFile);
-            var indicesBytes = File.ReadAllBytes(indicesFile);
-
-            var vboFloats = new float[vboBytes.Length / 4];
-            Buffer.BlockCopy(vboBytes, 0, vboFloats, 0, vboBytes.Length);
-
-            var indicesUints = new uint[indicesBytes.Length / 4];
-            Buffer.BlockCopy(indicesBytes, 0, indicesUints, 0, indicesBytes.Length);
-
-            return new Object3dInfo(vboFloats, indicesUints);
-        }
-
-        public static List<Object3dInfo> LoadOBJList(List<string> files)
-        {
-            var outObjects = new List<Object3dInfo>();
-            foreach(var f in files)
-            {
-                outObjects.Add(LoadFromObjSingle(f));
-            }
-            return outObjects;
-        }
 
         public static Object3dInfo[] LoadFromObj(string infile)
         {
@@ -323,6 +243,20 @@ namespace VEngine
             string[] lines = File.ReadAllLines(infile);
             var data = ParseOBJStringSingle(lines);
             return new Object3dInfo(data.VBO, data.Indices);
+        }
+
+        public static Object3dInfo LoadFromRaw(string vboFile, string indicesFile)
+        {
+            var vboBytes = File.ReadAllBytes(vboFile);
+            var indicesBytes = File.ReadAllBytes(indicesFile);
+
+            var vboFloats = new float[vboBytes.Length / 4];
+            Buffer.BlockCopy(vboBytes, 0, vboFloats, 0, vboBytes.Length);
+
+            var indicesUints = new uint[indicesBytes.Length / 4];
+            Buffer.BlockCopy(indicesBytes, 0, indicesUints, 0, indicesBytes.Length);
+
+            return new Object3dInfo(vboFloats, indicesUints);
         }
 
         public static Dictionary<string, MaterialInfo> LoadMaterialsFromMtl(string filename)
@@ -419,6 +353,86 @@ namespace VEngine
             return materials;
         }
 
+        public static List<Object3dInfo> LoadOBJList(List<string> files)
+        {
+            var outObjects = new List<Object3dInfo>();
+            foreach(var f in files)
+            {
+                outObjects.Add(LoadFromObjSingle(f));
+            }
+            return outObjects;
+        }
+
+        public static List<Mesh3d> LoadSceneFromCollada(string infile)
+        {
+            List<Mesh3d> infos = new List<Mesh3d>();
+
+            XDocument xml = XDocument.Load(infile);
+            var colladaNode = xml.Elements().First();
+            var lib = colladaNode.SelectSingle("library_geometries");
+            var geometries = lib.SelectMany("geometry");
+
+            foreach(var geom in geometries)
+            {
+                try
+                {
+                    string geoID = geom.Attribute("id").Value;
+                    string geoName = geom.Attribute("name").Value;
+                    List<float> xyzs = geom.SelectSingle("mesh").SelectMany("source").ElementAt(0).SelectSingle("float_array").Value.Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+                    List<float> normals = geom.SelectSingle("mesh").SelectMany("source").ElementAt(1).SelectSingle("float_array").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+
+                    List<float> uvs = null;
+                    try
+                    {
+                        uvs = geom.SelectSingle("mesh").SelectMany("source").ElementAt(2).SelectSingle("float_array").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+                    }
+                    catch
+                    {
+                        uvs = new List<float>();
+                    }
+                    List<int> indices = geom.SelectSingle("mesh").SelectSingle("polylist").SelectSingle("p").Value.Trim().Split(new char[] { ' ' }).Select<string, int>((a) => int.Parse(a)).ToList();
+                    List<float> VBO = new List<float>();
+                    List<uint> indicesNew = new List<uint>();
+                    uint vcount = 0;
+                    for(int i = 0; i < indices.Count;)
+                    {
+                        int vid = indices[i] * 3;
+                        int nid = indices[i + 1] * 3;
+                        int uid = indices[i + 2] * 2;
+                        indicesNew.Add(vcount++);
+                        VBO.AddRange(new float[] { -xyzs[vid + 1], xyzs[vid + 2], -xyzs[vid] });
+                        if(uvs.Count > 0)
+                        {
+                            VBO.AddRange(new float[] { uvs[uid], uvs[uid + 1] });
+                            i += 3;
+                        }
+                        else
+                        {
+                            VBO.AddRange(new float[] { 0, 0 });
+                            i += 2;
+                        }
+                        VBO.AddRange(new float[] { -normals[nid + 1], normals[nid + 2], -normals[nid] });
+                    }
+                    var objinfo = new Object3dInfo(VBO, indicesNew);
+                    var transformationNode = colladaNode.SelectSingle("library_visual_scenes").SelectSingle("visual_scene").SelectMany("node").First((a) => a.SelectSingle("instance_geometry").Attribute("url").Value == "#" + geoID);
+                    var mesh = new Mesh3d(objinfo, new GenericMaterial(Color.White));
+                    List<float> transVector = transformationNode.SelectMany("translate").First((a) => a.Attribute("sid").Value == "location").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+                    List<List<float>> rots = transformationNode.SelectMany("rotate").Select<XElement, List<float>>((a) => a.Value.Trim().Split(new char[] { ' ' }).Select<string, float>((ax) => float.Parse(ax, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList()).ToList();
+                    List<float> scale = transformationNode.SelectMany("scale").First((a) => a.Attribute("sid").Value == "scale").Value.Trim().Split(new char[] { ' ' }).Select<string, float>((a) => float.Parse(a, System.Globalization.NumberFormatInfo.InvariantInfo)).ToList();
+                    mesh.Translate(-transVector[1], transVector[2], -transVector[0]);
+                    foreach(var r in rots)
+                        mesh.Rotate(Quaternion.FromAxisAngle(new Vector3(-r[1], r[2], -r[0]), MathHelper.DegreesToRadians(r[3])));
+                    mesh.Scale(scale[1], scale[2], scale[0]);
+                    infos.Add(mesh);
+                }
+                catch
+                {
+                }
+            }
+
+            return infos;
+        }
+
         public static List<Mesh3d> LoadSceneFromObj(string objfile, string mtlfile, float scale = 1.0f)
         {
             string[] lines = File.ReadAllLines(objfile);
@@ -477,7 +491,6 @@ namespace VEngine
                     mInfos[material] = mat;
                 }
 
-
                 for(int i = 0; i < obj.VBO.Count; i += 8)
                 {
                     obj.VBO[i] *= scale;
@@ -515,15 +528,59 @@ namespace VEngine
                     ((GenericMaterial)kv.Key).SetBumpMapFromMedia(mInfos[kv.Key].BumpMapName);
                 // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 mesh.Transformation.Translate(trans);
-                // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(), 1.0f, 1.0f));
+                // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(),
+                // 1.0f, 1.0f));
                 meshes.Add(mesh);
             }
             return meshes;
         }
 
+        public void Append(Object3dInfo info)
+        {
+            var b = VBO.ToList();
+            b.AddRange(info.VBO);
+            VBO = b.ToArray();
+            int startIndex = Indices.Length;
+            var c = Indices.ToList();
+            c.AddRange(info.Indices.Select(a => (uint)(a + startIndex)));
+            Indices = c.ToArray();
+        }
+
         public Object3dInfo Copy()
         {
             return new Object3dInfo(VBO, Indices);
+        }
+
+        public Object3dInfo CopyDeep()
+        {
+            return new Object3dInfo(VBO.ToArray(), Indices.ToArray());
+        }
+
+        public void CorrectFacesByNormals()
+        {
+            for(int i = 0; i < Indices.Length; i += 3)
+            {
+                // for 1
+                int vboIndex1 = i * 8;
+                int vboIndex2 = (i + 1) * 8;
+                int vboIndex3 = (i + 2) * 8;
+                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
+                var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
+                var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
+                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                var nor2 = new Vector3(VBO[vboIndex2 + 5], VBO[vboIndex2 + 6], VBO[vboIndex2 + 7]);
+                var nor3 = new Vector3(VBO[vboIndex3 + 5], VBO[vboIndex3 + 6], VBO[vboIndex3 + 7]);
+                var crs1 = Vector3.Cross(pos1, pos2);
+                var crs2 = Vector3.Cross(pos2, pos3);
+                var crs3 = Vector3.Cross(pos3, pos1);
+                var cross = Vector3.Cross(pos1, pos2).Normalized();
+                if((cross - crs1).Length >= 1.0f)
+                {
+                    uint tmp = Indices[i + 2];
+                    Indices[i + 2] = Indices[i];
+                    Indices[i] = tmp;
+                }
+            }
         }
 
         public void Dispose()
@@ -567,100 +624,24 @@ namespace VEngine
                 VBO[i + 7] *= -1;
             }
         }
-        public void Transform(Matrix4 ModelMatrix, Matrix4 RotationMatrix)
+
+        public void ForceRegenerate()
         {
-            for(int i = 0; i < VBO.Length; i += 8)
+            if(AreBuffersGenerated)
             {
-                var vertex = Vector3.Transform(new Vector3(VBO[i + 0], VBO[i + 1], VBO[i + 2]), ModelMatrix);
-                var normal = Vector3.Transform(new Vector3(VBO[i + 5], VBO[i + 6], VBO[i + 7]), RotationMatrix);
-
-                VBO[i + 0] = vertex.X;
-                VBO[i + 1] = vertex.Y;
-                VBO[i + 2] = vertex.Z;
-
-                VBO[i + 5] = normal.X;
-                VBO[i + 6] = normal.Y;
-                VBO[i + 7] = normal.Z;
+                GL.DeleteBuffer(VertexBuffer);
+                GL.DeleteBuffer(IndexBuffer);
+                GL.DeleteBuffer(VAOHandle);
+                AreBuffersGenerated = false;
             }
-        }
-        public void MakeDoubleFaced()
-        {
-            var copy = this.CopyDeep();
-            copy.FlipFaces();
-            Append(copy);
         }
 
-        public void CorrectFacesByNormals()
+        public void FreeCPUMemory()
         {
-            for(int i = 0; i < Indices.Length; i += 3)
-            {
-                // for 1
-                int vboIndex1 = i * 8;
-                int vboIndex2 = (i + 1) * 8;
-                int vboIndex3 = (i + 2) * 8;
-                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
-                var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
-                var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
-                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
-                var nor2 = new Vector3(VBO[vboIndex2 + 5], VBO[vboIndex2 + 6], VBO[vboIndex2 + 7]);
-                var nor3 = new Vector3(VBO[vboIndex3 + 5], VBO[vboIndex3 + 6], VBO[vboIndex3 + 7]);
-                var crs1 = Vector3.Cross(pos1, pos2);
-                var crs2 = Vector3.Cross(pos2, pos3);
-                var crs3 = Vector3.Cross(pos3, pos1);
-                var cross = Vector3.Cross(pos1, pos2).Normalized();
-                if((cross - crs1).Length >= 1.0f)
-                {
-                    uint tmp = Indices[i + 2];
-                    Indices[i + 2] = Indices[i];
-                    Indices[i] = tmp;
-                }
-            }
+            VBO = null;
+            Indices = null;
+            GC.Collect();
         }
-        public List<Vector3> GetOrderedVertices()
-        {
-            var ot = new List<Vector3>();
-            for(int i = 0; i < Indices.Length; i++)
-            {
-                // for 1
-                int vboIndex1 = i * 8;
-                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
-                ot.Add(pos1);
-            }
-            return ot;
-        }
-        public List<Vector3> GetRawVertexList()
-        {
-            var ot = new List<Vector3>();
-            for(int i = 0; i < VBO.Length; i+=8)
-            {
-                // for 1
-                var pos1 = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
-                ot.Add(pos1);
-            }
-            return ot;
-        }
-        public List<Vector3> GetOrderedNormals()
-        {
-            var ot = new List<Vector3>();
-            for(int i = 0; i < Indices.Length; i++)
-            {
-                // for 1
-                int vboIndex1 = i * 8;
-                var pos1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
-                ot.Add(pos1);
-            }
-            return ot;
-        }
-        public List<int> GetOrderedIndices()
-        {
-            var ot = new List<int>();
-            for(int i = 0; i < Indices.Length; i++)
-            {
-                ot.Add(i);
-            }
-            return ot;
-        }
-
 
         public BvhTriangleMeshShape GetAccurateCollisionShape(float scale = 1.0f)
         {
@@ -686,91 +667,6 @@ namespace VEngine
             averagey /= VBO.Length / 8.0f;
             averagez /= VBO.Length / 8.0f;
             return new Vector3(averagex, averagey, averagez);
-        }
-        public void ScaleUV(float x, float y)
-        {
-            for(int i = 0; i < VBO.Length; i += 8)
-            {
-                VBO[i + 3] *= x;
-                VBO[i + 4] *= y;
-            }
-        }
-        public Object3dInfo CopyDeep()
-        {
-            return new Object3dInfo(VBO.ToArray(), Indices.ToArray());
-        }
-
-        class VertexInfo
-        {
-            public Vector3 Position, Normal;
-            public Vector2 UV;
-
-            public List<float> ToFloatList()
-            {
-                return new List<float> { Position.X, Position.Y, Position.Z, UV.X, UV.Y, Normal.X, Normal.Y, Normal.Z };
-            }
-        }
-
-        class TriangleInfo
-        {
-            VertexInfo V1, V2, V3;
-            public List<float> ToFloatList()
-            {
-                var list = new List<float>();
-                list.AddRange(V1.ToFloatList());
-                list.AddRange(V2.ToFloatList());
-                list.AddRange(V3.ToFloatList());
-                return list;
-            }
-        }
-
-        private Object3dInfo CreateTriangle(TriangleInfo info, bool doubleSided = false)
-        {
-            return new Object3dInfo(info.ToFloatList().ToArray(), doubleSided ? new uint[] { 0, 1, 2 } : new uint[] { 0, 1, 2, 0, 2, 1 });
-        }
-        /*
-        public Object3dInfo[] Knife(float xmult, float ymult)
-        {
-            var vbo1 = new List<float>();
-            var vbo2 = new List<float>();
-            var ind1 = new List<uint>();
-            var ind2 = new List<uint>(); 
-            List<Vector3> vectors = new List<Vector3>();
-            for(int i = 0; i < Indices.Count; i++)
-            {
-                int vboIndex = i * 8;1
-                vectors.Add(new Vector3(VBO[vboIndex] * scale, VBO[vboIndex + 1] * scale, VBO[vboIndex + 2] * scale));
-            }
-            return new Object3dInfo(VBO.ToArray(), Indices.ToArray());
-        }*/
-
-        public void Append(Object3dInfo info)
-        {
-            var b = VBO.ToList();
-            b.AddRange(info.VBO);
-            VBO = b.ToArray();
-            int startIndex = Indices.Length;
-            var c = Indices.ToList();
-            c.AddRange(info.Indices.Select(a => (uint)(a + startIndex)));
-            Indices = c.ToArray();
-        }
-
-        public void FreeCPUMemory()
-        {
-            VBO = null;
-            Indices = null;
-            GC.Collect();
-        }
-
-        public void ForceRegenerate()
-        {
-            if(AreBuffersGenerated)
-            {
-                GL.DeleteBuffer(VertexBuffer);
-                GL.DeleteBuffer(IndexBuffer);
-                GL.DeleteBuffer(VAOHandle);
-                AreBuffersGenerated = false;
-            }
         }
 
         public Vector3 GetAxisAlignedBox()
@@ -804,13 +700,75 @@ namespace VEngine
             var convex = new ConvexHullShape(vectors.ToArray());
             return convex;
         }
-        public void ScaleUV(float scale)
+
+        public int GetHash()
         {
+            if(CachedHash == -123)
+            {
+                int i = VBO.Length;
+                i ^= VBO.Length;
+                for(int x = 0; x < VBO.Length; x++)
+                    i ^= VBO[x].GetHashCode();
+                for(int ix = 0; ix < Indices.Length; ix++)
+                    i ^= Indices[ix].GetHashCode();
+                CachedHash = i;
+            }
+            return CachedHash;
+        }
+
+        public List<int> GetOrderedIndices()
+        {
+            var ot = new List<int>();
+            for(int i = 0; i < Indices.Length; i++)
+            {
+                ot.Add(i);
+            }
+            return ot;
+        }
+
+        public List<Vector3> GetOrderedNormals()
+        {
+            var ot = new List<Vector3>();
+            for(int i = 0; i < Indices.Length; i++)
+            {
+                // for 1
+                int vboIndex1 = i * 8;
+                var pos1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                ot.Add(pos1);
+            }
+            return ot;
+        }
+
+        public List<Vector3> GetOrderedVertices()
+        {
+            var ot = new List<Vector3>();
+            for(int i = 0; i < Indices.Length; i++)
+            {
+                // for 1
+                int vboIndex1 = i * 8;
+                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
+                ot.Add(pos1);
+            }
+            return ot;
+        }
+
+        public List<Vector3> GetRawVertexList()
+        {
+            var ot = new List<Vector3>();
             for(int i = 0; i < VBO.Length; i += 8)
             {
-                VBO[i + 3] *= scale;
-                VBO[i + 4] *= scale;
+                // for 1
+                var pos1 = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                ot.Add(pos1);
             }
+            return ot;
+        }
+
+        public void MakeDoubleFaced()
+        {
+            var copy = this.CopyDeep();
+            copy.FlipFaces();
+            Append(copy);
         }
 
         public void Normalize()
@@ -850,6 +808,168 @@ namespace VEngine
                 VBO[i + 1] -= averagey;
                 VBO[i + 2] -= averagez;
             }
+        }
+
+        public void ScaleUV(float x, float y)
+        {
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                VBO[i + 3] *= x;
+                VBO[i + 4] *= y;
+            }
+        }
+
+        public void ScaleUV(float scale)
+        {
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                VBO[i + 3] *= scale;
+                VBO[i + 4] *= scale;
+            }
+        }
+
+        public void Transform(Matrix4 ModelMatrix, Matrix4 RotationMatrix)
+        {
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                var vertex = Vector3.Transform(new Vector3(VBO[i + 0], VBO[i + 1], VBO[i + 2]), ModelMatrix);
+                var normal = Vector3.Transform(new Vector3(VBO[i + 5], VBO[i + 6], VBO[i + 7]), RotationMatrix);
+
+                VBO[i + 0] = vertex.X;
+                VBO[i + 1] = vertex.Y;
+                VBO[i + 2] = vertex.Z;
+
+                VBO[i + 5] = normal.X;
+                VBO[i + 6] = normal.Y;
+                VBO[i + 7] = normal.Z;
+            }
+        }
+
+        public void UpdateTangents()
+        {
+            var floats = new List<float>();
+            for(int i = 0; i < Indices.Length; i += 3)
+            {
+                // 8 vbo stride
+                int vboIndex1 = (int)Indices[i] * 8;
+                int vboIndex2 = (int)Indices[(i + 1)] * 8;
+                int vboIndex3 = (int)Indices[(i + 2)] * 8;
+                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
+                var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
+                var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
+                var uv1 = new Vector2(VBO[vboIndex1 + 3], VBO[vboIndex1 + 4]);
+                var uv2 = new Vector2(VBO[vboIndex2 + 3], VBO[vboIndex2 + 4]);
+                var uv3 = new Vector2(VBO[vboIndex3 + 3], VBO[vboIndex3 + 4]);
+                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                var nor2 = new Vector3(VBO[vboIndex2 + 5], VBO[vboIndex2 + 6], VBO[vboIndex2 + 7]);
+                var nor3 = new Vector3(VBO[vboIndex3 + 5], VBO[vboIndex3 + 6], VBO[vboIndex3 + 7]);
+
+                var tan1 = Vector3.Zero;
+
+                Indices[i] = i == 0 ? 0 : Indices[i - 1] + 1;
+                floats.AddRange(new float[]{
+                    pos1.X, pos1.Y, pos1.Z, uv1.X, uv1.Y, nor1.X, nor1.Y, nor1.Z, tan1.X, tan1.Y, tan1.Z
+                });
+                Indices[i + 1] = Indices[i] + 1;
+                floats.AddRange(new float[]{
+                    pos2.X, pos2.Y, pos2.Z, uv2.X, uv2.Y, nor2.X, nor2.Y, nor2.Z, tan1.X, tan1.Y, tan1.Z
+                });
+                Indices[i + 2] = Indices[i + 1] + 1;
+                floats.AddRange(new float[]{
+                    pos3.X, pos3.Y, pos3.Z, uv3.X, uv3.Y, nor3.X, nor3.Y, nor3.Z, tan1.X, tan1.Y, tan1.Z
+                });
+            }
+            VBO = floats.ToArray();
+            List<Vector3> t1a = new List<Vector3>();
+            List<Vector3> t2a = new List<Vector3>();
+            for(int i = 0; i < Indices.Length; i += 3)
+            {
+                // 8 vbo stride
+                int vboIndex1 = (int)Indices[i] * 11;
+                int vboIndex2 = (int)Indices[(i + 1)] * 11;
+                int vboIndex3 = (int)Indices[(i + 2)] * 11;
+                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
+                var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
+                var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
+                var uv1 = new Vector2(VBO[vboIndex1 + 3], VBO[vboIndex1 + 4]);
+                var uv2 = new Vector2(VBO[vboIndex2 + 3], VBO[vboIndex2 + 4]);
+                var uv3 = new Vector2(VBO[vboIndex3 + 3], VBO[vboIndex3 + 4]);
+                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                var nor2 = new Vector3(VBO[vboIndex2 + 5], VBO[vboIndex2 + 6], VBO[vboIndex2 + 7]);
+                var nor3 = new Vector3(VBO[vboIndex3 + 5], VBO[vboIndex3 + 6], VBO[vboIndex3 + 7]);
+                float x1 = pos2.X - pos1.X;
+                float x2 = pos3.X - pos1.X;
+                float y1 = pos2.Y - pos1.Y;
+                float y2 = pos3.Y - pos1.Y;
+                float z1 = pos2.Z - pos1.Z;
+                float z2 = pos3.Z - pos1.Z;
+
+                float s1 = uv2.X - uv1.X;
+                float s2 = uv3.X - uv1.X;
+                float t1 = uv2.Y - uv1.Y;
+                float t2 = uv3.Y - uv1.Y;
+
+                float r = 1.0F / (s1 * t2 - s2 * t1);
+                Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
+                        (t2 * z1 - t1 * z2) * r);
+                Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
+                        (s1 * z2 - s2 * z1) * r);
+                t1a.Add(sdir);
+                t1a.Add(sdir);
+                t1a.Add(sdir);
+                t2a.Add(tdir);
+                t2a.Add(tdir);
+                t2a.Add(tdir);
+                VBO[vboIndex1 + 8] += sdir.X;
+                VBO[vboIndex1 + 9] += sdir.Y;
+                VBO[vboIndex1 + 10] += sdir.Z;
+                VBO[vboIndex2 + 8] += sdir.X;
+                VBO[vboIndex2 + 9] += sdir.Y;
+                VBO[vboIndex2 + 10] += sdir.Z;
+                VBO[vboIndex3 + 8] += sdir.X;
+                VBO[vboIndex3 + 9] += sdir.Y;
+                VBO[vboIndex3 + 10] += sdir.Z;
+            }
+            for(int i = 0; i < Indices.Length; i++)
+            {
+                // 8 vbo stride
+                int vboIndex1 = (int)Indices[i] * 11;
+                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+                var tan1 = t1a[i];
+                var tan = (tan1 - nor1 * Vector3.Dot(nor1, tan1)).Normalized();
+                tan *= (Vector3.Dot(Vector3.Cross(nor1, tan1), t2a[i]) < 0.0f) ? -1.0f : 1.0f;
+                VBO[vboIndex1 + 8] = tan.X;
+                VBO[vboIndex1 + 9] = tan.Y;
+                VBO[vboIndex1 + 10] = tan.Z;
+            }
+        }
+
+        private static float Max(float a, float b)
+        {
+            return a > b ? a : b;
+        }
+
+        private static Vector3 Max(Vector3 a, Vector3 b)
+        {
+            return new Vector3(
+                Max(a.X, b.X),
+                Max(a.Y, b.Y),
+                Max(a.Z, b.Z)
+            );
+        }
+
+        private static float Min(float a, float b)
+        {
+            return a < b ? a : b;
+        }
+
+        private static Vector3 Min(Vector3 a, Vector3 b)
+        {
+            return new Vector3(
+                Min(a.X, b.X),
+                Min(a.Y, b.Y),
+                Min(a.Z, b.Z)
+            );
         }
 
         private static List<ObjFileData> ParseOBJString(string[] lines)
@@ -914,7 +1034,7 @@ namespace VEngine
                     match = Regex.Match(line, @"f ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+)");
                     if(match.Success)
                     {
-                        for(int i = 1; ; )
+                        for(int i = 1; ;)
                         {
                             Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                             Vector2 uv = temp_uvs[int.Parse(match.Groups[i++].Value) - 1];
@@ -931,7 +1051,7 @@ namespace VEngine
                         match = Regex.Match(line, @"f ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+)");
                         if(match.Success)
                         {
-                            for(int i = 1; ; )
+                            for(int i = 1; ;)
                             {
                                 Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                                 Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
@@ -991,7 +1111,7 @@ namespace VEngine
                     match = Regex.Match(line, @"f ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+)");
                     if(match.Success)
                     {
-                        for(int i = 1; ; )
+                        for(int i = 1; ;)
                         {
                             Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                             Vector2 uv = temp_uvs[int.Parse(match.Groups[i++].Value) - 1];
@@ -1008,7 +1128,7 @@ namespace VEngine
                         match = Regex.Match(line, @"f ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+)");
                         if(match.Success)
                         {
-                            for(int i = 1; ; )
+                            for(int i = 1; ;)
                             {
                                 Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                                 Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
@@ -1030,16 +1150,6 @@ namespace VEngine
             return objects.First();
         }
 
-        private void DrawPrepare()
-        {
-            if(!AreBuffersGenerated)
-            {
-                GenerateBuffers();
-            }
-            GL.BindVertexArray(VAOHandle);
-
-        }
-
         private Vector3 CalculateTangent(Vector3 normal, Vector3 v1, Vector3 v2, Vector2 st1, Vector2 st2)
         {
             float coef = 1.0f / (st1.X * st2.Y - st2.X * st1.Y);
@@ -1053,107 +1163,19 @@ namespace VEngine
             return tangent;
         }
 
-        public void UpdateTangents()
+        private Object3dInfo CreateTriangle(TriangleInfo info, bool doubleSided = false)
         {
-            var floats = new List<float>();
-            for(int i = 0; i < Indices.Length; i += 3)
-            {
-                // 8 vbo stride
-                int vboIndex1 = (int)Indices[i] * 8;
-                int vboIndex2 = (int)Indices[(i + 1)] * 8;
-                int vboIndex3 = (int)Indices[(i + 2)] * 8;
-                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
-                var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
-                var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
-                var uv1 = new Vector2(VBO[vboIndex1 + 3], VBO[vboIndex1 + 4]);
-                var uv2 = new Vector2(VBO[vboIndex2 + 3], VBO[vboIndex2 + 4]);
-                var uv3 = new Vector2(VBO[vboIndex3 + 3], VBO[vboIndex3 + 4]);
-                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
-                var nor2 = new Vector3(VBO[vboIndex2 + 5], VBO[vboIndex2 + 6], VBO[vboIndex2 + 7]);
-                var nor3 = new Vector3(VBO[vboIndex3 + 5], VBO[vboIndex3 + 6], VBO[vboIndex3 + 7]);
-
-
-                var tan1 = Vector3.Zero;
-
-                Indices[i] = i == 0 ? 0 : Indices[i - 1] + 1;
-                floats.AddRange(new float[]{
-                    pos1.X, pos1.Y, pos1.Z, uv1.X, uv1.Y, nor1.X, nor1.Y, nor1.Z, tan1.X, tan1.Y, tan1.Z
-                });
-                Indices[i + 1] = Indices[i] + 1;
-                floats.AddRange(new float[]{
-                    pos2.X, pos2.Y, pos2.Z, uv2.X, uv2.Y, nor2.X, nor2.Y, nor2.Z, tan1.X, tan1.Y, tan1.Z
-                });
-                Indices[i + 2] = Indices[i + 1] + 1;
-                floats.AddRange(new float[]{
-                    pos3.X, pos3.Y, pos3.Z, uv3.X, uv3.Y, nor3.X, nor3.Y, nor3.Z, tan1.X, tan1.Y, tan1.Z
-                });
-
-            }
-            VBO = floats.ToArray();
-            List<Vector3> t1a = new List<Vector3>();
-            List<Vector3> t2a = new List<Vector3>();
-            for(int i = 0; i < Indices.Length; i += 3)
-            {
-                // 8 vbo stride
-                int vboIndex1 = (int)Indices[i] * 11;
-                int vboIndex2 = (int)Indices[(i + 1)] * 11;
-                int vboIndex3 = (int)Indices[(i + 2)] * 11;
-                var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
-                var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
-                var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
-                var uv1 = new Vector2(VBO[vboIndex1 + 3], VBO[vboIndex1 + 4]);
-                var uv2 = new Vector2(VBO[vboIndex2 + 3], VBO[vboIndex2 + 4]);
-                var uv3 = new Vector2(VBO[vboIndex3 + 3], VBO[vboIndex3 + 4]);
-                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
-                var nor2 = new Vector3(VBO[vboIndex2 + 5], VBO[vboIndex2 + 6], VBO[vboIndex2 + 7]);
-                var nor3 = new Vector3(VBO[vboIndex3 + 5], VBO[vboIndex3 + 6], VBO[vboIndex3 + 7]);
-                float x1 = pos2.X - pos1.X;
-                float x2 = pos3.X - pos1.X;
-                float y1 = pos2.Y - pos1.Y;
-                float y2 = pos3.Y - pos1.Y;
-                float z1 = pos2.Z - pos1.Z;
-                float z2 = pos3.Z - pos1.Z;
-
-                float s1 = uv2.X - uv1.X;
-                float s2 = uv3.X - uv1.X;
-                float t1 = uv2.Y - uv1.Y;
-                float t2 = uv3.Y - uv1.Y;
-
-                float r = 1.0F / (s1 * t2 - s2 * t1);
-                Vector3 sdir = new Vector3((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
-                        (t2 * z1 - t1 * z2) * r);
-                Vector3 tdir = new Vector3((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r, 
-                        (s1 * z2 - s2 * z1) * r);
-                t1a.Add(sdir);
-                t1a.Add(sdir);
-                t1a.Add(sdir);
-                t2a.Add(tdir);
-                t2a.Add(tdir);
-                t2a.Add(tdir);
-                VBO[vboIndex1 + 8] += sdir.X;
-                VBO[vboIndex1 + 9] += sdir.Y;
-                VBO[vboIndex1 + 10] += sdir.Z;
-                VBO[vboIndex2 + 8] += sdir.X;
-                VBO[vboIndex2 + 9] += sdir.Y;
-                VBO[vboIndex2 + 10] += sdir.Z;
-                VBO[vboIndex3 + 8] += sdir.X;
-                VBO[vboIndex3 + 9] += sdir.Y;
-                VBO[vboIndex3 + 10] += sdir.Z;
-            }
-            for(int i = 0; i < Indices.Length; i++)
-            {
-                // 8 vbo stride
-                int vboIndex1 = (int)Indices[i] * 11;
-                var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
-                var tan1 = t1a[i];
-                var tan = (tan1 - nor1 * Vector3.Dot(nor1, tan1)).Normalized();
-                tan *= (Vector3.Dot(Vector3.Cross(nor1, tan1), t2a[i]) < 0.0f) ? -1.0f : 1.0f;
-                VBO[vboIndex1 + 8] = tan.X;
-                VBO[vboIndex1 + 9] = tan.Y;
-                VBO[vboIndex1 + 10] = tan.Z;
-            }
+            return new Object3dInfo(info.ToFloatList().ToArray(), doubleSided ? new uint[] { 0, 1, 2 } : new uint[] { 0, 1, 2, 0, 2, 1 });
         }
 
+        private void DrawPrepare()
+        {
+            if(!AreBuffersGenerated)
+            {
+                GenerateBuffers();
+            }
+            GL.BindVertexArray(VAOHandle);
+        }
 
         private void GenerateBuffers()
         {
@@ -1182,22 +1204,26 @@ namespace VEngine
             FreeCPUMemory();
             //Enabling 0 location in shaders - There will be vertex model space positions
             GL.EnableVertexAttribArray(0);
-            // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride 0 bytes
+            // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride
+            // 0 bytes
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 4 * 11, 0);
 
             //Enabling 1 location in shaders - There will be UVs
             GL.EnableVertexAttribArray(1);
-            // config for 0 location for shader, vec2, float, not normalized, 32 bytes total, stride 12 bytes
+            // config for 0 location for shader, vec2, float, not normalized, 32 bytes total, stride
+            // 12 bytes
             GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * 11, 4 * 3);
 
             //Enabling 2 location in shaders
             GL.EnableVertexAttribArray(2);
-            // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride 12 bytes
+            // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride
+            // 12 bytes
             GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 4 * 11, 4 * 5);
 
             //Enabling 3 location in shaders
             GL.EnableVertexAttribArray(3);
-            // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride 12 bytes
+            // config for 0 location for shader, vec3, float, not normalized, 32 bytes total, stride
+            // 12 bytes
             GL.VertexAttribPointer(3, 3, VertexAttribPointerType.Float, false, 4 * 11, 4 * 8);
 
             //Unbind VAO
@@ -1209,33 +1235,37 @@ namespace VEngine
             AreBuffersGenerated = true;
         }
 
-        public class MaterialInfo
+        private void UpdateBoundingBox()
         {
-            public MaterialInfo()
+            var vertices = GetRawVertexList();
+            var a = vertices[0];
+            var b = vertices[0];
+            foreach(var v in vertices)
             {
-                DiffuseColor = Color.White;
-                SpecularColor = Color.White;
-                AmbientColor = Color.White;
-                Transparency = 1.0f;
-                SpecularStrength = 1.0f;
-                TextureName = "";
-                BumpMapName = "";
-                NormapMapName = "";
-                SpecularMapName = "";
-                AlphaMask = "";
+                a = Min(a, v);
+                b = Max(b, v);
             }
-
-            public Color DiffuseColor, SpecularColor, AmbientColor;
-            public string TextureName, BumpMapName, NormapMapName, SpecularMapName;
-            public string AlphaMask;
-            public float Transparency, SpecularStrength;
+            AABB = new AxisAlignedBoundingBox()
+            {
+                Minimum = a,
+                Maximum = b
+            };
         }
 
-        private class ObjFileData
+        /*
+        public Object3dInfo[] Knife(float xmult, float ymult)
         {
-            public List<uint> Indices;
-            public string Name, MaterialName;
-            public List<float> VBO;
-        }
+            var vbo1 = new List<float>();
+            var vbo2 = new List<float>();
+            var ind1 = new List<uint>();
+            var ind2 = new List<uint>();
+            List<Vector3> vectors = new List<Vector3>();
+            for(int i = 0; i < Indices.Count; i++)
+            {
+                int vboIndex = i * 8;1
+                vectors.Add(new Vector3(VBO[vboIndex] * scale, VBO[vboIndex + 1] * scale, VBO[vboIndex + 2] * scale));
+            }
+            return new Object3dInfo(VBO.ToArray(), Indices.ToArray());
+        }*/
     }
 }

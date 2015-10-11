@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Drawing;
-using System.Threading.Tasks;
+﻿using OpenTK;
 using VEngine;
-using VEngine.Generators;
-using OpenTK;
-using VEngine.PathTracing;
 
 namespace ShadowsTester
 {
@@ -21,7 +13,8 @@ namespace ShadowsTester
                   ob.SetMass(0);
                   this.Add(ob);
               }*/
-            // var scene = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"), Media.Get("cryteksponza.mtl"), 0.03f);
+            // var scene = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"),
+            // Media.Get("cryteksponza.mtl"), 0.03f);
 
             var script = System.IO.File.ReadAllText(Media.Get("init.js"));
             var js = new Script();
@@ -59,7 +52,7 @@ namespace ShadowsTester
                     var center = new Vector3((x - 40) * 0.1f, (float)Math.Cos(x+ timeadd * x), (float)Math.Sin(x + timeadd * x));
                     lights[x].SetPosition(center);
                     lights[x].Color = new Vector4((float)Math.Sin(x + timeadd * x), (float)Math.Cos(x + timeadd * x), (float)Math.Cos(x + timeadd * 3 * x), 0.1f);
-    
+
                     cubes[x].MainMaterial.Color = lights[x].Color;
                     cubes[x].Transformation.SetPosition(center);
                     cubes[x].Transformation.SetScale(0.05f);
@@ -98,10 +91,10 @@ namespace ShadowsTester
                     p.Color = new Vector4(p.Color.X, p.Color.Y, p.Color.Z, p.Color.W - 1);
             };*/
             // var s = VEngine.FileFormats.GameScene.FromMesh3dList(scene);
-            // System.IO.File.WriteAllText("Scene.scene", s);
-            //  Object3dInfo[] skydomeInfo = Object3dInfo.LoadFromObj(Media.Get("sponza_verysimple.obj"));
-            // var sponza = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"), Media.Get("cryteksponza.mtl"), 0.03f);
-            //   List<Mesh3d> meshes = new List<Mesh3d>();
+            // System.IO.File.WriteAllText("Scene.scene", s); Object3dInfo[] skydomeInfo =
+            // Object3dInfo.LoadFromObj(Media.Get("sponza_verysimple.obj")); var sponza =
+            // Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"),
+            // Media.Get("cryteksponza.mtl"), 0.03f); List<Mesh3d> meshes = new List<Mesh3d>();
             /*   List<GenericMaterial> mats = new List<GenericMaterial>
                {
                    new GenericMaterial(new Vector4(1f, 0.6f, 0.6f, 1.0f)) {Roughness = 0.2f },
@@ -123,8 +116,7 @@ namespace ShadowsTester
                    skydome.Scale(3);
                    meshes.Add(skydome);
                }*/
-            // var Tracer = new PathTracer();
-            //  Tracer.PrepareTrianglesData(meshes);
+            // var Tracer = new PathTracer(); Tracer.PrepareTrianglesData(meshes);
             /* List<Triangle> triangles = new List<Triangle>();
              foreach(var mesh in scene)
              {
@@ -155,9 +147,7 @@ namespace ShadowsTester
              triangles.CopyTo(trcopy);
              tree.CreateFromTriangleList(trcopy.ToList());
              var TriangleCount = triangles.Count;
-             // lets prepare byte array
-             // layout
-             // posx, posy, poz, norx, nory, norz, albr, albg, albz
+             // lets prepare byte array layout posx, posy, poz, norx, nory, norz, albr, albg, albz
              List<byte> bytes = new List<byte>();
              foreach(var triangle in triangles)
              {
@@ -213,7 +203,7 @@ namespace ShadowsTester
 
             var color = new GenericMaterial(Color.SkyBlue);
             color.SetBumpMapFromMedia("cobblestone.jpg");
-           //  color.Type = GenericMaterial.MaterialType.Water;
+           // color.Type = GenericMaterial.MaterialType.Water;
             Mesh3d water2 = new Mesh3d(waterInfo, color);
             water2.SetMass(0);
              color.Roughness = 0.8f;
@@ -249,9 +239,6 @@ namespace ShadowsTester
              dragon.Scale(80);
              Add(dragon);
              */
-
-
         }
-
     }
 }

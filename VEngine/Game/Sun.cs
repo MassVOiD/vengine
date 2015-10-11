@@ -1,16 +1,14 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using OpenTK;
-using VEngine;
 
 namespace VEngine
 {
     public class Sun
     {
-        Dictionary<float, ProjectionLight> Cascades;
-        public Quaternion Orientation;
-        public Vector4 LightColor;
         public static Sun Current;
+        public Vector4 LightColor;
+        public Quaternion Orientation;
+        private Dictionary<float, ProjectionLight> Cascades;
 
         public Sun(Quaternion orientation, Vector4 color, params float[] levels)
         {
@@ -37,22 +35,10 @@ namespace VEngine
                 casc.LightMixMode = LightMixMode.SunCascade;
             }
 
-
             GLThread.OnUpdate += GLThread_OnUpdate;
         }
 
-        float max(float a, float b)
-        {
-            return (float)System.Math.Max(a, b);
-        }
-        float min(float a, float b)
-        {
-            return (float)System.Math.Min(a, b);
-        }
-
-
-
-        void GLThread_OnUpdate(object sender, System.EventArgs e)
+        private void GLThread_OnUpdate(object sender, System.EventArgs e)
         {
             // 252 251 162
             foreach(var c in Cascades)
@@ -80,12 +66,20 @@ namespace VEngine
                 //newlocationCamera.Z *= -1;
                 //newlocationCamera -= c.Key * (Orientation.GetTangent(MathExtensions.TangentDirection.Up));
                 //newlocationCamera += c.Key * right;
-               // newlocationCamera += c.Key * up;
+                // newlocationCamera += c.Key * up;
                 c.Value.camera.SetPosition(newlocationAbstract);
                 c.Value.camera.LookAt(newlocationCamera);
             }
         }
 
+        private float max(float a, float b)
+        {
+            return (float)System.Math.Max(a, b);
+        }
 
+        private float min(float a, float b)
+        {
+            return (float)System.Math.Min(a, b);
+        }
     }
 }

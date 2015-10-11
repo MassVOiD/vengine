@@ -7,13 +7,15 @@ namespace VEngine
 {
     public class ShaderStorageBuffer
     {
+        public BufferUsageHint Type = BufferUsageHint.DynamicDraw;
+
+        private bool Generated;
+
+        private int Handle = -1;
+
         public ShaderStorageBuffer()
         {
         }
-
-        private bool Generated;
-        private int Handle = -1;
-        public BufferUsageHint Type = BufferUsageHint.DynamicDraw;
 
         public void MapData(byte[] buffer)
         {
@@ -26,17 +28,6 @@ namespace VEngine
             GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, Type);
         }
 
-        public void MapSubData(byte[] buffer, uint start, uint length)
-        {
-            if(!Generated)
-            {
-                Handle = GL.GenBuffer();
-                Generated = true;
-            }
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
-            GL.BufferSubData(BufferTarget.ShaderStorageBuffer, new IntPtr(start), new IntPtr(length), buffer);
-        }
-
         public void MapData(dynamic structure)
         {
             if(structure.GetType().IsArray)
@@ -45,7 +36,6 @@ namespace VEngine
                 var buf = new List<byte>();
                 for(int i = 0; i < objs.Length; i++)
                 {
-
                     int size = Marshal.SizeOf(structure[i]);
                     byte[] arr = new byte[size];
                     IntPtr ptr = Marshal.AllocHGlobal(size);
@@ -60,7 +50,6 @@ namespace VEngine
             }
             else
             {
-
                 int size = Marshal.SizeOf(structure);
                 byte[] arr = new byte[size];
                 IntPtr ptr = Marshal.AllocHGlobal(size);
@@ -71,6 +60,17 @@ namespace VEngine
 
                 MapData(arr);
             }
+        }
+
+        public void MapSubData(byte[] buffer, uint start, uint length)
+        {
+            if(!Generated)
+            {
+                Handle = GL.GenBuffer();
+                Generated = true;
+            }
+            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
+            GL.BufferSubData(BufferTarget.ShaderStorageBuffer, new IntPtr(start), new IntPtr(length), buffer);
         }
 
         public byte[] Read(int offset, int size)

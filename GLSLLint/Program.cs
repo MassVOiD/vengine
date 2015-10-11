@@ -7,7 +7,6 @@ namespace GLSLLint
 {
     internal class Program
     {
-
         private static void Main(string[] args)
         {
             string source = null;

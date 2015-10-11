@@ -2,13 +2,46 @@
 using System.Collections.Generic;
 using BulletSharp;
 using OpenTK;
-using OpenTK.Graphics.OpenGL4;
 using VEngine.UI;
 
 namespace VEngine
 {
     public class World
     {
+        public static World Root;
+
+        public List<IRenderable> Children;
+
+        public volatile bool Disposed;
+
+        public Quaternion Orientation = Quaternion.Identity;
+
+        public DiscreteDynamicsWorld PhysicalWorld;
+
+        public Vector3 Position = new Vector3(0, 0, 0);
+
+        public Scene RootScene;
+
+        public float Scale = 1.0f;
+
+        public bool ShouldUpdatePhysics = false;
+
+        public float SimulationSpeed = 1.0f;
+
+        public Mesh3d SkyDome;
+
+        public UIRenderer UI;
+
+        private DbvtBroadphase Broadphase;
+
+        private CollisionConfiguration CollisionConf;
+
+        private Dictionary<IRenderable, CollisionObject> CollisionObjects;
+
+        private CollisionDispatcher Dispatcher;
+
+        private Matrix4 Matrix;
+
         public World()
         {
             Children = new List<IRenderable>();
@@ -27,22 +60,9 @@ namespace VEngine
                 Root = this;
         }
 
-        public static World Root;
-        public Scene RootScene;
-        public volatile bool Disposed;
-        public UIRenderer UI;
-        public Quaternion Orientation = Quaternion.Identity;
-        public DiscreteDynamicsWorld PhysicalWorld;
-        public Vector3 Position = new Vector3(0, 0, 0);
-        public float Scale = 1.0f;
-        public bool ShouldUpdatePhysics = false;
-        private DbvtBroadphase Broadphase;
-        public List<IRenderable> Children;
-        private CollisionConfiguration CollisionConf;
-        private Dictionary<IRenderable, CollisionObject> CollisionObjects;
-        private CollisionDispatcher Dispatcher;
-        private Matrix4 Matrix;
-        public Mesh3d SkyDome;
+        public delegate void MeshCollideDelegate(Mesh3d meshA, Mesh3d meshB, Vector3 collisionPoint, Vector3 normalA);
+
+        public event MeshCollideDelegate MeshCollide;
 
         public void Add(IRenderable renderable)
         {
@@ -54,7 +74,7 @@ namespace VEngine
                 Mesh3d mesh = renderable as Mesh3d;
                 if(mesh.GetCollisionShape() != null || renderable is IPhysical)
                 {
-                    lock(PhysicalWorld)
+                    lock (PhysicalWorld)
                     {
                         CollisionObjects.Add(renderable, mesh.CreateRigidBody());
                         mesh.PhysicalBody.SetSleepingThresholds(0, 0);
@@ -68,7 +88,7 @@ namespace VEngine
             else if(renderable is IPhysical)
             {
                 IPhysical physicalObject = renderable as IPhysical;
-                lock(PhysicalWorld)
+                lock (PhysicalWorld)
                 {
                     PhysicalWorld.AddRigidBody(physicalObject.GetRigidBody());
                     physicalObject.GetRigidBody().SetSleepingThresholds(0, 0);
@@ -76,11 +96,6 @@ namespace VEngine
                     physicalObject.GetRigidBody().CcdMotionThreshold = 0;
                 }
             }
-        }
-
-        public void SetSkyDome(Mesh3d dome)
-        {
-
         }
 
         public RigidBody CreateRigidBody(float mass, Matrix4 startTransform, CollisionShape shape, Mesh3d reference)
@@ -107,22 +122,6 @@ namespace VEngine
             RootScene.Draw(Matrix4.Identity);
         }
 
-        public void Remove(IRenderable renderable)
-        {
-            if(!Children.Contains(renderable))
-                return;
-            Children.Remove(renderable);
-            if(renderable is Mesh3d)
-            {
-                Mesh3d mesh = renderable as Mesh3d;
-                if(mesh.GetCollisionShape() != null)
-                {
-                    PhysicalWorld.RemoveCollisionObject(CollisionObjects[renderable]);
-                }
-            }
-        }
-
-
         public void Explode(Vector3 position, float magnitude)
         {
             int len = PhysicalWorld.CollisionObjectArray.Count;
@@ -145,18 +144,73 @@ namespace VEngine
                     }
                 }
             }
+        }
 
+        public void Remove(IRenderable renderable)
+        {
+            if(!Children.Contains(renderable))
+                return;
+            Children.Remove(renderable);
+            if(renderable is Mesh3d)
+            {
+                Mesh3d mesh = renderable as Mesh3d;
+                if(mesh.GetCollisionShape() != null)
+                {
+                    PhysicalWorld.RemoveCollisionObject(CollisionObjects[renderable]);
+                }
+            }
+        }
+
+        public void SetSkyDome(Mesh3d dome)
+        {
+        }
+
+        public void SortByCameraDistance()
+        {
+            Children.Sort((a, b) =>
+            {
+                if(!(a is Mesh3d))
+                    return 0;
+                if(!(b is Mesh3d))
+                    return 0;
+                var am = a as Mesh3d;
+                var bm = b as Mesh3d;
+                return (int)((am.Transformation.GetPosition() - Camera.Current.Transformation.GetPosition()).Length - (bm.Transformation.GetPosition() - Camera.Current.Transformation.GetPosition()).Length * 100.0f);
+            });
+        }
+
+        public void SortByDepthMasking()
+        {
+            Children.Sort((a, b) =>
+            {
+                if(!(a is Mesh3d))
+                    return 0;
+                if(!(b is Mesh3d))
+                    return 0;
+                var am = a as Mesh3d;
+                var bm = b as Mesh3d;
+                return am.DisableDepthWrite && !bm.DisableDepthWrite ? 0 : 1;
+            });
+        }
+
+        public void SortByObject3d()
+        {
+            Children.Sort((a, b) =>
+            {
+                if(!(a is Mesh3d))
+                    return 0;
+                if(!(b is Mesh3d))
+                    return 0;
+                var am = a as Mesh3d;
+                var bm = b as Mesh3d;
+                return am.MainObjectInfo.GetHash() - bm.MainObjectInfo.GetHash();
+            });
         }
 
         public void UpdateMatrix()
         {
             Matrix = Matrix4.CreateTranslation(Position) * Matrix4.CreateFromQuaternion(Orientation) * Matrix4.CreateScale(Scale);
         }
-
-        public float SimulationSpeed = 1.0f;
-
-        public delegate void MeshCollideDelegate(Mesh3d meshA, Mesh3d meshB, Vector3 collisionPoint, Vector3 normalA);
-        public event MeshCollideDelegate MeshCollide;
 
         public virtual void UpdatePhysics(float time)
         {
@@ -173,7 +227,6 @@ namespace VEngine
                 mesh = body.UserObject as Mesh3d;
                 if(mesh != null)
                 {
-
                     mesh.Transformation.SetPosition(mesh.PhysicalBody.CenterOfMassPosition);
                     mesh.Transformation.SetOrientation(mesh.PhysicalBody.Orientation);
                     mesh.UpdateMatrix(true);
@@ -205,46 +258,6 @@ namespace VEngine
                 }
             }
             MeshLinker.Resolve();
-        }
-
-        public void SortByObject3d()
-        {
-            Children.Sort((a, b) =>
-            {
-                if(!(a is Mesh3d))
-                    return 0;
-                if(!(b is Mesh3d))
-                    return 0;
-                var am = a as Mesh3d;
-                var bm = b as Mesh3d;
-                return am.MainObjectInfo.GetHash() - bm.MainObjectInfo.GetHash();
-            });
-        }
-        public void SortByCameraDistance()
-        {
-            Children.Sort((a, b) =>
-            {
-                if(!(a is Mesh3d))
-                    return 0;
-                if(!(b is Mesh3d))
-                    return 0;
-                var am = a as Mesh3d;
-                var bm = b as Mesh3d;
-                return (int)((am.Transformation.GetPosition() - Camera.Current.Transformation.GetPosition()).Length - (bm.Transformation.GetPosition() - Camera.Current.Transformation.GetPosition()).Length * 100.0f);
-            });
-        }
-        public void SortByDepthMasking()
-        {
-            Children.Sort((a, b) =>
-            {
-                if(!(a is Mesh3d))
-                    return 0;
-                if(!(b is Mesh3d))
-                    return 0;
-                var am = a as Mesh3d;
-                var bm = b as Mesh3d;
-                return am.DisableDepthWrite && !bm.DisableDepthWrite ? 0 : 1;
-            });
         }
     }
 }

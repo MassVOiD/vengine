@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace VEngine.Fog
+﻿namespace VEngine.Fog
 {
-    class FogPool
+    internal class FogPool
     {
     }
 }

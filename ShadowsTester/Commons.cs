@@ -1,37 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using VEngine;
 
 namespace ShadowsTester
 {
-    class Commons
+    internal class Commons
     {
         public static FreeCamera FreeCam;
-        static ProjectionLight RedLight;
+        private static ComputeShader MousePicker;
+        private static int MouseX, MouseY;
+        private static Mesh3d Picked;
         private static ShaderStorageBuffer PickingResult;
-        static ComputeShader MousePicker;
-        static int MouseX, MouseY;
-        static Mesh3d Picked;
-        public static FreeCamera SetUpFreeCamera()
-        {
-
-            float aspect = GLThread.Resolution.Height > GLThread.Resolution.Width ? GLThread.Resolution.Height / GLThread.Resolution.Width : GLThread.Resolution.Width / GLThread.Resolution.Height;
-            var freeCamera = new FreeCamera((float)GLThread.Resolution.Width / (float)GLThread.Resolution.Height, MathHelper.PiOver3/1);
-            FreeCam = freeCamera;
-            PickingResult = new ShaderStorageBuffer();
-            MousePicker = new ComputeShader("MousePicker.compute.glsl");
-            return freeCamera;
-        }
+        private static ProjectionLight RedLight;
 
         public static ProjectionLight AddControllableLight()
         {
-
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 2048, 2048, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 768, 768, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
             RedLight = redConeLight;
             redConeLight.LightColor = new Vector4(1, 1, 1, 95);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
@@ -59,37 +44,43 @@ namespace ShadowsTester
 
             GLThread.OnUpdate += (o, e) =>
             {
+                var kb = OpenTK.Input.Keyboard.GetState();
                 if(GLThread.DisplayAdapter.IsCursorVisible)
                 {
-                    PickingResult.MapData(Vector4.One);
-                    MousePicker.Use();
-                    var state = OpenTK.Input.Mouse.GetState();
-                    MousePicker.SetUniform("Mouse", new Vector2(MouseX, GLThread.Resolution.Height  - MouseY));
-                    PickingResult.Use(0);
-                    GL.BindImageTexture(0, GLThread.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba8);
-                    MousePicker.Dispatch(GLThread.Resolution.Width / 32, GLThread.Resolution.Height / 32, 1);
-                    OpenTK.Graphics.OpenGL4.GL.MemoryBarrier(OpenTK.Graphics.OpenGL4.MemoryBarrierFlags.ShaderStorageBarrierBit);
-                    byte[] result = PickingResult.Read(0, 4 * 3);
-                    Vector3 id = new Vector3(
-                        BitConverter.ToSingle(result, 0),
-                        BitConverter.ToSingle(result, 4),
-                        BitConverter.ToSingle(result, 8)
-                    );
-                    foreach(var m in World.Root.RootScene.GetFlatRenderableList())
+                    if(!kb.IsKeyDown(OpenTK.Input.Key.LControl))
                     {
-                        if(m is Mesh3d)
+                        GLThread.DisplayAdapter.Pipeline.PostProcessor.ShowSelected = false;
+                    }
+                    else
+                    {
+                        GLThread.DisplayAdapter.Pipeline.PostProcessor.ShowSelected = true;
+                        PickingResult.MapData(Vector4.One);
+                        MousePicker.Use();
+                        var state = OpenTK.Input.Mouse.GetState();
+                        MousePicker.SetUniform("Mouse", new Vector2(MouseX, GLThread.Resolution.Height - MouseY));
+                        PickingResult.Use(0);
+                        GL.BindImageTexture(0, GLThread.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32ui);
+                        MousePicker.Dispatch(1, 1, 1);
+                        OpenTK.Graphics.OpenGL4.GL.MemoryBarrier(OpenTK.Graphics.OpenGL4.MemoryBarrierFlags.ShaderStorageBarrierBit);
+                        byte[] result = PickingResult.Read(0, 4);
+                        uint id = BitConverter.ToUInt32(result, 0);
+                        foreach(var m in World.Root.RootScene.GetFlatRenderableList())
                         {
-                            if(((m as Mesh3d).MeshColoredID - id).Length < 0.05f)
+                            if(m is Mesh3d)
                             {
-                                (m as Mesh3d).Selected = true;
-                                Picked = m as Mesh3d;
+                                if((m as Mesh3d).MeshColoredID == id)
+                                {
+                                    (m as Mesh3d).Selected = true;
+                                    Picked = m as Mesh3d;
+                                    SettingsController.Instance.SetMesh(Picked);
+                                }
+                                else
+                                    (m as Mesh3d).Selected = false;
                             }
-                            else
-                                (m as Mesh3d).Selected = false;
                         }
                     }
                 }
-                var kb = OpenTK.Input.Keyboard.GetState();
+
                 if(kb.IsKeyDown(OpenTK.Input.Key.Left))
                 {
                     var pos = redConeLight.camera.Transformation.GetPosition();
@@ -144,9 +135,18 @@ namespace ShadowsTester
             return redConeLight;
         }
 
+        public static FreeCamera SetUpFreeCamera()
+        {
+            float aspect = GLThread.Resolution.Height > GLThread.Resolution.Width ? GLThread.Resolution.Height / GLThread.Resolution.Width : GLThread.Resolution.Width / GLThread.Resolution.Height;
+            var freeCamera = new FreeCamera((float)GLThread.Resolution.Width / (float)GLThread.Resolution.Height, MathHelper.PiOver3 / 1);
+            FreeCam = freeCamera;
+            PickingResult = new ShaderStorageBuffer();
+            MousePicker = new ComputeShader("MousePicker.compute.glsl");
+            return freeCamera;
+        }
+
         public static void SetUpInputBehaviours()
         {
-
             GLThread.OnMouseUp += (o, e) =>
             {
                 if(e.Button == OpenTK.Input.MouseButton.Middle)
@@ -156,7 +156,6 @@ namespace ShadowsTester
                     {
                         Console.WriteLine(mesh.GetCollisionShape().ToString());
                         mesh.PhysicalBody.LinearVelocity += (Camera.Current.GetDirection() * 120.0f);
-
                     }
                 }
             };
@@ -214,7 +213,6 @@ namespace ShadowsTester
                 {
                     World.Root.SimulationSpeed = 0.10f;
                 }
-
             };
             GLThread.OnKeyUp += (o, e) =>
             {

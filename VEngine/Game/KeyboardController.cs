@@ -5,7 +5,6 @@ namespace VEngine.Game
 {
     public class KeyboardController
     {
-
         public KeyboardController()
         {
             GLThread.OnKeyDown += OnKeyDown;
@@ -14,7 +13,7 @@ namespace VEngine.Game
             GLThread.OnUpdate += OnUpdate;
         }
 
-        private void OnUpdate(object sender, EventArgs e)
+        private void OnKeyDown(object sender, KeyboardKeyEventArgs e)
         {
             throw new NotImplementedException();
         }
@@ -29,7 +28,7 @@ namespace VEngine.Game
             throw new NotImplementedException();
         }
 
-        private void OnKeyDown(object sender, KeyboardKeyEventArgs e)
+        private void OnUpdate(object sender, EventArgs e)
         {
             throw new NotImplementedException();
         }

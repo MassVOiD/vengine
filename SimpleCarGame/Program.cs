@@ -1,22 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Threading.Tasks;
-using OpenTK;
-using System.IO;
-using VEngine;
-using BulletSharp;
-using VEngine.Generators;
-using UI = VEngine.UI;
-using System.Threading;
-using VEngine.GameConsole;
-
-namespace SimpleCarGame
+﻿namespace SimpleCarGame
 {
-    class Program
+    internal class Program
     {
         public static CarCamera FreeCam;
-        static void Main(string[] args)
+
+        private static void Main(string[] args)
         {
             /*VEngineWindowAdapter window = null;
             var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
@@ -39,7 +27,6 @@ namespace SimpleCarGame
             FreeCam = freeCamera;
             Random rand = new Random();
 
-
             new CarScene().Create();
             GLThread.Invoke(() =>
             {
@@ -58,7 +45,6 @@ namespace SimpleCarGame
                     {
                         Console.WriteLine(mesh.GetCollisionShape().ToString());
                         mesh.PhysicalBody.LinearVelocity += (Camera.Current.GetDirection() * 120.0f);
-
                     }
                 }
                 if(e.Button == OpenTK.Input.MouseButton.Left)
@@ -75,7 +61,6 @@ namespace SimpleCarGame
                     World.Root.Add(m);
                     MeshLinker.Link(m, sl, Vector3.Zero, Quaternion.Identity);
                     m.PhysicalBody.LinearVelocity = freeCamera.Cam.Transformation.GetOrientation().ToDirection() * 10.0f;
-
                 }
             };
 
@@ -87,7 +72,6 @@ namespace SimpleCarGame
             World.Root.Add(skydome);
 
             GameConsole console = new GameConsole(25);
-
 
             World.Root.SimulationSpeed = 3.0f;
 

@@ -8,6 +8,20 @@ namespace VEngine
 {
     public class ComputeShader
     {
+        public static ComputeShader Current = null;
+
+        static public bool Lock = false;
+
+        private static List<ComputeShader> AllComputeShaders = new List<ComputeShader>();
+
+        private bool Compiled;
+
+        private string ComputeFile;
+
+        private int Handle = -1;
+
+        private Dictionary<string, int> UniformLocationsCache;
+
         public ComputeShader(string file)
         {
             UniformLocationsCache = new Dictionary<string, int>();
@@ -21,17 +35,15 @@ namespace VEngine
             AllComputeShaders.ForEach((a) => a.Compile());
         }
 
-        public static ComputeShader Current = null;
-        static public bool Lock = false;
-        private bool Compiled;
-        private string ComputeFile;
-        private int Handle = -1;
-        private Dictionary<string, int> UniformLocationsCache;
-        private static List<ComputeShader> AllComputeShaders = new List<ComputeShader>();
-
         public void BindAttributeLocation(int index, string name)
         {
             GL.BindAttribLocation(Handle, index, name);
+        }
+
+        public void Dispatch(int x, int y = 1, int z = 1)
+        {
+            GL.DispatchCompute(x, y, z);
+            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
         }
 
         public void SetUniform(string name, Matrix4 data)
@@ -40,6 +52,7 @@ namespace VEngine
             if(location >= 0)
                 GL.UniformMatrix4(location, false, ref data);
         }
+
         public void SetUniform(string name, bool data)
         {
             int location = GetUniformLocation(name);
@@ -138,6 +151,7 @@ namespace VEngine
                 GLThread.CheckErrors(name);
             }
         }
+
         public void SetUniformArray(string name, Vector2[] data)
         {
             int location = GetUniformLocation(name);
@@ -181,6 +195,7 @@ namespace VEngine
                 GLThread.CheckErrors(name);
             }
         }
+
         public void SetUniformArray(string name, int[] data)
         {
             int location = GetUniformLocation(name);
@@ -197,11 +212,6 @@ namespace VEngine
                 Compile();
             GL.UseProgram(Handle);
             Current = this;
-        }
-        public void Dispatch(int x, int y = 1, int z = 1)
-        {
-            GL.DispatchCompute(x, y, z);
-            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
         }
 
         private static int GetUniformLocation(string name)

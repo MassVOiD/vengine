@@ -130,8 +130,8 @@ vec3 RSM(){
         //break;
         for(int x=0;x<RSMSamples;x+=3){
         
-            RSMLight light = rsmLights[int(getRand()*64*64)];
-            //RSMLight light = rsmLights[x];
+            //RSMLight light = rsmLights[int(getRand()*64*64)];
+            RSMLight light = rsmLights[x];
             vec3 lcolor = light.Color.rgb;
             float lrough = light.Position.a;
             vec3 lnormal = light.normal.rgb;
@@ -142,6 +142,7 @@ vec3 RSM(){
             float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
             vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
             vec3 lightRelativeToVPos2 = normalize(newpos - LightsPos[i]);
+            float incomeDiffuse = max(0, dot(lightRelativeToVPos2, -lnormal));
             float att = CalculateFallof(distanceToLight) *  LightsColors[i].a;
             
             float specularComponent = cookTorranceSpecular(
@@ -164,7 +165,7 @@ vec3 RSM(){
             //float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
             //fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(1.0-meshRoughness)*0.4 + 1.0;
             
-            vec3 cc = mix(lcolor*colorOriginal, lcolor, meshMetalness);
+            vec3 cc = mix(lcolor*colorOriginal, lcolor, meshMetalness)*incomeDiffuse;
             
             vec3 difcolor = cc * diffuseComponent * att;
             vec3 difcolor2 = lcolor*colorOriginal * diffuseComponent * att;
@@ -174,17 +175,17 @@ vec3 RSM(){
             
             vec3 refl = reflect(-lightRelativeToVPos2, lnormal);
             float spfsm = max(0, dot(refl, lightRelativeToVPos));
-            spfsm = pow(spfsm, fma(255, (1.0-lrough), 1)) * max(0, sign(dot(lightRelativeToVPos, lnormal))) * (5-lrough);
-            spfsm = clamp(cookTorranceSpecular(
+            spfsm = pow(spfsm, (255 * (1.0-lrough) + 1)) * max(0, sign(dot(lightRelativeToVPos, lnormal))) * (5-lrough);
+            spfsm = cookTorranceSpecular(
             -lightRelativeToVPos2,
             -lightRelativeToVPos,
             lnormal,
             max(0.01, lrough)
-            ), 0.0, 1.0)*17;
+            ) * 32;
             
-            color1 += clamp(radiance * spfsm, 0.0,1.0);
+            color1 += radiance * spfsm;
             
-            //color1 += CalculateFallof(distanceToLight*4) * 33 * cc * (1.0 - texture(HBAOTex, UV).r);
+           // color1 += CalculateFallof(distanceToLight*6) * 2793 * cc * (1.0 - texture(HBAOTex, UV).r);
             
             
             // color1 += ((colorOriginal * (diffuseComponent * lcolor)) 
@@ -194,7 +195,7 @@ vec3 RSM(){
         }
     
     }
-    return color1 / (RSMSamples/3);
+    return 0.5*color1 / (RSMSamples/5);
 }
 
 

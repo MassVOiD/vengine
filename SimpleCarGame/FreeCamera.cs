@@ -7,6 +7,12 @@ namespace SimpleCarGame
 {
     internal class FreeCamera
     {
+        public Camera Cam;
+
+        private SphereShape collisionShape;
+
+        private RigidBody rigidBody;
+
         public FreeCamera(float aspectRatio, float fov)
         {
             Cam = new Camera(new Vector3(20, 20, 20), new Vector3(0, 2, 0), aspectRatio, fov, 1.0f, 10000.0f);
@@ -23,10 +29,6 @@ namespace SimpleCarGame
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
         }
-
-        public Camera Cam;
-        private SphereShape collisionShape;
-        private RigidBody rigidBody;
 
         private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
@@ -114,7 +116,8 @@ namespace SimpleCarGame
                 rigidBody.LinearVelocity -= direction.Xyz * speed;
             }
 
-            // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f, rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
+            // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f,
+            // rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
             Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
 
             Cam.UpdateFromRollPitch();
