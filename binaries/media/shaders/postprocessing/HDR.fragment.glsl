@@ -145,7 +145,7 @@ float avgdepth(vec2 buv){
             counter++;
         }
     }
-    return abs(outc / counter);
+    return min(abs(outc / counter), 4.0);
 }
 
 vec3 edgeDetect(vec2 uv){
@@ -186,10 +186,30 @@ vec3 edgeDetect(vec2 uv){
     return counter == 0 ? vec3(0) : (buff / counter);
 }
 
+vec3 getAverageOfAdjacent(vec2 uv){
+    ivec2 center = ivec2(uv * resolution);
+    vec3 buf = vec3(0);
+    ivec2 unitx = ivec2(1, 0);
+    ivec2 unity = ivec2(0, 1);
+    buf += texelFetch(currentTex, center + unitx, 0).rgb;
+    buf += texelFetch(currentTex, center - unitx, 0).rgb;
+    buf += texelFetch(currentTex, center + unity, 0).rgb;
+    buf += texelFetch(currentTex, center - unity, 0).rgb;
+    
+    buf += texelFetch(currentTex, center + unitx + unity, 0).rgb;
+    buf += texelFetch(currentTex, center + unitx - unity, 0).rgb;
+    buf += texelFetch(currentTex, center - unitx + unity, 0).rgb;
+    buf += texelFetch(currentTex, center - unitx - unity, 0).rgb;
+    
+    return buf / 8;
+}
+
 uniform int ShowSelected;
 void main()
 {
     vec4 color1 = fxaa(currentTex, UV);
+    vec3 avg = getAverageOfAdjacent(UV);
+    if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
     if(ShowSelected == 1) color1.rgb += lookupSelected(UV, 0.02);
     //vec4 color1 = vec4(0,0,0,1);
@@ -226,6 +246,7 @@ void main()
     float f2 = length(color1.rgb);
     
     vec3 additiveMix = mix(last*f1, color1.rgb, 1.0);
+    
     
     outColor = clamp(vec4(additiveMix, 1.0), 0.0, 1.0);
 }

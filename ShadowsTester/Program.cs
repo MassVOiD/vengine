@@ -10,8 +10,8 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 640;
-            public static int Height = 480;
+            public static int Width = 1920;
+            public static int Height = 1050;
             public static string MediaPath = "media";
         }
 
@@ -58,11 +58,11 @@ namespace ShadowsTester
             //new PlanetScene().Create();
             //   new SculptScene().Create();
             //   new SponzaScene().Create();
-            new OldCityScene();
+            //new OldCityScene();
             // new PathTraceTest().Create();
             //  new NatureScene().Create();
             //  new IndirectTestScene().Create();
-            //    new DragonScene();
+                new DragonScene();
             // new ManyCubesScene().Create();
             //  new ComputeBallsScene().Create();
             //new CarScene().Create();

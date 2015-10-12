@@ -1,5 +1,5 @@
 #version 430 core
-layout(invocations = 12) in;
+layout(invocations = 96) in;
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 96) out;
 
@@ -128,7 +128,7 @@ void GenerateGrass(vec3 start, vec3 normal, vec3 direction, vec3 tangent, float 
     }
 }
 
-#define GEO_GRASS_INSTANCES 12
+#define GEO_GRASS_INSTANCES 96
 
 void GeometryGenerateGrass(){
     if(gl_InvocationID > GEO_GRASS_INSTANCES) return;
@@ -151,10 +151,10 @@ void GeometryGenerateGrass(){
         vec3 rvec2 = (vec3(rand(gs_in[2].TexCoord+rd), rand(gs_in[1].TexCoord+rd), rand(gs_in[0].TexCoord+rd)) * 2 - 1) * 0.5;
         vec3 startPoint = center + interpolate3D(rvec, gs_in[0].WorldPos - center, gs_in[1].WorldPos - center, gs_in[2].WorldPos - center);
         vec2 startPointTx = centertx + interpolate2D(rvec, gs_in[0].TexCoord - centertx, gs_in[1].TexCoord - centertx, gs_in[2].TexCoord - centertx);
-        float height = 45.8;//texture(bumpMap, startPointTx).r*45.8;
+        float height = 0.8;//texture(bumpMap, startPointTx).r*45.8;
         if(height <= 0) continue;
         //float height = 1.9;
-        float width = rand(gs_in[2].TexCoord.yx-rd)*0.127 + 0.111; 
+        float width = rand(gs_in[2].TexCoord.yx-rd)*0.0127 + 0.0111; 
         
         GenerateGrass(startPoint, startNormal, normalize(rvec), startTangent, height, width, 1.0, height*0.03, rd);
     }

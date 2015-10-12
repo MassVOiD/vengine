@@ -29,7 +29,8 @@ namespace AirplanesGame
             var renderThread = Task.Factory.StartNew(() =>
             {
                 GLThread.SetCurrentThreadCores(2);
-                window = new VEngineWindowAdapter("Airplanes", Config.Width, Config.Height);
+                window = new VEngineWindowAdapter("Airplanes", Config.Width, Config.Height, GameWindowFlags.Default);
+                
 
                 GLThread.GraphicsSettings.UseDeferred = true;
                 GLThread.GraphicsSettings.UseRSM = false;
@@ -50,12 +51,13 @@ namespace AirplanesGame
             Camera.MainDisplayCamera = camera;
             Camera.Current = camera;
             var airplan = new Airplane(nn);
-            World.Root.Add(airplan.Body);
+            World.Root.PhysicalWorld.AddRigidBody(airplan.Body.CreateRigidBody(true));
+            World.Root.RootScene.Add(airplan.Body);
             var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
             var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
             whitebox.Scale(3000);
             whitebox.Translate(0, -1500, 0);
-            World.Root.Add(whitebox);
+            World.Root.RootScene.Add(whitebox);
             var scene = new GameScene("home1.scene");
             scene.Load();
             var cnt = scene.Meshes.Count;
@@ -69,7 +71,7 @@ namespace AirplanesGame
                 o.SetMass(0);
                 o.MainMaterial.Roughness = (o.MainMaterial.Roughness + 0.5f) / 2.0f;
                 o.SetCollisionShape(o.MainObjectInfo.GetAccurateCollisionShape(5));
-                World.Root.Add(o);
+                World.Root.RootScene.Add(o);
             }
 
             /* var lucyobj = VEngine.Object3dInfo.LoadFromRaw(VEngine.Media.Get("lucy.vbo.raw"), VEngine.Media.Get("lucy.indices.raw"));

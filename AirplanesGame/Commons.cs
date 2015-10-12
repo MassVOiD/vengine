@@ -16,7 +16,7 @@ namespace AirplanesGame
             redConeLight.LightColor = new Vector4(1, 1, 1, 95);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
-            LightPool.Add(redConeLight);
+            World.Root.RootScene.Add(redConeLight);
 
             GLThread.OnUpdate += (o, e) =>
             {

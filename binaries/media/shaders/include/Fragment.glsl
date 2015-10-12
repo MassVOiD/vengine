@@ -210,7 +210,6 @@ uniform int ShadingMode;
 #define SHADING_MDOE_SPEC 1
 #define SHADING_MDOE_SPEC 1
 
-
 void finishFragment(vec4 color){
     discardIfAlphaMasked();
    // if(Selected) color *= 3;
@@ -288,12 +287,12 @@ SubsurfaceScatteringMultiplier*/
         uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
         
 		if(Instances == 0){
-            outId = uvec4(MeshID, packpart1, packpart2, 0);
+            outId = uvec4(MeshID, packpart1, packpart2, MaterialType);
             vec3 rn = (InitialRotation * RotationMatrix * vec4(normalNew, 0)).xyz;
             if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);
 		} else {
-            outId = uvec4(InstancedIds[instanceId], packpart1, packpart2, 0);
+            outId = uvec4(InstancedIds[instanceId], packpart1, packpart2, MaterialType);
             vec3 rn = (InitialRotation * RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz;
             if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
 			outNormals = vec4(rn, DiffuseComponent);

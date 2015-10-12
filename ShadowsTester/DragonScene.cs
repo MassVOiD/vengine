@@ -27,34 +27,58 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 11, (x, y) => 0);
-            Object3dInfo waterInfo = Object3dInfo.LoadFromRaw(Media.Get("Realistic tree.vbo.raw"), Media.Get("Realistic tree.indices.raw"));
-            Object3dInfo waterInfo2 = Object3dInfo.LoadFromObjSingle(Media.Get("terrain_simplified_normalized.obj"));
-            Object3dInfo[] domks = Object3dInfo.LoadFromObj(Media.Get("test_ball.obj"));
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-30, -30), new Vector2(30, 30), new Vector2(1, 1), Vector3.UnitY, 32, (x, y) => 0);
+            /* Object3dInfo waterInfo = Object3dInfo.LoadFromRaw(Media.Get("Realistic tree.vbo.raw"), Media.Get("Realistic tree.indices.raw"));
+             Object3dInfo waterInfo2 = Object3dInfo.LoadFromObjSingle(Media.Get("terrain_simplified_normalized.obj"));
+             Object3dInfo[] domks = Object3dInfo.LoadFromObj(Media.Get("test_ball.obj"));
 
-            var roof = new Mesh3d(domks[0], new GenericMaterial(Color.White));
-            var walls = new Mesh3d(domks[1], new GenericMaterial(Color.White));
-            // scene.Add(roof); scene.Add(walls);
+             var roof = new Mesh3d(domks[0], new GenericMaterial(Color.White));
+             var walls = new Mesh3d(domks[1], new GenericMaterial(Color.White));
+             // scene.Add(roof); scene.Add(walls);
 
-            var color = new GenericMaterial(Color.White);
-            //color.SetNormalMapFromMedia("151_norm.JPG");
-            color.Roughness = 1.0f;
-            //color.SetBumpMapFromMedia("terrain_grassmap.png");
-            // color.Type = GenericMaterial.MaterialType.Grass;
+             var color = new GenericMaterial(Color.White);
+             //color.SetNormalMapFromMedia("151_norm.JPG");
+             color.Roughness = 1.0f;
+             //color.SetBumpMapFromMedia("terrain_grassmap.png");
+             // color.Type = GenericMaterial.MaterialType.Grass;
+             waterInfo.Normalize();
+             Mesh3d water = new Mesh3d(waterInfo, color);
+             water.SetMass(0);
+             water.Scale(2.2f);
+             scene.Add(water);*/
+
             var color2 = GenericMaterial.FromMedia("coastbeach01.jpg");
             color2.SetNormalMapFromMedia("coastbeach01_n.jpg");
-            waterInfo.Normalize();
-            Mesh3d water = new Mesh3d(waterInfo, color);
-            water.SetMass(0);
-            water.Scale(2.2f);
-            scene.Add(water);
-
             Mesh3d water2 = new Mesh3d(groundInfo, color2);
             water2.SetMass(0);
             //water2.Scale(300);
+            //color2.Type = GenericMaterial.MaterialType.Grass;
             // color2.SetBumpMapFromMedia("usamap.png");
             //color2.Type = GenericMaterial.MaterialType.TessellatedTerrain;
             scene.Add(water2);
+
+            var tsc = Object3dInfo.LoadFromObjSingle(Media.Get("testscene.obj"));
+
+            var metal = new Mesh3d(tsc, new GenericMaterial(Color.Green));
+            metal.MainMaterial.Type = GenericMaterial.MaterialType.Metal;
+            metal.MainMaterial.Metalness = 1;
+            metal.MainMaterial.Roughness = 0.1f;
+            metal.Translate(0, 0, -10);
+            scene.Add(metal);
+
+            var plastic = new Mesh3d(tsc, new GenericMaterial(Color.Green));
+            plastic.MainMaterial.Type = GenericMaterial.MaterialType.Plastic;
+            plastic.MainMaterial.Metalness = 0;
+            plastic.MainMaterial.Roughness = 1;
+            plastic.Translate(0, 0, -7);
+            scene.Add(plastic);
+
+            var diffuse = new Mesh3d(tsc, new GenericMaterial(Color.Green));
+            diffuse.MainMaterial.Type = GenericMaterial.MaterialType.Diffuse;
+            diffuse.MainMaterial.Metalness = 0;
+            diffuse.MainMaterial.Roughness = 1;
+            diffuse.Translate(0, 0, -4);
+            scene.Add(diffuse);
 
             /*for(int i = 0; i < 12; i++)
             {

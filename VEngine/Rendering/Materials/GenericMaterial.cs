@@ -185,7 +185,7 @@ namespace VEngine
 
         public enum MaterialType
         {
-            Solid,
+            Diffuse,
             RandomlyDisplaced,
             Water,
             Sky,
@@ -193,7 +193,11 @@ namespace VEngine
             Grass,
             PlanetSurface,
             TessellatedTerrain,
-            Flag
+            Flag,
+
+            Plastic,
+            Metal
+
         }
 
         public static GenericMaterial FromMedia(string key)

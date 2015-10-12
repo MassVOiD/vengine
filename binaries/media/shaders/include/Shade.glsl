@@ -71,6 +71,15 @@ float CalculateFallof( float dist){
     
 }
 
+#define MaterialTypeSolid 0
+#define MaterialTypeRandomlyDisplaced 1
+#define MaterialTypeWater 2
+#define MaterialTypeSky 3
+#define MaterialTypeWetDrops 4
+#define MaterialTypeGrass 5
+#define MaterialTypePlanetSurface 6
+#define MaterialTypeTessellatedTerrain 7
+uniform int MaterialType;
 vec3 shade(
     vec3 albedo, 
     vec3 normal,

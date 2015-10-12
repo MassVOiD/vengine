@@ -85,6 +85,7 @@ vec3 bMax)
     return final > start;
 }
 
+
 vec3 getIntersect(vec3 originalColor, vec3 origin, vec3 direction){
     float lastDistance = 9999999;
     vec3 color = originalColor*1;
@@ -165,6 +166,9 @@ float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
 
     return mx;
 }
+
+
+
 uniform int UseVDAO;
 uniform int UseHBAO;
 vec3 Radiosity()
