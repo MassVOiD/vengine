@@ -10,8 +10,8 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 1920;
-            public static int Height = 1050;
+            public static int Width = 1366;
+            public static int Height = 768;
             public static string MediaPath = "media";
         }
 
@@ -27,6 +27,8 @@ namespace ShadowsTester
             //var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
 
             Media.SearchPath = Config.MediaPath;
+            Media.LoadFileMap();
+
             GLThread.Resolution = new Size(Config.Width, Config.Height);
 
             GLThread.SetCurrentThreadCores(1);
@@ -58,7 +60,7 @@ namespace ShadowsTester
             //new PlanetScene().Create();
             //   new SculptScene().Create();
             //   new SponzaScene().Create();
-            //new OldCityScene();
+           // new OldCityScene();
             // new PathTraceTest().Create();
             //  new NatureScene().Create();
             //  new IndirectTestScene().Create();

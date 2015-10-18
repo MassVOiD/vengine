@@ -16,11 +16,29 @@ namespace ShadowsTester
 
         public static ProjectionLight AddControllableLight()
         {
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.Pi / 2), 768, 768, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
+            float fovdegree = 90;
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 768, 768, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
             RedLight = redConeLight;
             redConeLight.LightColor = new Vector4(1, 1, 1, 95);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
+            GLThread.OnKeyUp += (o, e) =>
+            {
+                if(e.Key == OpenTK.Input.Key.J)
+                {
+                    fovdegree += 5f;
+                    if(fovdegree >= 180)
+                        fovdegree = 180;
+                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out redConeLight.camera.ProjectionMatrix);
+                }
+                if(e.Key == OpenTK.Input.Key.K)
+                {
+                    fovdegree -= 5f;
+                    if(fovdegree <= 10)
+                        fovdegree = 10;
+                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out redConeLight.camera.ProjectionMatrix);
+                }
+            };
             World.Root.RootScene.Add(redConeLight);
 
             GLThread.OnMouseMove += (o, e) =>
@@ -261,6 +279,10 @@ namespace ShadowsTester
                 {
                     ShaderProgram.RecompileAll();
                     ComputeShader.RecompileAll();
+                }
+                if(e.Key == OpenTK.Input.Key.R)
+                {
+                    GLThread.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode = !GLThread.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode;
                 }
                 if(e.Key == OpenTK.Input.Key.LBracket)
                 {

@@ -58,6 +58,8 @@ namespace VEngine
         //public ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer;
         private CollisionShape PhysicalShape;
 
+
+
         public Mesh3d(Object3dInfo objectInfo, GenericMaterial material)
         {
             // ModelMatricesBuffer = new ShaderStorageBuffer(); RotationMatricesBuffer = new ShaderStorageBuffer();
@@ -93,6 +95,14 @@ namespace VEngine
                 main.Append(obj);
             }
             return new Mesh3d(main, meshes[0].MainMaterial);
+        }
+
+        public Object3dInfo.AxisAlignedBoundingBox GetTransformedAABB()
+        {
+            var aabb = this.MainObjectInfo.AABB;
+            aabb.Maximum = Vector4.Transform(new Vector4(aabb.Maximum, 1.0f), Transformation.GetWorldTransform()).Xyz;
+            aabb.Minimum = Vector4.Transform(new Vector4(aabb.Minimum, 1.0f), Transformation.GetWorldTransform()).Xyz;
+            return aabb;
         }
 
         public void AddLodLevel(float distance, Object3dInfo info, GenericMaterial material)

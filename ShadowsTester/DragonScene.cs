@@ -27,7 +27,10 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-30, -30), new Vector2(30, 30), new Vector2(1, 1), Vector3.UnitY, 32, (x, y) => 0);
+            //  Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-2, -2), new Vector2(2, 2), new Vector2(1, 1), Vector3.UnitY, 1, (x, y) => 0);
+            var groundInfo = Object3dInfo.LoadFromObjSingle(Media.Get("ldspc.obj"));
+            var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
+            //ldspc.obj
             /* Object3dInfo waterInfo = Object3dInfo.LoadFromRaw(Media.Get("Realistic tree.vbo.raw"), Media.Get("Realistic tree.indices.raw"));
              Object3dInfo waterInfo2 = Object3dInfo.LoadFromObjSingle(Media.Get("terrain_simplified_normalized.obj"));
              Object3dInfo[] domks = Object3dInfo.LoadFromObj(Media.Get("test_ball.obj"));
@@ -45,20 +48,62 @@ namespace ShadowsTester
              Mesh3d water = new Mesh3d(waterInfo, color);
              water.SetMass(0);
              water.Scale(2.2f);
-             scene.Add(water);*/
-
-            var color2 = GenericMaterial.FromMedia("coastbeach01.jpg");
-            color2.SetNormalMapFromMedia("coastbeach01_n.jpg");
+           //  scene.Add(water);*/
+            //Object3dInfo cathobj = Object3dInfo.LoadFromObjSingle(Media.Get("ofgirl.obj"));
+            //var cath = new Mesh3d(cathobj, GenericMaterial.FromMedia("girl_diffuse.jpg", "girl_normal.png"));
+            //cath.Translate(0, 4.1f, 0);
+            //scene.Add(cath);
+            var color2 = GenericMaterial.FromMedia("riftenplazabrick01.jpg");
+            //var color2 = new GenericMaterial(Color.WhiteSmoke);
+            color2.SetBumpMapFromMedia("riftenplazabrick01_b.jpg");
+            color2.SetNormalMapFromMedia("riftenplazabrick01_n.jpg");
+            color2.Type = GenericMaterial.MaterialType.Parallax;
+            color2.Metalness = 0.1f;
+            color2.Roughness = 0.9f;
             Mesh3d water2 = new Mesh3d(groundInfo, color2);
             water2.SetMass(0);
-            //water2.Scale(300);
-            //color2.Type = GenericMaterial.MaterialType.Grass;
-            // color2.SetBumpMapFromMedia("usamap.png");
-            //color2.Type = GenericMaterial.MaterialType.TessellatedTerrain;
+            water2.Scale(30);
             scene.Add(water2);
 
-            var tsc = Object3dInfo.LoadFromObjSingle(Media.Get("testscene.obj"));
+            var color3 = GenericMaterial.FromMedia("DisplaceIT_Ground_Pebble1_Color.bmp");
+            //var color2 = new GenericMaterial(Color.WhiteSmoke);
+            color3.SetBumpMapFromMedia("DisplaceIT_Ground_Pebble1_Displace.bmp");
+            color3.SetNormalMapFromMedia("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");
+            color3.Type = GenericMaterial.MaterialType.Parallax;
+            color3.Metalness = 0;
+            color3.Roughness = 0.2f;
+            Mesh3d water3 = new Mesh3d(groundInfo, color3);
+            water3.SetMass(0);
+            water3.Scale(30);
+            water3.Translate(-100, 0, 0);
+            scene.Add(water3);
+            Mesh3d sph = new Mesh3d(sph1, color3);
+            sph.SetMass(0);
+            sph.Scale(5);
+            sph.Translate(0, 20, 0);
+            scene.Add(sph);
 
+            var color4 = GenericMaterial.FromMedia("3a.jpg");
+            //var color2 = new GenericMaterial(Color.WhiteSmoke);
+            color4.SetBumpMapFromMedia("3b.jpg");
+            color4.SetNormalMapFromMedia("3n.jpg");
+           // color4.SetRoughnessMapFromMedia("1r.jpg");
+            color4.Type = GenericMaterial.MaterialType.Parallax;
+            color4.Metalness = 0.0f;
+            color4.ParallaxHeightMultiplier = 3.5f;
+            Mesh3d water4 = new Mesh3d(groundInfo, color4);
+            water4.SetMass(0);
+            water4.Scale(30);
+            water4.Translate(100, 0, 0);
+            scene.Add(water4);
+            /*
+            var tsc = Object3dInfo.LoadSceneFromObj(Media.Get("pttest.obj"), Media.Get("pttest.mtl"));
+            tsc[2].MainMaterial.Color = new Vector4(0.8f, 0.181f, 0.309f, 1);
+            tsc[0].MainMaterial.Color = new Vector4(0.8f, 0.792f, 0.591f, 1);
+            tsc[1].MainMaterial.Color = new Vector4(0.8f, 0.553f, 0.032f, 1);
+            tsc[3].MainMaterial.Color = new Vector4(0.8f, 0.553f, 0.032f, 1);*/
+            //tsc.ForEach((a) => scene.Add(a));
+            /*
             var metal = new Mesh3d(tsc, new GenericMaterial(Color.Green));
             metal.MainMaterial.Type = GenericMaterial.MaterialType.Metal;
             metal.MainMaterial.Metalness = 1;
@@ -78,7 +123,9 @@ namespace ShadowsTester
             diffuse.MainMaterial.Metalness = 0;
             diffuse.MainMaterial.Roughness = 1;
             diffuse.Translate(0, 0, -4);
-            scene.Add(diffuse);
+            scene.Add(diffuse);*/
+
+            // var stukaobj = 
 
             /*for(int i = 0; i < 12; i++)
             {

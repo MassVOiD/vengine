@@ -46,6 +46,8 @@ namespace GLSLLint
                     type = ShaderType.TessControlShader;
                 if(path.EndsWith(".tesseval.glsl"))
                     type = ShaderType.TessEvaluationShader;
+                if(path.EndsWith("s.glsl"))
+                    type = ShaderType.GeometryShader;
                 source = System.IO.File.ReadAllText(path);
             }
 

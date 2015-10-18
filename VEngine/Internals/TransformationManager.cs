@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using System;
+using OpenTK;
 
 namespace VEngine
 {
@@ -124,6 +125,7 @@ namespace VEngine
         public ValuePointer<Vector3> Position;
         public ValuePointer<Vector3> ScaleValue;
         private bool BeenModified;
+        private DateTime LastUpdated;
 
         public TransformationManager(Vector3 pos, Quaternion orient, Vector3 scale)
         {
@@ -131,6 +133,7 @@ namespace VEngine
             Orientation = orient;
             ScaleValue = scale;
             BeenModified = true;
+            LastUpdated = DateTime.Now;
         }
 
         public TransformationManager(Vector3 pos, Vector3 axis, float angle, Vector3 scale)
@@ -139,6 +142,7 @@ namespace VEngine
             Orientation = Quaternion.FromAxisAngle(axis, angle);
             ScaleValue = scale;
             BeenModified = true;
+            LastUpdated = DateTime.Now;
         }
 
         public TransformationManager(Vector3 pos, Quaternion orient, float scale)
@@ -147,6 +151,7 @@ namespace VEngine
             Orientation = orient;
             ScaleValue = new Vector3(scale, scale, scale);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
         }
 
         public TransformationManager(Vector3 pos, Vector3 axis, float angle, float scale)
@@ -155,6 +160,7 @@ namespace VEngine
             Orientation = Quaternion.FromAxisAngle(axis, angle);
             ScaleValue = new Vector3(scale, scale, scale);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
         }
 
         public TransformationManager(Vector3 pos, Quaternion orient)
@@ -163,6 +169,7 @@ namespace VEngine
             Orientation = orient;
             ScaleValue = new Vector3(1, 1, 1);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
         }
 
         public TransformationManager(Vector3 pos)
@@ -171,6 +178,7 @@ namespace VEngine
             Orientation = Quaternion.Identity;
             ScaleValue = new Vector3(1, 1, 1);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
         }
 
         public void ClearModifiedFlag()
@@ -221,6 +229,7 @@ namespace VEngine
         public void MarkAsModified()
         {
             BeenModified = true;
+            LastUpdated = DateTime.Now;
         }
 
         //---------------/
@@ -231,6 +240,7 @@ namespace VEngine
         {
             Orientation = Quaternion.Multiply(Orientation, orient);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -247,6 +257,7 @@ namespace VEngine
         {
             ScaleValue.R *= scale;
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -256,6 +267,7 @@ namespace VEngine
         {
             ScaleValue *= scale;
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -263,6 +275,7 @@ namespace VEngine
         {
             ScaleValue *= new Vector3(x, y, z);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -272,6 +285,7 @@ namespace VEngine
         {
             Orientation = orient;
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -288,6 +302,7 @@ namespace VEngine
         {
             Position = pos;
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -295,6 +310,7 @@ namespace VEngine
         {
             Position = new Vector3(x, y, z);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -304,6 +320,7 @@ namespace VEngine
         {
             ScaleValue = scale;
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -311,6 +328,7 @@ namespace VEngine
         {
             ScaleValue = new Vector3(x, y, z);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -320,6 +338,7 @@ namespace VEngine
         {
             ScaleValue = new Vector3(scale, scale, scale);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -329,6 +348,7 @@ namespace VEngine
         {
             Position += pos;
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 
@@ -336,6 +356,7 @@ namespace VEngine
         {
             Position += new Vector3(x, y, z);
             BeenModified = true;
+            LastUpdated = DateTime.Now;
             return this;
         }
 

@@ -244,11 +244,11 @@ void finishFragment(vec4 color){
 		if(UseNormalMap == 1){
 			//normalNew = perturb_normal(normalNew, Input.WorldPos, Input.TexCoord * NormalMapScale);   
             vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
-          // map.x = - map.x;
          //  map.y = - map.y;
            map = map * 2 - 1;
            map.y = - map.y;
-            normalNew = TBN * mix(vec3(0, 0, 1), map, 0.3); 
+          // map.x = - map.x;
+            normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
           //  normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
     
 		} else if(UseBumpMap == 1){
@@ -269,6 +269,15 @@ void finishFragment(vec4 color){
             float factor = getwater(Input.TexCoord * 5) * 0.3;
 			normalNew = normalize(normalNew - (Input.Tangent * factor));
            // outColor.xyz *= (factor + 1) / 8 + 0.75;
+        }
+
+#define MaterialTypeParallax 11
+        if(MaterialType == MaterialTypeParallax){
+            float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
+            //factor += 0.2 * rand2d(Input.TexCoord);
+            if(Input.Data.z < 0.99){
+                if(factor > Input.Data.x + 0.01) discard;
+            }
         }
         if(MaterialType == MaterialTypeWetDrops){
             float pn = snoise(Input.WorldPos* 13.);

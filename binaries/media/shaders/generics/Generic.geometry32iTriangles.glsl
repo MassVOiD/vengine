@@ -1,7 +1,7 @@
 #version 430 core
 layout(invocations = 12) in;
 layout(triangles) in;
-layout(triangle_strip, max_vertices = 96) out;
+layout(triangle_strip, max_vertices = 24) out;
 
 #include Mesh3dUniforms.glsl
 
@@ -24,6 +24,7 @@ out Data {
 } Output;
 uniform int MaterialType;
 
+
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2
@@ -33,6 +34,11 @@ uniform int MaterialType;
 #define MaterialTypePlanetSurface 6
 #define MaterialTypeTessellatedTerrain 7
 #define MaterialTypeFlag 8
+
+#define MaterialTypePlastic 9
+#define MaterialTypeMetal 10
+
+#define MaterialTypeParallax 11
 
 #include noise4D.glsl
 
@@ -212,11 +218,39 @@ void FixNormals(){
     EndPrimitive(); 
 }
 
+uniform float ParallaxHeightMultiplier;
+uniform int ParallaxInstances;
+void GeometryProcessParallaxDraw(){
+    float inter = 0.0;
+    if(gl_InvocationID > 12) return;
+
+     
+    float stepsize = 1.0 / 12.0;
+    float midstep = stepsize / 3.0;
+    float midstep2 = midstep / 3.0;
+    inter =  float(gl_InvocationID+1) / 12.0;
+    for(int i=0;i<3;i++){
+        for(int l=0;l<3;l++){
+            Output.instanceId = gs_in[l].instanceId;
+            Output.WorldPos = gs_in[l].WorldPos - gs_in[l].Normal * inter * 0.11 * ParallaxHeightMultiplier;
+            Output.TexCoord =  gs_in[l].TexCoord;
+            Output.Normal =  gs_in[l].Normal;
+            Output.Tangent =  gs_in[l].Tangent;
+            Output.Data = vec3(inter);
+            gl_Position = PV * vec4(Output.WorldPos, 1);
+            EmitVertex();
+            inter += midstep2;
+        }
+        EndPrimitive(); 
+        inter += midstep;
+    }  
+}
 
 void main(){
 
     if(MaterialType == MaterialTypeGrass) GeometryGenerateGrass();
     if(MaterialType == MaterialTypeFlag) GeometryProcessFlagDynamics();
     if(MaterialType == MaterialTypeTessellatedTerrain) FixNormals();
+    if(MaterialType == MaterialTypeParallax) GeometryProcessParallaxDraw();
 
 }

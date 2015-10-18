@@ -54,7 +54,7 @@ mat4 PV = (ProjectionMatrix * ViewMatrix);
 vec2 HitPos = vec2(-2);
 float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler){
     float ret = 0;
-    for(int i=0; i<5; i++){
+    for(int i=0; i<7; i++){
         float ix = getRand();
         vec2 muv = mix(p1, p2, ix);
         float expr = min(muv.x, muv.y) * -(max(muv.x, muv.y)-1.0);
@@ -74,7 +74,7 @@ vec2 saturatev2(vec2 v){
     return clamp(v, 0.0, 1.0);
 }
 
-float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
+float testVisibility3d(vec3 w1, vec3 w2) {
     HitPos = vec2(-2);
     vec4 clipspace = (PV) * vec4((w1), 1.0);
     vec2 sspace1 = saturatev2((clipspace.xyz / clipspace.w).xy * 0.5 + 0.5);
@@ -125,13 +125,13 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 64*64
+    #define RSMSamples 32
     for(int i=0;i<LightsCount;i++){
         //break;
-        for(int x=0;x<RSMSamples;x+=3){
+        for(int x=0;x<RSMSamples;x++){
         
-            //RSMLight light = rsmLights[int(getRand()*64*64)];
-            RSMLight light = rsmLights[x];
+            RSMLight light = rsmLights[int(getRand()*64*64)];
+            //RSMLight light = rsmLights[x];
             vec3 lcolor = light.Color.rgb;
             float lrough = light.Position.a;
             vec3 lnormal = light.normal.rgb;
@@ -183,10 +183,12 @@ vec3 RSM(){
             max(0.01, lrough)
             ) * 32;
             
-            color1 += radiance * spfsm;
+            //float vi = testVisibility3d(newpos, fragmentPosWorld3d.xyz);
             
-           // color1 += CalculateFallof(distanceToLight*6) * 2793 * cc * (1.0 - texture(HBAOTex, UV).r);
+            color1 += radiance;
             
+            //color1 += CalculateFallof(distanceToLight*6) * 2793 * cc * (1.0 - texture(HBAOTex, UV).r);
+           
             
             // color1 += ((colorOriginal * (diffuseComponent * lcolor)) 
             // + (mix(colorOriginal, lcolor*colorOriginal, meshRoughness) * specularComponent))
@@ -195,7 +197,7 @@ vec3 RSM(){
         }
     
     }
-    return 0.5*color1 / (RSMSamples/5);
+    return 1*color1 / (RSMSamples);
 }
 
 

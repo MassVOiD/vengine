@@ -282,13 +282,13 @@ namespace VEngine
                 {
                     match = Regex.Match(line, @"Ns ([0-9.-]+)");
                     float val = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
-                    currentMaterial.SpecularStrength = val;
+                    //currentMaterial.SpecularStrength = val;
                 }
                 if(line.StartsWith("d"))
                 {
                     match = Regex.Match(line, @"d ([0-9.-]+)");
                     float val = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
-                    currentMaterial.Transparency = val;
+                   // currentMaterial.Transparency = val;
                 }
                 if(line.StartsWith("Ka"))
                 {
@@ -302,7 +302,7 @@ namespace VEngine
                         g = 255;
                     if(b > 255)
                         b = 255;
-                    currentMaterial.AmbientColor = Color.FromArgb(r, g, b);
+                   // currentMaterial.AmbientColor = Color.FromArgb(r, g, b);
                 }
                 if(line.StartsWith("Kd"))
                 {
@@ -330,7 +330,7 @@ namespace VEngine
                         g = 255;
                     if(b > 255)
                         b = 255;
-                    currentMaterial.SpecularColor = Color.FromArgb(r, g, b);
+                    //currentMaterial.SpecularColor = Color.FromArgb(r, g, b);
                 }
                 if(line.StartsWith("map_Kd"))
                 {
@@ -473,17 +473,17 @@ namespace VEngine
                 }
                 else if(mat != null)
                 {
-                    if(colorCache.ContainsKey(mat.DiffuseColor))
-                    {
-                        material = colorCache[mat.DiffuseColor];
-                        mInfos[material] = mat;
-                    }
-                    else
-                    {
+                   // if(colorCache.ContainsKey(mat.DiffuseColor))
+                   // {
+                   //     material = colorCache[mat.DiffuseColor];
+                  //      mInfos[material] = mat;
+                 //   }
+                  //  else
+                  //  {
                         material = new GenericMaterial(Color.White);
                         mInfos[material] = mat;
-                        colorCache.Add(mat.DiffuseColor, material);
-                    }
+                      //  colorCache.Add(mat.DiffuseColor, material);
+                  //  }
                 }
                 else
                 {
@@ -499,10 +499,10 @@ namespace VEngine
                 }
                 var o3di = new Object3dInfo(obj.VBO, obj.Indices);
                 o3di.Name = obj.Name;
-                if(!linkCache.ContainsKey(material))
+                //if(!linkCache.ContainsKey(material))
                     linkCache.Add(material, new List<Object3dInfo> { o3di });
-                else
-                    linkCache[material].Add(o3di);
+               // else
+                //    linkCache[material].Add(o3di);
             }
             foreach(var kv in linkCache)
             {
@@ -518,13 +518,16 @@ namespace VEngine
                 // o3di.CorrectFacesByNormals();
                 Mesh3d mesh = new Mesh3d(o3di, kv.Key);
                 mesh.Name = o3di.Name;
-                kv.Key.SpecularComponent = 1.0f - mInfos[kv.Key].SpecularStrength + 0.01f;
-                kv.Key.Roughness = (mInfos[kv.Key].SpecularStrength);
-                kv.Key.ReflectionStrength = 1.0f - (mInfos[kv.Key].SpecularStrength);
-                kv.Key.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
-                if(mInfos[kv.Key].AlphaMask.Length > 1)
+                //kv.Key.SpecularComponent = 1.0f - mInfos[kv.Key].SpecularStrength + 0.01f;
+                kv.Key.Roughness = (1);
+                // kv.Key.ReflectionStrength = 1.0f - (mInfos[kv.Key].SpecularStrength);
+                //kv.Key.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
+                var kva = kv.Key;
+                if(!mInfos.ContainsKey(kva))
+                    kva = mInfos.Keys.First();
+                if(mInfos[kva].AlphaMask.Length > 1)
                     (kv.Key as GenericMaterial).SetAlphaMaskFromMedia(mInfos[kv.Key].AlphaMask);
-                if(mInfos[kv.Key].BumpMapName.Length > 1)
+                if(mInfos[kva].BumpMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetBumpMapFromMedia(mInfos[kv.Key].BumpMapName);
                 // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 mesh.Transformation.Translate(trans);
@@ -995,7 +998,7 @@ namespace VEngine
                     match = Regex.Match(line, @"o (.+)");
                     current.VBO = out_vertex_buffer;
                     current.Indices = index_buffer;
-                    if(current.VBO.Count >= 8)
+                    if(current.VBO.Count >= 1)
                     {
                         current.MaterialName = currentMaterial;
                         objects.Add(current);

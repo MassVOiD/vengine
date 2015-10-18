@@ -8,6 +8,7 @@ uniform vec3 LightPosition;
 uniform vec4 input_Color;
 uniform vec4 LightColor;
 uniform int DrawMode;
+uniform int MaterialType;
 #define MODE_TEXTURE_ONLY 0
 #define MODE_COLOR_ONLY 1
 #define MODE_TEXTURE_MULT_COLOR 2
@@ -22,6 +23,14 @@ void discardIfAlphaMasked(){
 	if(UseAlphaMask == 1){
 		if(texture(alphaMaskTex, Input.TexCoord).r < 0.5) discard;
 	}
+    #define MaterialTypeParallax 11
+        if(MaterialType == MaterialTypeParallax){
+            float factor = ( 1.0 - texture(bumpMapTex, UV).r);
+            //factor += 0.2 * rand2d(Input.TexCoord);
+            if(Input.Data.z < 0.99){
+                if(factor > Input.Data.x + 0.01) discard;
+            }
+        }
 }
 
 out uvec4 outColor;	

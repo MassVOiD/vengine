@@ -205,6 +205,7 @@ vec3 getAverageOfAdjacent(vec2 uv){
 }
 
 uniform int ShowSelected;
+uniform int UnbiasedIntegrateRenderMode;
 void main()
 {
     vec4 color1 = fxaa(currentTex, UV);
@@ -245,7 +246,7 @@ void main()
     float f1 = length(last) / length(vec3(1));
     float f2 = length(color1.rgb);
     
-    vec3 additiveMix = mix(last*f1, color1.rgb, 1.0);
+    vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.02 : 1.0);
     
     
     outColor = clamp(vec4(additiveMix, 1.0), 0.0, 1.0);

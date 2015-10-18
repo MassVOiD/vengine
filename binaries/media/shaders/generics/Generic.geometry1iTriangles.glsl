@@ -1,5 +1,5 @@
 #version 430 core
-layout(invocations = 12) in;
+layout(invocations = 1) in;
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 96) out;
 
@@ -33,6 +33,11 @@ uniform int MaterialType;
 #define MaterialTypePlanetSurface 6
 #define MaterialTypeTessellatedTerrain 7
 #define MaterialTypeFlag 8
+
+#define MaterialTypePlastic 9
+#define MaterialTypeMetal 10
+
+#define MaterialTypeParallax 11
 
 #include noise4D.glsl
 
@@ -197,6 +202,7 @@ void GeometryProcessFlagDynamics(){
     }
 }
 
+
 void FixNormals(){
     if(gl_InvocationID > 1) return;
     vec3 n = normalize(cross(gs_in[1].WorldPos - gs_in[0].WorldPos, gs_in[2].WorldPos - gs_in[0].WorldPos));
@@ -218,5 +224,6 @@ void main(){
     if(MaterialType == MaterialTypeGrass) GeometryGenerateGrass();
     if(MaterialType == MaterialTypeFlag) GeometryProcessFlagDynamics();
     if(MaterialType == MaterialTypeTessellatedTerrain) FixNormals();
+    if(MaterialType == MaterialTypeParallax) GeometryProcessParallaxDraw();
 
 }

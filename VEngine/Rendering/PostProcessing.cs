@@ -26,6 +26,7 @@ namespace VEngine
         public MRTFramebuffer MRT;
         public int Width, Height;
         public bool ShowSelected = false;
+        public bool UnbiasedIntegrateRenderMode = false;
 
         private static uint[] postProcessingPlaneIndices = {
                 0, 1, 2, 3, 2, 1
@@ -118,7 +119,7 @@ namespace VEngine
             HelperFullResFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             LastDeferredFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
             IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            SSAOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
+            SSAOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
 
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
@@ -144,6 +145,8 @@ namespace VEngine
 
         public void ExecutePostProcessing()
         {
+            if(UnbiasedIntegrateRenderMode)
+                RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
             // okay lets do it
             if(Tracer != null)
             {
@@ -437,6 +440,7 @@ namespace VEngine
             HDRShader.SetUniform("NumbersCount", nums.Length);
             HDRShader.SetUniform("ShowSelected", ShowSelected);
             HDRShader.SetUniformArray("Numbers", nums);
+            HDRShader.SetUniform("UnbiasedIntegrateRenderMode", UnbiasedIntegrateRenderMode);
             MRT.UseTextureDepth(1);
             LastDeferredFramebuffer.UseTexture(20);
             if(Camera.MainDisplayCamera != null)

@@ -139,6 +139,8 @@ namespace VEngine
         public float Roughness = 0.5f;
         public float SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
         public float TesselationMultiplier = 1.0f;
+        public float ParallaxHeightMultiplier = 1.0f;
+        public int ParallaxInstances = 12;
 
         public float 
             AORange = 0.5f, 
@@ -196,7 +198,9 @@ namespace VEngine
             Flag,
 
             Plastic,
-            Metal
+            Metal, 
+
+            Parallax
 
         }
 
@@ -222,6 +226,8 @@ namespace VEngine
                 return pack.Geometry96iTriangles;
             if(Type == MaterialType.TessellatedTerrain)
                 return pack.Geometry1iTriangles;
+            if(Type == MaterialType.Parallax)
+                return pack.Geometry32iTriangles;
             return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
                Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
         }
@@ -345,6 +351,8 @@ namespace VEngine
             prg.SetUniform("ReflectionStrength", ReflectionStrength);
             prg.SetUniform("RefractionStrength", RefractionStrength);
             prg.SetUniform("IgnoreLighting", IgnoreLighting);
+            prg.SetUniform("ParallaxHeightMultiplier", ParallaxHeightMultiplier);
+            prg.SetUniform("ParallaxInstances", ParallaxInstances);
 
             prg.SetUniform("AORange", AORange);
             prg.SetUniform("AOStrength", AOStrength);

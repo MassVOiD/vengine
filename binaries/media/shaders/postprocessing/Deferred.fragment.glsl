@@ -196,7 +196,7 @@ vec3 Radiosity()
     uint counter = 0;   
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     
-    int samples = int(mix(4, 200, 1.0 - meshRoughness));
+    int samples = int(mix(4, 64, 1.0 - meshRoughness));
     
     for(int i=0; i<samples; i++)
     {
@@ -215,7 +215,7 @@ vec3 Radiosity()
     ambient = vec3(0);
     counter = 0;
     
-    //if(vdaorefract > 0){
+    if(vdaorefract > 0){
         dir = normalize(refract(posCenter, normalCenter, 0.3));
         for(int i=0; i<samples; i++)
         {
@@ -228,11 +228,11 @@ vec3 Radiosity()
             ambient += radiance;
             counter++;
         }
-   // }
+    }
     
     vec3 vdaoRefract = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaorefract;
     
-    return vdaoMain + vdaoRefract;
+    return (vdaoMain + vdaoRefract)*0.1;
 }
 void main()
 {   
