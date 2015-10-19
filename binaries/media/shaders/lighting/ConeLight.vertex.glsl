@@ -4,16 +4,17 @@
 
 
 uniform vec3 LightPosition;
-
+out Data {
+    int instanceId;
+    vec3 WorldPos;
+    vec2 TexCoord;
+    vec3 Normal;
+    vec3 Tangent;
+    vec3 Data;
+} Output;
 uniform int Instanced;
-out flat int instanceId;
-
-smooth out vec2 UV;
-smooth out vec3 normal;
 #include Bones.glsl
 
-//out vec3 normal;
-smooth out vec3 vertexWorldSpace;
 
 void main(){
     vec4 v = vec4(in_position,1);
@@ -28,11 +29,12 @@ void main(){
         //inorm = applyBoneRotationChainnormal(inorm, bone);
     }
     v = vec4(mspace, 1);    
-    vertexWorldSpace = (InitialTransformation * mmat * v).xyz;
 
-    normal = in_normal;
-    instanceId = gl_InstanceID;
-    UV = vec2(in_uv.x, -in_uv.y);
+    Output.WorldPos = (InitialTransformation * mmat * v).xyz;
+    Output.Normal = in_normal;
+    Output.Tangent = in_tangent;
+    Output.instanceId = gl_InstanceID;
+    Output.TexCoord = vec2(in_uv.x, -in_uv.y);
 
     gl_Position = mvp * v;
 }

@@ -1,5 +1,5 @@
 #version 430 core
-layout(invocations = 12) in;
+layout(invocations = 24) in;
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 24) out;
 
@@ -222,14 +222,19 @@ uniform float ParallaxHeightMultiplier;
 uniform int ParallaxInstances;
 void GeometryProcessParallaxDraw(){
     float inter = 0.0;
-    if(gl_InvocationID > 12) return;
+    float v1 = distance(CameraPosition, gs_in[0].WorldPos);
+    float v2 = distance(CameraPosition, gs_in[1].WorldPos);
+    float v3 = distance(CameraPosition, gs_in[2].WorldPos);
+    float prx = floor(mix(4.0, 1.0, clamp(min(min(v1, v2), v3) / 6.0, 0.0, 1.0)));
+    int iprx = int(prx);
+    if(gl_InvocationID > ParallaxInstances) return;
 
      
-    float stepsize = 1.0 / 12.0;
-    float midstep = stepsize / 3.0;
+    float stepsize = 1.0 / float(ParallaxInstances);
+    float midstep = stepsize / prx;
     float midstep2 = midstep / 3.0;
-    inter =  float(gl_InvocationID+1) / 12.0;
-    for(int i=0;i<3;i++){
+    inter =  float(gl_InvocationID+1) / float(ParallaxInstances);
+    for(int i=0;i<iprx;i++){
         for(int l=0;l<3;l++){
             Output.instanceId = gs_in[l].instanceId;
             Output.WorldPos = gs_in[l].WorldPos - gs_in[l].Normal * inter * 0.11 * ParallaxHeightMultiplier;
@@ -241,9 +246,9 @@ void GeometryProcessParallaxDraw(){
             EmitVertex();
             inter += midstep2;
         }
-        EndPrimitive(); 
-        inter += midstep;
+        //inter += midstep;
     }  
+    EndPrimitive(); 
 }
 
 void main(){

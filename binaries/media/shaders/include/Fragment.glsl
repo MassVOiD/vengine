@@ -266,9 +266,11 @@ void finishFragment(vec4 color){
 
 		}
         if(MaterialType == MaterialTypeWater){
-            float factor = getwater(Input.TexCoord * 5) * 0.3;
-			normalNew = normalize(normalNew - (Input.Tangent * factor));
-           // outColor.xyz *= (factor + 1) / 8 + 0.75;
+            float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
+            //factor += 0.2 * rand2d(Input.TexCoord);
+            if(Input.Data.z < 0.99){
+                if(factor > Input.Data.x + 0.01) discard;
+            }
         }
 
 #define MaterialTypeParallax 11

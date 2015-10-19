@@ -1,6 +1,5 @@
 #version 430 core
 //in vec3 normal;
-in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
@@ -25,12 +24,12 @@ void discardIfAlphaMasked(){
 	}
     #define MaterialTypeParallax 11
         if(MaterialType == MaterialTypeParallax){
-            float factor = ( 1.0 - texture(bumpMapTex, UV).r);
+            float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
             //factor += 0.2 * rand2d(Input.TexCoord);
             if(Input.Data.z < 0.99){
                 if(factor > Input.Data.x + 0.01) discard;
             }
-        }
+        }        
 }
 
 out uvec4 outColor;	

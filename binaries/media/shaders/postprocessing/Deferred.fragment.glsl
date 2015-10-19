@@ -232,7 +232,7 @@ vec3 Radiosity()
     
     vec3 vdaoRefract = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaorefract;
     
-    return (vdaoMain + vdaoRefract)*0.1;
+    return (vdaoMain + vdaoRefract);
 }
 void main()
 {   

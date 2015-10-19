@@ -275,6 +275,42 @@ namespace ShadowsTester
                             Picked.MainMaterial.Metalness = 1;
                     }
                 }
+                if(e.Key == OpenTK.Input.Key.T)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.ParallaxHeightMultiplier -= 0.1f;
+                        if(Picked.MainMaterial.ParallaxHeightMultiplier <=0.01f)
+                            Picked.MainMaterial.ParallaxHeightMultiplier = 0.01f;
+                    }
+                }
+                if(e.Key == OpenTK.Input.Key.Y)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.ParallaxHeightMultiplier+=0.1f;
+                        if(Picked.MainMaterial.ParallaxHeightMultiplier >= 24)
+                            Picked.MainMaterial.ParallaxHeightMultiplier = 24;
+                    }
+                }
+                if(e.Key == OpenTK.Input.Key.U)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.ParallaxInstances--;
+                        if(Picked.MainMaterial.ParallaxInstances <= 0)
+                            Picked.MainMaterial.ParallaxInstances = 0;
+                    }
+                }
+                if(e.Key == OpenTK.Input.Key.I)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.ParallaxInstances++;
+                        if(Picked.MainMaterial.ParallaxInstances >= 24)
+                            Picked.MainMaterial.ParallaxInstances = 24;
+                    }
+                }
                 if(e.Key == OpenTK.Input.Key.Pause)
                 {
                     ShaderProgram.RecompileAll();

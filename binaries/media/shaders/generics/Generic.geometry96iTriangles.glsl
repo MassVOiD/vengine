@@ -156,7 +156,7 @@ void GeometryGenerateGrass(){
         //float height = 1.9;
         float width = rand(gs_in[2].TexCoord.yx-rd)*0.0127 + 0.0111; 
         
-        GenerateGrass(startPoint, startNormal, normalize(rvec), startTangent, height, width, 1.0, height*0.03, rd);
+        GenerateGrass(startPoint, startNormal, normalize(rvec), startTangent, height, width, 1.0, height*0.23, rd);
     }
 }
 
