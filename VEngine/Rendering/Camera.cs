@@ -15,6 +15,8 @@ namespace VEngine
 
         public float LensBlurAmount = 0.0f;
 
+        public float FocalLength = 75.0f;
+
         public float Pitch, Roll, Far;
 
         public TransformationManager Transformation;

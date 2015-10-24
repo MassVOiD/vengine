@@ -71,6 +71,11 @@ float CalculateFallof( float dist){
     
 }
 
+float fresnelSchlick(float VdotH)
+{
+	return  pow(1.0 - VdotH, 5.0);
+}
+
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2
@@ -79,7 +84,6 @@ float CalculateFallof( float dist){
 #define MaterialTypeGrass 5
 #define MaterialTypePlanetSurface 6
 #define MaterialTypeTessellatedTerrain 7
-uniform int MaterialType;
 vec3 shade(
     vec3 albedo, 
     vec3 normal,
@@ -116,11 +120,14 @@ vec3 shade(
 
     vec3 cc = mix(lightColor.rgb*albedo, lightColor.rgb, metalness);
     
+    float fresnel = 1.0 + fresnelSchlick(dot(lightRelativeToVPos, normal)) * 4.0;
+    
     vec3 difcolor = cc * diffuseComponent * att;
     vec3 difcolor2 = lightColor.rgb * albedo * diffuseComponent * att;
     vec3 specolor = cc * specularComponent;
     
-    return mix(difcolor2 + specolor, difcolor*(roughness) + specolor, metalness);
+    
+    return mix(difcolor2 + specolor, difcolor*(roughness) + specolor, metalness) * fresnel;
 }
 
 vec3 shadePhoton(vec2 uv, vec3 color){

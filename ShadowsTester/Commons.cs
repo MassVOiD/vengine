@@ -28,7 +28,7 @@ namespace ShadowsTester
                 {
                     fovdegree += 5f;
                     if(fovdegree >= 180)
-                        fovdegree = 180;
+                        fovdegree = 179;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out redConeLight.camera.ProjectionMatrix);
                 }
                 if(e.Key == OpenTK.Input.Key.K)
@@ -217,7 +217,7 @@ namespace ShadowsTester
             GLThread.OnMouseWheel += (o, e) =>
             {
                 if(!inPickingMode)
-                    Camera.Current.LensBlurAmount -= e.Delta / 20.0f;
+                    Camera.Current.LensBlurAmount -= e.Delta / 2.0f;
             };
             World.Root.SimulationSpeed = 1.0f;
 

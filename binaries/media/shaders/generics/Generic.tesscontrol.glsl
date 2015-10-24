@@ -48,7 +48,7 @@ float GetTessLevelAlternative(float Distance0, float Distance1, float surfaceSiz
     float x = surfaceSize;
 	float rd = ((Distance0 +Distance1)/2);
    // if(rd > 100) return 2;
-    return 200.0;// / pow(1.2, (((Distance0 +Distance1)*0.02)+1));
+    return 21.0;// / pow(1.2, (((Distance0 +Distance1)*0.02)+1));
 }
 
 uniform float TesselationMultiplier;
@@ -96,9 +96,9 @@ void main()
         gl_TessLevelInner[0] = gl_TessLevelOuter[0];
         gl_TessLevelInner[1] = gl_TessLevelOuter[0];
     } else if(MaterialType == MaterialTypeGrass){
-        gl_TessLevelOuter[0] = min(15, GetTessLevelAlternative(EyeToVertexDistance1, EyeToVertexDistance2, surfaceSize)) * TesselationMultiplier;
-        gl_TessLevelOuter[1] = min(15, GetTessLevelAlternative(EyeToVertexDistance2, EyeToVertexDistance0, surfaceSize)) * TesselationMultiplier;
-        gl_TessLevelOuter[2] = min(15, GetTessLevelAlternative(EyeToVertexDistance0, EyeToVertexDistance1, surfaceSize)) * TesselationMultiplier;
+        gl_TessLevelOuter[0] = min(115, GetTessLevelAlternative(EyeToVertexDistance1, EyeToVertexDistance2, surfaceSize)) * TesselationMultiplier;
+        gl_TessLevelOuter[1] = min(115, GetTessLevelAlternative(EyeToVertexDistance2, EyeToVertexDistance0, surfaceSize)) * TesselationMultiplier;
+        gl_TessLevelOuter[2] = min(115, GetTessLevelAlternative(EyeToVertexDistance0, EyeToVertexDistance1, surfaceSize)) * TesselationMultiplier;
         gl_TessLevelInner[0] = gl_TessLevelOuter[0];
         gl_TessLevelInner[1] = gl_TessLevelOuter[0];
     } else {

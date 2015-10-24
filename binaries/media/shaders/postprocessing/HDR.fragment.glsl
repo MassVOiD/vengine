@@ -48,29 +48,21 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             
             //ngon
             
-            vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (rand(UV + vec2(x, y)) * 0.125);
+            vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (rand(UV + vec2(x, y)));
+            //float alpha = texture(alphaMaskTex, crd*1.41421).r;
             //if(length(crd) > 1.0) continue;
-            vec2 coord = UV+crd * 0.1 * amount;  
+            vec2 coord = UV+crd * 0.02 * amount;  
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
             float depth = length(texture(worldPosTex, coord).xyz);
-            //if(distance(coord, UV.xy) < max_radius){  
-             
             vec3 texel = texture(currentTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
             w *= dd;
-           // w*=smoothstep(0.0, 0.2, abs(depth - depthfocus)) * -smoothstep(0.0, 0.2, abs(cc - depthfocus));
-          //   if(abs(depth - depthfocus) < 0.2  && abs(cc - depthfocus) > 0.2) w *= abs(depth - depthfocus)/0.2;   
-            /*
-            x<0.2 && y > 0.2
-            smoothstep(0.0, 0.2, abs(depth - depthfocus)) * -smoothstep(0.0, 0.2, abs(cc - depthfocus))
-            */
             
             weight+=w;
             finalColor += texel * w;
             
-            //}
         }
     }
     return weight == 0.0 ? vec3(0.0) : finalColor/weight;
@@ -111,13 +103,14 @@ vec3 lookupSelected(vec2 buv, float radius){
             float selected = texture(meshDataTex, gauss).r;
             if(selected == 1){
                 counter += 1;
-                outc += color ;
+                outc += color;
             }
             //counter++;
         }
     }
     return counter == 0 ? vec3(0) : (outc / counter) * (snoise(vec3(buv.x*400, buv.y*400, Time*55.4))*0.5+0.5);
 }
+uniform float InputFocalLength;
 float avgdepth(vec2 buv){
     float outc = float(0);
     float counter = 0;
@@ -130,7 +123,8 @@ float avgdepth(vec2 buv){
             vec3 color = texture(worldPosTex, buv + gauss).xyz;
             float adepth = length(color);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
-            float f = 75.0; //focal length in mm
+            float f = InputFocalLength;
+            //float f = 715.0; //focal length in mm
             float d = fDepth*1000.0; //focal plane in mm
             float o = adepth*1000.0; //depth in mm
             
@@ -246,7 +240,7 @@ void main()
     float f1 = length(last) / length(vec3(1));
     float f2 = length(color1.rgb);
     
-    vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.02 : 1.0);
+    vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.05 : 1.0);
     
     
     outColor = clamp(vec4(additiveMix, 1.0), 0.0, 1.0);

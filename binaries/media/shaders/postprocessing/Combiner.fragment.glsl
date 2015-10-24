@@ -3,8 +3,9 @@
 in vec2 UV;
 #include LogDepth.glsl
 #include UsefulIncludes.glsl
-#include_once LightingSamplers.glsl
+#include Lighting.glsl
 #include FXAA.glsl
+#include Shade.glsl
 
 #define mPI (3.14159265)
 #define mPI2 (2.0*3.14159265)
@@ -14,9 +15,35 @@ out vec4 outColor;
 
 float centerDepth;
 uniform float Brightness;
+uniform int UseFog;
+uniform int UseLightPoints;
+uniform int UseDepth;
+uniform int UseDeferred;
+uniform int UseHBAO;
+uniform int UseVDAO;
+uniform int UseRSM;
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+layout (std430, binding = 0) buffer RandomsBufferX
+{
+    float Randoms[]; 
+}; 
+
+float randomizer = 0;
+void Seed(vec2 seeder){
+    randomizer += 138.345341 * (rand2s(seeder)) ;
+}
+
+int randsPointer = 0;
+uniform int RandomsCount;
+float getRand(){
+    float r = rand(vec2(randsPointer, randsPointer*2.42354) + Time);
+    randsPointer++;
+    if(randsPointer >= RandomsCount) randsPointer = 0;
+    return r;
 }
 
 vec3 lookupFog(vec2 fuv){
@@ -37,6 +64,53 @@ vec3 lookupFog(vec2 fuv){
         }
     }
     return counter == 0 ? texture(fogTex, fuv).rgb : outc / counter;
+}
+vec3 random3dSample(){
+    return normalize(vec3(
+        getRand() * 2 - 1, 
+        getRand() * 2 - 1, 
+        getRand() * 2 - 1
+    ));
+}
+// using this brdf makes cosine diffuse automatically correct
+vec3 BRDF(vec3 reflectdir, vec3 norm, float roughness){
+    vec3 displace = random3dSample();
+    displace = displace * sign(dot(norm, displace));
+    float dt = dot(displace, reflectdir) * 0.5 + 0.5;
+    float mixfactor = mix(0, 1, roughness);
+    
+    return mix(displace, reflectdir, roughness);
+}
+vec2 projectOnScreen(vec3 worldcoord){
+    vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(worldcoord, 1.0);
+    vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+    if(clipspace.z < 0.0) return vec2(-1);
+    return sspace1;
+}
+vec3 softLuminance(vec2 fuv){
+    vec3 outc = vec3(0);
+    float counter = 1.0;
+    vec3 posCenter = texture(worldPosTex, fuv).rgb;
+    vec2 sspos = projectOnScreen(FromCameraSpace(posCenter));
+    vec3 normCenter = texture(normalsTex, fuv).rgb;
+    vec3 dir = normalize(reflect(posCenter, normCenter));
+    float meshRoughness = 1.0 - texture(meshDataTex, fuv).a;
+    float samples = mix(3.0, 16.0, meshRoughness);
+    for(float g = 0.0; g < samples; g+=1)
+    {
+        vec3 displace = normalize(BRDF(dir, normCenter, meshRoughness)) * 0.7;
+        vec2 sspos2 = projectOnScreen(FromCameraSpace(posCenter) + displace);
+        for(float g2 = 0.01; g2 < 1.0; g2+=0.2)
+        {
+            vec2 gauss = mix(sspos, sspos2, g2);
+            vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb) : texture(currentTex, gauss).rgb;
+            vec3 pos = texture(worldPosTex, gauss).rgb;
+            vec3 norm = texture(normalsTex, gauss).rgb;
+            outc += shadeUV(fuv, FromCameraSpace(pos), vec4(color, 1));// * max(0, dot(norm, -normCenter));
+            counter+=1;
+        }
+    }
+    return outc / counter;
 }
 vec3 blurByUV(sampler2D sampler, vec2 fuv, float force){
     vec3 outc = vec3(0);
@@ -102,13 +176,6 @@ vec3 mixAlbedo(vec3 a){
 
 
 
-uniform int UseFog;
-uniform int UseLightPoints;
-uniform int UseDepth;
-uniform int UseDeferred;
-uniform int UseHBAO;
-uniform int UseVDAO;
-uniform int UseRSM;
 
 vec3 emulateSkyWithDepth(vec2 uv){
     vec3 worldPos = (texture(worldPosTex, uv).rgb);
@@ -154,16 +221,21 @@ vec3 lightPoints(){
 
 void main()
 {
+    Seed(UV);
+    randsPointer = int(randomizer * 113.86786 ) % RandomsCount;
     vec2 nUV = UV;
     vec3 color1 = vec3(0);
-    if(UseDeferred == 1) color1 += fxaa(currentTex, nUV).rgb;
+    if(UseDeferred == 1) {
+        color1 += texture(currentTex, nUV).rgb;
+        color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
+    }
     
     if(UseRSM == 1 && UseHBAO == 1){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * texture(HBAOTex, nUV).r;
     } else if(UseRSM == 1 && UseHBAO == 0){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb);
     } else if(UseRSM == 0 && UseVDAO == 0 && UseHBAO == 1){
-        color1 += texture(HBAOTex, nUV).rrr;
+        //color1 += texture(HBAOTex, nUV).rrr;
     }
     //color1 += texture(HBAOTex, nUV).rrr;
     color1 += lightPoints();

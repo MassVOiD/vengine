@@ -125,7 +125,7 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 32
+    #define RSMSamples 42
     for(int i=0;i<LightsCount;i++){
         //break;
         for(int x=0;x<RSMSamples;x++){
@@ -174,18 +174,16 @@ vec3 RSM(){
             vec3 radiance = mix(difcolor2 + specolor, difcolor * meshRoughness + specolor, meshMetalness);
             
             vec3 refl = reflect(-lightRelativeToVPos2, lnormal);
-            float spfsm = max(0, dot(refl, lightRelativeToVPos));
-            spfsm = pow(spfsm, (255 * (1.0-lrough) + 1)) * max(0, sign(dot(lightRelativeToVPos, lnormal))) * (5-lrough);
-            spfsm = cookTorranceSpecular(
+            float spfsm = cookTorranceSpecular(
             -lightRelativeToVPos2,
             -lightRelativeToVPos,
             lnormal,
             max(0.01, lrough)
-            ) * 32;
+            ) * max(0, dot(-lightRelativeToVPos, lnormal));
             
             //float vi = testVisibility3d(newpos, fragmentPosWorld3d.xyz);
             
-            color1 += radiance;
+            color1 += radiance * spfsm;
             
             //color1 += CalculateFallof(distanceToLight*6) * 2793 * cc * (1.0 - texture(HBAOTex, UV).r);
            
@@ -200,6 +198,7 @@ vec3 RSM(){
     return 1*color1 / (RSMSamples);
 }
 
+uniform float RSMGlobalMultiplier;
 
 void main()
 {   
@@ -213,7 +212,7 @@ void main()
     randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec4 last = texture(lastIndirectTex, UV);
     vec4 ou = vec4(0);
-    if(UseRSM == 1)ou = vec4(RSM(), 1);
+    if(UseRSM == 1)ou = vec4(RSM() * RSMGlobalMultiplier, 1);
     ou.a = texture(depthTex, UV).r;
     outColor = clamp(mix(ou, last, 0.0), 0.0, 1.0);
     

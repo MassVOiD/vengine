@@ -31,6 +31,8 @@ float meshRoughness;
 float meshSpecular;
 float meshDiffuse;
 
+uniform float VDAOGlobalMultiplier;
+
 
 out vec4 outColor;
 bool IgnoreLightingFragment = false;
@@ -167,13 +169,19 @@ float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     return mx;
 }
 
+vec3 lookupCubeMap(vec3 displace){
+    vec3 c = texture(cubeMapTex, displace).rgb;
+    return vec3pow(c*1.5, 2.0);
+}
 
 
 uniform int UseVDAO;
 uniform int UseHBAO;
 vec3 Radiosity()
 {
-
+    if(texture(diffuseColorTex, UV).r >= 999){ 
+        return texture(cubeMapTex, normalize(texture(worldPosTex, UV).rgb)).rgb;
+    }
 // gather data
     uint idvals = texture(meshIdTex, UV).b;
     /*
@@ -196,16 +204,17 @@ vec3 Radiosity()
     uint counter = 0;   
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     
-    int samples = int(mix(4, 64, 1.0 - meshRoughness));
+    int samples = int(mix(1, 64, 1.0 - meshRoughness));
     
     for(int i=0; i<samples; i++)
     {
         vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
                 
-        vec3 color = shadePhoton(UV, texture(cubeMapTex, displace).rgb);
+        vec3 color = shadePhoton(UV, lookupCubeMap(displace));
         //color = getIntersect(color, FromCameraSpace(posCenter), displace);
         float dotdiffuse = max(0, dot(displace, normalCenter));
-        vec3 radiance = color * dotdiffuse;
+        float fresnel = 1.0 + fresnelSchlick(dotdiffuse) * 14.0;
+        vec3 radiance = color * dotdiffuse * fresnel;
         ambient += radiance;
         counter++;
     }
@@ -220,11 +229,12 @@ vec3 Radiosity()
         for(int i=0; i<samples; i++)
         {
             vec3 displace = normalize(BRDF(dir, -normalCenter, meshRoughness));
-                        
-            vec3 color = shadePhoton(UV, texture(cubeMapTex, displace).rgb);
+                            
+            float fresnel = fresnelSchlick(dot(displace, normalCenter));
+            vec3 color = shadePhoton(UV, lookupCubeMap(displace));
             //color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, -normalCenter));
-            vec3 radiance = color * dotdiffuse;
+            vec3 radiance = color * dotdiffuse * fresnel;
             ambient += radiance;
             counter++;
         }
@@ -232,14 +242,11 @@ vec3 Radiosity()
     
     vec3 vdaoRefract = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaorefract;
     
-    return (vdaoMain + vdaoRefract);
+    return (vdaoMain + vdaoRefract) * VDAOGlobalMultiplier * 0.2;
 }
 void main()
 {   
-    if(texture(diffuseColorTex, UV).r >= 999){ 
-        outColor = texture(cubeMapTex, normalize(texture(worldPosTex, UV).rgb)).rgba;
-        return;
-    }
+
     //  float alpha = texture(texColor, UV).a;
     vec2 nUV = UV;
     // if(alpha < 0.99){

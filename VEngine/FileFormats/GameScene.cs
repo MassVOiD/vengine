@@ -362,6 +362,13 @@ namespace VEngine.FileFormats
                         tempMaterial.Name = data;
                         break;
                     }
+                    case "type":
+                    {
+                        if(tempMaterial == null)
+                            throw new Exception("Invalid line in scene string: " + l);
+                        tempMaterial.Type = (GenericMaterial.MaterialType)Enum.Parse(typeof(GenericMaterial.MaterialType), data, true);
+                        break;
+                    }
                     case "normalmap":
                     {
                         if(tempMaterial == null)

@@ -39,10 +39,11 @@ namespace ShadowsTester
             {
                 if(e.Key == OpenTK.Input.Key.M)
                 {
-                    fovdegree += 5f;
+                    fovdegree += 5f;    
                     if(fovdegree >= 180)
                         fovdegree = 180;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out Cam.ProjectionMatrix);
+                    Camera.Current.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
                 }
                 if(e.Key == OpenTK.Input.Key.N)
                 {
@@ -50,6 +51,7 @@ namespace ShadowsTester
                     if(fovdegree <= 10)
                         fovdegree = 10;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out Cam.ProjectionMatrix);
+                    Camera.Current.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
                 }
                 if(e.Key == OpenTK.Input.Key.P)
                 {

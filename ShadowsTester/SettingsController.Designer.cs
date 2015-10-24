@@ -36,7 +36,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.indirectLightBar = new System.Windows.Forms.TrackBar();
             this.label4 = new System.Windows.Forms.Label();
-            this.lightSizeBar = new System.Windows.Forms.TrackBar();
+            this.aoGlobalBar = new System.Windows.Forms.TrackBar();
             this.label5 = new System.Windows.Forms.Label();
             this.aoCutoffBar = new System.Windows.Forms.TrackBar();
             this.label6 = new System.Windows.Forms.Label();
@@ -56,7 +56,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.aoStrengthBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ambientLightBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.indirectLightBar)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.lightSizeBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.aoGlobalBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.aoCutoffBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.vdaoMultBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.vdaoSamplingBar)).BeginInit();
@@ -113,6 +113,7 @@
             this.ambientLightBar.Size = new System.Drawing.Size(384, 45);
             this.ambientLightBar.TabIndex = 5;
             this.ambientLightBar.Value = 50;
+            this.ambientLightBar.Scroll += new System.EventHandler(this.ambientLightBar_Scroll);
             // 
             // label3
             // 
@@ -131,6 +132,7 @@
             this.indirectLightBar.Size = new System.Drawing.Size(384, 45);
             this.indirectLightBar.TabIndex = 7;
             this.indirectLightBar.Value = 50;
+            this.indirectLightBar.Scroll += new System.EventHandler(this.indirectLightBar_Scroll);
             // 
             // label4
             // 
@@ -141,14 +143,15 @@
             this.label4.Text = "Indirect light";
             this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
-            // lightSizeBar
+            // aoGlobalBar
             // 
-            this.lightSizeBar.Location = new System.Drawing.Point(132, 118);
-            this.lightSizeBar.Maximum = 100;
-            this.lightSizeBar.Name = "lightSizeBar";
-            this.lightSizeBar.Size = new System.Drawing.Size(384, 45);
-            this.lightSizeBar.TabIndex = 9;
-            this.lightSizeBar.Value = 50;
+            this.aoGlobalBar.Location = new System.Drawing.Point(132, 118);
+            this.aoGlobalBar.Maximum = 100;
+            this.aoGlobalBar.Name = "aoGlobalBar";
+            this.aoGlobalBar.Size = new System.Drawing.Size(384, 45);
+            this.aoGlobalBar.TabIndex = 9;
+            this.aoGlobalBar.Value = 50;
+            this.aoGlobalBar.Scroll += new System.EventHandler(this.aoGlobalBar_Scroll);
             // 
             // label5
             // 
@@ -156,7 +159,7 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(120, 45);
             this.label5.TabIndex = 8;
-            this.label5.Text = "Light size";
+            this.label5.Text = "AO global";
             this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // aoCutoffBar
@@ -296,7 +299,7 @@
             this.groupBox2.Controls.Add(this.ambientLightBar);
             this.groupBox2.Controls.Add(this.label5);
             this.groupBox2.Controls.Add(this.label4);
-            this.groupBox2.Controls.Add(this.lightSizeBar);
+            this.groupBox2.Controls.Add(this.aoGlobalBar);
             this.groupBox2.Location = new System.Drawing.Point(12, 12);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(540, 166);
@@ -322,7 +325,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.aoStrengthBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ambientLightBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.indirectLightBar)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.lightSizeBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.aoGlobalBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.aoCutoffBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.vdaoMultBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.vdaoSamplingBar)).EndInit();
@@ -349,7 +352,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TrackBar indirectLightBar;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TrackBar lightSizeBar;
+        private System.Windows.Forms.TrackBar aoGlobalBar;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TrackBar aoCutoffBar;
         private System.Windows.Forms.Label label6;

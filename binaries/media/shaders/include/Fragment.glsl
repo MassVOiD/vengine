@@ -236,7 +236,6 @@ void finishFragment(vec4 color){
     float outSpecular = 0;
     if(UseSpecularMap) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
     else outSpecular = SpecularComponent;
-	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
     
     
     
@@ -277,9 +276,18 @@ void finishFragment(vec4 color){
         if(MaterialType == MaterialTypeParallax){
             float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
             //factor += 0.2 * rand2d(Input.TexCoord);
-            if(Input.Data.z < 0.99){
-                if(factor > Input.Data.x + 0.01) discard;
-            }
+            //if(distance(CameraPosition, wpos)<3.0){
+                if(Input.Data.x < 0.99){
+                    if(factor > Input.Data.x) discard;
+                    //if(factor > Input.Data.y) discard;
+             
+                }
+          //  } else {
+           //     if(Input.Data.x > 0.01) discard;
+           //     else {
+         //           wpos -= Input.Data.z * Input.Normal * (factor);
+        //        }
+         //   }
         }
         if(MaterialType == MaterialTypeWetDrops){
             float pn = snoise(Input.WorldPos* 13.);
@@ -326,6 +334,7 @@ SubsurfaceScatteringMultiplier*/
     if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
     else outMetalness = Metalness;
     
+	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
 	outMeshData = vec4(Selected, 0, outMetalness, outRoughness);
 	updateDepth();
     // lets do it, from -32 to 32

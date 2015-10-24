@@ -100,7 +100,7 @@ void main()
         Output.WorldPos -= normal * (factor) * 11.0;
     }
     if(MaterialType == MaterialTypeTessellatedTerrain){
-        float factor = texture(bumpMap, UV).r * 340;
+        float factor = texture(bumpMap, UV).r;
         //float factorx = texture(bumpMap, UV+vec2(0.0001, 0)).r * 90;
       //  float factory = texture(bumpMap, UV+vec2(0, 0.0001)).r * 90;
        // vec3 p1 = Output.WorldPos - Output.Tangent * 4 + normal * factorx;

@@ -13,10 +13,10 @@ namespace VEngine
 
         public static string Get(string name)
         {
-            if(!CompletedLoading)
-                LoadFileMap();
             lock (locker)
             {
+                if(!CompletedLoading)
+                    LoadFileMap();
                 if(!Map.ContainsKey(name.ToLower()))
                     throw new KeyNotFoundException(name);
                 return Map[name.ToLower()];
@@ -25,18 +25,21 @@ namespace VEngine
 
         public static void LoadFileMap(string path = null)
         {
-            path = path == null ? SearchPath : path;
-            if(Map == null)
-                Map = new Dictionary<string, string>();
-            string[] files = Directory.GetFiles(path);
-            string[] dirs = Directory.GetDirectories(path);
-            foreach(string file in files)
-                if(!Map.ContainsKey(Path.GetFileName(file).ToLower()))
-                    Map.Add(Path.GetFileName(file).ToLower(), Path.GetFullPath(file));
-            foreach(string dir in dirs)
-                LoadFileMap(dir);
-            if(path == null)
-                CompletedLoading = true;
+            lock (locker)
+            {
+                path = path == null ? SearchPath : path;
+                if(Map == null)
+                    Map = new Dictionary<string, string>();
+                string[] files = Directory.GetFiles(path);
+                string[] dirs = Directory.GetDirectories(path);
+                foreach(string file in files)
+                    if(!Map.ContainsKey(Path.GetFileName(file).ToLower()))
+                        Map.Add(Path.GetFileName(file).ToLower(), Path.GetFullPath(file));
+                foreach(string dir in dirs)
+                    LoadFileMap(dir);
+                if(path == null)
+                    CompletedLoading = true;
+            }
         }
 
         public static List<string> QueryRegex(string query)

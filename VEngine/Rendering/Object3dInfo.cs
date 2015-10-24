@@ -499,10 +499,10 @@ namespace VEngine
                 }
                 var o3di = new Object3dInfo(obj.VBO, obj.Indices);
                 o3di.Name = obj.Name;
-                //if(!linkCache.ContainsKey(material))
+                if(!linkCache.ContainsKey(material))
                     linkCache.Add(material, new List<Object3dInfo> { o3di });
-               // else
-                //    linkCache[material].Add(o3di);
+                else
+                    linkCache[material].Add(o3di);
             }
             foreach(var kv in linkCache)
             {
@@ -1187,7 +1187,7 @@ namespace VEngine
             VAOHandle = GL.GenVertexArray();
             // Here I bind this VAO
             GL.BindVertexArray(VAOHandle);
-
+            IndicesCount = Indices.Length;
             // Now, I create 2 VBOs for vertices and inices
             VertexBuffer = GL.GenBuffer();
             IndexBuffer = GL.GenBuffer();
@@ -1234,6 +1234,9 @@ namespace VEngine
             //unbinnd VBOs
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
+            //VBO = new float[0];
+            //Indices = new uint[0];
 
             AreBuffersGenerated = true;
         }

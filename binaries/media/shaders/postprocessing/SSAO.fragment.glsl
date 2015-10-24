@@ -5,7 +5,7 @@ in vec2 UV;
 #include Lighting.glsl
 #include UsefulIncludes.glsl
 
-out vec4 outColor;
+out vec2 outColor;
 
 layout (std430, binding = 6) buffer RandomsBuffer
 {
@@ -50,11 +50,11 @@ float hbao(){
         float minang = 0;
         vec2 disp = vec2(sin(p)*ratio, cos(p));
         for(int g = 0; g < 12; g++){
-            vec3 pos = texture(worldPosTex,  UV + disp * rand2s(disp+g+p) * 0.2 * div * aorange).rgb;
+            vec3 pos = texture(worldPosTex,  UV + disp * rand2s(disp+g+p) * 0.4 * div * aorange).rgb;
             float dt = max(0, dot(norm, normalize(pos - posc)));
-            if(dt > aocutoff) dt = 1;
-            minang = max(dt * max(0, (0.3 - length(pos - posc))/0.3), minang);
+            minang = max(dt * max(0, (0.8 - length(pos - posc))/0.8), minang);
         }
+        if(minang > aocutoff) minang = 1;
         buf += minang;
         counter+=1.0;
     }
@@ -167,21 +167,20 @@ float Radiosity()
     float rs = ambient / smp;
     return pow(rs*1.0, 1.7);
 }
+uniform float AOGlobalModifier;
 void main()
 {   
     vec3 color1 = vec3(0);
     
     Seed(UV+1);
     //randsPointer = int(randomizer * 123.86786 ) % 128;
-    vec4 au = vec4(0);
+    vec2 au = vec2(0);
     if(UseHBAO == 1){
        // if(UV.x < 0.5) au = vec4(hbao(), 0, 0, 1);
        //else au = vec4(Radiosity(), 0, 0, 1);
-       au = vec4(hbao(), 0, 0, 1);
+       au = vec2(pow(hbao(), AOGlobalModifier), texture(depthTex, UV).r);
     }
-    au.b = 0.5;
-    au.a = texture(depthTex, UV).r;
-    outColor = clamp(au.rgba, 0.0, 1.0);
+    outColor = clamp(au.rg, 0.0, 1.0);
     
     
 }

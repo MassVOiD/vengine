@@ -31,6 +31,10 @@ namespace ShadowsTester
                 aoRangeBar.Value = (int)(mesh.MainMaterial.AORange * (float)aoRangeBar.Maximum);
                 aoStrengthBar.Value = (int)(mesh.MainMaterial.AOStrength * (float)aoStrengthBar.Maximum);
                 aoCutoffBar.Value = (int)(mesh.MainMaterial.AOAngleCutoff * (float)aoCutoffBar.Maximum);
+                subScatBar.Value = (int)(mesh.MainMaterial.SubsurfaceScatteringMultiplier * (float)subScatBar.Maximum);
+                vdaoMultBar.Value = (int)(mesh.MainMaterial.VDAOMultiplier * (float)vdaoMultBar.Maximum);
+                vdaoSamplingBar.Value = (int)(mesh.MainMaterial.VDAOSamplingMultiplier * (float)vdaoSamplingBar.Maximum);
+                vdaoRefractionBar.Value = (int)(mesh.MainMaterial.VDAORefreactionMultiplier * (float)vdaoRefractionBar.Maximum);
                 selectedMeshLabel.Text = mesh.Name == null ? "Unnamed mesh" : mesh.Name;
             }));
         }
@@ -75,6 +79,21 @@ namespace ShadowsTester
             if(SelectedMesh == null)
                 return;
             SelectedMesh.MainMaterial.VDAORefreactionMultiplier = ((float)vdaoRefractionBar.Value / (float)vdaoRefractionBar.Maximum);
+        }
+
+        private void ambientLightBar_Scroll(object sender, EventArgs e)
+        {
+            GLThread.DisplayAdapter.Pipeline.PostProcessor.VDAOGlobalMultiplier = ((float)ambientLightBar.Value / (float)ambientLightBar.Maximum);
+        }
+
+        private void indirectLightBar_Scroll(object sender, EventArgs e)
+        {
+            GLThread.DisplayAdapter.Pipeline.PostProcessor.RSMGlobalMultiplier = ((float)indirectLightBar.Value / (float)indirectLightBar.Maximum)*5.0f;
+        }
+
+        private void aoGlobalBar_Scroll(object sender, EventArgs e)
+        {
+            GLThread.DisplayAdapter.Pipeline.PostProcessor.AOGlobalModifier = 0.1f + ((float)aoGlobalBar.Value / (float)aoGlobalBar.Maximum) * 5.0f;
         }
     }
 }

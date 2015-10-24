@@ -225,7 +225,7 @@ namespace VEngine
             if(Type == MaterialType.Grass || Type == MaterialType.Flag)
                 return pack.Geometry96iTriangles;
             if(Type == MaterialType.TessellatedTerrain)
-                return pack.Geometry1iTriangles;
+                return pack.TesselatedProgram;
             if(Type == MaterialType.Parallax)
                 return pack.Geometry32iTriangles;
             return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
@@ -271,7 +271,7 @@ namespace VEngine
         {
             var prg = GetShaderProgram();
             // if(prg.) {
-            GL.Disable(EnableCap.CullFace);
+            //GL.Disable(EnableCap.CullFace);
             // }
             if(lastUserProgram == null)
                 lastUserProgram = ShaderProgram.Current;
@@ -333,6 +333,7 @@ namespace VEngine
             else
             {
                 prg.SetUniform("UseAlphaMask", 0);
+                GL.Disable(EnableCap.CullFace);
                 // GL.Enable(EnableCap.CullFace);
                 //GL.DepthFunc(DepthFunction.Lequal);
             }
