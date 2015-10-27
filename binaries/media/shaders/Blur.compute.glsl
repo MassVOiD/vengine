@@ -37,7 +37,7 @@ float doBlurTemporalUpscale(ivec2 uv){
     float weight = 0;
     float wposCenter = texture(worldPosTex, iUVtoUV(uv)).r;
     vec3 normCenter = texture(normalsTex, iUVtoUV(uv)).rgb;
-    for(int i = - 5; i < 5; i ++ ){
+    for(int i = - 16; i < 16; i ++ ){
         ivec2 nuv = uv + (Direction == DIRECTION_X ? ivec2(i, 0) : ivec2(0, i));
         float s = Direction == DIRECTION_X ? 
           (texture(Input, iUVtoUV(nuv)).r) : 

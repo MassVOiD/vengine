@@ -89,7 +89,15 @@ namespace VEngine
         private Stopwatch stopwatch = new Stopwatch();
 
         public PostProcessing(int initialWidth, int initialHeight)
-        {
+        {/*
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, 0u);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 1, 0u);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 2, 0u);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 3, 0u);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 4, 0u);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 5, 0u);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 6, 0u);
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 7, 0u);*/
             //FullScene3DTexture = new Texture3D(new Vector3(64, 64, 64));
             AABoxesBuffer = new ShaderStorageBuffer();
             DensityPoints = new ShaderStorageBuffer();
@@ -116,7 +124,7 @@ namespace VEngine
             MRT = new MRTFramebuffer(initialWidth / 1, initialHeight / 1);
 
             Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
-            Pass2FrameBuffer = new Framebuffer(initialWidth * 2, initialHeight * 2);
+            Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
 
             BloomFrameBuffer = new Framebuffer(initialWidth / 3, initialHeight / 3)
             {
@@ -147,7 +155,7 @@ namespace VEngine
                  ColorPixelFormat = PixelFormat.Rgba,
                  ColorPixelType = PixelType.UnsignedByte
              };
-            IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
+            IndirectFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
             SSAOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
             {
                 ColorOnly = true,

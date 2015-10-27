@@ -91,22 +91,21 @@ vec3 softLuminance(vec2 fuv){
     vec3 outc = vec3(0);
     float counter = 1.0;
     vec3 posCenter = texture(worldPosTex, fuv).rgb;
-    vec2 sspos = projectOnScreen(FromCameraSpace(posCenter));
     vec3 normCenter = texture(normalsTex, fuv).rgb;
     vec3 dir = normalize(reflect(posCenter, normCenter));
     float meshRoughness = 1.0 - texture(meshDataTex, fuv).a;
-    float samples = mix(3.0, 16.0, meshRoughness);
+    float samples = mix(16.0, 2.0, meshRoughness);
     for(float g = 0.0; g < samples; g+=1)
     {
-        vec3 displace = normalize(BRDF(dir, normCenter, meshRoughness)) * 0.7;
+        vec3 displace = normalize(BRDF(dir, normCenter, meshRoughness)) * 0.47;
         vec2 sspos2 = projectOnScreen(FromCameraSpace(posCenter) + displace);
-        for(float g2 = 0.01; g2 < 1.0; g2+=0.2)
+        for(float g2 = 0.01; g2 < 1.0; g2+=0.1)
         {
-            vec2 gauss = mix(sspos, sspos2, g2);
+            vec2 gauss = mix(fuv, sspos2, getRand());
             vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb) : texture(currentTex, gauss).rgb;
             vec3 pos = texture(worldPosTex, gauss).rgb;
             vec3 norm = texture(normalsTex, gauss).rgb;
-            outc += shadeUV(fuv, FromCameraSpace(pos), vec4(color, 1));// * max(0, dot(norm, -normCenter));
+            outc += shadeUV(fuv, FromCameraSpace(pos), vec4(color, 1)) * max(0, dot(norm, -dir));
             counter+=1;
         }
     }
@@ -227,7 +226,7 @@ void main()
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
         color1 += texture(currentTex, nUV).rgb;
-        color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
+        if(UseRSM) color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
     }
     
     if(UseRSM == 1 && UseHBAO == 1){
@@ -235,7 +234,7 @@ void main()
     } else if(UseRSM == 1 && UseHBAO == 0){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb);
     } else if(UseRSM == 0 && UseVDAO == 0 && UseHBAO == 1){
-        //color1 += texture(HBAOTex, nUV).rrr;
+        color1 += texture(HBAOTex, nUV).rrr;
     }
     //color1 += texture(HBAOTex, nUV).rrr;
     color1 += lightPoints();

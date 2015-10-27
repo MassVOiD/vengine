@@ -10,8 +10,8 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 1920;
-            public static int Height = 1000;
+            public static int Width = 1366;
+            public static int Height = 768;
             public static string MediaPath = "media";
         }
 
@@ -65,8 +65,8 @@ namespace ShadowsTester
             // new PathTraceTest().Create();
             //  new NatureScene().Create();
             //  new IndirectTestScene().Create();
-            //new DragonScene();
-            // new ManyCubesScene().Create();
+         //   new DragonScene();
+          //   new ManyCubesScene().Create();
             //  new ComputeBallsScene().Create();
             //new CarScene().Create();
 
@@ -76,7 +76,6 @@ namespace ShadowsTester
 
             World.Root.SortByDepthMasking();
 
-            // System.Threading.Thread.Sleep(1000);
 
             //World.Root.SortByObject3d();
 

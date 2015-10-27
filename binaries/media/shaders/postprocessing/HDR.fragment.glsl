@@ -203,8 +203,8 @@ uniform int UnbiasedIntegrateRenderMode;
 void main()
 {
     vec4 color1 = fxaa(currentTex, UV);
-    vec3 avg = getAverageOfAdjacent(UV);
-    if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
+    //vec3 avg = getAverageOfAdjacent(UV);
+   // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
     if(ShowSelected == 1) color1.rgb += lookupSelected(UV, 0.02);
     //vec4 color1 = vec4(0,0,0,1);

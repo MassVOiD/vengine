@@ -156,7 +156,7 @@ float textureMaxFromLine(float v1, float v2, vec2 p1, vec2 p2, sampler2D sampler
 vec2 saturatev2(vec2 v){
     return clamp(v, 0.0, 1.0);
 }
-float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
+float testVisibility3d(vec3 w1, vec3 w2) {
     HitPos = vec2(-2);
     vec4 clipspace = (PV) * vec4((w1), 1.0);
     vec2 sspace1 = saturatev2((clipspace.xyz / clipspace.w).xy * 0.5 + 0.5);
@@ -209,13 +209,18 @@ vec3 Radiosity()
     for(int i=0; i<samples; i++)
     {
         vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
+        
+        float vi = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace);
+        vi = HitPos.x > 0 && reverseLog(vi) < 1.0  ? reverseLog(vi) : 1.0;
+        float vi2 = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace*0.1);
+        vi2 = HitPos.x > 0 && reverseLog(vi2) < 0.1  ? reverseLog(vi2)*10.0 : 1.0;
                 
         vec3 color = shadePhoton(UV, lookupCubeMap(displace));
         //color = getIntersect(color, FromCameraSpace(posCenter), displace);
         float dotdiffuse = max(0, dot(displace, normalCenter));
         float fresnel = 1.0 + fresnelSchlick(dotdiffuse) * 14.0;
         vec3 radiance = color * dotdiffuse * fresnel;
-        ambient += radiance;
+        ambient += radiance;// * vi * vi2;
         counter++;
     }
     
@@ -230,10 +235,10 @@ vec3 Radiosity()
         {
             vec3 displace = normalize(BRDF(dir, -normalCenter, meshRoughness));
                             
-            float fresnel = fresnelSchlick(dot(displace, normalCenter));
             vec3 color = shadePhoton(UV, lookupCubeMap(displace));
             //color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, -normalCenter));
+            float fresnel = 1.0 + fresnelSchlick(dotdiffuse) * 14.0;
             vec3 radiance = color * dotdiffuse * fresnel;
             ambient += radiance;
             counter++;
@@ -293,7 +298,7 @@ void main()
         }
     }
     if(!IgnoreLightingFragment) for(int i=0;i<SimpleLightsCount;i++){
-        color1 += shadeUV(UV, simplePointLights[i].Position.xyz, simplePointLights[i].Color*0.1);
+        color1 += shadeUV(UV, simplePointLights[i].Position.xyz, simplePointLights[i].Color);
     }
 
     if(UseVDAO == 1 && UseHBAO == 0) color1 += Radiosity();

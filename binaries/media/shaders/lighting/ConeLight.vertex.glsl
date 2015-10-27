@@ -33,7 +33,7 @@ void main(){
     Output.WorldPos = (InitialTransformation * mmat * v).xyz;
     Output.Normal = in_normal;
     Output.Tangent = in_tangent;
-    Output.instanceId = gl_InstanceID;
+    Output.instanceId = int(gl_InstanceID);
     Output.TexCoord = vec2(in_uv.x, -in_uv.y);
 
     gl_Position = mvp * v;

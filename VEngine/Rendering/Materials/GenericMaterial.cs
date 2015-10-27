@@ -156,6 +156,13 @@ namespace VEngine
 
         private ShaderProgram lastUserProgram = null;
 
+        private RainSystem RainsDropSystem = null;
+
+        public void SetRainSystem(RainSystem rs)
+        {
+            RainsDropSystem = rs;
+        }
+
         public GenericMaterial(Texture tex, Texture normalMap = null, Texture bumpMap = null)
         {
             Tex = tex;
@@ -200,7 +207,9 @@ namespace VEngine
             Plastic,
             Metal, 
 
-            Parallax
+            Parallax,
+
+            DropsSystem
 
         }
 
@@ -344,6 +353,9 @@ namespace VEngine
             prg.SetUniform("input_Color", Color);
             prg.SetUniform("DrawMode", (int)Mode);
             prg.SetUniform("MaterialType", (int)Type);
+
+            if(Type == MaterialType.DropsSystem && RainsDropSystem != null)
+                RainsDropSystem.MapToCurrentShader();
 
             prg.SetUniform("SpecularComponent", SpecularComponent);
             prg.SetUniform("DiffuseComponent", DiffuseComponent);

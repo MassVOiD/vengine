@@ -9,7 +9,7 @@ namespace ShadowsTester
     {
         public static FreeCamera FreeCam;
         private static ComputeShader MousePicker;
-        private static int MouseX, MouseY;
+        public static int MouseX, MouseY;
         private static Mesh3d Picked;
         private static ShaderStorageBuffer PickingResult;
         private static ProjectionLight RedLight;
@@ -17,7 +17,7 @@ namespace ShadowsTester
         public static ProjectionLight AddControllableLight()
         {
             float fovdegree = 90;
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 768, 768, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 2048, 2048, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
             RedLight = redConeLight;
             redConeLight.LightColor = new Vector4(1, 1, 1, 95);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);

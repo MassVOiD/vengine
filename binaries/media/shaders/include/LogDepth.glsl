@@ -8,7 +8,6 @@ in Data {
     vec3 Tangent;
     vec3 Data;
 } Input;
-flat in int instanceId;
 uniform int UseNormalMap;
 uniform int UseBumpMap;
 

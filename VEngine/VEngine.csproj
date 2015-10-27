@@ -102,6 +102,7 @@
     <Compile Include="PathTracing\JitterRandomSequenceGenerator.cs" />
     <Compile Include="PathTracing\PathTracer.cs" />
     <Compile Include="PathTracing\SceneOctalTree.cs" />
+    <Compile Include="RainSystem.cs" />
     <Compile Include="Rendering\ArmatureAnimation.cs" />
     <Compile Include="Rendering\Camera.cs" />
     <Content Include="Config.css">

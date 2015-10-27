@@ -260,7 +260,33 @@ namespace VEngine
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
             shader.SetUniform("LogEnchacer", 0.01f);
+            
 
+            shader.SetUniform("Selected", 0); //magic
+            shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed2", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed3", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed4", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed5", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed6", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed7", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed8", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed9", (float)Randomizer.NextDouble());
+            shader.SetUniform("RandomSeed10", (float)Randomizer.NextDouble());
+            shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+
+            shader.SetUniform("Instances", Transformations.Count);
+            shader.SetUniform("Instanced", 1);
+            shader.SetUniform("LogEnchacer", 0.01f);
+
+            shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+            shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+            shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+            shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
+            shader.SetUniform("FarPlane", Camera.Current.Far);
+            shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
+
+            shader.SetUniform("UseBoneSystem", 0);
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
             shader.SetUniform("FarPlane", Camera.Current.Far);
             shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));

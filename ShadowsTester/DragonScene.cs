@@ -1,6 +1,9 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
 using OpenTK;
 using VEngine;
+using VEngine.FileFormats;
 using VEngine.Generators;
 
 namespace ShadowsTester
@@ -27,23 +30,50 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-              Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-20, -20), new Vector2(20, 20), new Vector2(100, 100), Vector3.UnitY, 1, (x, y) => 0);
+              Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(100, 100), Vector3.UnitY, 3, (x, y) => 0);
             var color3 = new GenericMaterial(Color.SkyBlue);
             //var color2 = new GenericMaterial(Color.WhiteSmoke);
-           // color3.SetBumpMapFromMedia("DisplaceIT_Ground_Pebble1_Displace.bmp");
-           // color3.SetNormalMapFromMedia("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");
-           // color3.Type = GenericMaterial.MaterialType.Parallax;
+            // color3.SetBumpMapFromMedia("DisplaceIT_Ground_Pebble1_Displace.bmp");
+            // color3.SetNormalMapFromMedia("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");
+            // color3.Type = GenericMaterial.MaterialType.Parallax;
+
+            RainSystem rs = new RainSystem(1.0f, 300, 100.0f, 1.0f);
+
             color3.Metalness = 0;
             color3.Roughness = 0.2f;
+            color3.Type = GenericMaterial.MaterialType.DropsSystem;
+            color3.SetRainSystem(rs);
             Mesh3d water3 = new Mesh3d(groundInfo, color3);
             water3.SetMass(0);
             water3.Scale(30);
             water3.Translate(-100, 0, 0);
             scene.Add(water3);
-            var cathobj = Object3dInfo.LoadFromObjSingle(Media.Get("hall1.obj"));
-            var cath = new Mesh3d(cathobj, new GenericMaterial(Color.Orange));
-            cath.Scale(1.0f);
-            scene.Add(cath);
+            Random rand = new Random();
+            GLThread.CreateTimer(() =>
+            {
+                for(int i = 0; i < 10; i++)
+                {
+                    Vector3 v = new Vector3((float)(rand.NextDouble() * 2.0 - 1.0) * 10.0f, 0.0f, (float)(rand.NextDouble() * 2.0 - 1.0) * 10.0f);
+                    rs.AddDrop(v);
+                }
+            }, 60).Start();
+
+            var ss = new GameScene("ferrari.scene");
+            ss.Load();
+            var transfs = new List<Vector4>();
+            for(int i = 0; i < 64; i++)
+            {
+                transfs.Add(new Vector4(
+                    ((float)rand.NextDouble()) * 20,
+                    0,
+                    ((float)rand.NextDouble()) * 20,
+                    ((float)rand.NextDouble()) * 0.6f + 0.5f
+                    ));
+            }
+            ss.Meshes.ForEach((o) =>
+            {
+                scene.Add(o);
+            });
             //var groundInfo = Object3dInfo.LoadFromObjSingle(Media.Get("ldspc.obj"));
             //var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
             //ldspc.obj

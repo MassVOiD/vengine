@@ -17,6 +17,32 @@ uniform int MaterialType;
 #define MaterialTypeWater 2
 #define MaterialTypeSky 3
 #define MaterialTypeWetDrops 4
+#define MaterialTypeWetDrops 4
+#define MaterialTypeRainsDropSystem 12
+
+uniform int DropsCount;
+uniform float DropsMaxRadius;
+uniform float DropsStrength;
+layout (std430, binding = 4) buffer DropsBuffer
+{
+    vec4 Drops[];
+}; 
+
+vec3 determineWave(vec3 w, vec3 n){
+    vec3 newn = n;
+    for(int i=0;i<DropsCount;i++){
+        vec3 dpos = Drops[i].xyz;
+        float dradius = Drops[i].a;
+        float dt = abs(dot(n, normalize(dpos - w)));
+        float a = abs(distance(dpos, w) - dradius);
+        float frad = mix(1.0, 0.0, min(a * 10.0f, 1.0));
+        float dff = 1.0 - (distance(dpos, w) / DropsMaxRadius);
+        float si = sign((distance(dpos, w) - dradius));
+        newn = normalize(newn + (dff * frad * si * normalize(w - dpos) * 1.2f));
+    }
+    return newn;
+}
+
 
 vec3 rotate_vector_by_quat( vec4 quat, vec3 vec )
 {
@@ -309,11 +335,13 @@ SubsurfaceScatteringMultiplier*/
             outId = uvec4(MeshID, packpart1, packpart2, MaterialType);
             vec3 rn = (InitialRotation * RotationMatrix * vec4(normalNew, 0)).xyz;
             if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
+            if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn);
 			outNormals = vec4(rn, DiffuseComponent);
 		} else {
-            outId = uvec4(InstancedIds[instanceId], packpart1, packpart2, MaterialType);
-            vec3 rn = (InitialRotation * RotationMatrixes[instanceId] * vec4(normalNew, 0)).xyz;
+            outId = uvec4(InstancedIds[Input.instanceId], packpart1, packpart2, MaterialType);
+            vec3 rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
             if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
+            if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
 			outNormals = vec4(rn, DiffuseComponent);
 		}
 	} else {

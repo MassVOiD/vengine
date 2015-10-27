@@ -31,13 +31,13 @@ void main(){
         mspace = applyBoneRotationChain(mspace, bone);
         inorm = applyBoneRotationChainNormal(inorm, bone);
     }
-    v = vec4(mspace, 1);
+    //v = vec4(mspace, 1);
     vec3 wpos = (InitialTransformation * mmat * v).xyz;
     Output.WorldPos = wpos;
 
 	Output.Normal = inorm;
 	
-	Output.instanceId = gl_InstanceID;
+	Output.instanceId = int(gl_InstanceID);
 	
     gl_Position = (ProjectionMatrix  * ViewMatrix) * vec4(wpos, 1);
 }
