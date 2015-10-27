@@ -1,3 +1,10 @@
+FAQ:
+- Where are shaders?
+Shaders are here: https://github.com/achlubek/vengine/tree/master/binaries/media/shaders
+- Where is post process routine?
+It is here: https://github.com/achlubek/vengine/blob/master/VEngine/Rendering/PostProcessing.cs
+
+
 OpenGL engine for writing robust and threaded graphical applications in C#.
 If you want to check out how does it behave - Run Tester project binaries with correct Media path in Config.cs.
 
