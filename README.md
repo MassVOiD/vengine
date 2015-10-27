@@ -1,8 +1,16 @@
 FAQ:
 - Where are shaders?
+
 Shaders are here: https://github.com/achlubek/vengine/tree/master/binaries/media/shaders
+
 - Where is post process routine?
+
 It is here: https://github.com/achlubek/vengine/blob/master/VEngine/Rendering/PostProcessing.cs
+
+- Where is PBR?
+
+It is here: https://github.com/achlubek/vengine/blob/master/binaries/media/shaders/include/Shade.glsl
+
 
 
 OpenGL engine for writing robust and threaded graphical applications in C#.
