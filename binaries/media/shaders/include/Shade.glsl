@@ -107,18 +107,18 @@ vec3 shade(
         lightRelativeToVPos,
         cameraRelativeToVPos,
         normal,
-        max(0.02, roughness)
+        max(0.022, (roughness) + 0.01)
         );
 
     
-    float diffuseComponent = orenNayarDiffuse(
+    float diffuseComponent = (1.0 - metalness) * orenNayarDiffuse(
         lightRelativeToVPos,
         cameraRelativeToVPos,
         normal,
-        max(0.02, roughness)
+        max(0.022, (roughness) + 0.01)
         );   
 
-    vec3 cc = mix(lightColor.rgb*albedo, lightColor.rgb, metalness);
+    vec3 cc = lightColor.rgb*albedo;
     
     float fresnel = 1.0 + fresnelSchlick(dot(lightRelativeToVPos, normal)) * 4.0;
     
@@ -127,14 +127,12 @@ vec3 shade(
     vec3 specolor = cc * specularComponent;
     
     
-    return mix(difcolor2 + specolor, difcolor*(roughness) + specolor, metalness) * fresnel;
+    return (difcolor2 + specolor) * fresnel;
 }
 
 vec3 shadePhoton(vec2 uv, vec3 color){
     vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    float metalness =  texture(meshDataTex, uv).z;    
-    vec3 cc = mix(color*albedo, color, metalness);
-    return cc;
+    return color*albedo;
 }
 
 vec3 shadeUV(vec2 uv,
@@ -164,3 +162,18 @@ vec3 shadeUVNoAtt(vec2 uv,
     float metalness =  texture(meshDataTex, uv).z;
     return shade(albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, true);
 }
+
+
+ vec3 hemisphereSample_uniform(float u, float v) {
+     float phi = v * 2.0 * PI;
+     float cosTheta = 1.0 - u;
+     float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+     return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+ }
+    
+ vec3 hemisphereSample_cos(float u, float v) {
+     float phi = v * 2.0 * PI;
+     float cosTheta = sqrt(1.0 - u);
+     float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+     return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+ }

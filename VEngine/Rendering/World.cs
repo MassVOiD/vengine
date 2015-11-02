@@ -227,8 +227,10 @@ namespace VEngine
                 mesh = body.UserObject as Mesh3d;
                 if(mesh != null)
                 {
+                    Matrix4 art = Matrix4.Identity;
+                    mesh.PhysicalBody.GetWorldTransform(out art);
                     mesh.Transformation.SetPosition(mesh.PhysicalBody.CenterOfMassPosition);
-                    mesh.Transformation.SetOrientation(mesh.PhysicalBody.Orientation);
+                    mesh.Transformation.SetOrientation(art.ExtractRotation(true));
                     mesh.UpdateMatrix(true);
                     mesh.Transformation.ClearModifiedFlag();
                 }

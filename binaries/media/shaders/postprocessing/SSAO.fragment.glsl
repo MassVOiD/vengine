@@ -21,7 +21,7 @@ float randsPointer = 0;
 uniform int RandomsCount;
 
 float getRand2(){
-    float r = rand2s(vec2(randsPointer, randsPointer*2.42354));
+    float r = rand2s(vec2(randsPointer, randsPointer*2.42354 + Time));
     randsPointer+=1.23456;
     //if(randsPointer >= 1234.123123) randsPointer = 0.0;
     return r;
@@ -71,20 +71,21 @@ float hbao(){
     float counter = 0.0;
     vec3 dir = normalize(reflect(posc, norm));
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
-    float samples = mix(25.0, 2.0, meshRoughness);
+    float samples = mix(12.0, 1.0, meshRoughness);
+    const float ringsize = 0.9;
     for(float g = 0.0; g < samples; g+=1)
     {
         float minang = 0;
-        vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * 0.5;
+        vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * ringsize;
         vec2 sspos2 = projectOnScreen(FromCameraSpace(posc) + displace);
         vec2 diruv = normalize(sspos2 - UV);
-        sspos2 = UV + diruv*0.4;
-        for(float g2 = 0.01; g2 < 1.0; g2+=0.1)
+        //sspos2 = UV + diruv*0.4;
+        for(float g2 = 0.01; g2 < 1.0; g2+=0.2)
         {
-            vec2 gauss = mix(UV, sspos2, g2);
+            vec2 gauss = mix(UV, sspos2, getRand2());
             vec3 pos = texture(worldPosTex,  gauss).rgb;
             float dt = max(0, dot(norm, normalize(pos - posc)));
-            minang = max(dt * max(0, (4.8 - length(pos - posc))/4.8), minang);
+            minang = max(dt * max(0, (ringsize - length(pos - posc))/ringsize), minang);
         }
         if(minang > aocutoff) minang = 1;
         buf += minang;

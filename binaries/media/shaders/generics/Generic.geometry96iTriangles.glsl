@@ -1,7 +1,7 @@
 #version 430 core
 layout(invocations = 96) in;
 layout(triangles) in;
-layout(triangle_strip, max_vertices = 96) out;
+layout(triangle_strip, max_vertices = 21) out;
 
 #include Mesh3dUniforms.glsl
 
@@ -34,6 +34,7 @@ uniform int MaterialType;
 #define MaterialTypeTessellatedTerrain 7
 #define MaterialTypeFlag 8
 
+#define MaterialTypeParallax 11
 #include noise4D.glsl
 
 // input 3 vertices
@@ -213,10 +214,45 @@ void FixNormals(){
 }
 
 
+uniform float ParallaxHeightMultiplier;
+uniform int ParallaxInstances;
+void GeometryProcessParallaxDraw(){
+    float inter = 0.0;
+    float v1 = distance(CameraPosition, gs_in[0].WorldPos);
+    float v2 = distance(CameraPosition, gs_in[1].WorldPos);
+    float v3 = distance(CameraPosition, gs_in[2].WorldPos);
+    float prx = floor(mix(7.0, 1.0, clamp(min(min(v1, v2), v3) / 6.0, 0.0, 1.0)));
+    int iprx = int(prx);
+    if(gl_InvocationID > ParallaxInstances) return;
+
+     
+    float stepsize = 1.0 / float(ParallaxInstances);
+    float midstep = stepsize / prx;
+    float midstep2 = midstep / 3.0;
+    inter = float(gl_InvocationID) / float(ParallaxInstances);
+    for(int i=0;i<iprx;i++){
+        for(int l=0;l<3;l++){
+            Output.instanceId = gs_in[l].instanceId;
+            float maxwpos = 0.11 * ParallaxHeightMultiplier;
+            Output.WorldPos = gs_in[l].WorldPos - gs_in[l].Normal * inter * 0.11 * ParallaxHeightMultiplier;
+            Output.TexCoord =  gs_in[l].TexCoord;
+            Output.Normal =  gs_in[l].Normal;
+            Output.Tangent =  gs_in[l].Tangent;
+            Output.Data = vec3(inter, inter + midstep, maxwpos);
+            gl_Position = PV * vec4(Output.WorldPos, 1);
+            EmitVertex();
+            //inter += midstep2;
+        }
+        inter += midstep;
+        EndPrimitive();
+    }   
+}
+
 void main(){
 
     if(MaterialType == MaterialTypeGrass) GeometryGenerateGrass();
     if(MaterialType == MaterialTypeFlag) GeometryProcessFlagDynamics();
     if(MaterialType == MaterialTypeTessellatedTerrain) FixNormals();
+    if(MaterialType == MaterialTypeParallax) GeometryProcessParallaxDraw();
 
 }

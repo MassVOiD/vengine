@@ -204,7 +204,7 @@ vec3 Radiosity()
     uint counter = 0;   
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     
-    int samples = int(mix(1, 64, 1.0 - meshRoughness));
+    int samples = int(mix(47, 164, 1.0 - meshRoughness));
     
     for(int i=0; i<samples; i++)
     {
@@ -219,7 +219,7 @@ vec3 Radiosity()
         //color = getIntersect(color, FromCameraSpace(posCenter), displace);
         float dotdiffuse = max(0, dot(displace, normalCenter));
         float fresnel = 1.0 + fresnelSchlick(dotdiffuse) * 14.0;
-        vec3 radiance = color * dotdiffuse * fresnel;
+        vec3 radiance = color;
         ambient += radiance;// * vi * vi2;
         counter++;
     }
@@ -239,7 +239,7 @@ vec3 Radiosity()
             //color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, -normalCenter));
             float fresnel = 1.0 + fresnelSchlick(dotdiffuse) * 14.0;
-            vec3 radiance = color * dotdiffuse * fresnel;
+            vec3 radiance = color;
             ambient += radiance;
             counter++;
         }

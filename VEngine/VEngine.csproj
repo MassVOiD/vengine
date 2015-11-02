@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AMCParser.cs" />
+    <Compile Include="ExpressionEvaluator.cs" />
     <Compile Include="FileFormats\GameScene.cs" />
     <Compile Include="Game\KeyboardController.cs" />
     <Compile Include="ObjectIDGenerator.cs" />

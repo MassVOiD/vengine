@@ -48,7 +48,7 @@ float outRoughness = 0;
     if(Instances == 0){
         rn = (InitialRotation * RotationMatrix * vec4(Input.Normal, 0)).xyz;
     } else {
-        rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Normal, 0)).xyz;
+        rn = (InitialRotation * RotationMatrixes[int(Input.instanceId)] * vec4(Input.Normal, 0)).xyz;
     }
     vec3 radiance = mix(difcolor2, difcolor*outRoughness, outMetalness);
     outColor = uvec4(packUnorm4x8(vec4(radiance, outRoughness)), packSnorm4x8(vec4(rn, outMetalness)), 0,0);

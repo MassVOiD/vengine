@@ -125,7 +125,7 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 42
+    #define RSMSamples 16
     for(int i=0;i<LightsCount;i++){
         //break;
         for(int x=0;x<RSMSamples;x++){

@@ -226,8 +226,14 @@ uniform int UseRoughnessMap;
 uniform int UseMetalnessMap;
 
 vec3 examineBumpMap(){
-    float bumpCenter = texture(bumpMapTex, Input.TexCoord).r;
-    return mix(vec3(0, 1, 0), normalize(vec3(1, 1, 0)), bumpCenter);
+    float bc = texture(bumpMapTex, Input.TexCoord).r;
+    float bdx = -dFdx(bc);
+    float bdy = -dFdy(bc);
+    
+    vec3 tang = -normalize(Input.Tangent)*6;
+    vec3 bitan = -normalize(cross(Input.Tangent, Input.Normal))*6;
+    
+    return normalize(vec3(0,0,1) + bdx * tang + bdy * bitan);
 }
 
 uniform int ShadingMode;
@@ -241,8 +247,12 @@ void finishFragment(vec4 color){
    // if(Selected) color *= 3;
 	outColor = vec4((color.xyz), color.a);
     //outColor = vec4(1);
+    
     vec3 wpos = Input.WorldPos;
     vec3 normalNew  = normalize(Input.Normal);
+   // vec3 normalNew  = normalize(cross(dFdx(wpos), dFdy(wpos)));
+    
+    
     float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
      //   float factor = (texture(bumpMapTex, Input.TexCoord).r);
@@ -274,7 +284,7 @@ void finishFragment(vec4 color){
            map.y = - map.y;
           // map.x = - map.x;
             normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
-          //  normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
+           // normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
     
 		} else if(UseBumpMap == 1){
           //  float factor = ( texture(bumpMapTex, Input.TexCoord).r);
@@ -285,7 +295,7 @@ void finishFragment(vec4 color){
         //    factor = factor * 2 - 1;
         //    vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
         //    nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
-          //  normalNew =  TBN * examineBumpMap();
+            normalNew =  TBN * examineBumpMap();
     
 		} else {
 

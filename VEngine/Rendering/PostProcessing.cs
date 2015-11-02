@@ -76,9 +76,7 @@ namespace VEngine
             BloomFrameBuffer,
             IndirectFramebuffer,
             SSAOFramebuffer,
-            FogFramebuffer,
-            SSAOFramebufferFullRes,
-            IndirectFramebufferFullRes;
+            FogFramebuffer;
 
         private Mesh3d PostProcessingMesh;
         private ShaderStorageBuffer RandomsSSBO = new ShaderStorageBuffer();
@@ -121,7 +119,7 @@ namespace VEngine
             RandomsSSBO.Type = BufferUsageHint.StreamRead;
             RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
 
-            MRT = new MRTFramebuffer(initialWidth / 1, initialHeight / 1);
+            MRT = new MRTFramebuffer(initialWidth, initialHeight);
 
             Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
             Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
@@ -155,8 +153,8 @@ namespace VEngine
                  ColorPixelFormat = PixelFormat.Rgba,
                  ColorPixelType = PixelType.UnsignedByte
              };
-            IndirectFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2);
-            SSAOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
+            IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
+            SSAOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rg8,

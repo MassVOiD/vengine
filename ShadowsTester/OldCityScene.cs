@@ -1,4 +1,6 @@
-﻿using OpenTK;
+﻿using System;
+using System.Collections.Generic;
+using OpenTK;
 using VEngine;
 
 namespace ShadowsTester
@@ -17,10 +19,11 @@ namespace ShadowsTester
             // Media.Get("cryteksponza.mtl"), 0.03f);
 
             var script = System.IO.File.ReadAllText(Media.Get("init.js"));
-            var js = new Script();
-            js.SetValue("Scene", World.Root.RootScene);
-            js.Execute("var VEngine = importNamespace('VEngine');");
-            js.Execute(script);
+            
+            //js.SetValue("Scene", World.Root.RootScene);
+            var vars = new List<Tuple<string, object>>();
+            vars.Add(new Tuple<string, object>("Scene", World.Root.RootScene));
+            ExpressionEvaluator.Eval(vars, script);
             GLThread.Invoke(() =>
             {
                 GLThread.DisplayAdapter.Pipeline.PostProcessor.AABoxesBuffer.MapData(new Vector4[4 * 3]{

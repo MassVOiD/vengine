@@ -19,7 +19,7 @@ uniform int Instanced;
 void main(){
     vec4 v = vec4(in_position,1);
     mat4 mmat = ModelMatrix;
-    if(Instances > 0) mmat = ModelMatrixes[gl_InstanceID];
+    if(Instances > 0) mmat = ModelMatrixes[int(gl_InstanceID)];
     mat4 mvp = ProjectionMatrix * CameraTransformation * ViewMatrix * InitialTransformation *mmat;
 
     vec3 mspace = v.xyz;

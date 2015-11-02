@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace VEngine
 {
@@ -8,38 +9,58 @@ namespace VEngine
     {
         public static string SearchPath;
         private static bool CompletedLoading = false;
+        private static bool AlreadyLoading = false;
+        private static Thread LoadingThread = null;
         private static object locker = new object();
         private static Dictionary<string, string> Map;
 
         public static string Get(string name)
         {
-            lock (locker)
-            {
-                if(!CompletedLoading)
-                    LoadFileMap();
-                if(!Map.ContainsKey(name.ToLower()))
-                    throw new KeyNotFoundException(name);
-                return Map[name.ToLower()];
-            }
+            if(!CompletedLoading)
+                LoadFileMap();
+            if(!Map.ContainsKey(name.ToLower()))
+                throw new KeyNotFoundException(name);
+            return Map[name.ToLower()];
+
         }
 
-        public static void LoadFileMap(string path = null)
+        public static void LoadFileMap()
         {
-            lock (locker)
+            if(LoadingThread != null)
+                LoadingThread.Join();
+            else
             {
-                path = path == null ? SearchPath : path;
-                if(Map == null)
-                    Map = new Dictionary<string, string>();
-                string[] files = Directory.GetFiles(path);
-                string[] dirs = Directory.GetDirectories(path);
-                foreach(string file in files)
-                    if(!Map.ContainsKey(Path.GetFileName(file).ToLower()))
-                        Map.Add(Path.GetFileName(file).ToLower(), Path.GetFullPath(file));
-                foreach(string dir in dirs)
-                    LoadFileMap(dir);
-                if(path == null)
-                    CompletedLoading = true;
+                LoadingThread = new Thread(new ThreadStart(() =>
+                {
+                    LoadFileMapImpl();
+                }));
+                LoadingThread.Start();
+                LoadingThread.Join();
             }
+            
+        }
+
+
+        private static void LoadFileMapImpl(string path = null)
+        {
+            if(path == null)
+                System.Console.WriteLine("loading");
+            path = path == null ? SearchPath : path;
+            if(Map == null)
+                Map = new Dictionary<string, string>();
+            string[] files = Directory.GetFiles(path);
+            string[] dirs = Directory.GetDirectories(path);
+            foreach(string file in files)
+                if(!Map.ContainsKey(Path.GetFileName(file).ToLower()))
+                    Map.Add(Path.GetFileName(file).ToLower(), Path.GetFullPath(file));
+            foreach(string dir in dirs)
+                LoadFileMapImpl(dir);
+            if(path == null)
+            {
+                CompletedLoading = true;
+                AlreadyLoading = false;
+            }
+
         }
 
         public static List<string> QueryRegex(string query)

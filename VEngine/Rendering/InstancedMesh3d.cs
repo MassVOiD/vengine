@@ -306,19 +306,9 @@ namespace VEngine
             }
             GLThread.Invoke(() =>
             {
-                while(true)
-                {
-                    try
-                    {
-                        ModelMatricesBuffer.MapData(Matrix.ToArray());
-                        RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
-                        Ids.MapData(MeshColoredID.ToArray());
-                        break;
-                    }
-                    catch
-                    {
-                    }
-                }
+                ModelMatricesBuffer.MapData(Matrix.ToArray());
+                RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
+                Ids.MapData(MeshColoredID.ToArray());
             });
         }
     }

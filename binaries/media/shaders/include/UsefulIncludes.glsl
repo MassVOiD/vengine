@@ -25,5 +25,8 @@ layout (std430, binding = 9) buffer RSMBuffer
 
 //y = (cos(x*pi)+1)/2
 float cosmix(float a, float b, float factor){
-    return mix(a, b, (cos(factor*3.1415)*0.5+0.5));
+    return mix(a, b, 1.0 - (cos(factor*3.1415)*0.5+0.5));
+}
+float ncos(float a){
+    return cosmix(0, 1, a);
 }

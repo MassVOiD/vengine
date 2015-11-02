@@ -12,16 +12,16 @@ namespace VEngine
             public ShaderProgram
                 Program,
                 TesselatedProgram,
-                Geometry1iLines,
+                //Geometry1iLines,
                 Geometry1iTriangles,
-                Geometry1iPoints,
-                Geometry32iLines,
-                Geometry32iTriangles,
-                Geometry32iPoints,
-                Geometry96iLines,
-                Geometry96iTriangles,
-                Geometry96iPoints,
-                TesselatedGeometry1iLines,
+                //Geometry1iPoints,
+                //Geometry32iLines,
+                //Geometry32iTriangles,
+                // Geometry32iPoints,
+                //Geometry96iLines,
+                Geometry96iTriangles;
+                //Geometry96iPoints;
+               /* TesselatedGeometry1iLines,
                 TesselatedGeometry1iTriangles,
                 TesselatedGeometry1iPoints,
                 TesselatedGeometry32iLines,
@@ -29,7 +29,7 @@ namespace VEngine
                 TesselatedGeometry32iPoints,
                 TesselatedGeometry96iLines,
                 TesselatedGeometry96iTriangles,
-                TesselatedGeometry96iPoints;
+                TesselatedGeometry96iPoints;*/
 
             public List<ShaderProgram> ProgramsList;
 
@@ -42,14 +42,14 @@ namespace VEngine
                 if(TesselatedProgram == null)
                     TesselatedProgram = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, null, "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-
+                /*
                 if(Geometry1iLines == null)
                     Geometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry1iLines.glsl");
+                        fs, "Generic.geometry1iLines.glsl");*/
                 if(Geometry1iTriangles == null)
                     Geometry1iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry1iTriangles.glsl");
-                if(Geometry1iPoints == null)
+                /*if(Geometry1iPoints == null)
                     Geometry1iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry1iPoints.glsl");
                 if(Geometry32iLines == null)
@@ -63,14 +63,14 @@ namespace VEngine
                         fs, "Generic.geometry32iPoints.glsl");
                 if(Geometry96iLines == null)
                     Geometry96iLines = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iLines.glsl");
+                        fs, "Generic.geometry96iLines.glsl");*/
                 if(Geometry96iTriangles == null)
                     Geometry96iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry96iTriangles.glsl");
-                if(Geometry96iPoints == null)
+                /*if(Geometry96iPoints == null)
                     Geometry96iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry96iPoints.glsl");
-
+                
                 if(TesselatedGeometry1iLines == null)
                     TesselatedGeometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry1iLines.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
@@ -97,28 +97,28 @@ namespace VEngine
                         fs, "Generic.geometry96iTriangles.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
                 if(TesselatedGeometry96iPoints == null)
                     TesselatedGeometry96iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iPoints.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
+                        fs, "Generic.geometry96iPoints.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");*/
                 ProgramsList.AddRange(new ShaderProgram[] {
                     Program,
                     TesselatedProgram,
-                    Geometry1iLines,
+                   // Geometry1iLines,
                     Geometry1iTriangles,
-                    Geometry1iPoints,
-                    Geometry32iLines,
-                    Geometry32iTriangles,
-                    Geometry32iPoints,
-                    Geometry96iLines,
+                    //Geometry1iPoints,
+                   // Geometry32iLines,
+                   // Geometry32iTriangles,
+                   // Geometry32iPoints,
+                   // Geometry96iLines,
                     Geometry96iTriangles,
-                    Geometry96iPoints,
-                    TesselatedGeometry1iLines,
-                    TesselatedGeometry1iTriangles,
-                    TesselatedGeometry1iPoints,
-                    TesselatedGeometry32iLines,
-                    TesselatedGeometry32iTriangles,
-                    TesselatedGeometry32iPoints,
-                    TesselatedGeometry96iLines,
-                    TesselatedGeometry96iTriangles,
-                    TesselatedGeometry96iPoints
+                   // Geometry96iPoints,
+                   // TesselatedGeometry1iLines,
+                   // TesselatedGeometry1iTriangles,
+                   // TesselatedGeometry1iPoints,
+                  //  TesselatedGeometry32iLines,
+                  //  TesselatedGeometry32iTriangles,
+                   // TesselatedGeometry32iPoints,
+                   // TesselatedGeometry96iLines,
+                   // TesselatedGeometry96iTriangles,
+                   // TesselatedGeometry96iPoints
                 });
             }
         }
@@ -236,7 +236,7 @@ namespace VEngine
             if(Type == MaterialType.TessellatedTerrain)
                 return pack.TesselatedProgram;
             if(Type == MaterialType.Parallax)
-                return pack.Geometry32iTriangles;
+                return pack.Geometry96iTriangles;
             return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
                Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
         }
