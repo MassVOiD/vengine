@@ -31,7 +31,7 @@ namespace ShadowsTester
             World.Root.PhysicalWorld.AddRigidBody(rigidBody);
             rigidBody.Gravity = Vector3.Zero;
             rigidBody.ApplyGravity();
-            rigidBody.SetDamping(0.5f, 0.01f);
+            rigidBody.SetDamping(0.9f, 0.01f);
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
 

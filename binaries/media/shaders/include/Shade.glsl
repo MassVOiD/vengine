@@ -7,6 +7,7 @@ vec3 viewDirection,
 vec3 surfacenormal,
 float roughness) {
 
+   // return max(0.0, dot(lightDirection, surfacenormal));
     float LdotV = dot(lightDirection, viewDirection);
     float NdotL = dot(lightDirection, surfacenormal);
     float NdotV = dot(surfacenormal, viewDirection);
@@ -18,7 +19,7 @@ float roughness) {
     float A = 1.0 + sigma2 * (1.0 / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
     float B = 0.45 * sigma2 / (sigma2 + 0.09);
 
-    return max(0.0, NdotL) * (A + B * s / t) / PI;
+    return max(0.1, NdotL) * (A + B * s / t) / PI;
 }
 
 float beckmannDistribution(float x, float roughness) {
@@ -103,7 +104,7 @@ vec3 shade(
     float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight)* lightColor.a);
    // if(att < 0.002) return vec3(0);
     
-    float specularComponent = specular * cookTorranceSpecular(
+    float specularComponent = cookTorranceSpecular(
         lightRelativeToVPos,
         cameraRelativeToVPos,
         normal,
@@ -120,11 +121,11 @@ vec3 shade(
 
     vec3 cc = lightColor.rgb*albedo;
     
-    float fresnel = 1.0 + fresnelSchlick(dot(lightRelativeToVPos, normal)) * 4.0;
+    float fresnel = 1.0 + fresnelSchlick(dot(cameraRelativeToVPos, normal));
     
     vec3 difcolor = cc * diffuseComponent * att;
     vec3 difcolor2 = lightColor.rgb * albedo * diffuseComponent * att;
-    vec3 specolor = cc * specularComponent;
+    vec3 specolor = mix(cc * specularComponent, lightColor.rgb * specularComponent, specular);
     
     
     return (difcolor2 + specolor) * fresnel;
@@ -133,6 +134,11 @@ vec3 shade(
 vec3 shadePhoton(vec2 uv, vec3 color){
     vec3 albedo = texture(diffuseColorTex, uv).rgb;
     return color*albedo;
+}
+vec3 shadePhotonSpecular(vec2 uv, vec3 color){
+    vec3 albedo = texture(diffuseColorTex, uv).rgb;
+    float spec = texture(worldPosTex, uv).a;
+    return mix(color*albedo, color, spec);
 }
 
 vec3 shadeUV(vec2 uv,

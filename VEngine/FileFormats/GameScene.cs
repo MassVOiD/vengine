@@ -25,7 +25,7 @@ namespace VEngine.FileFormats
 
         public event ObjectFinishEventArgs OnObjectFinish;
 
-        public static string FromMesh3dList(List<Mesh3d> meshes, string directory, string nameprefix = "mesh_")
+        public static string FromMesh3dList(List<Mesh3d> meshes, string directory, string nameprefix = "mesh_", bool saveFiles = false)
         {
             var materials = meshes.Select<Mesh3d, GenericMaterial>((a) => a.MainMaterial).Distinct();
             var output = new StringBuilder();
@@ -84,26 +84,29 @@ namespace VEngine.FileFormats
                 output.Append("mesh ");
                 output.Append(nameprefix);
                 output.AppendLine(mesh.Name);
-                MemoryStream vboStream = new MemoryStream();
-                MemoryStream indicesStream = new MemoryStream();
+                if(saveFiles)
+                {
+                    MemoryStream vboStream = new MemoryStream();
+                    MemoryStream indicesStream = new MemoryStream();
 
-                foreach(float v in element.VBO)
-                    vboStream.Write(BitConverter.GetBytes(v), 0, 4);
-                foreach(uint v in element.Indices)
-                    indicesStream.Write(BitConverter.GetBytes(v), 0, 4);
+                    foreach(float v in element.VBO)
+                        vboStream.Write(BitConverter.GetBytes(v), 0, 4);
+                    foreach(uint v in element.Indices)
+                        indicesStream.Write(BitConverter.GetBytes(v), 0, 4);
 
-                vboStream.Flush();
-                indicesStream.Flush();
+                    vboStream.Flush();
+                    indicesStream.Flush();
 
-                if(File.Exists(directory + nameprefix + element.Name + ".vbo.raw"))
-                    File.Delete(directory + nameprefix + element.Name + ".vbo.raw");
-                File.WriteAllBytes(directory + nameprefix + element.Name + ".vbo.raw", vboStream.ToArray());
+                    if(File.Exists(directory + nameprefix + element.Name + ".vbo.raw"))
+                        File.Delete(directory + nameprefix + element.Name + ".vbo.raw");
+                    File.WriteAllBytes(directory + nameprefix + element.Name + ".vbo.raw", vboStream.ToArray());
+                    if(File.Exists(directory + nameprefix + element.Name + ".indices.raw"))
+                        File.Delete(directory + nameprefix + element.Name + ".indices.raw");
+                    File.WriteAllBytes(directory + nameprefix + element.Name + ".indices.raw", indicesStream.ToArray());
+                }
                 output.Append("vbo ");
                 output.AppendLine(nameprefix + element.Name + ".vbo.raw");
 
-                if(File.Exists(directory + nameprefix + element.Name + ".indices.raw"))
-                    File.Delete(directory + nameprefix + element.Name + ".indices.raw");
-                File.WriteAllBytes(directory + nameprefix + element.Name + ".indices.raw", indicesStream.ToArray());
                 output.Append("ibo ");
                 output.AppendLine(nameprefix + element.Name + ".indices.raw");
 

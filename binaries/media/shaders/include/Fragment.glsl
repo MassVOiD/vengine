@@ -225,13 +225,19 @@ uniform int UseSpecularMap;
 uniform int UseRoughnessMap;
 uniform int UseMetalnessMap;
 
+vec2 getTexel(sampler2D t){
+ return 1.0 / vec2(textureSize(t, 0));
+}
+
 vec3 examineBumpMap(){
-    float bc = texture(bumpMapTex, Input.TexCoord).r;
-    float bdx = -dFdx(bc);
-    float bdy = -dFdy(bc);
+    vec2 iuv = Input.TexCoord;
+    float bc = texture(bumpMapTex, iuv, 0).r;
+    vec2 dsp = getTexel(bumpMapTex);
+    float bdx = texture(bumpMapTex, iuv).r - texture(bumpMapTex, iuv+vec2(dsp.x, 0)).r;
+    float bdy = texture(bumpMapTex, iuv).r - texture(bumpMapTex, iuv+vec2(0, dsp.y)).r;
     
-    vec3 tang = -normalize(Input.Tangent)*6;
-    vec3 bitan = -normalize(cross(Input.Tangent, Input.Normal))*6;
+    vec3 tang = normalize(Input.Tangent)*6;
+    vec3 bitan = normalize(cross(Input.Tangent, Input.Normal))*6;
     
     return normalize(vec3(0,0,1) + bdx * tang + bdy * bitan);
 }
@@ -255,8 +261,8 @@ void finishFragment(vec4 color){
     
     float worldBumpMapSize = 0;
     if(UseBumpMap == 1){
-     //   float factor = (texture(bumpMapTex, Input.TexCoord).r);
-       // wpos += (normalNew * factor * 0.02);
+       // float factor = (texture(bumpMapTex, Input.TexCoord).r);
+       // wpos += (normalNew * factor * 0.2);
     }
     mat3 TBN = inverse(transpose(mat3(
         normalize(Input.Tangent),
@@ -286,7 +292,8 @@ void finishFragment(vec4 color){
             normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
            // normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
     
-		} else if(UseBumpMap == 1){
+		} 
+        if(UseBumpMap == 1){
           //  float factor = ( texture(bumpMapTex, Input.TexCoord).r);
             //factor = factor - 119;
         //    factor = (factor) ;
@@ -295,7 +302,7 @@ void finishFragment(vec4 color){
         //    factor = factor * 2 - 1;
         //    vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
         //    nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
-            normalNew =  TBN * examineBumpMap();
+         //   normalNew =  TBN * examineBumpMap();
     
 		} else {
 

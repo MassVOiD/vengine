@@ -56,12 +56,54 @@ namespace ShadowsTester
                         Picked.SetPosition(Picked.GetPosition() + FreeCam.Cam.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up) * (float)e.YDelta * -0.01f);
                     }
                 }
+                else if(kb.IsKeyDown(OpenTK.Input.Key.F))
+                {
+                    FreeCam.Freeze = true;
+                    if(Picked != null)
+                    {
+                        Picked.SetOrientation(Quaternion.Multiply(Picked.GetOrientation(), Quaternion.FromAxisAngle(FreeCam.Cam.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up), (float)e.XDelta * -0.01f)));
+                        Picked.SetOrientation(Quaternion.Multiply(Picked.GetOrientation(), Quaternion.FromAxisAngle(FreeCam.Cam.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left), (float)e.YDelta * -0.01f)));
+                    }
+                }
+                else if(kb.IsKeyDown(OpenTK.Input.Key.C))
+                {
+                    FreeCam.Freeze = true;
+                    if(Picked != null)
+                    {
+                        Picked.SetScale(Picked.GetScale() + new Vector3((float)e.XDelta * -0.01f));
+                    }
+                }
                 else
                     FreeCam.Freeze = GLThread.DisplayAdapter.IsCursorVisible;
             };
 
             GLThread.OnUpdate += (o, e) =>
             {
+                var jpad = OpenTK.Input.GamePad.GetState(0);
+                float deadzone = 0.15f;
+                if(Picked != null)
+                {
+                    if(Math.Abs(jpad.ThumbSticks.Right.X) > deadzone)
+                    {
+                        var ang = Picked.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up);
+                        Picked.Rotate(Quaternion.FromAxisAngle(ang, jpad.ThumbSticks.Right.X * 0.01f));
+                    }
+                    if(Math.Abs(jpad.ThumbSticks.Right.Y) > deadzone)
+                    {
+                        var ang = Picked.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left);
+                        Picked.Rotate(Quaternion.FromAxisAngle(ang, jpad.ThumbSticks.Right.Y * 0.01f));
+                    }
+                    if(Math.Abs(jpad.Triggers.Left) > deadzone)
+                    {
+                        var ang = Picked.GetOrientation().ToDirection();
+                        Picked.Rotate(Quaternion.FromAxisAngle(ang, jpad.Triggers.Left * 0.01f));
+                    }
+                    if(Math.Abs(jpad.Triggers.Right) > deadzone)
+                    {
+                        var ang = Picked.GetOrientation().ToDirection();
+                        Picked.Rotate(Quaternion.FromAxisAngle(ang, -jpad.Triggers.Right*0.01f));
+                    }
+                }
                 var kb = OpenTK.Input.Keyboard.GetState();
                 if(GLThread.DisplayAdapter.IsCursorVisible)
                 {
@@ -255,6 +297,24 @@ namespace ShadowsTester
                         Picked.MainMaterial.Roughness += 0.05f;
                         if(Picked.MainMaterial.Roughness > 1)
                             Picked.MainMaterial.Roughness = 1;
+                    }
+                }
+                if(e.Key == OpenTK.Input.Key.G)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.SpecularComponent -= 0.05f;
+                        if(Picked.MainMaterial.SpecularComponent < 0)
+                            Picked.MainMaterial.SpecularComponent = 0;
+                    }
+                }
+                if(e.Key == OpenTK.Input.Key.H)
+                {
+                    if(Picked != null)
+                    {
+                        Picked.MainMaterial.SpecularComponent += 0.05f;
+                        if(Picked.MainMaterial.SpecularComponent > 1)
+                            Picked.MainMaterial.SpecularComponent = 1;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.Semicolon)

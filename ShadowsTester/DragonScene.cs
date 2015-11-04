@@ -30,14 +30,14 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-              Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
-            var color3 = GenericMaterial.FromMedia("floor1a.jpg", "floor1n.jpg", "DisplaceIT_Ground_Pebble1_Displace.bmp");
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
+            var color3 = GenericMaterial.FromMedia("kafel2_a.png", "kafel2_n.png");
             //var color2 = new GenericMaterial(Color.WhiteSmoke);
             // color3.SetBumpMapFromMedia("DisplaceIT_Ground_Pebble1_Displace.bmp");
             // color3.SetNormalMapFromMedia("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");
             // color3.Type = GenericMaterial.MaterialType.Parallax;
 
-           // RainSystem rs = new RainSystem(1.0f, 300, 100.0f, 1.0f);
+            // RainSystem rs = new RainSystem(1.0f, 300, 100.0f, 1.0f);
 
             color3.Metalness = 0;
             color3.Roughness = 0.2f;
@@ -49,14 +49,14 @@ namespace ShadowsTester
             water3.Translate(-100, 0, 0);
             scene.Add(water3);
             Random rand = new Random();
-           /* GLThread.CreateTimer(() =>
-            {
-                for(int i = 0; i < 10; i++)
-                {
-                    Vector3 v = new Vector3((float)(rand.NextDouble() * 2.0 - 1.0) * 10.0f, 0.0f, (float)(rand.NextDouble() * 2.0 - 1.0) * 10.0f);
-                    rs.AddDrop(v);
-                }
-            }, 60).Start();*/
+            /* GLThread.CreateTimer(() =>
+             {
+                 for(int i = 0; i < 10; i++)
+                 {
+                     Vector3 v = new Vector3((float)(rand.NextDouble() * 2.0 - 1.0) * 10.0f, 0.0f, (float)(rand.NextDouble() * 2.0 - 1.0) * 10.0f);
+                     rs.AddDrop(v);
+                 }
+             }, 60).Start();*/
 
             var ss = new GameScene("ferrari.scene");
             ss.Load();
@@ -104,13 +104,13 @@ namespace ShadowsTester
             wallsInst.Transformations.Add(new TransformationManager(new Vector3(-10, 5, 0), Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2), 1));
             wallsInst.Instances = 4;
             wallsInst.UpdateMatrix();
-            World.Root.CreateRigidBody(0, wallsInst.Transformations[0].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
-            World.Root.CreateRigidBody(0, wallsInst.Transformations[1].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
-            World.Root.CreateRigidBody(0, wallsInst.Transformations[2].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
-            World.Root.CreateRigidBody(0, wallsInst.Transformations[3].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
-            scene.Add(wallsInst);
+           // World.Root.CreateRigidBody(0, wallsInst.Transformations[0].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+        //    World.Root.CreateRigidBody(0, wallsInst.Transformations[1].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+        //    World.Root.CreateRigidBody(0, wallsInst.Transformations[2].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+        //    World.Root.CreateRigidBody(0, wallsInst.Transformations[3].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+          //  scene.Add(wallsInst);
 
-            World.Root.CreateRigidBody(0, Matrix4.Identity, new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0), null);
+            //World.Root.CreateRigidBody(0, Matrix4.Identity, new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0), null);
             /*
             var roadtile = Object3dGenerator.CreateGround(new Vector2(-0.47f, -0.5f) * 20, new Vector2(0.47f, 0.5f) * 20, new Vector2(1, 1), Vector3.UnitY);
             var roadsInstances = new InstancedMesh3d(roadtile, GenericMaterial.FromMedia("roadtex.png", "roadnormaltex.png"));
@@ -165,7 +165,7 @@ namespace ShadowsTester
             Object3dInfo cathobj = Object3dInfo.LoadFromObjSingle(Media.Get("cathedral2.obj"));
             var cath = new Mesh3d(cathobj, new GenericMaterial(Color.LightSteelBlue));
             //cath.Scale(0.8f);
-            scene.Add(cath);
+           // scene.Add(cath);
             
             Object3dInfo cathobja = Object3dInfo.LoadFromObjSingle(Media.Get("ryj.obj"));
             var catha = new Mesh3d(cathobja, GenericMaterial.FromMedia("ryj_albedo.jpg"));
@@ -181,9 +181,9 @@ namespace ShadowsTester
             //scene.Add(chair);
             Object3dInfo roomobj = Object3dInfo.LoadFromObjSingle(Media.Get("roomclean.obj"));
             var room = new Mesh3d(roomobj, new GenericMaterial(Color.WhiteSmoke));
-            room.Translate(70, 8.1f, 0);
+            room.Translate(70, 8.1f, 0);*/
            // scene.Add(room);
-           */
+           
             /*
             Object3dInfo fenceobj = Object3dInfo.LoadFromObjSingle(Media.Get("fenceplane.obj"));
             var fence = new Mesh3d(fenceobj, new GenericMaterial(Color.WhiteSmoke));
@@ -283,52 +283,68 @@ namespace ShadowsTester
                 scene.Add(me);
             }*/
               //scene.Add(water6);
-              /*
-              var tsc = Object3dInfo.LoadSceneFromObj(Media.Get("pttest.obj"), Media.Get("pttest.mtl"));
-              tsc[2].MainMaterial.Color = new Vector4(0.8f, 0.181f, 0.309f, 1);
-              tsc[0].MainMaterial.Color = new Vector4(0.8f, 0.792f, 0.591f, 1);
-              tsc[1].MainMaterial.Color = new Vector4(0.8f, 0.553f, 0.032f, 1);
-              tsc[3].MainMaterial.Color = new Vector4(0.8f, 0.553f, 0.032f, 1);*/
-              //tsc.ForEach((a) => scene.Add(a));
-              /*
-              var metal = new Mesh3d(tsc, new GenericMaterial(Color.Green));
-              metal.MainMaterial.Type = GenericMaterial.MaterialType.Metal;
-              metal.MainMaterial.Metalness = 1;
-              metal.MainMaterial.Roughness = 0.1f;
-              metal.Translate(0, 0, -10);
-              scene.Add(metal);
 
-              var plastic = new Mesh3d(tsc, new GenericMaterial(Color.Green));
-              plastic.MainMaterial.Type = GenericMaterial.MaterialType.Plastic;
-              plastic.MainMaterial.Metalness = 0;
-              plastic.MainMaterial.Roughness = 1;
-              plastic.Translate(0, 0, -7);
-              scene.Add(plastic);
+            var tsc = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
+            /*tsc[2].MainMaterial.Color = new Vector4(0.8f, 0.181f, 0.309f, 1);
+            tsc[0].MainMaterial.Color = new Vector4(0.8f, 0.792f, 0.591f, 1);
+            tsc[1].MainMaterial.Color = new Vector4(0.8f, 0.553f, 0.032f, 1);
+            tsc[3].MainMaterial.Color = new Vector4(0.8f, 0.553f, 0.032f, 1);*/
+            //tsc.ForEach((a) => scene.Add(a));
 
-              var diffuse = new Mesh3d(tsc, new GenericMaterial(Color.Green));
-              diffuse.MainMaterial.Type = GenericMaterial.MaterialType.Diffuse;
-              diffuse.MainMaterial.Metalness = 0;
-              diffuse.MainMaterial.Roughness = 1;
-              diffuse.Translate(0, 0, -4);
-              scene.Add(diffuse);*/
+            var metal = new Mesh3d(tsc, new GenericMaterial(Color.WhiteSmoke));
+            metal.MainMaterial.Metalness = 1;
+            metal.MainMaterial.Roughness = 0.0f;
+            metal.MainMaterial.SpecularComponent = 0.1f;
+            metal.Translate(10, 0, -10);
+            scene.Add(metal);
+            /*
+            var plastic = new Mesh3d(tsc, new GenericMaterial(Color.Green));
+            plastic.MainMaterial.Metalness = 0;
+            plastic.MainMaterial.Roughness = 0;
+            plastic.MainMaterial.SpecularComponent = 1f;
+            plastic.Translate(10, 0, -7);
+            scene.Add(plastic);
+
+            var diffuse = new Mesh3d(tsc, new GenericMaterial(Color.Green));
+            diffuse.MainMaterial.Metalness = 0;
+            diffuse.MainMaterial.Roughness = 1;
+            diffuse.MainMaterial.SpecularComponent = 0.1f;
+            diffuse.Translate(10, 0, -4);
+            scene.Add(diffuse);
+
+            var diffuse2 = new Mesh3d(tsc, new GenericMaterial(Color.Red));
+            diffuse2.MainMaterial.Metalness = 0.3f;
+            diffuse2.MainMaterial.Roughness = 0.5f;
+            diffuse2.MainMaterial.SpecularComponent = 0.1f;
+            diffuse2.Translate(10, 0, 0);
+            scene.Add(diffuse2);
+
+            var diffuse3 = new Mesh3d(tsc, new GenericMaterial(Color.Violet));
+            diffuse3.MainMaterial.Metalness = 0.1f;
+            diffuse3.MainMaterial.Roughness = 0.7f;
+            diffuse3.MainMaterial.SpecularComponent = 1f;
+            diffuse3.Translate(10, 0, 4);
+            scene.Add(diffuse3);*/
 
             // var stukaobj = 
 
-            /*for(int i = 0; i < 12; i++)
+            for(int i = 0; i < 1; i++)
             {
                 // Object3dInfo gridx = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
                 Object3dInfo gridx = Object3dInfo.LoadFromObjSingle(Media.Get("flagplane.obj"));
                 gridx.Normalize();
+                
                 var gcx = new GenericMaterial(Color.White);
                 gcx.Type = GenericMaterial.MaterialType.Flag;
                 gcx.Roughness = 1.0f;
+                gcx.SetAlphaMaskFromMedia("ornament.png");
                 // gcx.IgnoreLighting = true;
                 Mesh3d gex = new Mesh3d(gridx, gcx);
                 gex.SetMass(0);
-                gex.Scale(4f, 12, 4);
-                gex.Translate(i * 4, 0, 0);
+                gex.Scale(14f, 12, 4);
+                gex.Translate(-12-i * 4, 0, 0);
                 scene.Add(gex);
-            }*/
+            }
 
             /* for(int z = 0; z < 20; z++)
              {

@@ -17,12 +17,12 @@ layout (std430, binding = 3) buffer B4
   vec4 PathPoints[]; 
 }; 
 
-layout( local_size_x = 3, local_size_y = 3, local_size_z = 50 ) in;
+layout( local_size_x = 1, local_size_y = 1, local_size_z = 1 ) in;
 
 uniform int BallsCount;
 uniform int PathPointsCount;
 
-#define GRAVITY (vec3(0, -0.07, 0))
+#define GRAVITY (vec3(0, -0.02, 0))
 
 vec3 processPath(uint index, vec3 position, float max_speed, float acceleration, float agility){
    // for(uint i=0;i<BallsCount;i++){
@@ -202,9 +202,15 @@ uniform float Time;
 
 #include noise3D.glsl
 
+uint globalIndex(){
+    uvec3 iv = gl_GlobalInvocationID * gl_WorkGroupSize + gl_LocalInvocationID;
+    uvec3 is = gl_NumWorkGroups * gl_WorkGroupSize;
+    return iv.x * is.y * is.z +
+           iv.y * is.z + 
+           iv.z;
+}
+
 void main(){
-	uint group = gl_GlobalInvocationID.z * gl_NumWorkGroups.x* gl_NumWorkGroups.y + 
-    gl_GlobalInvocationID.y * gl_NumWorkGroups.x + 
-        gl_GlobalInvocationID.x;
+	uint group = globalIndex();
     processBallPhysics(group);
 }

@@ -171,7 +171,7 @@ float testVisibility3d(vec3 w1, vec3 w2) {
 
 vec3 lookupCubeMap(vec3 displace){
     vec3 c = texture(cubeMapTex, displace).rgb;
-    return vec3pow(c*1.5, 2.0);
+    return vec3pow(c*2.5, 3.0);
 }
 
 
@@ -193,7 +193,7 @@ vec3 Radiosity()
     float vdaosampling = vals.y * 2;
     float vdaorefract = vals.z;
 
-    Seed(UV);
+    Seed(UV*88);
     randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
@@ -206,6 +206,8 @@ vec3 Radiosity()
     
     int samples = int(mix(47, 164, 1.0 - meshRoughness));
     
+    float fresnel = 1.0 + fresnelSchlick(dot(normalize(posCenter), -normalCenter));
+    
     for(int i=0; i<samples; i++)
     {
         vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
@@ -215,16 +217,40 @@ vec3 Radiosity()
         float vi2 = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace*0.1);
         vi2 = HitPos.x > 0 && reverseLog(vi2) < 0.1  ? reverseLog(vi2)*10.0 : 1.0;
                 
-        vec3 color = shadePhoton(UV, lookupCubeMap(displace));
+        vec3 color = shadePhotonSpecular(UV, lookupCubeMap(displace));
         //color = getIntersect(color, FromCameraSpace(posCenter), displace);
         float dotdiffuse = max(0, dot(displace, normalCenter));
-        float fresnel = 1.0 + fresnelSchlick(dotdiffuse) * 14.0;
         vec3 radiance = color;
         ambient += radiance;// * vi * vi2;
         counter++;
     }
-    
     vec3 vdaoMain = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaomult;
+    float metalness =  texture(meshDataTex, UV).z;
+    
+    if(metalness < 1.0){
+        ambient = vec3(0);
+        counter = 0;  
+        for(int i=0; i<samples; i++)
+        {
+            vec3 displace = normalize(BRDF(dir, normalCenter, 0.0));
+            
+            float vi = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace);
+            vi = HitPos.x > 0 && reverseLog(vi) < 1.0  ? reverseLog(vi) : 1.0;
+            float vi2 = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace*0.1);
+            vi2 = HitPos.x > 0 && reverseLog(vi2) < 0.1  ? reverseLog(vi2)*10.0 : 1.0;
+                    
+            vec3 color = shadePhoton(UV, lookupCubeMap(displace));
+            //color = getIntersect(color, FromCameraSpace(posCenter), displace);
+            float dotdiffuse = max(0, dot(displace, normalCenter));
+            vec3 radiance = color;
+            ambient += radiance;// * vi * vi2;
+            counter++;
+        }        
+        vec3 vdaoFullDiffuse = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaomult;
+        vdaoMain = mix((vdaoMain + vdaoFullDiffuse)*0.5, vdaoMain, metalness);
+    }
+    
+    
     
     ambient = vec3(0);
     counter = 0;
@@ -238,7 +264,6 @@ vec3 Radiosity()
             vec3 color = shadePhoton(UV, lookupCubeMap(displace));
             //color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, -normalCenter));
-            float fresnel = 1.0 + fresnelSchlick(dotdiffuse) * 14.0;
             vec3 radiance = color;
             ambient += radiance;
             counter++;
@@ -247,7 +272,7 @@ vec3 Radiosity()
     
     vec3 vdaoRefract = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaorefract;
     
-    return (vdaoMain + vdaoRefract) * VDAOGlobalMultiplier * 0.2;
+    return (vdaoMain + vdaoRefract) * fresnel * VDAOGlobalMultiplier * 0.2;
 }
 void main()
 {   

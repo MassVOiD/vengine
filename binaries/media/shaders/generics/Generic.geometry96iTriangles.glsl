@@ -1,9 +1,10 @@
 #version 430 core
 layout(invocations = 96) in;
 layout(triangles) in;
-layout(triangle_strip, max_vertices = 21) out;
+layout(triangle_strip, max_vertices = 72) out;
 
 #include Mesh3dUniforms.glsl
+#include UsefulIncludes.glsl
 
 in Data {
     int instanceId;
@@ -97,6 +98,20 @@ void EmitPlane(vec3 normal, Plane plane){
     }
     EndPrimitive(); 
 }
+void EmitPlaneSmooth(vec3 normal[4], Plane plane){
+   // vec3 normal = normalize(cross(plane.Vertices[1].Position - plane.Vertices[0].Position, plane.Vertices[2].Position - plane.Vertices[0].Position));
+    vec3 tangent = normalize(plane.Vertices[1].Position - plane.Vertices[0].Position);
+    for(int l=0;l<4;l++){
+        Output.instanceId = gs_in[0].instanceId;
+        Output.WorldPos = plane.Vertices[l].Position;
+        Output.TexCoord = plane.Vertices[l].TexCoord;
+        Output.Normal = normal[l];
+        Output.Tangent = tangent;
+        gl_Position = PV * vec4(plane.Vertices[l].Position, 1);
+        EmitVertex();
+    }
+    EndPrimitive(); 
+}
 
 void GenerateGrass(vec3 start, vec3 normal, vec3 direction, vec3 tangent, float uplength, float width, float bending, float wind, float seed){
     vec3 rvec2 = (vec3(rand(gs_in[2].TexCoord+seed), rand(gs_in[1].TexCoord+seed), rand(gs_in[0].TexCoord+seed)) * 2 - 1) * 0.5;
@@ -162,7 +177,22 @@ void GeometryGenerateGrass(){
 }
 
 #define GEO_FLAG_XDIVISION 95
-#define GEO_FLAG_YDIVISION 23
+#define GEO_FLAG_YDIVISION 17
+
+vec3 FlagDynamicDfd(vec3 noiseModifier, float timeModifier, vec3 velocityModifier, vec3 n1, float mixx, vec3 normal, vec3 tangent, vec3 point){
+    vec3 tang = normalize(tangent);
+    vec3 bitan = normalize(cross(tangent, normal));
+    vec3 dfdxx = 
+        ((point + bitan*0.001) + n1 * snoise(vec4((point + bitan*0.001) * noiseModifier, Time * timeModifier)) * (1.0 - mixx + 0.001) + velocityModifier * ncos(1.0 - mixx + 0.001)) - 
+        (point + n1 * snoise(vec4(point * noiseModifier, Time * timeModifier)) * (1.0 - mixx) + velocityModifier * ncos(1.0 - mixx));
+    vec3 dfdxy = 
+        ((point + tang*0.001) + n1 * snoise(vec4((point + tang*0.001) * noiseModifier, Time * timeModifier)) * (1.0 - mixx + 0.001) + velocityModifier * ncos(1.0 - mixx + 0.001)) - 
+        (point + n1 * snoise(vec4(point * noiseModifier, Time * timeModifier)) * (1.0 - mixx) + velocityModifier * ncos(1.0 - mixx));
+    
+    vec3 z = normalize(cross(dfdxx, dfdxy).xyz * vec3(1, 1, 1));
+    z = mix(normal, z, 0.5);
+    return z;
+}
 
 void GeometryProcessFlagDynamics(){
     if(gl_InvocationID > GEO_FLAG_XDIVISION) return;
@@ -174,27 +204,41 @@ void GeometryProcessFlagDynamics(){
     vec3 t1 = v2 - v1;
     vec3 t2 = v3 - v1;
     vec3 v4 = v1 + t1 + t2;
-    vec3 noiseModifier = vec3(3, 0.5, 3);
+    vec3 noiseModifier = vec3(0.3, 0.1, 0.3);
+    vec3 velocityModifier = vec3(0, 0, 0);
     float timeModifier = 0.3;
     vec3 n1 = normalize(cross(t1, t2));
     for(int i = 0; i < GEO_FLAG_YDIVISION; i++) {
         float ymix1 = float(i) / GEO_FLAG_YDIVISION;
         float ymix2 = float(i + 1) / GEO_FLAG_YDIVISION;
+        
+        
         vec3 p1 = v1 + t1 * xmix1 + t2 * ymix1;
         vec3 p2 = v1 + t1 * xmix1 + t2 * ymix2;
         vec3 p3 = v1 + t1 * xmix2 + t2 * ymix1;
         vec3 p4 = v1 + t1 * xmix2 + t2 * ymix2;
+        
+        vec3 no1 = FlagDynamicDfd(noiseModifier, timeModifier, velocityModifier, n1, ymix1, gs_in[0].Normal, gs_in[0].Tangent, p1);
+        vec3 no2 = FlagDynamicDfd(noiseModifier, timeModifier, velocityModifier, n1, ymix2, gs_in[0].Normal, gs_in[0].Tangent, p2);
+        vec3 no3 = FlagDynamicDfd(noiseModifier, timeModifier, velocityModifier, n1, ymix1, gs_in[0].Normal, gs_in[0].Tangent, p3);
+        vec3 no4 = FlagDynamicDfd(noiseModifier, timeModifier, velocityModifier, n1, ymix2, gs_in[0].Normal, gs_in[0].Tangent, p4);
+        
         p1 += n1 * snoise(vec4(p1 * noiseModifier, Time * timeModifier)) * (1.0 - ymix1);
         p2 += n1 * snoise(vec4(p2 * noiseModifier, Time * timeModifier)) * (1.0 - ymix2);
         p3 += n1 * snoise(vec4(p3 * noiseModifier, Time * timeModifier)) * (1.0 - ymix1);
         p4 += n1 * snoise(vec4(p4 * noiseModifier, Time * timeModifier)) * (1.0 - ymix2);
-        vec3 n2 = normalize(cross(p2 - p1, p3 - p1));
-        EmitPlane(n2, 
+        p1 += velocityModifier * ncos(1.0 - ymix1);
+        p2 += velocityModifier * ncos(1.0 - ymix2);
+        p3 += velocityModifier * ncos(1.0 - ymix1);
+        p4 += velocityModifier * ncos(1.0 - ymix2);
+                
+        
+        EmitPlaneSmooth(vec3[4](no1, no2, no3, no4), 
             Plane(Vertex[4](
-                Vertex(p1, vec2(xmix1, 1.0 - ymix1)),
-                Vertex(p2, vec2(xmix1, 1.0 - ymix2)),
-                Vertex(p3, vec2(xmix2, 1.0 - ymix1)),
-                Vertex(p4, vec2(xmix2, 1.0 - ymix2)))));
+                Vertex(p1, 20.0*vec2(xmix1*2, 1.0 - ymix1)),
+                Vertex(p2, 20.0*vec2(xmix1*2, 1.0 - ymix2)),
+                Vertex(p3, 20.0*vec2(xmix2*2, 1.0 - ymix1)),
+                Vertex(p4, 20.0*vec2(xmix2*2, 1.0 - ymix2)))));
     }
 }
 
