@@ -34,6 +34,8 @@ vec3 random3dSample(){
         getRand2() * 2 - 1
     ));
 }
+
+
 // using this brdf makes cosine diffuse automatically correct
 vec3 BRDF(vec3 reflectdir, vec3 norm, float roughness){
     vec3 displace = random3dSample();
@@ -49,6 +51,22 @@ vec2 projectOnScreen(vec3 worldcoord){
     if(clipspace.z < 0.0) return vec2(-1);
     return sspace1;
 }
+
+
+vec3 vec3pow(vec3 inputx, float po){
+    return vec3(
+    pow(inputx.x, po),
+    pow(inputx.y, po),
+    pow(inputx.z, po)
+    );
+}
+
+vec3 lookupCubeMap(vec3 displace){
+    vec3 c = texture(cubeMapTex, displace).rgb;
+    return vec3pow(c, 0.2);
+}
+
+
 uniform int UseHBAO;
 float hbao(){
 
@@ -85,7 +103,7 @@ float hbao(){
             vec2 gauss = mix(UV, sspos2, getRand2());
             vec3 pos = texture(worldPosTex,  gauss).rgb;
             float dt = max(0, dot(norm, normalize(pos - posc)));
-            minang = max(dt * max(0, (ringsize - length(pos - posc))/ringsize), minang);
+            minang = max(dt * max(0, (ringsize - length(pos - posc)*0.3)/ringsize), minang);
         }
         if(minang > aocutoff) minang = 1;
         buf += minang;

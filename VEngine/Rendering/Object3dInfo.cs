@@ -791,6 +791,30 @@ namespace VEngine
                 VBO[i + 2] /= maxval;
             }
         }
+        public float GetNormalizeDivisor()
+        {
+            List<Vector3> vectors = new List<Vector3>();
+            float maxval = 0.0001f;
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                if(vertex.Length > maxval)
+                    maxval = vertex.Length;
+            }
+            return maxval;
+        }
+        public float GetDivisorFromPoint(Vector3 point)
+        {
+            List<Vector3> vectors = new List<Vector3>();
+            float maxval = 0.0001f;
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                if((vertex - point).Length > maxval)
+                    maxval = vertex.Length;
+            }
+            return maxval;
+        }
 
         public void OriginToCenter()
         {
@@ -1241,7 +1265,7 @@ namespace VEngine
             AreBuffersGenerated = true;
         }
 
-        private void UpdateBoundingBox()
+        public void UpdateBoundingBox()
         {
             var vertices = GetRawVertexList();
             var a = vertices[0];

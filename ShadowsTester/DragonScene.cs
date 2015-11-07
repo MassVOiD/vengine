@@ -104,11 +104,11 @@ namespace ShadowsTester
             wallsInst.Transformations.Add(new TransformationManager(new Vector3(-10, 5, 0), Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2), 1));
             wallsInst.Instances = 4;
             wallsInst.UpdateMatrix();
-           // World.Root.CreateRigidBody(0, wallsInst.Transformations[0].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
-        //    World.Root.CreateRigidBody(0, wallsInst.Transformations[1].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
-        //    World.Root.CreateRigidBody(0, wallsInst.Transformations[2].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
-        //    World.Root.CreateRigidBody(0, wallsInst.Transformations[3].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
-          //  scene.Add(wallsInst);
+            // World.Root.CreateRigidBody(0, wallsInst.Transformations[0].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+            //    World.Root.CreateRigidBody(0, wallsInst.Transformations[1].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+            //    World.Root.CreateRigidBody(0, wallsInst.Transformations[2].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+            //    World.Root.CreateRigidBody(0, wallsInst.Transformations[3].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
+            //  scene.Add(wallsInst);
 
             //World.Root.CreateRigidBody(0, Matrix4.Identity, new BulletSharp.StaticPlaneShape(Vector3.UnitY, 0), null);
             /*
@@ -182,8 +182,8 @@ namespace ShadowsTester
             Object3dInfo roomobj = Object3dInfo.LoadFromObjSingle(Media.Get("roomclean.obj"));
             var room = new Mesh3d(roomobj, new GenericMaterial(Color.WhiteSmoke));
             room.Translate(70, 8.1f, 0);*/
-           // scene.Add(room);
-           
+            // scene.Add(room);
+
             /*
             Object3dInfo fenceobj = Object3dInfo.LoadFromObjSingle(Media.Get("fenceplane.obj"));
             var fence = new Mesh3d(fenceobj, new GenericMaterial(Color.WhiteSmoke));
@@ -328,12 +328,38 @@ namespace ShadowsTester
 
             // var stukaobj = 
 
+            Object3dInfo lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
+            lucyobj.ScaleUV(50.0f);
+            Mesh3d lucy = new Mesh3d(lucyobj, GenericMaterial.FromMedia("floor1a.jpg", "floor1n.jpg"));
+            lucy.Translate(0, 0, 20);
+            scene.Add(lucy);
+
+            lucyobj.UpdateBoundingBox();
+            PassiveVoxelizer vox = new PassiveVoxelizer();
+            GLThread.Invoke(() =>
+            {
+                List<PostProcessing.AABContainers> lst1 = new List<PostProcessing.AABContainers>();
+                List<PostProcessing.AAB> lst2 = new List<PostProcessing.AAB>();
+
+                lucy.MainObjectInfo.UpdateBoundingBox();
+                var c = new PostProcessing.AABContainers(lucy.MainObjectInfo.AABB.Minimum + lucy.GetPosition(), lucy.MainObjectInfo.AABB.Maximum + lucy.GetPosition());
+                lst1.Add(c);
+                var voxels = vox.Voxelize(lucy.MainObjectInfo, 64);
+                foreach(var b in voxels)
+                {
+                    lst2.Add(new PostProcessing.AAB(lucy.MainMaterial.Color, b.Minimum + lucy.GetPosition(), b.Maximum + lucy.GetPosition(), c));
+                }
+
+                
+                GLThread.DisplayAdapter.Pipeline.PostProcessor.SetAABoxes(lst1, lst2);
+            });
+
             for(int i = 0; i < 1; i++)
             {
                 // Object3dInfo gridx = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
                 Object3dInfo gridx = Object3dInfo.LoadFromObjSingle(Media.Get("flagplane.obj"));
                 gridx.Normalize();
-                
+
                 var gcx = new GenericMaterial(Color.White);
                 gcx.Type = GenericMaterial.MaterialType.Flag;
                 gcx.Roughness = 1.0f;
@@ -342,7 +368,7 @@ namespace ShadowsTester
                 Mesh3d gex = new Mesh3d(gridx, gcx);
                 gex.SetMass(0);
                 gex.Scale(14f, 12, 4);
-                gex.Translate(-12-i * 4, 0, 0);
+                gex.Translate(-12 - i * 4, 0, 0);
                 scene.Add(gex);
             }
 

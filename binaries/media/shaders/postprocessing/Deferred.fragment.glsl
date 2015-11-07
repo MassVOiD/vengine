@@ -47,11 +47,17 @@ vec2 refractUV(){
 
 mat4 PV = (ProjectionMatrix * ViewMatrix);
 
+/********************/
+
 struct AABox
 {
     vec4 Minimum;
     vec4 Maximum;
     vec4 Color;
+    int Container;
+    int StupidAlignment1;
+    int StupidAlignment2;
+    int StupidAlignment3;
 };
 uniform int AABoxesCount;
 
@@ -59,6 +65,26 @@ layout (std430, binding = 7) buffer BoxesBuffer
 {
     AABox AABoxes[]; 
 }; 
+
+/********************/
+
+struct AAContainerBox
+{
+    vec4 Minimum;
+    vec4 Maximum;
+    int StartIndex;
+    int InnerCount;
+    int StupidAlignment5;
+    int StupidAlignment6;
+};
+uniform int AABoxesContainersCount;
+
+layout (std430, binding = 8) buffer Boxes2Buffer
+{
+    AAContainerBox AAContainerBoxes[]; 
+}; 
+
+/********************/
 
 struct SimplePointLight
 {
@@ -71,6 +97,11 @@ layout (std430, binding = 5) buffer SimplePointLightBuffer
 {
     SimplePointLight simplePointLights[]; 
 }; 
+
+
+// well.. yeah
+// we gonna pathtrace
+
 
 float NearHitPos = 0.0;
 bool tryIntersectBox(vec3 origin, vec3 direction,
@@ -87,17 +118,52 @@ vec3 bMax)
     return final > start;
 }
 
-
-vec3 getIntersect(vec3 originalColor, vec3 origin, vec3 direction){
+float LastCombinedDistance = 9999999;
+vec3 getIntersectInContainer(int start, int count, int container, vec3 origin, vec3 direction){
     float lastDistance = 9999999;
-    vec3 color = originalColor*1;
-    for(int i=0;i<AABoxesCount;i++){
+    vec3 color = vec3(0);
+    AAContainerBox abc = AAContainerBoxes[container];
+    for(int i=start;i<start + count;i++){
+       // if(AABoxes[i].Container != container) continue;
         if(tryIntersectBox(origin, direction, AABoxes[i].Minimum.xyz, AABoxes[i].Maximum.xyz) &&
                 NearHitPos < lastDistance){
             lastDistance = NearHitPos;
-            color = CalculateFallof(lastDistance) * AABoxes[i].Color.a * AABoxes[i].Color.rgb; 
+            color = AABoxes[i].Color.a * AABoxes[i].Color.rgb; 
         }
     }
+    LastCombinedDistance = lastDistance;
+    return color;
+}
+
+vec3 getIntersect(vec3 originalColor, vec3 origin, vec3 direction){
+
+    vec3 color = originalColor;
+    float lastDistance = 9999999;
+    
+    int indices[16] = int[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    int hit = 0;
+    for(int i=0;i<AABoxesContainersCount;i++){
+        if(tryIntersectBox(origin, direction, AAContainerBoxes[i].Minimum.xyz, AAContainerBoxes[i].Maximum.xyz)){
+            indices[hit] = i;
+            hit++;
+            //color = getIntersectInContainer(i, origin, direction);
+        }
+        
+        // color += getIntersectInContainer(i, origin, direction);
+    }
+    lastDistance = 9999999;
+    for(int i=0;i<hit;i++){
+        
+        vec3 a = getIntersectInContainer(AAContainerBoxes[indices[i]].StartIndex, AAContainerBoxes[indices[i]].InnerCount, indices[i], origin, direction);
+        if(LastCombinedDistance < lastDistance){
+            lastDistance = LastCombinedDistance;
+            color = a;
+        }
+        NearHitPos = 0.0;
+    }
+    
+    
+    LastCombinedDistance = 999999;
     return color;
 }
 
@@ -171,7 +237,7 @@ float testVisibility3d(vec3 w1, vec3 w2) {
 
 vec3 lookupCubeMap(vec3 displace){
     vec3 c = texture(cubeMapTex, displace).rgb;
-    return vec3pow(c*2.5, 3.0);
+    return vec3pow(c*2.5, 1.7);
 }
 
 
@@ -200,11 +266,12 @@ vec3 Radiosity()
     vec3 ambient = vec3(0);
     
     vec3 dir = normalize(reflect(posCenter, normalCenter));
+    vec3 dir2 = normalize(refract(posCenter, normalCenter, 0.8));
     
     uint counter = 0;   
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     
-    int samples = int(mix(47, 164, 1.0 - meshRoughness));
+    int samples = int(mix(12, 256, 1.0 - meshRoughness));
     
     float fresnel = 1.0 + fresnelSchlick(dot(normalize(posCenter), -normalCenter));
     
@@ -218,7 +285,8 @@ vec3 Radiosity()
         vi2 = HitPos.x > 0 && reverseLog(vi2) < 0.1  ? reverseLog(vi2)*10.0 : 1.0;
                 
         vec3 color = shadePhotonSpecular(UV, lookupCubeMap(displace));
-        //color = getIntersect(color, FromCameraSpace(posCenter), displace);
+       // vec3 color = vec3(0);
+       // color = getIntersect(color, FromCameraSpace(posCenter), displace);
         float dotdiffuse = max(0, dot(displace, normalCenter));
         vec3 radiance = color;
         ambient += radiance;// * vi * vi2;
@@ -240,10 +308,10 @@ vec3 Radiosity()
             vi2 = HitPos.x > 0 && reverseLog(vi2) < 0.1  ? reverseLog(vi2)*10.0 : 1.0;
                     
             vec3 color = shadePhoton(UV, lookupCubeMap(displace));
-            //color = getIntersect(color, FromCameraSpace(posCenter), displace);
+           // color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, normalCenter));
             vec3 radiance = color;
-            ambient += radiance;// * vi * vi2;
+            //ambient += radiance;// * vi * vi2;
             counter++;
         }        
         vec3 vdaoFullDiffuse = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaomult;
@@ -259,7 +327,7 @@ vec3 Radiosity()
         dir = normalize(refract(posCenter, normalCenter, 0.3));
         for(int i=0; i<samples; i++)
         {
-            vec3 displace = normalize(BRDF(dir, -normalCenter, meshRoughness));
+            vec3 displace = normalize(BRDF(dir2, -normalCenter, meshRoughness));
                             
             vec3 color = shadePhoton(UV, lookupCubeMap(displace));
             //color = getIntersect(color, FromCameraSpace(posCenter), displace);

@@ -15,12 +15,34 @@ namespace VEngine
         {
             public Vector4 Color;
             public Vector3 Maximum;
-            public Vector3 Minumum;
+            public Vector3 Minimum;
+            public AABContainers Container = null;
+
+            public AAB(Vector4 color, Vector3 min, Vector3 max, AABContainers container)
+            {
+                Color = color;
+                Minimum = min;
+                Maximum = max;
+                Container = container;
+            }
+        }
+        public class AABContainers
+        {
+            public Vector3 Maximum;
+            public Vector3 Minimum;
+
+            public AABContainers(Vector3 min, Vector3 max)
+            {
+                Minimum = min;
+                Maximum = max;
+            }
         }
 
         public static PathTracing.PathTracer Tracer;
         public ShaderStorageBuffer AABoxesBuffer;
+        public ShaderStorageBuffer AABoxesContainersBuffer;
         public int AABoxesCount;
+        public int AABoxesContainersCount;
         public ShaderStorageBuffer DensityPoints;
         public int DensityPointsCount = 0;
         public MRTFramebuffer MRT;
@@ -98,21 +120,14 @@ namespace VEngine
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 7, 0u);*/
             //FullScene3DTexture = new Texture3D(new Vector3(64, 64, 64));
             AABoxesBuffer = new ShaderStorageBuffer();
+            AABoxesContainersBuffer = new ShaderStorageBuffer();
             DensityPoints = new ShaderStorageBuffer();
             NumbersTexture = new Texture(Media.Get("numbers.png"));
             CShader = new ComputeShader("Blur.compute.glsl");
             CubeMap = new CubeMapTexture(Media.Get("posx.jpg"), Media.Get("posy.jpg"), Media.Get("posz.jpg"),
                 Media.Get("negx.jpg"), Media.Get("negy.jpg"), Media.Get("negz.jpg"));
             BokehTexture = new Texture(Media.Get("bokeh.png"));
-            GLThread.Invoke(() =>
-            {
-                AABoxesBuffer.MapData(new Vector4[4 * 3]{
-                    new Vector4(-5.826700f, 0.183174f, -4.040090f, 0), new Vector4(-5.277061f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
-                    new Vector4(-5.218601f, 0.183174f, -4.040090f, 0), new Vector4(-4.668962f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
-                    new Vector4(-7.154271f, 0.183174f, -4.040090f, 0), new Vector4(-6.604632f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
-                    new Vector4(-6.554271f, 0.183174f, -4.040090f, 0), new Vector4(-6.004632f, 2.116685f, -3.999181f, 0), new Vector4(1, 1, 1.1f, 55),
-                });
-            });
+
             Width = initialWidth;
             Height = initialHeight;
             // initialWidth *= 2; initialHeight *= 2;
@@ -342,15 +357,16 @@ namespace VEngine
             Mesh3d.PostProcessingUniformsOnly = false;
         }
 
-        public void SetAABoxes(List<AAB> boxes)
+        public void SetAABoxes(List<AABContainers> containers, List<AAB> boxes)
         {
-            List<byte> buffer = new List<byte>(boxes.Count * 4 * 3 * 4);
+            boxes.Sort((a, b) => a.Container.GetHashCode() - b.Container.GetHashCode());
+            List<byte> buffer = new List<byte>(boxes.Count * 4 * 4 * 4);
             foreach(var b in boxes)
             {
-                buffer.AddRange(BitConverter.GetBytes(b.Minumum.X));
-                buffer.AddRange(BitConverter.GetBytes(b.Minumum.Y));
-                buffer.AddRange(BitConverter.GetBytes(b.Minumum.Z));
-                buffer.AddRange(BitConverter.GetBytes(b.Minumum.Z));
+                buffer.AddRange(BitConverter.GetBytes(b.Minimum.X));
+                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Y));
+                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Z));
+                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Z));
 
                 buffer.AddRange(BitConverter.GetBytes(b.Maximum.X));
                 buffer.AddRange(BitConverter.GetBytes(b.Maximum.Y));
@@ -361,9 +377,39 @@ namespace VEngine
                 buffer.AddRange(BitConverter.GetBytes(b.Color.Y));
                 buffer.AddRange(BitConverter.GetBytes(b.Color.Z));
                 buffer.AddRange(BitConverter.GetBytes(b.Color.W));
+
+                buffer.AddRange(BitConverter.GetBytes(containers.IndexOf(b.Container)));
+                buffer.AddRange(BitConverter.GetBytes(containers.IndexOf(b.Container)));
+                buffer.AddRange(BitConverter.GetBytes(containers.IndexOf(b.Container)));
+                buffer.AddRange(BitConverter.GetBytes(containers.IndexOf(b.Container)));
             }
             AABoxesCount = boxes.Count;
             AABoxesBuffer.MapData(buffer.ToArray());
+
+            buffer = new List<byte>(containers.Count * 4 * 3 * 4);
+            foreach(var b in containers)
+            {
+                buffer.AddRange(BitConverter.GetBytes(b.Minimum.X));
+                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Y));
+                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Z));
+                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Z));
+
+                buffer.AddRange(BitConverter.GetBytes(b.Maximum.X));
+                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Y));
+                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Z));
+                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Z));
+
+                var fi = boxes.FindIndex((a) => a.Container == b);
+                var ic = boxes.Count((a) => a.Container == b);
+                if(fi < 0)
+                    fi = 0;
+                buffer.AddRange(BitConverter.GetBytes(fi));
+                buffer.AddRange(BitConverter.GetBytes(ic));
+                buffer.AddRange(BitConverter.GetBytes(0));
+                buffer.AddRange(BitConverter.GetBytes(0));
+            }
+            AABoxesContainersCount = containers.Count;
+            AABoxesContainersBuffer.MapData(buffer.ToArray());
         }
 
         private void Blit()
@@ -454,11 +500,13 @@ namespace VEngine
             DeferredShader.SetUniform("RandomsCount", 16 * 16 * 16);
             RandomsSSBO.Use(6);
             AABoxesBuffer.Use(7);
+            AABoxesContainersBuffer.Use(8);
             MRT.UseTextureId(18);
             World.Root.RootScene.RecreateSimpleLightsSSBO();
             GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             World.Root.RootScene.MapLightsSSBOToShader(DeferredShader);
             DeferredShader.SetUniform("AABoxesCount", AABoxesCount);
+            DeferredShader.SetUniform("AABoxesContainersCount", AABoxesContainersCount);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
             ShaderProgram.Lock = true;
             PostProcessingMesh.Draw(Matrix4.Identity);
@@ -545,6 +593,7 @@ namespace VEngine
             SSAOShader.Use();
             MRT.UseTextureDepth(1);
             MRT.UseTextureId(18);
+            CubeMap.Use(TextureUnit.Texture19);
             SSAOShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
             SSAOShader.SetUniform("AOGlobalModifier", AOGlobalModifier);
             SSAOShader.SetUniform("RandomsCount", 16 * 16 * 16);

@@ -285,11 +285,11 @@ void GeometryProcessParallaxDraw(){
             Output.Data = vec3(inter, inter + midstep, maxwpos);
             gl_Position = PV * vec4(Output.WorldPos, 1);
             EmitVertex();
-            //inter += midstep2;
+            inter += midstep2;
         }
         inter += midstep;
-        EndPrimitive();
     }   
+        EndPrimitive();
 }
 
 void main(){
