@@ -31,7 +31,7 @@ namespace ShadowsTester
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
-            var color3 = GenericMaterial.FromMedia("kafel2_a.png", "kafel2_n.png");
+            var color3 = GenericMaterial.FromMedia("aaa.dds", "aa.dds");
             //var color2 = new GenericMaterial(Color.WhiteSmoke);
             // color3.SetBumpMapFromMedia("DisplaceIT_Ground_Pebble1_Displace.bmp");
             // color3.SetNormalMapFromMedia("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");

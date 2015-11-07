@@ -287,7 +287,8 @@ void finishFragment(vec4 color){
             vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
          //  map.y = - map.y;
            map = map * 2 - 1;
-           map.y = - map.y;
+           map.r = - map.r;
+           //map.g = - map.g;
           // map.x = - map.x;
             normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
            // normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);

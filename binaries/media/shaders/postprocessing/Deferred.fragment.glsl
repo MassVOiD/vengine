@@ -311,7 +311,7 @@ vec3 Radiosity()
            // color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, normalCenter));
             vec3 radiance = color;
-            //ambient += radiance;// * vi * vi2;
+            ambient += radiance;// * vi * vi2;
             counter++;
         }        
         vec3 vdaoFullDiffuse = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaomult;
