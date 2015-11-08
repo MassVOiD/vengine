@@ -287,8 +287,8 @@ void finishFragment(vec4 color){
             vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
          //  map.y = - map.y;
            map = map * 2 - 1;
-           map.r = - map.r;
-           //map.g = - map.g;
+           //map.r = - map.r;
+           map.g = - map.g;
           // map.x = - map.x;
             normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
            // normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
@@ -349,19 +349,26 @@ SubsurfaceScatteringMultiplier*/
         uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
         uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
         
+        vec3 rn, rt;
+        uint id;
+        
 		if(Instances == 0){
-            outId = uvec4(MeshID, packpart1, packpart2, MaterialType);
-            vec3 rn = (InitialRotation * RotationMatrix * vec4(normalNew, 0)).xyz;
-            if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
-            if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn);
-			outNormals = vec4(rn, DiffuseComponent);
+            rn = (InitialRotation * RotationMatrix * vec4(normalNew, 0)).xyz;
+            rt = (InitialRotation * RotationMatrix * vec4(Input.Tangent, 0)).xyz; 
+            id = MeshID;
 		} else {
-            outId = uvec4(InstancedIds[Input.instanceId], packpart1, packpart2, MaterialType);
-            vec3 rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
-            if(dot(rn, CameraPosition -Input.WorldPos) <=0) rn *= -1;
-            if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
-			outNormals = vec4(rn, DiffuseComponent);
+            rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
+            rt = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
+            id = InstancedIds[Input.instanceId];
 		}
+        
+        if(dot(rn, CameraPosition -Input.WorldPos) <=0) {
+            rn *= -1;
+        }
+        uint packpart3 = packSnorm4x8(vec4(rt, 0));
+        outId = uvec4(id, packpart1, packpart2, packpart3);
+        if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
+        outNormals = vec4(rn, DiffuseComponent);
 	} else {
 		outNormals = vec4(0, 0, 0, 1);
 	}	

@@ -95,5 +95,21 @@ namespace ShadowsTester
         {
             GLThread.DisplayAdapter.Pipeline.PostProcessor.AOGlobalModifier = 0.1f + ((float)aoGlobalBar.Value / (float)aoGlobalBar.Maximum) * 5.0f;
         }
+
+        public void UpdatePerformance()
+        {
+            if(!this.Created)
+                return;
+            this.Invoke(new Action(() =>
+            {
+                deferredms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastDeferredTime.ToString();
+                ssaoms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastSSAOTime.ToString();
+                indirectms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastIndirectTime.ToString();
+                combinerms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastCombinerTime.ToString();
+                fogms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastFogTime.ToString();
+                mrtms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastMRTTime.ToString();
+                hdrms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastHDRTime.ToString();
+            }));
+        }
     }
 }

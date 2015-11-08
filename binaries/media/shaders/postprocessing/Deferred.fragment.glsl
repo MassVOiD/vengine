@@ -166,6 +166,44 @@ vec3 getIntersect(vec3 originalColor, vec3 origin, vec3 direction){
     LastCombinedDistance = 999999;
     return color;
 }
+bool getIntersectInContainerEarlyEndShadows(int start, int count, int container, vec3 origin, vec3 direction, float maxdistance){
+    float lastDistance = 9999999;
+    AAContainerBox abc = AAContainerBoxes[container];
+    for(int i=start;i<start + count;i++){
+        if(tryIntersectBox(origin, direction, AABoxes[i].Minimum.xyz, AABoxes[i].Maximum.xyz)){
+            if(NearHitPos < maxdistance) return true;
+        }
+    }
+    LastCombinedDistance = lastDistance;
+    return false;
+}
+
+float getIntersectShadows(vec3 origin, vec3 direction, float maxdistance){
+
+    float lastDistance = 9999999;
+    
+    int indices[16] = int[16](0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    int hit = 0;
+    for(int i=0;i<AABoxesContainersCount;i++){
+        if(tryIntersectBox(origin, direction, AAContainerBoxes[i].Minimum.xyz, AAContainerBoxes[i].Maximum.xyz) && NearHitPos < maxdistance){
+            indices[hit] = i;
+            hit++;
+        }
+    }
+    lastDistance = 9999999;
+    for(int i=0;i<hit;i++){
+        
+        if(getIntersectInContainerEarlyEndShadows(AAContainerBoxes[indices[i]].StartIndex, AAContainerBoxes[indices[i]].InnerCount, indices[i], origin, direction, maxdistance)){
+            return 0;
+        }
+    }
+    LastCombinedDistance = 999999;
+    return 1;
+}
+
+float traceVisibility(vec3 p1, vec3 p2){
+    return getIntersectShadows(p1, normalize(p2 - p1), distance(p1, p2));
+}
 
 vec3 random3dSample(){
     return normalize(vec3(
@@ -174,19 +212,24 @@ vec3 random3dSample(){
     getRand() * 2 - 1
     ));
 }
+
+vec2 getTexel(sampler2D t){
+ return 1.0 / vec2(textureSize(t, 0));
+}
+
+vec3 reconstructTangentWorldSpace(vec2 uv){
+    vec3 bc = texture(worldPosTex, uv).rgb;
+    vec2 dsp = getTexel(worldPosTex);
+    vec3 bdx = bc - texture(worldPosTex, uv+vec2(dsp.x, 0)).rgb;
+    vec3 bdy = bc - texture(worldPosTex, uv+vec2(0, dsp.y)).rgb;
+    
+    return vec3(0, 0, 1);
+}
+
 // using this brdf makes cosine diffuse automatically correct
 vec3 BRDF(vec3 reflectdir, vec3 norm, float roughness){
     vec3 displace = random3dSample();
     displace = displace * sign(dot(norm, displace));
-    // at this point displace is hemisphere sampled "uniformly"
-    
-    float dt = dot(displace, reflectdir) * 0.5 + 0.5;
-    // dt is difference between sample and ideal mirror reflection, 0 means completely other direction
-    // dt will be used as "drag" to mirror reflection by roughness
-    
-    // for roughness 1 - mixfactor must be 0, for rughness 0, mixfactor must be 1
-    float mixfactor = mix(0, 1, roughness);
-    
     return mix(displace, reflectdir, roughness);
 }
 vec3 vec3pow(vec3 inputx, float po){
@@ -259,36 +302,30 @@ vec3 Radiosity()
     float vdaosampling = vals.y * 2;
     float vdaorefract = vals.z;
 
-    Seed(UV*88);
-    randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
     
     vec3 dir = normalize(reflect(posCenter, normalCenter));
+    vec3 vdir = normalize(posCenter);
     vec3 dir2 = normalize(refract(posCenter, normalCenter, 0.8));
     
     uint counter = 0;   
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     
-    int samples = int(mix(12, 256, 1.0 - meshRoughness));
+    int samples = int(mix(3, 16, 1.0 - meshRoughness));
     
-    float fresnel = 1.0 + fresnelSchlick(dot(normalize(posCenter), -normalCenter));
     
     for(int i=0; i<samples; i++)
     {
         vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
+        //float fresnel = fresnelSchlick(dot(displace, normalCenter));
         
-        float vi = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace);
-        vi = HitPos.x > 0 && reverseLog(vi) < 1.0  ? reverseLog(vi) : 1.0;
-        float vi2 = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace*0.1);
-        vi2 = HitPos.x > 0 && reverseLog(vi2) < 0.1  ? reverseLog(vi2)*10.0 : 1.0;
-                
         vec3 color = shadePhotonSpecular(UV, lookupCubeMap(displace));
        // vec3 color = vec3(0);
        // color = getIntersect(color, FromCameraSpace(posCenter), displace);
         float dotdiffuse = max(0, dot(displace, normalCenter));
-        vec3 radiance = color;
+        vec3 radiance = makeFresnel(1.0 - max(0, dot(displace, vdir)), color);
         ambient += radiance;// * vi * vi2;
         counter++;
     }
@@ -340,8 +377,30 @@ vec3 Radiosity()
     
     vec3 vdaoRefract = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaorefract;
     
-    return (vdaoMain + vdaoRefract) * fresnel * VDAOGlobalMultiplier * 0.2;
+    return (vdaoMain + vdaoRefract) * VDAOGlobalMultiplier * 0.2;
 }
+
+
+float lookupShadow(vec2 fuv){
+    float outc = 0;
+    int counter = 0;
+    float depthCenter = texture(depthTex, fuv).r;
+    for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
+    {
+        for(float g2 = 0; g2 < 6.0; g2+=1.0)
+        {
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.01);
+            float color = texture(indirectTex, fuv + gauss).r;
+            float depthThere = texture(indirectTex, fuv + gauss).g;
+            if(abs(depthThere - depthCenter) < 0.01){
+                outc += color;
+                counter++;
+            }
+        }
+    }
+    return counter == 0 ? texture(indirectTex, fuv).r : outc / counter;
+}
+
 void main()
 {   
 
@@ -350,6 +409,8 @@ void main()
     // if(alpha < 0.99){
     //nUV = refractUV();
     // }
+    Seed(UV*88);
+    randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec3 colorOriginal = texture(diffuseColorTex, nUV).rgb;    
     vec4 normal = texture(normalsTex, nUV);
     meshDiffuse = normal.a;
@@ -384,11 +445,13 @@ void main()
         if(lightClipSpace.z <= 0.0) continue;
         vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;   
 
-        if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0){ 
-            float percent = getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i);
-            vec3 radiance = shadeUV(UV, LightsPos[i], LightsColors[i]);
-            color1 += (radiance) * percent;
-        }
+        float percent = 0;
+        if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0) {
+            percent = getShadowPercent(lightScreenSpace, fragmentPosWorld3d.xyz, i);
+
+        } else percent = lookupShadow(UV);
+        vec3 radiance = shadeUV(UV, LightsPos[i], LightsColors[i]);
+        color1 += (radiance) * percent;
     }
     if(!IgnoreLightingFragment) for(int i=0;i<SimpleLightsCount;i++){
         color1 += shadeUV(UV, simplePointLights[i].Position.xyz, simplePointLights[i].Color);
@@ -401,7 +464,7 @@ void main()
     // experiment
     
     
-    outColor = clamp(vec4(color1, 1.0), 0.0, 1.0);
+    outColor = vec4(color1, 1.0);
     
     
 }

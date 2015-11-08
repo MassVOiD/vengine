@@ -10,8 +10,8 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 1920;
-            public static int Height = 1030;
+            public static int Width = 1280;
+            public static int Height = 720;
             public static string MediaPath = "media";
         }
 
@@ -56,12 +56,11 @@ namespace ShadowsTester
             var freeCamera = Commons.SetUpFreeCamera();
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
-            GLThread.Invoke(() => window.StartPhysicsThread());
 
             //new PlanetScene().Create();
             //   new SculptScene().Create();
             //   new SponzaScene().Create();
-         //   new OldCityScene();
+            //new OldCityScene();
             // new PathTraceTest().Create();
             //  new NatureScene().Create();
             //  new IndirectTestScene().Create();
@@ -73,8 +72,7 @@ namespace ShadowsTester
             // new FortressScene().Create();
 
             // new HallScene().Create(); new RoadScene().Create(); new HomeScene().Create();
-
-            World.Root.SortByDepthMasking();
+            
 
 
             //World.Root.SortByObject3d();

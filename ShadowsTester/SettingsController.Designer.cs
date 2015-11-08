@@ -52,6 +52,21 @@
             this.selectedMeshLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
+            this.label13 = new System.Windows.Forms.Label();
+            this.label14 = new System.Windows.Forms.Label();
+            this.label15 = new System.Windows.Forms.Label();
+            this.label16 = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.hdrms = new System.Windows.Forms.Label();
+            this.mrtms = new System.Windows.Forms.Label();
+            this.fogms = new System.Windows.Forms.Label();
+            this.combinerms = new System.Windows.Forms.Label();
+            this.indirectms = new System.Windows.Forms.Label();
+            this.deferredms = new System.Windows.Forms.Label();
+            this.ssaoms = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.aoRangeBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.aoStrengthBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ambientLightBar)).BeginInit();
@@ -65,6 +80,7 @@
             this.statusStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -259,7 +275,7 @@
             this.selectedMeshLabel});
             this.statusStrip1.Location = new System.Drawing.Point(0, 575);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(571, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(1065, 22);
             this.statusStrip1.TabIndex = 20;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -307,12 +323,148 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "World properties";
             // 
+            // groupBox3
+            // 
+            this.groupBox3.Controls.Add(this.hdrms);
+            this.groupBox3.Controls.Add(this.mrtms);
+            this.groupBox3.Controls.Add(this.fogms);
+            this.groupBox3.Controls.Add(this.combinerms);
+            this.groupBox3.Controls.Add(this.indirectms);
+            this.groupBox3.Controls.Add(this.deferredms);
+            this.groupBox3.Controls.Add(this.ssaoms);
+            this.groupBox3.Controls.Add(this.label17);
+            this.groupBox3.Controls.Add(this.label14);
+            this.groupBox3.Controls.Add(this.label15);
+            this.groupBox3.Controls.Add(this.label16);
+            this.groupBox3.Controls.Add(this.label13);
+            this.groupBox3.Controls.Add(this.label12);
+            this.groupBox3.Controls.Add(this.label11);
+            this.groupBox3.Location = new System.Drawing.Point(558, 28);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(276, 116);
+            this.groupBox3.TabIndex = 23;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Performance";
+            // 
+            // label11
+            // 
+            this.label11.Location = new System.Drawing.Point(6, 16);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(85, 23);
+            this.label11.TabIndex = 0;
+            this.label11.Text = "SSAO ms:";
+            this.label11.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label12
+            // 
+            this.label12.Location = new System.Drawing.Point(6, 29);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(85, 13);
+            this.label12.TabIndex = 1;
+            this.label12.Text = "Deferred ms:";
+            this.label12.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label13
+            // 
+            this.label13.Location = new System.Drawing.Point(6, 42);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(85, 13);
+            this.label13.TabIndex = 2;
+            this.label13.Text = "Indirect ms:";
+            this.label13.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label14
+            // 
+            this.label14.Location = new System.Drawing.Point(6, 80);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(85, 13);
+            this.label14.TabIndex = 5;
+            this.label14.Text = "MRT ms:";
+            this.label14.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label15
+            // 
+            this.label15.Location = new System.Drawing.Point(6, 67);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(85, 13);
+            this.label15.TabIndex = 4;
+            this.label15.Text = "Fog ms:";
+            this.label15.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label16
+            // 
+            this.label16.Location = new System.Drawing.Point(6, 55);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(85, 13);
+            this.label16.TabIndex = 3;
+            this.label16.Text = "Combiner ms:";
+            this.label16.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // label17
+            // 
+            this.label17.Location = new System.Drawing.Point(6, 93);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(85, 13);
+            this.label17.TabIndex = 6;
+            this.label17.Text = "HDR ms:";
+            this.label17.TextAlign = System.Drawing.ContentAlignment.TopRight;
+            // 
+            // hdrms
+            // 
+            this.hdrms.Location = new System.Drawing.Point(87, 93);
+            this.hdrms.Name = "hdrms";
+            this.hdrms.Size = new System.Drawing.Size(85, 13);
+            this.hdrms.TabIndex = 13;
+            // 
+            // mrtms
+            // 
+            this.mrtms.Location = new System.Drawing.Point(87, 80);
+            this.mrtms.Name = "mrtms";
+            this.mrtms.Size = new System.Drawing.Size(85, 13);
+            this.mrtms.TabIndex = 12;
+            // 
+            // fogms
+            // 
+            this.fogms.Location = new System.Drawing.Point(87, 67);
+            this.fogms.Name = "fogms";
+            this.fogms.Size = new System.Drawing.Size(85, 13);
+            this.fogms.TabIndex = 11;
+            // 
+            // combinerms
+            // 
+            this.combinerms.Location = new System.Drawing.Point(87, 55);
+            this.combinerms.Name = "combinerms";
+            this.combinerms.Size = new System.Drawing.Size(85, 13);
+            this.combinerms.TabIndex = 10;
+            // 
+            // indirectms
+            // 
+            this.indirectms.Location = new System.Drawing.Point(87, 42);
+            this.indirectms.Name = "indirectms";
+            this.indirectms.Size = new System.Drawing.Size(85, 13);
+            this.indirectms.TabIndex = 9;
+            // 
+            // deferredms
+            // 
+            this.deferredms.Location = new System.Drawing.Point(87, 29);
+            this.deferredms.Name = "deferredms";
+            this.deferredms.Size = new System.Drawing.Size(85, 13);
+            this.deferredms.TabIndex = 8;
+            // 
+            // ssaoms
+            // 
+            this.ssaoms.Location = new System.Drawing.Point(87, 16);
+            this.ssaoms.Name = "ssaoms";
+            this.ssaoms.Size = new System.Drawing.Size(85, 23);
+            this.ssaoms.TabIndex = 7;
+            // 
             // SettingsController
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(571, 597);
+            this.ClientSize = new System.Drawing.Size(1065, 597);
             this.ControlBox = false;
+            this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.statusStrip1);
@@ -337,6 +489,7 @@
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -368,5 +521,20 @@
         private System.Windows.Forms.ToolStripStatusLabel selectedMeshLabel;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.Label hdrms;
+        private System.Windows.Forms.Label mrtms;
+        private System.Windows.Forms.Label fogms;
+        private System.Windows.Forms.Label combinerms;
+        private System.Windows.Forms.Label indirectms;
+        private System.Windows.Forms.Label deferredms;
+        private System.Windows.Forms.Label ssaoms;
     }
 }

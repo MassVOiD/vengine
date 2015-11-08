@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using OpenTK;
 
 namespace VEngine
 {
@@ -29,50 +30,93 @@ namespace VEngine
                 float seconds = (now - StartTime) / (float)Stopwatch.Frequency;
                 float t = seconds;
                 float d = Duration;
-                dynamic b = ValueStart.R;
-                dynamic c = ValueEnd.Sub(ValueStart.R);
+                float b = 0;
+                float c = 1;
                 if(seconds > Duration)
                 {
                     HasEnded = true;
                     return ValueEnd.R;
                 }
-
+                float percent = 0;
                 switch(Easing)
                 {
                     case Easing.Linear:
-                    return c * t / d + b;
+                    percent = c * t / d + b;
+                    break;
 
                     case Easing.EaseIn:
                     t /= d;
-                    return c * t * t * t + b;
+                    percent = c * t * t * t + b;
+                    break;
 
                     case Easing.EaseOut:
                     t /= d;
                     t--;
-                    return c * (t * t * t + 1) + b;
+                    percent = c * (t * t * t + 1) + b;
+                    break;
 
                     case Easing.EaseInOut:
                     t /= d / 2;
                     if(t < 1)
-                        return c / 2 * t * t * t + b;
+                    {
+                        percent = c / 2 * t * t * t + b;
+                        break;
+                    }
                     t -= 2;
-                    return c / 2 * (t * t * t + 2) + b;
+                    percent = c / 2 * (t * t * t + 2) + b;
+                    break;
 
                     case Easing.QuadEaseIn:
                     t /= d;
-                    return c * t * t * t * t + b;
+                    percent = c * t * t * t * t + b;
+                    break;
 
                     case Easing.QuadEaseOut:
                     t /= d;
                     t--;
-                    return -c * (t * t * t * t - 1) + b;
+                    percent = -c * (t * t * t * t - 1) + b;
+                    break;
 
                     case Easing.QuadEaseInOut:
                     t /= d / 2;
                     if(t < 1)
-                        return c / 2 * t * t * t * t + b;
+                    {
+                        percent = c / 2 * t * t * t * t + b;
+                        break;
+                    }
                     t -= 2;
-                    return -c / 2 * (t * t * t * t - 2) + b;
+                    percent = -c / 2 * (t * t * t * t - 2) + b;
+                    break;
+                }
+                if(ValueStart.R is Quaternion)
+                {
+                    dynamic q1 = ValueStart.R;
+                    dynamic q2 = ValueEnd.R;
+                    return Quaternion.Slerp(q1, q2, percent);
+                }
+                else if(ValueStart.R is Vector2)
+                {
+                    dynamic q1 = ValueStart.R;
+                    dynamic q2 = ValueEnd.R;
+                    return Vector2.Lerp(q1, q2, percent);
+                }
+                else if(ValueStart.R is Vector3)
+                {
+                    dynamic q1 = ValueStart.R;
+                    dynamic q2 = ValueEnd.R;
+                    return Vector3.Lerp(q1, q2, percent);
+                }
+                else if(ValueStart.R is Vector4)
+                {
+                    dynamic q1 = ValueStart.R;
+                    dynamic q2 = ValueEnd.R;
+                    return Vector4.Lerp(q1, q2, percent);
+                }
+                else
+                {
+                    dynamic v1 = ValueStart.R;
+                    dynamic v2 = ValueEnd.R;
+                    return (v1 * percent + v2 * (1.0 - percent));
                 }
                 return default(T);
             }

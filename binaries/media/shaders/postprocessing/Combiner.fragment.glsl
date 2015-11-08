@@ -253,7 +253,7 @@ void main()
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
         color1 += texture(currentTex, nUV).rgb;
-       if(UseRSM == 1) color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
+       //if(UseRSM == 1) color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
     }
     
     if(UseRSM == 1 && UseHBAO == 1){
@@ -273,7 +273,8 @@ void main()
 
     gl_FragDepth = centerDepth;
 
-    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2) / Brightness;
+    color1 *= Brightness;
+    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
     color1.rgb = vec3(pow(color1.r, gamma.r),
     pow(color1.g, gamma.g),
     pow(color1.b, gamma.b));

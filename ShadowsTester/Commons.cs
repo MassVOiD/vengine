@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using VEngine;
@@ -19,7 +20,7 @@ namespace ShadowsTester
             float fovdegree = 90;
             ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 2048, 2048, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
             RedLight = redConeLight;
-            redConeLight.LightColor = new Vector4(1, 1, 1, 95);
+            redConeLight.LightColor = new Vector4(1, 1, 1, 395);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
             GLThread.OnKeyUp += (o, e) =>
@@ -79,6 +80,7 @@ namespace ShadowsTester
 
             GLThread.OnUpdate += (o, e) =>
             {
+                SettingsController.Instance.UpdatePerformance();
                 var jpad = OpenTK.Input.GamePad.GetState(0);
                 float deadzone = 0.15f;
                 if(Picked != null)
@@ -197,6 +199,7 @@ namespace ShadowsTester
 
         public static FreeCamera SetUpFreeCamera()
         {
+            CameraSavedViews = new Dictionary<int, TransformationManager>();
             float aspect = GLThread.Resolution.Height > GLThread.Resolution.Width ? GLThread.Resolution.Height / GLThread.Resolution.Width : GLThread.Resolution.Width / GLThread.Resolution.Height;
             var freeCamera = new FreeCamera((float)GLThread.Resolution.Width / (float)GLThread.Resolution.Height, MathHelper.PiOver3 / 1);
             FreeCam = freeCamera;
@@ -205,77 +208,59 @@ namespace ShadowsTester
             return freeCamera;
         }
 
+        static Dictionary<int, TransformationManager> CameraSavedViews;
+
+        static void SaveCamera(int index)
+        {
+            CameraSavedViews[index] = FreeCam.Cam.Transformation.Copy();
+        }
+
+        static void InterpolateCameraFromSaved(int index)
+        {
+            if(!CameraSavedViews.ContainsKey(index))
+                return;
+            var pos = CameraSavedViews[index].GetPosition();
+            var orient = CameraSavedViews[index].GetOrientation();
+
+            Interpolator.Interpolate<Vector3>(FreeCam.Cam.Transformation.Position, FreeCam.Cam.Transformation.Position.R, pos, 8.0f, Interpolator.Easing.EaseInOut);
+            Interpolator.Interpolate<Quaternion>(FreeCam.Cam.Transformation.Orientation, FreeCam.Cam.Transformation.Orientation.R, orient, 8.0f, Interpolator.Easing.EaseInOut);
+        }
+
         public static void SetUpInputBehaviours()
         {
-            GLThread.OnMouseUp += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Middle)
-                {
-                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
-                    if(mesh != null && mesh.GetCollisionShape() != null)
-                    {
-                        Console.WriteLine(mesh.GetCollisionShape().ToString());
-                        mesh.PhysicalBody.LinearVelocity += (Camera.Current.GetDirection() * 120.0f);
-                    }
-                }
-            };
-
-            MeshLinker.LinkInfo pickedLink = null;
-            bool inPickingMode = false;
-            GLThread.OnMouseDown += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Right)
-                {
-                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
-                    if(mesh != null && mesh.GetCollisionShape() != null && !mesh.PhysicalBody.IsStaticObject && !inPickingMode)
-                    {
-                        Console.WriteLine(mesh.GetCollisionShape().ToString());
-                        pickedLink = MeshLinker.Link(FreeCam.Cam, mesh, new Vector3(0, 0, -(FreeCam.Cam.Transformation.GetPosition() - mesh.Transformation.GetPosition()).Length),
-                            Quaternion.Identity);
-                        pickedLink.UpdateRotation = false;
-                        inPickingMode = true;
-                    }
-                }
-            };
-            GLThread.OnMouseUp += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Right)
-                {
-                    MeshLinker.Unlink(pickedLink);
-                    pickedLink = null;
-                    inPickingMode = false;
-                }
-            };
-
-            GLThread.OnMouseWheel += (o, e) =>
-            {
-                if(e.Delta != 0 && inPickingMode)
-                {
-                    pickedLink.Offset.Z -= e.Delta * 3.0f;
-                    if(pickedLink.Offset.Z > -5)
-                        pickedLink.Offset.Z = -5;
-                }
-            };
-            GLThread.OnMouseWheel += (o, e) =>
-            {
-                if(!inPickingMode)
-                    Camera.Current.LensBlurAmount -= e.Delta / 2.0f;
-            };
-            World.Root.SimulationSpeed = 1.0f;
-
-            GLThread.OnKeyDown += (o, e) =>
-            {
-                if(e.Key == OpenTK.Input.Key.T)
-                {
-                    World.Root.SimulationSpeed = 0.4f;
-                }
-                if(e.Key == OpenTK.Input.Key.Y)
-                {
-                    World.Root.SimulationSpeed = 0.10f;
-                }
-            };
+           
             GLThread.OnKeyUp += (o, e) =>
             {
+                if(e.Key == OpenTK.Input.Key.F1 && !e.Shift)
+                    InterpolateCameraFromSaved(0);
+                if(e.Key == OpenTK.Input.Key.F2 && !e.Shift)
+                    InterpolateCameraFromSaved(1);
+                if(e.Key == OpenTK.Input.Key.F3 && !e.Shift)
+                    InterpolateCameraFromSaved(2);
+                if(e.Key == OpenTK.Input.Key.F4 && !e.Shift)
+                    InterpolateCameraFromSaved(3);
+                if(e.Key == OpenTK.Input.Key.F5 && !e.Shift)
+                    InterpolateCameraFromSaved(4);
+                if(e.Key == OpenTK.Input.Key.F6 && !e.Shift)
+                    InterpolateCameraFromSaved(5);
+                if(e.Key == OpenTK.Input.Key.F7 && !e.Shift)
+                    InterpolateCameraFromSaved(6);
+
+                if(e.Key == OpenTK.Input.Key.F1 && e.Shift)
+                    SaveCamera(0);
+                if(e.Key == OpenTK.Input.Key.F2 && e.Shift)
+                    SaveCamera(1);
+                if(e.Key == OpenTK.Input.Key.F3 && e.Shift)
+                    SaveCamera(2);
+                if(e.Key == OpenTK.Input.Key.F4 && e.Shift)
+                    SaveCamera(3);
+                if(e.Key == OpenTK.Input.Key.F5 && e.Shift)
+                    SaveCamera(4);
+                if(e.Key == OpenTK.Input.Key.F6 && e.Shift)
+                    SaveCamera(5);
+                if(e.Key == OpenTK.Input.Key.F7 && e.Shift)
+                    SaveCamera(6);
+
                 if(e.Key == OpenTK.Input.Key.Tab)
                 {
                     GLThread.DisplayAdapter.IsCursorVisible = !GLThread.DisplayAdapter.IsCursorVisible;
@@ -387,14 +372,6 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.RBracket)
                 {
                     FreeCam.Cam.Brightness += 0.1f;
-                }
-                if(e.Key == OpenTK.Input.Key.T)
-                {
-                    World.Root.SimulationSpeed = 1.0f;
-                }
-                if(e.Key == OpenTK.Input.Key.Y)
-                {
-                    World.Root.SimulationSpeed = 1.0f;
                 }
                 if(e.Key == OpenTK.Input.Key.Number1)
                 {

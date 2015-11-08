@@ -90,33 +90,7 @@ namespace VEngine
 
             Update();*/
         }
-
-        public Mesh3d RayCastMesh3d()
-        {
-            var dir = GetDirection();
-            ClosestRayResultCallback rrc = new ClosestRayResultCallback(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f);
-            World.Root.PhysicalWorld.RayTest(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f, rrc);
-            if(rrc.HasHit)
-            {
-                return rrc.CollisionObject.UserObject as Mesh3d;
-            }
-            else
-                return null;
-        }
-
-        public Vector3 RayCastPosition()
-        {
-            var dir = GetDirection();
-            ClosestRayResultCallback rrc = new ClosestRayResultCallback(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f);
-            World.Root.PhysicalWorld.RayTest(Transformation.GetPosition() + dir, Transformation.GetPosition() + dir * 10000.0f, rrc);
-            if(rrc.HasHit)
-            {
-                return rrc.HitPointWorld;
-            }
-            else
-                return Vector3.Zero;
-        }
-
+        
         public void Update()
         {
             RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());

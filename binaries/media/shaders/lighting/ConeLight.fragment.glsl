@@ -3,6 +3,7 @@
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
+#include Shade.glsl
 uniform vec3 LightPosition;
 uniform vec4 input_Color;
 uniform vec4 LightColor;
@@ -17,7 +18,19 @@ uniform int MaterialType;
 
 uniform int UseAlphaMask;
 uniform int UseRoughnessMap;
+uniform int UseSpecularMap;
 uniform int UseMetalnessMap;
+/*vec3 shade(
+    vec3 albedo, 
+    vec3 normal,
+    vec3 fragmentPosition, 
+    vec3 lightPosition, 
+    vec4 lightColor, 
+    float roughness, 
+    float metalness, 
+    float specular,
+    bool ignoreAtt
+)*/
 void discardIfAlphaMasked(){
 	if(UseAlphaMask == 1){
 		if(texture(alphaMaskTex, Input.TexCoord).r < 0.5) discard;
@@ -41,6 +54,9 @@ float outRoughness = 0;
     else outRoughness = Roughness;
     if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
     else outMetalness = Metalness;
+    float outSpecular = 0;
+    if(UseSpecularMap) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
+    else outSpecular = SpecularComponent;
     vec3 cc = mix(LightColor.rgb*c.rgb, LightColor.rgb, outMetalness);
     vec3 difcolor = cc;
     vec3 difcolor2 = LightColor.rgb*c.rgb;
@@ -50,7 +66,8 @@ float outRoughness = 0;
     } else {
         rn = (InitialRotation * RotationMatrixes[int(Input.instanceId)] * vec4(Input.Normal, 0)).xyz;
     }
-    vec3 radiance = mix(difcolor2, difcolor*outRoughness, outMetalness);
+    vec3 radiance = shade(c.xyz, rn, Input.WorldPos, LightPosition, LightColor, outRoughness, outMetalness, outSpecular, false);
+    //vec3 radiance = mix(difcolor2, difcolor*outRoughness, outMetalness);
     outColor = uvec4(packUnorm4x8(vec4(radiance, outRoughness)), packSnorm4x8(vec4(rn, outMetalness)), 0,0);
 }
 

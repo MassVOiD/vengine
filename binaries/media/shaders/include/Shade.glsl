@@ -76,6 +76,10 @@ float fresnelSchlick(float VdotH)
 {
 	return  pow(1.0 - VdotH, 5.0);
 }
+vec3 makeFresnel(float V2Ncos, vec3 reflected)
+{
+	return reflected + 0.5 * reflected * pow(1.0 - V2Ncos, 5.0);
+}
 
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
@@ -121,14 +125,14 @@ vec3 shade(
 
     vec3 cc = lightColor.rgb*albedo;
     
-    float fresnel = 1.0 + fresnelSchlick(dot(cameraRelativeToVPos, normal));
+    float fresnel = fresnelSchlick(dot(cameraRelativeToVPos, normal));
     
     vec3 difcolor = cc * diffuseComponent * att;
     vec3 difcolor2 = lightColor.rgb * albedo * diffuseComponent * att;
     vec3 specolor = mix(cc * specularComponent, lightColor.rgb * specularComponent, specular);
+    specolor = makeFresnel(dot(cameraRelativeToVPos, normal), specolor);
     
-    
-    return (difcolor2 + specolor) * fresnel;
+    return (difcolor2 + makeFresnel(dot(cameraRelativeToVPos, normal), specolor));
 }
 
 vec3 shadePhoton(vec2 uv, vec3 color){

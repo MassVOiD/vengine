@@ -240,8 +240,10 @@ void main()
     float f1 = length(last) / length(vec3(1));
     float f2 = length(color1.rgb);
     
-    vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.038 : 1.0);
+    vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.0538 : 1.0);
+    if(UnbiasedIntegrateRenderMode){
+       // if(abs(texture(lastIndirectTex, UV).a - depth) > 0.0003) additiveMix = color1.rgb;
+    }
     
-    
-    outColor = clamp(vec4(additiveMix, 1.0), 0.0, 1.0);
+    outColor = clamp(vec4(additiveMix, depth), 0.0, 1.0);
 }

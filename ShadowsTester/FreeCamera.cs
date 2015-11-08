@@ -11,27 +11,12 @@ namespace ShadowsTester
 
         public bool Freeze = false;
 
-        private SphereShape collisionShape;
-
-        private bool GravityEnabled = false;
-
-        private RigidBody rigidBody;
-
         public FreeCamera(float aspectRatio, float fov)
         {
             float fovdegree = 90;
             Cam = new Camera(new Vector3(0, 0, 0), new Vector3(0, 2, 0), aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
             Camera.MainDisplayCamera = Cam;
-            collisionShape = new SphereShape(0.8f);
-            //collisionShape.LinearDamping = 0.5f;
-            rigidBody = World.Root.CreateRigidBody(0.01f, Matrix4.CreateTranslation(Cam.Transformation.GetPosition()), collisionShape, null);
-            rigidBody.SetSleepingThresholds(0, 0);
-            rigidBody.ContactProcessingThreshold = 0;
-            rigidBody.CcdMotionThreshold = 0;
-            World.Root.PhysicalWorld.AddRigidBody(rigidBody);
-            rigidBody.Gravity = Vector3.Zero;
-            rigidBody.ApplyGravity();
-            rigidBody.SetDamping(0.9f, 0.01f);
+           
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
 
@@ -52,22 +37,6 @@ namespace ShadowsTester
                         fovdegree = 10;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out Cam.ProjectionMatrix);
                     Camera.Current.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
-                }
-                if(e.Key == OpenTK.Input.Key.P)
-                {
-                    GravityEnabled = !GravityEnabled;
-                    if(GravityEnabled)
-                    {
-                        rigidBody.Gravity = new Vector3(0, -9.81f, 0);
-                        rigidBody.ApplyGravity();
-                        rigidBody.SetDamping(0.8f, 0.01f);
-                    }
-                    else
-                    {
-                        rigidBody.Gravity = Vector3.Zero;
-                        rigidBody.ApplyGravity();
-                        rigidBody.SetDamping(0.5f, 0.01f);
-                    }
                 }
             };
         }
@@ -94,6 +63,7 @@ namespace ShadowsTester
 
         private void UpdateSterring(object o, EventArgs e)
         {
+            var currentPosition = Cam.GetPosition();
             if(GLThread.DisplayAdapter.IsCursorVisible)
                 return;
             var keyboard = OpenTK.Input.Keyboard.GetState();
@@ -102,11 +72,11 @@ namespace ShadowsTester
             float speed = 0.05f;
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))
             {
-                speed *= 4;
+                speed *= 7f;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.AltLeft))
             {
-                speed *= 20;
+                speed *= 20f;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ControlLeft))
             {
@@ -129,7 +99,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
-                rigidBody.LinearVelocity -= direction.Xyz * speed;
+                currentPosition -= direction.Xyz * speed;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.S))
             {
@@ -139,7 +109,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
-                rigidBody.LinearVelocity -= direction.Xyz * speed;
+                currentPosition -= direction.Xyz * speed;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.A))
             {
@@ -149,7 +119,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
-                rigidBody.LinearVelocity -= direction.Xyz * speed;
+                currentPosition -= direction.Xyz * speed;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.D))
             {
@@ -159,7 +129,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
-                rigidBody.LinearVelocity -= direction.Xyz * speed;
+                currentPosition -= direction.Xyz * speed;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.Space))
             {
@@ -168,15 +138,19 @@ namespace ShadowsTester
                 Vector4 direction = -Vector4.UnitY;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                rigidBody.LinearVelocity -= direction.Xyz * speed;
+                currentPosition -= direction.Xyz * speed;
             }
 
             // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f,
             // rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
-            Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
+            if(Cam.Transformation.GetPosition() != currentPosition)
+            {
+                Cam.Transformation.SetPosition(currentPosition);
+                Cam.Transformation.MarkAsModified();
+            }
 
-            Cam.UpdateFromRollPitch();
-            Cam.Transformation.MarkAsModified();
+            //Cam.UpdateFromRollPitch();
+            Cam.Update();
         }
     }
 }

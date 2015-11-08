@@ -217,6 +217,10 @@ namespace VEngine
         {
             return new GenericMaterial(new Texture(Media.Get(key)));
         }
+        public static GenericMaterial FromColor(Color color)
+        {
+            return new GenericMaterial(color);
+        }
 
         public static GenericMaterial FromMedia(string key, string normalmap_key)
         {

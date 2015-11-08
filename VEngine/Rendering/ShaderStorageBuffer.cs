@@ -85,5 +85,9 @@ namespace VEngine
         {
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, (uint)Handle);
         }
+        public void Release(uint point)
+        {
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, 0);
+        }
     }
 }

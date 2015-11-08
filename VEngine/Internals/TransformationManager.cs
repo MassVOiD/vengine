@@ -181,6 +181,11 @@ namespace VEngine
             LastUpdated = DateTime.Now;
         }
 
+        public TransformationManager Copy()
+        {
+            return new TransformationManager(GetPosition(), GetOrientation(), GetScale());
+        }
+
         public void ClearModifiedFlag()
         {
             BeenModified = false;

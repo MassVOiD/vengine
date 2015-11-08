@@ -50,12 +50,7 @@ namespace VEngine
                 CursorVisible = value;
             }
         }
-
-        public void StartPhysicsThread()
-        {
-            Task.Factory.StartNew(PhysicsThread);
-        }
-
+        
         protected override void OnLoad(System.EventArgs e)
         {
             VSync = VSyncMode.Off;
@@ -82,8 +77,6 @@ namespace VEngine
             World.Root.UI.DrawAll();
 
             GLThread.CheckErrors();
-
-            World.Root.ShouldUpdatePhysics = true;
 
             SwapBuffers();
         }
@@ -123,24 +116,7 @@ namespace VEngine
                 }
             }
         }
-
-        private void PhysicsThread()
-        {
-            GLThread.SetCurrentThreadCores(3);
-            long time = Stopwatch.GetTimestamp();
-            while(true)
-            {
-                try
-                {
-                    var now = Stopwatch.GetTimestamp();
-                    World.Root.UpdatePhysics((now - time) / (float)Stopwatch.Frequency);
-                    time = now;
-                }
-                catch
-                {
-                }
-            }
-        }
+        
 
         private void VEngineWindowAdapter_KeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
         {

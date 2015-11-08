@@ -31,7 +31,7 @@ namespace ShadowsTester
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
-            var color3 = GenericMaterial.FromMedia("aaa.dds", "aa.dds");
+            var color3 = GenericMaterial.FromMedia("kafel2_a.png", "kafel2_n.png");
             //var color2 = new GenericMaterial(Color.WhiteSmoke);
             // color3.SetBumpMapFromMedia("DisplaceIT_Ground_Pebble1_Displace.bmp");
             // color3.SetNormalMapFromMedia("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");
@@ -58,18 +58,8 @@ namespace ShadowsTester
                  }
              }, 60).Start();*/
 
-            var ss = new GameScene("ferrari.scene");
+            var ss = new GameScene("autko.scene");
             ss.Load();
-            var transfs = new List<Vector4>();
-            for(int i = 0; i < 64; i++)
-            {
-                transfs.Add(new Vector4(
-                    ((float)rand.NextDouble()) * 20,
-                    0,
-                    ((float)rand.NextDouble()) * 20,
-                    ((float)rand.NextDouble()) * 0.6f + 0.5f
-                    ));
-            }
             ss.Meshes.ForEach((o) =>
             {
                 scene.Add(o);
@@ -330,30 +320,40 @@ namespace ShadowsTester
 
             Object3dInfo lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
             lucyobj.ScaleUV(50.0f);
-            Mesh3d lucy = new Mesh3d(lucyobj, GenericMaterial.FromMedia("floor1a.jpg", "floor1n.jpg"));
+            Mesh3d lucy = new Mesh3d(lucyobj, GenericMaterial.FromMedia("ash01.dds", "ash01_n.dds"));
             lucy.Translate(0, 0, 20);
             scene.Add(lucy);
 
             lucyobj.UpdateBoundingBox();
             PassiveVoxelizer vox = new PassiveVoxelizer();
+
+
+
             GLThread.Invoke(() =>
             {
                 List<PostProcessing.AABContainers> lst1 = new List<PostProcessing.AABContainers>();
                 List<PostProcessing.AAB> lst2 = new List<PostProcessing.AAB>();
 
-                lucy.MainObjectInfo.UpdateBoundingBox();
-                var c = new PostProcessing.AABContainers(lucy.MainObjectInfo.AABB.Minimum + lucy.GetPosition(), lucy.MainObjectInfo.AABB.Maximum + lucy.GetPosition());
-                lst1.Add(c);
-                var voxels = vox.Voxelize(lucy.MainObjectInfo, 64);
-                foreach(var b in voxels)
+                Action<Mesh3d> voxelizeMesh = (mesh) =>
                 {
-                    lst2.Add(new PostProcessing.AAB(lucy.MainMaterial.Color, b.Minimum + lucy.GetPosition(), b.Maximum + lucy.GetPosition(), c));
-                }
+                    mesh.MainObjectInfo.UpdateBoundingBox();
+                    var c = new PostProcessing.AABContainers(mesh.MainObjectInfo.AABB.Minimum + mesh.GetPosition(), mesh.MainObjectInfo.AABB.Maximum + mesh.GetPosition());
+                    lst1.Add(c);
+                    var voxels = vox.Voxelize(mesh.MainObjectInfo, 64);
+                    foreach(var b in voxels)
+                    {
+                        lst2.Add(new PostProcessing.AAB(new Vector4(mesh.MainMaterial.Color.Xyz, b.Density), b.Minimum + mesh.GetPosition(), b.Maximum + mesh.GetPosition(), c));
+                    }
 
+                };
+                foreach(var x in ss.Meshes)
+                //    voxelizeMesh(x);
+                voxelizeMesh(lucy);
+                voxelizeMesh(metal);
                 
                 GLThread.DisplayAdapter.Pipeline.PostProcessor.SetAABoxes(lst1, lst2);
             });
-
+            /*
             for(int i = 0; i < 1; i++)
             {
                 // Object3dInfo gridx = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
@@ -370,7 +370,7 @@ namespace ShadowsTester
                 gex.Scale(14f, 12, 4);
                 gex.Translate(-12 - i * 4, 0, 0);
                 scene.Add(gex);
-            }
+            }*/
 
             /* for(int z = 0; z < 20; z++)
              {

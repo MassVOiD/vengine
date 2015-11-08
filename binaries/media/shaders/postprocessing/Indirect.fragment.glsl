@@ -165,13 +165,13 @@ vec3 RSM(){
             //float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
             //fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(1.0-meshRoughness)*0.4 + 1.0;
             
-            vec3 cc = mix(lcolor*colorOriginal, lcolor, meshMetalness)*incomeDiffuse;
+            vec3 cc = lcolor;
             
             vec3 difcolor = cc * diffuseComponent * att;
             vec3 difcolor2 = lcolor*colorOriginal * diffuseComponent * att;
             vec3 specolor = cc * specularComponent * att;
             
-            vec3 radiance = mix(difcolor2 + specolor, difcolor * meshRoughness + specolor, meshMetalness);
+            vec3 radiance = shadeUV(nUV, newpos, vec4(lcolor, 1));
             
             vec3 refl = reflect(-lightRelativeToVPos2, lnormal);
             float spfsm = cookTorranceSpecular(
@@ -182,8 +182,9 @@ vec3 RSM(){
             ) * max(0, dot(-lightRelativeToVPos, lnormal));
             
             //float vi = testVisibility3d(newpos, fragmentPosWorld3d.xyz);
+            vec3 rref = (radiance * spfsm);
             
-            color1 += radiance * spfsm;
+            color1 += mix((radiance + rref) * 0.5, rref, lmetal);
             
             //color1 += CalculateFallof(distanceToLight*6) * 2793 * cc * (1.0 - texture(HBAOTex, UV).r);
            
@@ -195,7 +196,7 @@ vec3 RSM(){
         }
     
     }
-    return 1*color1 / (RSMSamples);
+    return 11*color1 / (RSMSamples);
 }
 
 uniform float RSMGlobalMultiplier;

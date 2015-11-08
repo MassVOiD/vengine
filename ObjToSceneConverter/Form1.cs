@@ -40,7 +40,7 @@ namespace ObjToSceneConverter
         {
             Media.SearchPath = "media";
             var meshes = Object3dInfo.LoadSceneFromObj(textBox1.Text, textBox2.Text);
-            var s = GameScene.FromMesh3dList(meshes, textBox3.Text + "/", textBox4.Text);
+            var s = GameScene.FromMesh3dList(meshes, textBox3.Text + "/", textBox4.Text, true);
             System.IO.File.WriteAllText(textBox3.Text + "/" + textBox5.Text + ".scene", s);
             button4.Text = "Done";
         }
