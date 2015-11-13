@@ -91,6 +91,7 @@ namespace VEngine
                 {
                     dynamic d = e;
                     Console.WriteLine(lines[d.Line - 1]);
+                    Console.WriteLine(d.ErrorText);
                 }
             }
             Assembly assembly = results.CompiledAssembly;

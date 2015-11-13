@@ -599,16 +599,15 @@ namespace VEngine
         {
             DrawPrepare();
             GLThread.CheckErrors();
-            GL.DrawElements(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, IndicesCount,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero);
+            GL.DrawArrays(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, 0, IndicesCount);
             //GLThread.CheckErrors();
         }
 
         public void DrawInstanced(int count)
         {
             DrawPrepare();
-            GL.DrawElementsInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, IndicesCount,
-                    DrawElementsType.UnsignedInt, IntPtr.Zero, count);
+            GL.DrawArraysInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, 0, IndicesCount,
+                     count);
             //GLThread.CheckErrors();
         }
 

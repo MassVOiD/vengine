@@ -107,20 +107,22 @@ float hbao(){
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     float samples = mix(3, 18, 1.0 - meshRoughness);
     //stepsize = 1.0 / samples;
-    float ringsize = min(length(posc), 1.4);
+    float ringsize = length(posc)*0.5;
     for(float g = 0; g < samples; g+=1)
     //for(float g = 0.0; g <= samples; g+=1)
     //for(float g2 = 0.0; g2 <= samples; g2+=1)
     {
         float minang = 0;
-        
+
         //vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * ringsize;
         vec3 displace = normalize(BRDFBiased(dir, norm, meshRoughness, (vec2(getRand2(), getRand2())))) * ringsize;
         
         vec2 sspos2 = projectOnScreen(FromCameraSpace(posc) + displace);
         for(float g3 = 0.02; g3 < 1.0; g3+=0.1)
         {
-            vec2 gauss = mix(UV, sspos2, g3*g3);
+            float z = getRand2();
+            vec2 gauss = mix(UV, sspos2, z*z);
+            if(gauss.x < 0 || gauss.x > 1.0 || gauss.y < 0 || gauss.y > 1) break;
             vec3 pos = texture(worldPosTex,  gauss).rgb;
             float dt = max(0, dot(norm, normalize(pos - posc)));
             minang = max(dt * max(0, (ringsize - length(pos - posc)*0.3)/ringsize), minang);
@@ -129,7 +131,7 @@ float hbao(){
         buf += minang;
         counter+=1.0;
     }
-    return pow(1.0 - (buf/counter), aostrength + meshRoughness*2);
+    return pow(1.0 - (buf/counter), aostrength);
 }
 
 uniform float AOGlobalModifier;

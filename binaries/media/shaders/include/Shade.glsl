@@ -90,6 +90,7 @@ vec3 makeFresnel(float V2Ncos, vec3 reflected)
 #define MaterialTypePlanetSurface 6
 #define MaterialTypeTessellatedTerrain 7
 vec3 shade(
+    vec3 camera,
     vec3 albedo, 
     vec3 normal,
     vec3 fragmentPosition, 
@@ -102,7 +103,7 @@ vec3 shade(
 ){
     vec3 lightRelativeToVPos =normalize( lightPosition - fragmentPosition);
     
-    vec3 cameraRelativeToVPos = normalize(-ToCameraSpace(fragmentPosition));
+    vec3 cameraRelativeToVPos = -normalize(fragmentPosition - camera);
     
     float distanceToLight = distance(fragmentPosition, lightPosition);
     float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight)* lightColor.a);
@@ -156,7 +157,7 @@ vec3 shadeUV(vec2 uv,
       
     float roughness = texture(meshDataTex, uv).a;
     float metalness =  texture(meshDataTex, uv).z;
-    return shade(albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, false);
+    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, false);
 }
 
 vec3 shadeUVNoAtt(vec2 uv,
@@ -170,7 +171,7 @@ vec3 shadeUVNoAtt(vec2 uv,
       
     float roughness = texture(meshDataTex, uv).a;
     float metalness =  texture(meshDataTex, uv).z;
-    return shade(albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, true);
+    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, true);
 }
 
 
@@ -180,6 +181,7 @@ vec3 shadeUVNoAtt(vec2 uv,
      float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
      return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
  }
+ 
     
  vec3 hemisphereSample_cos(float u, float v) {
      float phi = v * 2.0 * PI;

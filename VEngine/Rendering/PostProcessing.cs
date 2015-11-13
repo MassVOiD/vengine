@@ -523,6 +523,7 @@ namespace VEngine
             MRT.UseTextureNormals(16);
             MRT.UseTextureMeshData(17);
             MRT.UseTextureId(18);
+            LastDeferredFramebuffer.UseTexture(20);
             // World.Root.RootScene.SetLightingUniforms(CombinerShader, Matrix4.Identity, false);
             CombinerShader.SetUniform("UseFog", GLThread.GraphicsSettings.UseFog);
             CombinerShader.SetUniform("UseLightPoints", GLThread.GraphicsSettings.UseLightPoints);

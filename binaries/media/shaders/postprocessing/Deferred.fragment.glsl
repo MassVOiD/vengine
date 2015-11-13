@@ -280,7 +280,8 @@ float testVisibility3d(vec3 w1, vec3 w2) {
 
 vec3 lookupCubeMap(vec3 displace){
     vec3 c = texture(cubeMapTex, displace).rgb;
-    return vec3pow(c*2.5, 1.7);
+    //return c;
+    return vec3pow(c*1.1, 3.7) * 1;
 }
 
 
@@ -313,7 +314,7 @@ vec3 Radiosity()
     uint counter = 0;   
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     
-    int samples = int(mix(3, 16, 1.0 - meshRoughness));
+    int samples = int(mix(1, 14, 1.0 - meshRoughness));
     
     
     for(int i=0; i<samples; i++)
@@ -464,7 +465,7 @@ void main()
     // experiment
     
     
-    outColor = vec4(color1, 1.0);
+    outColor = vec4(clamp(color1, 0.0, 9999.0), 1.0);
     
     
 }

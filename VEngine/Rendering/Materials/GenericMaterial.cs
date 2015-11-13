@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
@@ -20,16 +21,16 @@ namespace VEngine
                 // Geometry32iPoints,
                 //Geometry96iLines,
                 Geometry96iTriangles;
-                //Geometry96iPoints;
-               /* TesselatedGeometry1iLines,
-                TesselatedGeometry1iTriangles,
-                TesselatedGeometry1iPoints,
-                TesselatedGeometry32iLines,
-                TesselatedGeometry32iTriangles,
-                TesselatedGeometry32iPoints,
-                TesselatedGeometry96iLines,
-                TesselatedGeometry96iTriangles,
-                TesselatedGeometry96iPoints;*/
+            //Geometry96iPoints;
+            /* TesselatedGeometry1iLines,
+             TesselatedGeometry1iTriangles,
+             TesselatedGeometry1iPoints,
+             TesselatedGeometry32iLines,
+             TesselatedGeometry32iTriangles,
+             TesselatedGeometry32iPoints,
+             TesselatedGeometry96iLines,
+             TesselatedGeometry96iTriangles,
+             TesselatedGeometry96iPoints;*/
 
             public List<ShaderProgram> ProgramsList;
 
@@ -137,17 +138,17 @@ namespace VEngine
         public float ReflectionStrength = 0;
         public float RefractionStrength = 0;
         public float Roughness = 0.5f;
-        public float SpecularComponent = 1.0f, DiffuseComponent = 1.0f;
+        public float SpecularComponent = 0.0f, DiffuseComponent = 1.0f;
         public float TesselationMultiplier = 1.0f;
         public float ParallaxHeightMultiplier = 1.0f;
         public int ParallaxInstances = 12;
 
-        public float 
-            AORange = 0.5f, 
-            AOStrength = 0.5f, 
-            AOAngleCutoff = 0.0f, 
-            VDAOMultiplier = 0.5f, 
-            VDAOSamplingMultiplier = 0.5f, 
+        public float
+            AORange = 0.5f,
+            AOStrength = 0.5f,
+            AOAngleCutoff = 0.0f,
+            VDAOMultiplier = 0.5f,
+            VDAOSamplingMultiplier = 0.5f,
             VDAORefreactionMultiplier = 0.0f,
             SubsurfaceScatteringMultiplier = 0.0f;
 
@@ -158,6 +159,8 @@ namespace VEngine
 
         private RainSystem RainsDropSystem = null;
 
+        public ShaderStorageBuffer BallsBuffer;
+
         public void SetRainSystem(RainSystem rs)
         {
             RainsDropSystem = rs;
@@ -166,6 +169,8 @@ namespace VEngine
         public GenericMaterial(Texture tex, Texture normalMap = null, Texture bumpMap = null)
         {
             Tex = tex;
+            BallsBuffer = new ShaderStorageBuffer();
+            BallsBuffer.Type = BufferUsageHint.DynamicDraw;
             NormalMap = normalMap;
             BumpMap = bumpMap;
             Color = Vector4.One;
@@ -175,12 +180,16 @@ namespace VEngine
         public GenericMaterial(Vector4 color)
         {
             Color = color;
+            BallsBuffer = new ShaderStorageBuffer();
+            BallsBuffer.Type = BufferUsageHint.DynamicDraw;
             Mode = GenericMaterial.DrawMode.ColorOnly;
         }
 
         public GenericMaterial(Color color)
         {
             Color = new Vector4(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
+            BallsBuffer = new ShaderStorageBuffer();
+            BallsBuffer.Type = BufferUsageHint.DynamicDraw;
             Mode = GenericMaterial.DrawMode.ColorOnly;
         }
 
@@ -205,11 +214,12 @@ namespace VEngine
             Flag,
 
             Plastic,
-            Metal, 
+            Metal,
 
             Parallax,
 
-            DropsSystem
+            DropsSystem,
+            OptimizedSpheres
 
         }
 
@@ -280,6 +290,19 @@ namespace VEngine
             Tex = new Texture(Media.Get(key));
         }
 
+        public void SetOptimizedBalls(List<Vector4> PositionsAndScales)
+        {
+            var bytes = new List<byte>();
+            foreach(var p in PositionsAndScales)
+            {
+                bytes.AddRange(BitConverter.GetBytes(p.X));
+                bytes.AddRange(BitConverter.GetBytes(p.Y));
+                bytes.AddRange(BitConverter.GetBytes(p.Z));
+                bytes.AddRange(BitConverter.GetBytes(p.W));
+            }
+            GLThread.Invoke(() => BallsBuffer.MapData(bytes.ToArray()));
+        }
+
         public bool Use()
         {
             var prg = GetShaderProgram();
@@ -335,6 +358,11 @@ namespace VEngine
             }
             else
                 prg.SetUniform("UseMetalnessMap", 0);
+
+            if(Type == MaterialType.OptimizedSpheres)
+            {
+                BallsBuffer.Use(4);
+            }
 
             if(AlphaMask != null)
             {

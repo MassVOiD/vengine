@@ -28,6 +28,11 @@ void updateDepth(){
 	float badass_depth = toLogDepth(depth);
 	gl_FragDepth = badass_depth;
 }
+void updateDepthFromWorldPos(vec3 w){
+	float depth = distance(w, CameraPosition);
+	float badass_depth = toLogDepth(depth);
+	gl_FragDepth = badass_depth;
+}
 #endif
 float getDepth(){
 	float depth = distance(Input.WorldPos, CameraPosition);

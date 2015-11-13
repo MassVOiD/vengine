@@ -37,12 +37,12 @@ void Seed(vec2 seeder){
     randomizer += 138.345341 * (rand2s(seeder)) ;
 }
 
-int randsPointer = 0;
+float randsPointer = 0;
 uniform int RandomsCount;
 float getRand(){
     float r = rand(vec2(randsPointer, randsPointer*2.42354) + Time);
-    randsPointer++;
-    if(randsPointer >= RandomsCount) randsPointer = 0;
+    randsPointer+=0.2;
+    //if(randsPointer >= RandomsCount) randsPointer = 0;
     return r;
 }
 
@@ -125,13 +125,13 @@ vec3 softLuminance(vec2 fuv){
         {
             float fv = getRand();
             vec2 gauss = mix(fuv, sspos2, fv);
-            if(texture(diffuseColorTex, gauss).r >= 999){ 
-                continue;
-            }
-            vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb) : texture(currentTex, gauss).rgb;
+            //if(texture(diffuseColorTex, gauss).r >= 999){ 
+            //    continue;
+           // }
+            vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*0.3) : texture(currentTex, gauss).rgb;
             vec3 pos = texture(worldPosTex, gauss).rgb;
-            vec3 norm = texture(normalsTex, gauss).rgb;
-            float ftp = dot(normalize(pos - posCenter), normalize(displace));
+            //vec3 norm = texture(normalsTex, gauss).rgb;
+            float ftp = dot(normalize(pos - posCenter), displace);
             outc += shadePhoton(fuv, color) * fv * step(meshRoughness - 0.02, ftp);
             counter+=1;
         }
@@ -253,7 +253,7 @@ void main()
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
         color1 += texture(currentTex, nUV).rgb;
-       //if(UseRSM == 1) color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
+       if(UseRSM == 1) color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
     }
     
     if(UseRSM == 1 && UseHBAO == 1){

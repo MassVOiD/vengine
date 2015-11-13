@@ -77,10 +77,13 @@ namespace ShadowsTester
                 else
                     FreeCam.Freeze = GLThread.DisplayAdapter.IsCursorVisible;
             };
-
+            GLThread.OnMouseWheel += (o, e) =>
+            {
+                Camera.Current.LensBlurAmount -= e.Delta / 2.0f;
+            };
             GLThread.OnUpdate += (o, e) =>
             {
-                SettingsController.Instance.UpdatePerformance();
+                //SettingsController.Instance.UpdatePerformance();
                 var jpad = OpenTK.Input.GamePad.GetState(0);
                 float deadzone = 0.15f;
                 if(Picked != null)

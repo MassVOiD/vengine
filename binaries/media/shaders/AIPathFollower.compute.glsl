@@ -1,4 +1,5 @@
 #version 430 core
+layout( local_size_x = 1000, local_size_y = 1, local_size_z = 1 ) in;
 
 layout (std430, binding = 0) buffer B1
 {
@@ -17,7 +18,6 @@ layout (std430, binding = 3) buffer B4
   vec4 PathPoints[]; 
 }; 
 
-layout( local_size_x = 1, local_size_y = 1, local_size_z = 1 ) in;
 
 uniform int BallsCount;
 uniform int PathPointsCount;
@@ -200,17 +200,116 @@ void processBallPhysics(uint group){
 
 uniform float Time;
 
-#include noise3D.glsl
 
 uint globalIndex(){
-    uvec3 iv = gl_GlobalInvocationID * gl_WorkGroupSize + gl_LocalInvocationID;
-    uvec3 is = gl_NumWorkGroups * gl_WorkGroupSize;
-    return iv.x * is.y * is.z +
-           iv.y * is.z + 
-           iv.z;
+    return uint(gl_GlobalInvocationID.x);
+
+}
+
+uniform int PhysicsPass;
+uniform int PhysicsBallCount;
+#define PPASS_DETECT 0
+#define PPASS_PROCESS 1
+#define PPASS_FIX 2
+
+/*
+detect pass - predict next position and check for possible collisions for object, integrate it and save
+process pass - Save new positions
+fix pass - fix every fucking interpenetration, recursively to some degree
+*/
+
+#define PhysicsStep 1.1
+vec3 predictPosition(uint index){
+    return Positions[index].xyz + PhysicsStep * Velocities[index].xyz;
+}
+
+vec3 getGravityUniform(vec3 p1, vec3 p2){
+    float f = distance(p1, p2);
+    return normalize(p2 - p1) * (1.0 / (f*f));
+}
+
+vec3 fixvelocity = vec3(0);
+vec3 getCollisionVelocity(uint a, uint b){
+    vec3 a2b = normalize(Positions[a].xyz - Positions[b].xyz);
+    vec3 u1 = Velocities[a].xyz;
+    vec3 u2 = Velocities[b].xyz;
+    float ac1 = dot(u1, a2b);
+    float ac2 = dot(u2, a2b);
+    
+    vec3 outv = (u1 + (ac2 - ac1) * a2b) * 0.99;
+    if(distance(Positions[b].xyz, Positions[a].xyz) < 2.0) {
+        fixvelocity += a2b * max(0, pow(2.0 - distance(Positions[a].xyz, Positions[b].xyz), 0.1))*0.2;
+    }
+    return outv;
+}
+
+#include noise4D.glsl
+void UnifiedPhysics(uint index){
+    if(PhysicsPass == PPASS_DETECT){
+        vec3 collectedCollisionsSum = vec3(0);
+        float weight = 0;
+        vec3 ppos = predictPosition(index);
+        vec3 gravity = vec3(0);
+        fixvelocity = vec3(0);
+        for(uint i=index+1;i<PhysicsBallCount;i++){
+            if(distance(ppos, predictPosition(i)) <= 2.0){
+                collectedCollisionsSum += getCollisionVelocity(index, i);
+                weight += 1.0;
+            }
+        }
+        for(uint i=0;i<index;i++){
+            if(distance(ppos, predictPosition(i)) <= 2.0){
+                collectedCollisionsSum += getCollisionVelocity(index, i);
+                weight += 1.0;
+            }
+        }   
+        if(weight > 0) PathPoints[index] = vec4(collectedCollisionsSum / weight + fixvelocity, weight);
+        else PathPoints[index] = vec4(Velocities[index].xyz, 0);
+    }
+    else if(PhysicsPass == PPASS_PROCESS){
+        vec3 collectedCollisionsSum = PathPoints[index].xyz;
+        collectedCollisionsSum *= 0.95;
+       collectedCollisionsSum += vec3(0, PhysicsStep * -0.1, 0);
+        //collectedCollisionsSum += (vec3(snoise(vec4(Positions[index].xyz*0.05, Time)), 
+       // snoise(vec4(Positions[index].yzx*0.05, Time)), 
+       // snoise(vec4(Positions[index].zxy*0.05, Time))) * 2 - 1) * 0.001;
+        Positions[index].xyz += PhysicsStep * PathPoints[index].xyz;
+        
+        float xy = 11;
+        vec3 boundmin = vec3(-114, 1, -xy);
+        vec3 boundmax = vec3(xy, 2222, xy);
+        if(Positions[index].x > boundmax.x) collectedCollisionsSum.x *= -1;
+        if(Positions[index].x < boundmin.x) collectedCollisionsSum.x *= -1;
+        if(Positions[index].y > boundmax.y) collectedCollisionsSum.y *= -1;
+        if(Positions[index].y < boundmin.y) collectedCollisionsSum.y *= -0.5;
+        if(Positions[index].z > boundmax.z) collectedCollisionsSum.z *= -1;
+        if(Positions[index].z < boundmin.z) collectedCollisionsSum.z *= -1;
+        Positions[index].x = clamp(Positions[index].x, boundmin.x, boundmax.x);
+        Positions[index].y = clamp(Positions[index].y, boundmin.y, boundmax.y);
+        Positions[index].z = clamp(Positions[index].z, boundmin.z, boundmax.z);
+        
+        Velocities[index] = vec4(collectedCollisionsSum, 0.0);
+        PathPoints[index] = vec4(0.0);
+    }
+
+}
+void makeSimpleMovement(uint index){
+    float inc = float(index) * 0.01;
+    vec3 dfield = vec3(0);//(vec3(0, 20, 0) + Positions[index].xyz)* 0.4;
+    
+  //  dfield += vec3(snoise(vec4(Positions[index].xyz*0.05, Time + inc)), 
+   //     snoise(vec4(Positions[index].yzx*0.05, Time + inc)), 
+  //      snoise(vec4(Positions[index].zxy*0.05, Time + inc)));
+    dfield += vec3(snoise(vec4(Positions[index].xyz*0.005, 0.1*Time + inc)), 
+        snoise(vec4(Positions[index].yzx*0.005, 0.7*Time + inc)), 
+        snoise(vec4(Positions[index].zxy*0.05, 0.2*Time + inc))) * 3;
+    vec3 npos = Positions[index].xyz + dfield * 0.1; 
+    
+    //npos = clamp(npos, 0.0, 100.0);
+    Positions[index] = vec4(npos, 1.0);
 }
 
 void main(){
 	uint group = globalIndex();
-    processBallPhysics(group);
+    UnifiedPhysics(group);
 }

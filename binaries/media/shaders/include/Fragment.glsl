@@ -19,6 +19,7 @@ uniform int MaterialType;
 #define MaterialTypeWetDrops 4
 #define MaterialTypeWetDrops 4
 #define MaterialTypeRainsDropSystem 12
+#define MaterialTypeRainsOptimizedSphere 13
 
 uniform int DropsCount;
 uniform float DropsMaxRadius;
@@ -246,14 +247,24 @@ uniform int ShadingMode;
 #define SHADING_MDOE_RAWROUGH_RAWMETAL 0
 #define SHADING_MDOE_RAWROUGH_ 1
 #define SHADING_MDOE_SPEC 1
-#define SHADING_MDOE_SPEC 1
 
-void finishFragment(vec4 color){
+float makeSphereHeight(vec2 uvxs) {
+	float r = length(uvxs);
+	if(r >= 1.0) discard;
+	return sqrt(1.0 - r*r);
+}
+
+vec3 makeSphereNormals(vec2 uv, float r) {
+	vec3 d = normalize(vec3(uv, r));
+	return d;
+}
+
+in flat uint TestInstId;
+void finishFragment(vec4 incolor){
     discardIfAlphaMasked();
    // if(Selected) color *= 3;
-	outColor = vec4((color.xyz), color.a);
     //outColor = vec4(1);
-    
+    vec4 color = incolor;
     vec3 wpos = Input.WorldPos;
     vec3 normalNew  = normalize(Input.Normal);
    // vec3 normalNew  = normalize(cross(dFdx(wpos), dFdy(wpos)));
@@ -268,7 +279,27 @@ void finishFragment(vec4 color){
         normalize(Input.Tangent),
         cross(Input.Normal, normalize(Input.Tangent)),
         Input.Normal
-    )));
+    )));    
+    
+    if(MaterialType == MaterialTypeRainsOptimizedSphere){
+        vec2 uvs = Input.TexCoord * 2.0 - 1.0;
+        if(dot(normalNew, CameraPosition -Input.WorldPos) <=0) 
+            uvs *= -1;
+        float h = makeSphereHeight(uvs);
+        normalNew = TBN * makeSphereNormals(uvs, h);
+        
+        if(dot(normalNew, CameraPosition -Input.WorldPos) <=0) {
+            normalNew *= -1;
+        }
+        wpos += normalNew * h;
+        float iid = float(TestInstId)*0.01;
+        
+        color.xyz = vec3(rand2d(vec2(iid * 0.1211, iid * 0.4352)), 
+            rand2d(vec2(iid * 0.321534, iid * 0.5554)), 
+            rand2d(vec2(iid * 1.4326, iid * 0.757)));
+    }
+	outColor = vec4((color.xyz), color.a);
+
     mat3 TBN2 = (transpose(mat3(
         normalize(Input.Tangent),
         cross(Input.Normal, normalize(Input.Tangent)),
@@ -389,7 +420,7 @@ SubsurfaceScatteringMultiplier*/
     
 	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
 	outMeshData = vec4(Selected, 0, outMetalness, outRoughness);
-	updateDepth();
+	updateDepthFromWorldPos(wpos);
     // lets do it, from -32 to 32
     /*vec3 normalized = (wpos)  *3;
     normalized = clamp(normalized, -32, 32);

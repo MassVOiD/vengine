@@ -13,13 +13,23 @@ out Data {
 
 #include Bones.glsl
 
+uniform int MaterialType;
+#define MaterialTypeRainsOptimizedSphere 13
+layout (std430, binding = 4) buffer BallsBuff
+{
+    vec4 BallsPositionsAndScales[]; 
+}; 
+
+out flat uint TestInstId;
 void main(){
 
+	Output.instanceId = int(gl_InstanceID);
+    TestInstId = gl_InstanceID;
     vec4 v = vec4(in_position,1);
-
-	Output.Tangent = in_tangent;
     
-	Output.TexCoord = vec2(in_uv.x, -in_uv.y);
+
+    
+	Output.TexCoord = vec2(in_uv.x, in_uv.y);
     
     vec3 inorm = in_normal;
 	mat4 mmat = ModelMatrix;
@@ -33,11 +43,23 @@ void main(){
     }
     //v = vec4(mspace, 1);
     vec3 wpos = (InitialTransformation * mmat * v).xyz;
+    vec3 norm = inorm;
+    vec3 tang = in_tangent;
+    if(MaterialType == MaterialTypeRainsOptimizedSphere){
+       // if(int(gl_InstanceID) >= BallsPositionsAndScales.length()) return;
+        vec4 a = BallsPositionsAndScales[gl_InstanceID];
+        vec3 n = normalize(CameraPosition - a.xyz);
+        norm = n;
+        vec3 tu = CameraTangentUp;
+        tang = tu;
+        vec3 tl = CameraTangentLeft;
+        wpos = a.xyz - tl - tu + tl * 2.0 * in_uv.x + tu * 2.0 * in_uv.y;
+    }
     Output.WorldPos = wpos;
 
-	Output.Normal = inorm;
+	Output.Normal = norm;
+	Output.Tangent = tang;
 	
-	Output.instanceId = int(gl_InstanceID);
 	
     gl_Position = (ProjectionMatrix  * ViewMatrix) * vec4(wpos, 1);
 }

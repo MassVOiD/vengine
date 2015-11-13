@@ -45,10 +45,19 @@ void discardIfAlphaMasked(){
         }        
 }
 
+#define MaterialTypeRainsOptimizedSphere 13
 out uvec4 outColor;	
-
+void discardSphereBounds(vec2 uvxs) {
+	float r = length(uvxs);
+	if(r >= 1.0) discard;
+}
+    
 void finishFragment(vec4 c){    
-float outRoughness = 0;
+    if(MaterialType == MaterialTypeRainsOptimizedSphere){
+        vec2 uvs = Input.TexCoord * 2.0 - 1.0;
+        discardSphereBounds(uvs);
+    }
+    float outRoughness = 0;
     float outMetalness = 0;
     if(UseRoughnessMap) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
     else outRoughness = Roughness;
@@ -66,9 +75,9 @@ float outRoughness = 0;
     } else {
         rn = (InitialRotation * RotationMatrixes[int(Input.instanceId)] * vec4(Input.Normal, 0)).xyz;
     }
-    vec3 radiance = shade(c.xyz, rn, Input.WorldPos, LightPosition, LightColor, outRoughness, outMetalness, outSpecular, false);
+    
     //vec3 radiance = mix(difcolor2, difcolor*outRoughness, outMetalness);
-    outColor = uvec4(packUnorm4x8(vec4(radiance, outRoughness)), packSnorm4x8(vec4(rn, outMetalness)), 0,0);
+    outColor = uvec4(packUnorm4x8(vec4(c.xyz, outRoughness)), packSnorm4x8(vec4(rn, outMetalness)), 0,0);
 }
 
 void main()

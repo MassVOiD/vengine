@@ -260,7 +260,7 @@ namespace VEngine
             shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
             shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
             shader.SetUniform("LogEnchacer", 0.01f);
-            
+
 
             shader.SetUniform("Selected", 0); //magic
             shader.SetUniform("RandomSeed1", (float)Randomizer.NextDouble());
@@ -304,11 +304,33 @@ namespace VEngine
                 RotationMatrix.Add(Matrix4.CreateFromQuaternion(Transformations[i].GetOrientation()));
                 Matrix.Add(Matrix4.CreateScale(Transformations[i].GetScale()) * RotationMatrix[i] * Matrix4.CreateTranslation(Transformations[i].GetPosition()));
             }
+            RebufferAsync();
+        }
+
+        public void UpdateMatrixSingle(int i)
+        {
+            RotationMatrix[i] = Matrix4.CreateFromQuaternion(Transformations[i].GetOrientation());
+            Matrix[i] = Matrix4.CreateScale(Transformations[i].GetScale()) * RotationMatrix[i] * Matrix4.CreateTranslation(Transformations[i].GetPosition());
+        }
+
+        public void RebufferAsync()
+        {
+
             GLThread.Invoke(() =>
             {
                 ModelMatricesBuffer.MapData(Matrix.ToArray());
                 RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
                 Ids.MapData(MeshColoredID.ToArray());
+            });
+        }
+        public void RebufferRangeAsync(int start, int count)
+        {
+
+            GLThread.Invoke(() =>
+            {
+                ModelMatricesBuffer.MapSubData(ShaderStorageBuffer.Serialize(Matrix.GetRange(start, count).ToArray()), (uint)(16 * 4 * start), (uint)(16 * 4 * count));
+                RotationMatricesBuffer.MapSubData(ShaderStorageBuffer.Serialize(RotationMatrix.GetRange(start, count).ToArray()), (uint)(16 * 4 * start), (uint)(16 * 4 * count));
+                Ids.MapSubData(ShaderStorageBuffer.Serialize(MeshColoredID.GetRange(start, count).ToArray()), (uint)(4 * start), (uint)(4 * count));
             });
         }
     }

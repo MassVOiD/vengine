@@ -10,8 +10,8 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 1280;
-            public static int Height = 720;
+            public static int Width = 1920;
+            public static int Height = 1020;
             public static string MediaPath = "media";
         }
 
@@ -38,7 +38,7 @@ namespace ShadowsTester
             {
                 GLThread.SetCurrentThreadCores(2);
 
-                window = new VEngineWindowAdapter("Test", Config.Width, Config.Height, GameWindowFlags.Default);
+                window = new VEngineWindowAdapter("VENGINE/ShadowsTester OpenGL 4.3 " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString(), Config.Width, Config.Height, GameWindowFlags.Default);
 
                 GLThread.GraphicsSettings.UseDeferred = true;
                 GLThread.GraphicsSettings.UseRSM = false;

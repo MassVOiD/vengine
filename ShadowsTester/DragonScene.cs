@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 using VEngine;
 using VEngine.FileFormats;
 using VEngine.Generators;
@@ -58,12 +59,12 @@ namespace ShadowsTester
                  }
              }, 60).Start();*/
 
-            var ss = new GameScene("autko.scene");
-            ss.Load();
-            ss.Meshes.ForEach((o) =>
-            {
-                scene.Add(o);
-            });
+            /*   var ss = new GameScene("autko.scene");
+               ss.Load();
+               ss.Meshes.ForEach((o) =>
+               {
+                   scene.Add(o);
+               });*/
             //var groundInfo = Object3dInfo.LoadFromObjSingle(Media.Get("ldspc.obj"));
             //var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
             //ldspc.obj
@@ -274,19 +275,19 @@ namespace ShadowsTester
             }*/
               //scene.Add(water6);
 
-            var tsc = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
             /*tsc[2].MainMaterial.Color = new Vector4(0.8f, 0.181f, 0.309f, 1);
             tsc[0].MainMaterial.Color = new Vector4(0.8f, 0.792f, 0.591f, 1);
             tsc[1].MainMaterial.Color = new Vector4(0.8f, 0.553f, 0.032f, 1);
             tsc[3].MainMaterial.Color = new Vector4(0.8f, 0.553f, 0.032f, 1);*/
             //tsc.ForEach((a) => scene.Add(a));
-
-            var metal = new Mesh3d(tsc, new GenericMaterial(Color.WhiteSmoke));
+            /*
+            var metal = new Mesh3d(tsc, new GenericMaterial(Color.Red));
             metal.MainMaterial.Metalness = 1;
             metal.MainMaterial.Roughness = 0.0f;
             metal.MainMaterial.SpecularComponent = 0.1f;
+            metal.MainMaterial.Type = GenericMaterial.MaterialType.OptimizedSpheres;
             metal.Translate(10, 0, -10);
-            scene.Add(metal);
+            scene.Add(metal);*/
             /*
             var plastic = new Mesh3d(tsc, new GenericMaterial(Color.Green));
             plastic.MainMaterial.Metalness = 0;
@@ -318,6 +319,75 @@ namespace ShadowsTester
 
             // var stukaobj = 
 
+            // a lot of cubes
+            ShaderStorageBuffer VelocityBuffer = new ShaderStorageBuffer(), DataBuffer = new ShaderStorageBuffer();
+            VelocityBuffer.Type = BufferUsageHint.DynamicDraw;
+            DataBuffer.Type = BufferUsageHint.DynamicDraw;
+            var tsc = Object3dInfo.LoadFromObjSingle(Media.Get("simpleplane.obj"));
+            InstancedMesh3d balls = new InstancedMesh3d(tsc, new GenericMaterial(Color.SkyBlue));
+            balls.Material.Type = GenericMaterial.MaterialType.OptimizedSpheres;
+            balls.Material.Roughness = 1.0f;
+            balls.Material.Metalness = 0.0f;
+            int instances = 20000;
+            for(int x = 0; x < instances; x++)
+                balls.Transformations.Add(new TransformationManager(Vector3.Zero));
+            balls.Instances = 0;
+            balls.UpdateMatrix();
+            scene.Add(balls);
+
+            List<Vector4> ps = new List<Vector4>();
+            for(int x = 0; x < instances; x++)
+            {
+                ps.Add(Vector4.Zero);
+            }
+            var cp = ps.ToArray();
+            GLThread.Invoke(() =>
+            {
+                VelocityBuffer.MapData(cp);
+                DataBuffer.MapData(cp);
+            });
+            float inc = 0.0f;
+            float time = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000;
+            for(int x = 0; x < instances; x++)
+            {
+                inc += 1f;
+                ps[x] = new Vector4((float)Math.Sin(inc * 12.2f) * 22.0f, inc * 0.2f, (float)Math.Cos(inc * 23.2f + 1.234f) * 22.0f, 1.0f);
+            }
+            balls.Material.SetOptimizedBalls(ps);
+            balls.Instances = instances;
+            GLThread.CreateTimer(() =>
+            {
+                inc = 0.0f;
+                time = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000;
+                for(int x = 0; x < instances; x++)
+                {
+                    inc += 0.02f;
+                    ps[x] = new Vector4((float)Math.Sin(inc * 1.2f + time) * 260.0f + 30.0f, (float)Math.Sin(inc * 3.2f + time * 1.234f) * 20.0f + 30.0f, inc * 0.05f, 1.0f);
+                }
+                balls.Material.SetOptimizedBalls(ps);
+                balls.Instances = instances;
+            }, 250);
+            ComputeShader updater = new ComputeShader("AIPathFollower.compute.glsl");
+            GLThread.OnBeforeDraw += (ad, das) =>
+           { 
+                updater.Use();
+                time = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000;
+               updater.SetUniform("Time", time);
+               updater.SetUniform("PhysicsBallCount", instances);
+               balls.Material.BallsBuffer.Use(1);
+                VelocityBuffer.Use(2);
+                DataBuffer.Use(3);
+                updater.SetUniform("PhysicsPass", 0);
+                updater.Dispatch(instances / 1000, 1, 1);
+                GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+                updater.SetUniform("PhysicsPass", 1);
+                updater.Dispatch(instances / 1000, 1, 1);
+                GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+               // updater.SetUniform("PhysicsPass", 2);
+               // updater.Dispatch(20, 100, 1);
+               // GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+            };
+
             Object3dInfo lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
             lucyobj.ScaleUV(50.0f);
             Mesh3d lucy = new Mesh3d(lucyobj, GenericMaterial.FromMedia("ash01.dds", "ash01_n.dds"));
@@ -346,11 +416,11 @@ namespace ShadowsTester
                     }
 
                 };
-                foreach(var x in ss.Meshes)
+                // foreach(var x in ss.Meshes)
                 //    voxelizeMesh(x);
-                voxelizeMesh(lucy);
-                voxelizeMesh(metal);
-                
+                //voxelizeMesh(lucy);
+                //  voxelizeMesh(metal);
+
                 GLThread.DisplayAdapter.Pipeline.PostProcessor.SetAABoxes(lst1, lst2);
             });
             /*

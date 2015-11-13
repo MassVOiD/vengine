@@ -138,40 +138,14 @@ vec3 RSM(){
             float lmetal = light.normal.a;
             vec3 newpos = light.Position.xyz;
             
+            vec3 lightRelativeToVPos2 = normalize(newpos - LightsPos[i]);
+            float dist2 = distance(newpos, LightsPos[i]);
+            lcolor = shade(-LightsPos[i], lcolor, lnormal, newpos, LightsPos[i], LightsColors[i], lrough, lmetal, 0, false);
+            
             
             float distanceToLight = distance(fragmentPosWorld3d.xyz, newpos);
             vec3 lightRelativeToVPos = normalize(newpos - fragmentPosWorld3d.xyz);
-            vec3 lightRelativeToVPos2 = normalize(newpos - LightsPos[i]);
-            float incomeDiffuse = max(0, dot(lightRelativeToVPos2, -lnormal));
-            float att = CalculateFallof(distanceToLight) *  LightsColors[i].a;
-            
-            float specularComponent = cookTorranceSpecular(
-            lightRelativeToVPos,
-            cameraRelativeToVPos,
-            normal.xyz,
-            max(0.01, meshRoughness)
-            );
-
-            
-            float diffuseComponent = orenNayarDiffuse(
-            lightRelativeToVPos,
-            cameraRelativeToVPos,
-            normal.xyz,
-            meshRoughness
-            );   
-            
-
-            
-            //float fresnel = 1.0 - max(0, dot(normalize(cameraRelativeToVPos), normalize(normal.xyz)));
-            //fresnel = fresnel * fresnel * fresnel*(1.0-meshMetalness)*(1.0-meshRoughness)*0.4 + 1.0;
-            
-            vec3 cc = lcolor;
-            
-            vec3 difcolor = cc * diffuseComponent * att;
-            vec3 difcolor2 = lcolor*colorOriginal * diffuseComponent * att;
-            vec3 specolor = cc * specularComponent * att;
-            
-            vec3 radiance = shadeUV(nUV, newpos, vec4(lcolor, 1));
+            vec3 radiance = shadeUV(nUV, newpos, vec4(lcolor, 1)) * max(0, dot(-lightRelativeToVPos2, lnormal))* max(0, dot(-lightRelativeToVPos, lnormal));
             
             vec3 refl = reflect(-lightRelativeToVPos2, lnormal);
             float spfsm = cookTorranceSpecular(
@@ -179,7 +153,7 @@ vec3 RSM(){
             -lightRelativeToVPos,
             lnormal,
             max(0.01, lrough)
-            ) * max(0, dot(-lightRelativeToVPos, lnormal));
+            ) ;
             
             //float vi = testVisibility3d(newpos, fragmentPosWorld3d.xyz);
             vec3 rref = (radiance * spfsm);
