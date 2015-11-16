@@ -20,7 +20,6 @@ namespace VEngine
         {
             GLThread.DisplayAdapter = this;
             GLThread.Resolution = new Size(Width, Height);
-            Pipeline = new DeferredPipeline();
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);

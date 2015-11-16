@@ -218,7 +218,7 @@ void main()
         color1.xyz = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
     }
     float letterpixels = 10;
-    float maxx = NumbersCount * (0.5 / letterpixels);
+    float maxx = NumbersCount * (1.0 / letterpixels);
     if(UV.x < maxx && UV.y < 0.05){
         vec2 nuv = vec2(UV.x / maxx, UV.y / 0.05);
         float letterx = 1.0 / letterpixels;
@@ -241,7 +241,7 @@ void main()
     float f2 = length(color1.rgb);
     
     vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.0538 : 1.0);
-    if(UnbiasedIntegrateRenderMode){
+    if(UnbiasedIntegrateRenderMode == 1){
        // if(abs(texture(lastIndirectTex, UV).a - depth) > 0.0003) additiveMix = color1.rgb;
     }
     

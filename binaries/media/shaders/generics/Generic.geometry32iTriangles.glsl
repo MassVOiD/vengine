@@ -6,7 +6,7 @@ layout(triangle_strip, max_vertices = 21) out;
 #include Mesh3dUniforms.glsl
 
 in Data {
-    int instanceId;
+    flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
@@ -15,7 +15,7 @@ in Data {
 } gs_in[];
 
 out Data {
-    int instanceId;
+    flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;

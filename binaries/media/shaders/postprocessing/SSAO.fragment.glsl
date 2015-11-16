@@ -22,7 +22,7 @@ float randsPointer = 0;
 uniform float RandomsCount;
 float getRand2(){
     //if(randsPointer >= 22.0) randsPointer = 0;
-    float r = rand2s(vec2(randsPointer, randsPointer*1.1234) + Time);
+    float r = rand2s(vec2(randsPointer, randsPointer*1.1234) + Time*0.01);
     randsPointer+=0.01324;
     return r;
 }
@@ -72,13 +72,30 @@ vec3 lookupCubeMap(vec3 displace){
     return vec3pow(c, 0.2);
 }
 
+vec3 convertRGBtoHSV(vec3 c) {
+    float colorMax = max(max(c.r,c.g), c.b);
+    float colorMin = min(min(c.r,c.g), c.b);
+    float delta = colorMax - colorMin;
+    float h = 0.0, s = 0.0, v = colorMax;
+    if (colorMax != 0.0) s = (colorMax - colorMin ) / colorMax;
+    if (delta != 0.0) {
+        if (c.r == colorMax) h = (c.g - c.b) / delta;
+        else if (c.g == colorMax) h = 2.0 + (c.b - c.r) / delta;
+        else h = 4.0 + (c.r - c.g) / delta;
+        h *= 60.0;
+        if (h < 0.0) h += 360.0;
+    }
+    return vec3(h,s,v);
+}
 
 uniform int UseHBAO;
-float hbao(){
-
+float hbao(vec2 uv){
+    if(texture(diffuseColorTex, UV).r >= 999){ 
+        return 1.0;
+    }
     // gather data
-    uint idvals = texture(meshIdTex, UV).g;
-    uint tangentEncoded = texture(meshIdTex, UV).a;
+    uint idvals = texture(meshIdTex, uv).g;
+    uint tangentEncoded = texture(meshIdTex, uv).a;
     vec3 tangent = unpackSnorm4x8(tangentEncoded).xyz;
     /*
     uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
@@ -91,8 +108,8 @@ float hbao(){
     
     
 
-    vec3 posc = texture(worldPosTex, UV).rgb;
-    vec3 norm = texture(normalsTex, UV).rgb;
+    vec3 posc = texture(worldPosTex, uv).rgb;
+    vec3 norm = texture(normalsTex, uv).rgb;
     
     
     TBN = inverse(transpose(mat3(
@@ -104,25 +121,26 @@ float hbao(){
     float buf = 0.0, div = 1.0/(length(posc)+1.0);
     float counter = 0.0;
     vec3 dir = normalize(reflect(posc, norm));
-    float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
-    float samples = mix(3, 18, 1.0 - meshRoughness);
-    //stepsize = 1.0 / samples;
-    float ringsize = length(posc)*0.5;
-    for(float g = 0; g < samples; g+=1)
-    //for(float g = 0.0; g <= samples; g+=1)
-    //for(float g2 = 0.0; g2 <= samples; g2+=1)
+    float meshRoughness = 1.0 - texture(meshDataTex, uv).a;
+    float samples = mix(24, 24, 1.0 - meshRoughness);
+    float stepsize = PI*2 / samples;
+    float ringsize = length(posc)*0.3;
+    //for(float g = 0; g < samples; g+=1)
+    for(float g = 0.0; g <= PI*2; g+=stepsize)
     {
         float minang = 0;
 
         //vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * ringsize;
-        vec3 displace = normalize(BRDFBiased(dir, norm, meshRoughness, (vec2(getRand2(), getRand2())))) * ringsize;
+        vec2 zx = vec2(sin(g), cos(g));
+        vec3 displace = mix((TBN * normalize(vec3(zx, sqrt(1.0 - length(zx))))), dir, meshRoughness) * ringsize;
+        //vec3 displace = normalize(BRDFBiased(dir, norm, meshRoughness, (vec2(getRand2(), getRand2())))) * ringsize;
         
         vec2 sspos2 = projectOnScreen(FromCameraSpace(posc) + displace);
         for(float g3 = 0.02; g3 < 1.0; g3+=0.1)
         {
             float z = getRand2();
-            vec2 gauss = mix(UV, sspos2, z*z);
-            if(gauss.x < 0 || gauss.x > 1.0 || gauss.y < 0 || gauss.y > 1) break;
+            vec2 gauss = mix(uv, sspos2, z*z);
+            //if(gauss.x < 0 || gauss.x > 1.0 || gauss.y < 0 || gauss.y > 1) break;
             vec3 pos = texture(worldPosTex,  gauss).rgb;
             float dt = max(0, dot(norm, normalize(pos - posc)));
             minang = max(dt * max(0, (ringsize - length(pos - posc)*0.3)/ringsize), minang);
@@ -131,7 +149,7 @@ float hbao(){
         buf += minang;
         counter+=1.0;
     }
-    return pow(1.0 - (buf/counter), aostrength);
+    return pow(1.0 - (buf/counter), aostrength + (1.0 - meshRoughness) * 2);
 }
 
 uniform float AOGlobalModifier;
@@ -145,9 +163,9 @@ void main()
     if(UseHBAO == 1){
        // if(UV.x < 0.5) au = vec4(hbao(), 0, 0, 1);
        //else au = vec4(Radiosity(), 0, 0, 1);
-       au = pow(hbao(), AOGlobalModifier);
+       au = pow(hbao(UV), AOGlobalModifier);
     }
-    outColor = vec4(au);
+    outColor = vec4(texture(normalsTex, UV).rgb * 0.5 + 0.5, au);
     
     
 }

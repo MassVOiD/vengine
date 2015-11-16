@@ -57,73 +57,7 @@ namespace AirplanesGame
 
         public static void SetUpInputBehaviours()
         {
-            GLThread.OnMouseUp += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Middle)
-                {
-                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
-                    if(mesh != null && mesh.GetCollisionShape() != null)
-                    {
-                        Console.WriteLine(mesh.GetCollisionShape().ToString());
-                        mesh.PhysicalBody.LinearVelocity += (Camera.Current.GetDirection() * 120.0f);
-                    }
-                }
-            };
-
-            MeshLinker.LinkInfo pickedLink = null;
-            bool inPickingMode = false;
-            GLThread.OnMouseDown += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Right)
-                {
-                    Mesh3d mesh = Camera.Current.RayCastMesh3d();
-                    if(mesh != null && mesh.GetCollisionShape() != null && !mesh.PhysicalBody.IsStaticObject && !inPickingMode)
-                    {
-                        Console.WriteLine(mesh.GetCollisionShape().ToString());
-                        pickedLink = MeshLinker.Link(Camera.MainDisplayCamera, mesh, new Vector3(0, 0, -(Camera.MainDisplayCamera.Transformation.GetPosition() - mesh.Transformation.GetPosition()).Length),
-                            Quaternion.Identity);
-                        pickedLink.UpdateRotation = false;
-                        inPickingMode = true;
-                    }
-                }
-            };
-            GLThread.OnMouseUp += (o, e) =>
-            {
-                if(e.Button == OpenTK.Input.MouseButton.Right)
-                {
-                    MeshLinker.Unlink(pickedLink);
-                    pickedLink = null;
-                    inPickingMode = false;
-                }
-            };
-
-            GLThread.OnMouseWheel += (o, e) =>
-            {
-                if(e.Delta != 0 && inPickingMode)
-                {
-                    pickedLink.Offset.Z -= e.Delta * 3.0f;
-                    if(pickedLink.Offset.Z > -5)
-                        pickedLink.Offset.Z = -5;
-                }
-            };
-            GLThread.OnMouseWheel += (o, e) =>
-            {
-                if(!inPickingMode)
-                    Camera.Current.LensBlurAmount -= e.Delta / 20.0f;
-            };
-            World.Root.SimulationSpeed = 1.0f;
-
-            GLThread.OnKeyDown += (o, e) =>
-            {
-                if(e.Key == OpenTK.Input.Key.T)
-                {
-                    World.Root.SimulationSpeed = 0.4f;
-                }
-                if(e.Key == OpenTK.Input.Key.Y)
-                {
-                    World.Root.SimulationSpeed = 0.10f;
-                }
-            };
+            
             GLThread.OnKeyUp += (o, e) =>
             {
                 if(e.Key == OpenTK.Input.Key.Tab)
@@ -143,14 +77,6 @@ namespace AirplanesGame
                 if(e.Key == OpenTK.Input.Key.RBracket)
                 {
                     Camera.MainDisplayCamera.Brightness += 0.1f;
-                }
-                if(e.Key == OpenTK.Input.Key.T)
-                {
-                    World.Root.SimulationSpeed = 1.0f;
-                }
-                if(e.Key == OpenTK.Input.Key.Y)
-                {
-                    World.Root.SimulationSpeed = 1.0f;
                 }
                 if(e.Key == OpenTK.Input.Key.Number1)
                 {

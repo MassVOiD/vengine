@@ -43,8 +43,6 @@ namespace VEngine
 
         private static void LoadFileMapImpl(string path = null)
         {
-            if(path == null)
-                System.Console.WriteLine("loading");
             path = path == null ? SearchPath : path;
             if(Map == null)
                 Map = new Dictionary<string, string>();

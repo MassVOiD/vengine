@@ -201,11 +201,11 @@ namespace VEngine
                  ColorPixelType = PixelType.UnsignedByte
              };
             IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            SSAOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            SSAOFramebuffer = new Framebuffer((int)(initialWidth / 2f), (int)(initialHeight / 2f))
             {
                 ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.R8,
-                ColorPixelFormat = PixelFormat.Red,
+                ColorInternalFormat = PixelInternalFormat.Rgba8,
+                ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.UnsignedByte
             };
 

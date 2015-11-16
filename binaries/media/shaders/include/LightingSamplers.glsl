@@ -22,7 +22,7 @@ layout(binding = 17) uniform sampler2D meshDataTex;
 layout(binding = 18) uniform usampler2D meshIdTex;
 layout(binding = 19) uniform samplerCube cubeMapTex;
 layout(binding = 20) uniform sampler2D lastIndirectTex;
-layout(binding = 21) uniform sampler2D lastWorldPosTex;
+//layout(binding = 21) uniform sampler2D lastWorldPosTex;
 
 layout(binding = 22) uniform sampler2D indirectTex;
 layout(binding = 23) uniform sampler2D HBAOTex;

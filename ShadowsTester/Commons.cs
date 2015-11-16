@@ -84,7 +84,7 @@ namespace ShadowsTester
             GLThread.OnUpdate += (o, e) =>
             {
                 //SettingsController.Instance.UpdatePerformance();
-                var jpad = OpenTK.Input.GamePad.GetState(0);
+                /*var jpad = OpenTK.Input.GamePad.GetState(0);
                 float deadzone = 0.15f;
                 if(Picked != null)
                 {
@@ -108,7 +108,7 @@ namespace ShadowsTester
                         var ang = Picked.GetOrientation().ToDirection();
                         Picked.Rotate(Quaternion.FromAxisAngle(ang, -jpad.Triggers.Right*0.01f));
                     }
-                }
+                }*/
                 var kb = OpenTK.Input.Keyboard.GetState();
                 if(GLThread.DisplayAdapter.IsCursorVisible)
                 {

@@ -40,13 +40,13 @@ vec3 raymarchFog(vec3 start, vec3 end){
 			//float fogNoise = snoise(vec4(pos * 1 + vec3(0.2, -0.1, 0), Time*0.1)) + 1;
             float fogNoise = 1.0;
 	
+            vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
 			//float idle = 1.0 / 1000.0 * fogNoise * fogMultiplier * distanceMult;
 			float idle = 0.0;
-			if(lightClipSpace.z < 0.0){ 
+			if(lightClipSpace.z < 0.0 || frfuv.x < 0.0 || frfuv.x > 1.0 || frfuv.y < 0.0 || frfuv.y > 1.0){ 
 				fogDensity += idle;
 				continue;
             }
-            vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
             float badass_depth = toLogDepthEx(distance(pos, LightsPos[i]), LightsFarPlane[i]);
             float diff = (badass_depth - lookupDepthFromLight(i, frfuv));
 			if(diff < 0) {
@@ -66,7 +66,7 @@ vec3 raymarchFog(vec3 start, vec3 end){
 
 vec3 makeFog(){
 	vec3 cspaceEnd = texture(worldPosTex, UV).xyz;
-    if(length(cspaceEnd) > 800) cspaceEnd = normalize(cspaceEnd) * 800;
+    if(length(cspaceEnd) > 800) cspaceEnd = normalize(cspaceEnd) * 100;
 	vec3 fragmentPosWorld3d = FromCameraSpace(cspaceEnd);
     return clamp(vec3(raymarchFog(CameraPosition, fragmentPosWorld3d)), 0.0, 1.0);
 }

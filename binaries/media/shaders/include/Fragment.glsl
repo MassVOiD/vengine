@@ -293,10 +293,10 @@ void finishFragment(vec4 incolor){
         }
         wpos += normalNew * h;
         float iid = float(TestInstId)*0.01;
-        
-        color.xyz = vec3(rand2d(vec2(iid * 0.1211, iid * 0.4352)), 
-            rand2d(vec2(iid * 0.321534, iid * 0.5554)), 
-            rand2d(vec2(iid * 1.4326, iid * 0.757)));
+        //color.xyzw = vec4(1, 1, 1, 0.15);
+    //    color.xyz = vec3(rand2d(vec2(iid * 0.1211, iid * 0.4352)), 
+   //         rand2d(vec2(iid * 0.321534, iid * 0.5554)), 
+   //         rand2d(vec2(iid * 1.4326, iid * 0.757)));
     }
 	outColor = vec4((color.xyz), color.a);
 
@@ -307,7 +307,7 @@ void finishFragment(vec4 incolor){
     )));
     vec3 tangentwspace = TBN * Input.Tangent;
     float outSpecular = 0;
-    if(UseSpecularMap) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
+    if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
     else outSpecular = SpecularComponent;
     
     
@@ -413,9 +413,9 @@ SubsurfaceScatteringMultiplier*/
 	*/
     float outRoughness = 0;
     float outMetalness = 0;
-    if(UseRoughnessMap) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
+    if(UseRoughnessMap == 1) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
     else outRoughness = Roughness;
-    if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
+    if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
     else outMetalness = Metalness;
     
 	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 

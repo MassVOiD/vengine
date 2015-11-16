@@ -189,3 +189,50 @@ vec3 shadeUVNoAtt(vec2 uv,
      float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
      return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
  }
+ 
+float temporalSSAO(vec2 uv){
+    vec3 desiredNormal = texture(normalsTex, uv).rgb;
+    float dc = texture(depthTex, uv).r;
+    vec2 texel = 1.0 / textureSize(HBAOTex, 0);
+    vec2 texel2 = 1.0 / textureSize(depthTex, 0);
+    float ao = texture(HBAOTex, uv).a;
+    float mindot = 0;
+    vec2 points[] = vec2[](
+        vec2(0),
+        vec2(1, 0),
+        -vec2(1, 0),
+        vec2(0, 1),
+        -vec2(0, 1),
+        vec2(1.0, 1.0),
+        -vec2(1.0, 1.0),
+        vec2(-1.0, 1.0),
+        vec2(1.0, -1.0)/*,
+
+        vec2(1.0*2, 0),
+        -vec2(1.0*2, 0),
+        vec2(0, 1.0*2),
+        -vec2(0, 1.0*2),
+        vec2(1.0, 1.0)*2,
+        -vec2(1.0, 1.0)*2,
+        vec2(-1.0, 1.0)*2,
+        vec2(1.0, -1.0)*2,
+        vec2(1.0*2, 1.0),
+        -vec2(1.0, 1.0*2),
+        vec2(-1.0*2, 1.0),
+        vec2(1.0, -1.0*2)*/
+    );
+    for(int i=0;i<points.length();i++){
+        vec4 n = texture(HBAOTex, uv + points[i] * texel);
+        float d = texture(depthTex, uv + points[i] * texel2).r;
+        if(abs(dc - d) > 0.005) continue;
+        float dt = dot(n.xyz, desiredNormal);
+        if(dt > mindot){
+            ao = n.a;
+            mindot = dt;
+        } else if (dt == mindot){
+           // ao = (ao + n.a) * 0.5;
+        }
+    }
+    
+    return ao;
+}

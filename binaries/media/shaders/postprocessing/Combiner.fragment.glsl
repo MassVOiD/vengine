@@ -128,7 +128,7 @@ vec3 softLuminance(vec2 fuv){
             //if(texture(diffuseColorTex, gauss).r >= 999){ 
             //    continue;
            // }
-            vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*0.3) : texture(currentTex, gauss).rgb;
+            vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*1.0) : texture(currentTex, gauss).rgb;
             vec3 pos = texture(worldPosTex, gauss).rgb;
             //vec3 norm = texture(normalsTex, gauss).rgb;
             float ftp = dot(normalize(pos - posCenter), displace);
@@ -243,8 +243,6 @@ vec3 lightPoints(){
     return color;
 }
 
-
-
 void main()
 {
     Seed(UV);
@@ -253,15 +251,15 @@ void main()
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
         color1 += texture(currentTex, nUV).rgb;
-       if(UseRSM == 1) color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
+        //color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
     }
     
     if(UseRSM == 1 && UseHBAO == 1){
-        color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * texture(HBAOTex, nUV).r;
+        color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * temporalSSAO(nUV);
     } else if(UseRSM == 1 && UseHBAO == 0){
         color1 += mixAlbedo(texture(indirectTex, nUV).rgb);
     } else if(UseRSM == 0 && UseVDAO == 0 && UseHBAO == 1){
-        color1 += texture(HBAOTex, nUV).rrr;
+        color1 += vec3(temporalSSAO(nUV));
     }
     //color1 += texture(HBAOTex, nUV).rrr;
     color1 += lightPoints();

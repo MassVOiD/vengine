@@ -3,7 +3,7 @@
 #include Mesh3dUniforms.glsl
 
 out Data {
-    int instanceId;
+    flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;

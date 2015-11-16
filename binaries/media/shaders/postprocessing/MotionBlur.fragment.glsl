@@ -6,7 +6,7 @@ in vec2 UV;
 
 out vec4 outColor;
 
-
+/*
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
@@ -41,7 +41,7 @@ vec3 motionBlurExperiment(vec2 uv){
         counter++;
     }
     return outc / counter;
-}
+}*/
 
 
 void main()

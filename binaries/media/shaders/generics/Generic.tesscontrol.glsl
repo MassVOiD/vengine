@@ -6,7 +6,7 @@ layout (vertices = 3) out;
 
 uniform vec3 gEyeWorldPos;
 in Data {
-    int instanceId;
+    flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
@@ -14,7 +14,7 @@ in Data {
     vec3 Data;
 } Input[];
 out Data {
-    int instanceId;
+    flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;

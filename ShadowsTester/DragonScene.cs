@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using VEngine;
@@ -31,24 +32,24 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
-            var color3 = GenericMaterial.FromMedia("kafel2_a.png", "kafel2_n.png");
-            //var color2 = new GenericMaterial(Color.WhiteSmoke);
+             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
+           // var color3 = GenericMaterial.FromMedia("kafel2_a.png", "kafel2_n.png");
+            var color2 = new GenericMaterial(Color.WhiteSmoke);
+            Mesh3d water3 = new Mesh3d(groundInfo, color2);
+            water3.SetMass(0);
+            water3.Scale(30);
+            scene.Add(water3);
             // color3.SetBumpMapFromMedia("DisplaceIT_Ground_Pebble1_Displace.bmp");
             // color3.SetNormalMapFromMedia("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");
             // color3.Type = GenericMaterial.MaterialType.Parallax;
 
             // RainSystem rs = new RainSystem(1.0f, 300, 100.0f, 1.0f);
-
+            /*
             color3.Metalness = 0;
             color3.Roughness = 0.2f;
             //color3.Type = GenericMaterial.MaterialType.Parallax;
             //color3.SetRainSystem(rs);
-            Mesh3d water3 = new Mesh3d(groundInfo, color3);
-            water3.SetMass(0);
-            water3.Scale(30);
-            water3.Translate(-100, 0, 0);
-            scene.Add(water3);
+            
             Random rand = new Random();
             /* GLThread.CreateTimer(() =>
              {
@@ -59,12 +60,26 @@ namespace ShadowsTester
                  }
              }, 60).Start();*/
 
-            /*   var ss = new GameScene("autko.scene");
-               ss.Load();
-               ss.Meshes.ForEach((o) =>
-               {
-                   scene.Add(o);
-               });*/
+            Random rand = new Random();
+            List<Vector4> disps = new List<Vector4>();
+            for(int i = 0; i < 12; i++)
+            {
+                disps.Add(new Vector4((float)(rand.NextDouble() * 2.0 - 1.0) * 20.0f,
+                    4.0f,
+                    (float)(rand.NextDouble() * 2.0 - 1.0) * 20.0f,
+                    (float)(rand.NextDouble() + 0.25f)));
+            }
+            var ss = new GameScene("wierzba.scene");
+            ss.Load();
+            ss.Meshes.ForEach((o) =>
+            {
+                //scene.Add(o);
+                InstancedMesh3d ioc = new InstancedMesh3d(o.MainObjectInfo, o.MainMaterial);
+                foreach(var d in disps)
+                    ioc.Transformations.Add(new TransformationManager(d.Xyz, Quaternion.FromAxisAngle(Vector3.UnitY, d.W * 3.0f), 1.0f));
+                ioc.UpdateMatrix();
+                scene.Add(ioc);
+            });
             //var groundInfo = Object3dInfo.LoadFromObjSingle(Media.Get("ldspc.obj"));
             //var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
             //ldspc.obj
@@ -87,14 +102,14 @@ namespace ShadowsTester
              water.Scale(2.2f);            
              
            //  scene.Add(water);*/
-            Object3dInfo wall = Object3dGenerator.CreateCube(new Vector3(10.0f, 10.0f, 1.0f), new Vector2(1, 1));
-            InstancedMesh3d wallsInst = new InstancedMesh3d(wall, new GenericMaterial(Color.Red));
-            wallsInst.Transformations.Add(new TransformationManager(new Vector3(0, 5, 10), Quaternion.Identity, 1));
-            wallsInst.Transformations.Add(new TransformationManager(new Vector3(0, 5, -10), Quaternion.Identity, 1));
-            wallsInst.Transformations.Add(new TransformationManager(new Vector3(10, 5, 0), Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2), 1));
-            wallsInst.Transformations.Add(new TransformationManager(new Vector3(-10, 5, 0), Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2), 1));
-            wallsInst.Instances = 4;
-            wallsInst.UpdateMatrix();
+            /*  Object3dInfo wall = Object3dGenerator.CreateCube(new Vector3(10.0f, 10.0f, 1.0f), new Vector2(1, 1));
+              InstancedMesh3d wallsInst = new InstancedMesh3d(wall, new GenericMaterial(Color.Red));
+              wallsInst.Transformations.Add(new TransformationManager(new Vector3(0, 5, 10), Quaternion.Identity, 1));
+              wallsInst.Transformations.Add(new TransformationManager(new Vector3(0, 5, -10), Quaternion.Identity, 1));
+              wallsInst.Transformations.Add(new TransformationManager(new Vector3(10, 5, 0), Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2), 1));
+              wallsInst.Transformations.Add(new TransformationManager(new Vector3(-10, 5, 0), Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.PiOver2), 1));
+              wallsInst.Instances = 4;
+              wallsInst.UpdateMatrix();*/
             // World.Root.CreateRigidBody(0, wallsInst.Transformations[0].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
             //    World.Root.CreateRigidBody(0, wallsInst.Transformations[1].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
             //    World.Root.CreateRigidBody(0, wallsInst.Transformations[2].GetWorldTransform(), new BulletSharp.BoxShape(wall.GetAxisAlignedBox() / 2), null);
@@ -320,38 +335,48 @@ namespace ShadowsTester
             // var stukaobj = 
 
             // a lot of cubes
-            ShaderStorageBuffer VelocityBuffer = new ShaderStorageBuffer(), DataBuffer = new ShaderStorageBuffer();
+            /*
+            ShaderStorageBuffer VelocityBuffer = new ShaderStorageBuffer(), DataBuffer = new ShaderStorageBuffer(), PressureBuffer = new ShaderStorageBuffer();
             VelocityBuffer.Type = BufferUsageHint.DynamicDraw;
             DataBuffer.Type = BufferUsageHint.DynamicDraw;
+            PressureBuffer.Type = BufferUsageHint.DynamicDraw;
             var tsc = Object3dInfo.LoadFromObjSingle(Media.Get("simpleplane.obj"));
-            InstancedMesh3d balls = new InstancedMesh3d(tsc, new GenericMaterial(Color.SkyBlue));
+            InstancedMesh3d balls = new InstancedMesh3d(tsc, new GenericMaterial(Color.SandyBrown));
             balls.Material.Type = GenericMaterial.MaterialType.OptimizedSpheres;
             balls.Material.Roughness = 1.0f;
             balls.Material.Metalness = 0.0f;
-            int instances = 20000;
+            int instances = 0;
+            // balls.DisableDepthWrite = true;
+            List<Vector4> ps = new List<Vector4>();
+            float inc = 0.0f;
+            float time = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000;
+            for(int x = -5; x < 5; x += 3)
+            {
+                for(int y = 1; y < 4150; y += 3)
+                {
+                    for(int z = -5; z < 5; z += 3)
+                    {
+                        inc += 1f;
+                        ps.Add(new Vector4(x + (float)rand.NextDouble() * 0.2f, y + (float)rand.NextDouble() * 0.2f, z + (float)rand.NextDouble() * 0.2f, 1.0f));
+                        instances++;
+                    }
+                }
+            }
             for(int x = 0; x < instances; x++)
                 balls.Transformations.Add(new TransformationManager(Vector3.Zero));
             balls.Instances = 0;
             balls.UpdateMatrix();
             scene.Add(balls);
-
-            List<Vector4> ps = new List<Vector4>();
-            for(int x = 0; x < instances; x++)
-            {
-                ps.Add(Vector4.Zero);
-            }
-            var cp = ps.ToArray();
+            var cp = ps.Select((a) => Vector4.Zero).ToArray();
             GLThread.Invoke(() =>
             {
                 VelocityBuffer.MapData(cp);
                 DataBuffer.MapData(cp);
+                PressureBuffer.MapData(cp);
             });
-            float inc = 0.0f;
-            float time = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000;
             for(int x = 0; x < instances; x++)
             {
-                inc += 1f;
-                ps[x] = new Vector4((float)Math.Sin(inc * 12.2f) * 22.0f, inc * 0.2f, (float)Math.Cos(inc * 23.2f + 1.234f) * 22.0f, 1.0f);
+                // ps[x] = new Vector4((float)Math.Sin(inc * 12.2f) * 4.0f, inc * 1.7f, (float)Math.Cos(inc * 23.2f + 1.234f) * 4.0f, 1.0f);
             }
             balls.Material.SetOptimizedBalls(ps);
             balls.Instances = instances;
@@ -369,31 +394,33 @@ namespace ShadowsTester
             }, 250);
             ComputeShader updater = new ComputeShader("AIPathFollower.compute.glsl");
             GLThread.OnBeforeDraw += (ad, das) =>
-           { 
-                updater.Use();
-                time = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000;
+           {
+               GLThread.DisplayAdapter.Title = GC.GetTotalMemory(false).ToString();
+               updater.Use();
+               time = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000;
                updater.SetUniform("Time", time);
                updater.SetUniform("PhysicsBallCount", instances);
                balls.Material.BallsBuffer.Use(1);
-                VelocityBuffer.Use(2);
-                DataBuffer.Use(3);
-                updater.SetUniform("PhysicsPass", 0);
-                updater.Dispatch(instances / 1000, 1, 1);
-                GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
-                updater.SetUniform("PhysicsPass", 1);
-                updater.Dispatch(instances / 1000, 1, 1);
-                GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+               VelocityBuffer.Use(2);
+               DataBuffer.Use(3);
+               PressureBuffer.Use(4);
+               updater.SetUniform("PhysicsPass", 0);
+               updater.Dispatch(instances / 1000 + 1, 1, 1);
+               GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+               updater.SetUniform("PhysicsPass", 1);
+               updater.Dispatch(instances / 1000 + 1, 1, 1);
+               GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
                // updater.SetUniform("PhysicsPass", 2);
                // updater.Dispatch(20, 100, 1);
                // GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
-            };
-
+           };*/
+            /*
             Object3dInfo lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
             lucyobj.ScaleUV(50.0f);
             Mesh3d lucy = new Mesh3d(lucyobj, GenericMaterial.FromMedia("ash01.dds", "ash01_n.dds"));
             lucy.Translate(0, 0, 20);
             scene.Add(lucy);
-
+            
             lucyobj.UpdateBoundingBox();
             PassiveVoxelizer vox = new PassiveVoxelizer();
 
@@ -422,7 +449,7 @@ namespace ShadowsTester
                 //  voxelizeMesh(metal);
 
                 GLThread.DisplayAdapter.Pipeline.PostProcessor.SetAABoxes(lst1, lst2);
-            });
+            });*/
             /*
             for(int i = 0; i < 1; i++)
             {

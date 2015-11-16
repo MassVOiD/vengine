@@ -2,94 +2,125 @@
 using System.Text.RegularExpressions;
 using OpenTK.Graphics.OpenGL4;
 using VEngine;
+using System.IO;
 
 namespace GLSLLint
 {
     internal class Program
     {
-        private static void Main(string[] args)
+
+        class Linter
         {
-            string source = null;
-            ShaderType type = ShaderType.VertexShader;
-            Media.SearchPath = System.IO.Directory.GetCurrentDirectory();
-            if(args.Length == 2)
+            VEngineInvisibleAdapter window;
+            public Linter()
             {
-                string typestr = args[0];
-                type = ShaderType.VertexShader;
-                if(typestr == "vertex" || typestr == "v")
-                    type = ShaderType.VertexShader;
-                if(typestr == "fragment" || typestr == "f")
-                    type = ShaderType.FragmentShader;
-                if(typestr == "compute" || typestr == "c")
-                    type = ShaderType.ComputeShader;
-                if(typestr == "geometry" || typestr == "g")
-                    type = ShaderType.GeometryShader;
-                if(typestr == "tesscontrol" || typestr == "tc")
-                    type = ShaderType.TessControlShader;
-                if(typestr == "tesseval" || typestr == "te")
-                    type = ShaderType.TessEvaluationShader;
-                source = System.IO.File.ReadAllText(args[1]);
-            }
-            else if(args.Length == 1)
-            {
-                string path = Media.Get(System.IO.Path.GetFileName(args[0]));
-                type = ShaderType.VertexShader;
-                if(path.EndsWith(".vertex.glsl"))
-                    type = ShaderType.VertexShader;
-                if(path.EndsWith(".fragment.glsl"))
-                    type = ShaderType.FragmentShader;
-                if(path.EndsWith(".compute.glsl"))
-                    type = ShaderType.ComputeShader;
-                if(path.EndsWith(".geometry.glsl"))
-                    type = ShaderType.GeometryShader;
-                if(path.EndsWith(".tesscontrol.glsl"))
-                    type = ShaderType.TessControlShader;
-                if(path.EndsWith(".tesseval.glsl"))
-                    type = ShaderType.TessEvaluationShader;
-                if(path.EndsWith("s.glsl"))
-                    type = ShaderType.GeometryShader;
-                source = System.IO.File.ReadAllText(path);
+                window = new VEngineInvisibleAdapter();
             }
 
-            var window = new VEngineInvisibleAdapter();
-
-            int shader = GL.CreateShader(type);
-            //System.IO.Directory.SetCurrentDirectory(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location));
-            //var Config = SharpScript.CreateClass(System.IO.File.ReadAllText("Config.css"));
-            string src = ShaderPreparser.Preparse(source);
-            GL.ShaderSource(shader, src);
-            int i = 0;
-            //string split = String.Join("\r\n", src.Split('\n').Select(a => (i++).ToString() + ": " + a).ToArray());
-            //Console.WriteLine(split);
-
-            GL.CompileShader(shader);
-
-            string compilationResult = GL.GetShaderInfoLog(shader);
-            int status_code;
-            GL.GetShader(shader, ShaderParameter.CompileStatus, out status_code);
-            if(status_code != 1)
+            public bool IsEntryPoint(string file)
             {
-                Console.WriteLine("Compilation FAILED");
-                Console.WriteLine(compilationResult.Trim());
-                string[] errors = compilationResult.Split('\n');
-                var codes = src.Split('\n');
-                foreach(var line in errors)
+                if(file.EndsWith(".vertex.glsl"))
+                    return true;
+                if(file.EndsWith(".fragment.glsl"))
+                    return true;
+                if(file.EndsWith(".compute.glsl"))
+                    return true;
+                if(file.EndsWith(".geometry.glsl"))
+                    return true;
+                if(file.EndsWith(".tesscontrol.glsl"))
+                    return true;
+                if(file.EndsWith(".tesseval.glsl"))
+                    return true;
+                if(file.EndsWith(".geometry.glsl"))
+                    return true;
+                return false;
+            }
+
+            public string Lint(string file)
+            {
+                var type = ShaderType.VertexShader;
+                if(file.EndsWith(".vertex.glsl"))
+                    type = ShaderType.VertexShader;
+                if(file.EndsWith(".fragment.glsl"))
+                    type = ShaderType.FragmentShader;
+                if(file.EndsWith(".compute.glsl"))
+                    type = ShaderType.ComputeShader;
+                if(file.EndsWith(".geometry.glsl"))
+                    type = ShaderType.GeometryShader;
+                if(file.EndsWith(".tesscontrol.glsl"))
+                    type = ShaderType.TessControlShader;
+                if(file.EndsWith(".tesseval.glsl"))
+                    type = ShaderType.TessEvaluationShader;
+                if(file.EndsWith(".geometry.glsl"))
+                    type = ShaderType.GeometryShader;
+                int shader = GL.CreateShader(type);
+                string src = ShaderPreparser.Preparse(file, System.IO.File.ReadAllText(file));
+                GL.ShaderSource(shader, src);
+
+                GL.CompileShader(shader);
+
+                string compilationResult = GL.GetShaderInfoLog(shader);
+                int status_code;
+                GL.GetShader(shader, ShaderParameter.CompileStatus, out status_code);
+                if(status_code != 1)
                 {
-                    if(line.StartsWith("ERROR"))
+                    Console.WriteLine("Shader compilation FAILED");
+                    Console.WriteLine("File: " + file);
+                    Console.WriteLine(compilationResult.Trim());
+                    string[] errors = compilationResult.Split('\n');
+                    var codes = src.Split('\n');
+                    foreach(var line in errors)
                     {
-                        //ERROR: 0:169: error(#143) Undeclared identifier: distance1
+                        // if(line.StartsWith("ERROR"))
+                        //{
                         Match match = Regex.Match(line, @"ERROR: [0-9]+\:([0-9]+)\:");
-                        if(match.Success)
+                        Match match2 = Regex.Match(line, @"0\(([0-9]+)\)");
+                        try
                         {
-                            Console.WriteLine("in line: " + codes[int.Parse(match.Groups[1].Value) - 1].Trim());
+                            if(match.Success)
+                            {
+                                Console.WriteLine(match.Value);
+                                int id = int.Parse(match2.Groups[1].Value) - 1;
+                                if(id >= codes.Length)
+                                    id = codes.Length - 1;
+                                Console.WriteLine("in line AMD: " + codes[id].Trim());
+                            }
+                            if(match2.Success)
+                            {
+                                Console.WriteLine(match2.Value);
+                                int id = int.Parse(match2.Groups[1].Value) - 1;
+                                if(id >= codes.Length)
+                                    id = codes.Length - 1;
+                                Console.WriteLine("in line NV: " + codes[id].Trim());
+                            }
                         }
+                        catch { }
+                        // }
                     }
                 }
+                return "";
             }
-            else
-                Console.WriteLine("OK");
-            window.Close();
-            window.Dispose();
+        }
+
+        private static void CompileRecurse(Linter linter, string directory)
+        {
+            var files = Directory.GetFiles(directory);
+            foreach(var f in files)
+            {
+                if(linter.IsEntryPoint(f))
+                    linter.Lint(f);
+            }
+            var dirs = Directory.GetDirectories(directory);
+            foreach(var d in dirs)
+                CompileRecurse(linter, d);
+        }
+
+        private static void Main(string[] args)
+        {
+            Media.SearchPath = args[0];
+            string directory = args[0];
+            var linter = new Linter();
+            CompileRecurse(linter, directory);
         }
     }
 }

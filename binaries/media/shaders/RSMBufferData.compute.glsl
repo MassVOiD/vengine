@@ -10,7 +10,7 @@ float reverseLogEx(float dd, float far){
 layout(binding = 22) uniform usampler2D LightData;
 layout(binding = 23) uniform sampler2D LightDepth;
 
-layout( local_size_x = 1, local_size_y = 1, local_size_z = 1 ) in;
+layout( local_size_x = 32, local_size_y = 32, local_size_z = 1 ) in;
 uniform mat4 MatP;
 uniform mat4 MatV;
 uniform mat4 MatI;
@@ -18,14 +18,14 @@ uniform float Far;
 uniform vec3 LightPos;
 void main(){
 
-    float ax = float(gl_WorkGroupID.x) / 64.0;
-    float ay = float(gl_WorkGroupID.y) / 64.0;
+    float ax = float(gl_GlobalInvocationID.x) / 64.0;
+    float ay = float(gl_GlobalInvocationID.y) / 64.0;
     vec2 UV = vec2(ax, ay);
     ivec2 iUV = ivec2(vec2(ax, ay) * vec2(textureSize(LightData, 0)));
     uint gIndex = 
         //gl_GlobalInvocationID.z * gl_GlobalInvocationID.x * gl_GlobalInvocationID.y +
-        gl_WorkGroupID.y * gl_WorkGroupID.x + 
-        gl_WorkGroupID.x;
+        gl_GlobalInvocationID.y * gl_GlobalInvocationID.x + 
+        gl_GlobalInvocationID.x;
     float ldep = texelFetch(LightDepth, iUV, 0).r;            
     uvec2 lcolord =  texelFetch(LightData, iUV, 0).rg;
     vec4 upackA = unpackUnorm4x8(lcolord.r);

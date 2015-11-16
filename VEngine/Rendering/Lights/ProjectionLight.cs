@@ -160,7 +160,7 @@ namespace VEngine
             RSMBufferShader.SetUniform("MatI", (parentTransformation));
             RSMBufferShader.SetUniform("Far", camera.Far);
             RSMBufferShader.SetUniform("LightPos", GetPosition());
-            RSMBufferShader.Dispatch(64, 64);
+            RSMBufferShader.Dispatch(2, 2);
         }
 
         public void SetPosition(Vector3 position, Vector3 lookat)

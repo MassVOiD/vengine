@@ -76,10 +76,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dependencies\BulletSharp.dll</HintPath>
     </Reference>
-    <Reference Include="Jint, Version=2.5.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
-      <HintPath>..\packages\Jint.2.5.0\lib\portable-net40+sl50+win+wpa81+wp80\Jint.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\opentk-2014-07-23\Binaries\OpenTK\Release\OpenTK.dll</HintPath>
@@ -127,7 +123,6 @@
     <Compile Include="Rendering\CubeMapTexture.cs" />
     <Compile Include="Rendering\PassiveVoxelizer.cs" />
     <Compile Include="Rendering\TreeGenerator.cs" />
-    <Compile Include="Script.cs" />
     <Compile Include="Texture3D.cs" />
     <Compile Include="Utilities\Generators\MeshGenerator.cs" />
     <Compile Include="Utilities\Generators\Object3dGenerator.cs" />

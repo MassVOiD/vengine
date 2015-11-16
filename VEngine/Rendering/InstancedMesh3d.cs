@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
@@ -139,12 +140,20 @@ namespace VEngine
                 ShaderProgram.Current.SetUniform("InitialTransformation", parentTransformation);
                 ShaderProgram.Current.SetUniform("InitialRotation", Matrix4.CreateFromQuaternion(parentTransformation.ExtractRotation()));
                 if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
-                    OpenTK.Graphics.OpenGL4.GL.DepthMask(false);
+                {
+                    GL.DepthMask(false);
+                    GL.Enable(EnableCap.Blend);
+                    GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+                    GL.BlendEquation(BlendEquationMode.FuncAdd);
+                }
 
                 ObjectInfo.DrawInstanced(Instances);
 
                 if(DisableDepthWrite && !ignoreDisableDepthWriteFlag)
-                    OpenTK.Graphics.OpenGL4.GL.DepthMask(true);
+                {
+                    GL.DepthMask(true);
+                    GL.Disable(EnableCap.Blend);
+                }
             }
             else
             {

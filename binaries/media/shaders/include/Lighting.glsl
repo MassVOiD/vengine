@@ -27,10 +27,10 @@ uvec2 lookupColorFromLight(uint i, vec2 uv){
 float rand2s(vec2 co){
         return fract(sin(dot(co.xy,vec2(12.9898,78.233))) * 43758.5453);
 }
-uint ArandsPointer = 0;
+float ArandsPointer = 0;
 float LightingGetRand(){
     float r = rand2s(vec2(ArandsPointer, ArandsPointer*2.42354) + Time);
-    ArandsPointer++;
+    ArandsPointer+=0.5432;
     return r;
 }
 float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
@@ -62,7 +62,7 @@ float rand2d(vec2 co){
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 0.0;
     
-    ArandsPointer = int(ArandsPointer + rand2s(uv) * 113.86786 ) % int(resolution.x*resolution.y);
+    ArandsPointer = float(ArandsPointer + rand2s(uv) * 113.86786 );
 	float distance2 = distance(pos, LightsPos[i]);
     
 	mat4 lightPV = (LightsPs[i] * LightsVs[i]);

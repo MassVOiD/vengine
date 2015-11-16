@@ -59,12 +59,12 @@ void finishFragment(vec4 c){
     }
     float outRoughness = 0;
     float outMetalness = 0;
-    if(UseRoughnessMap) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
+    if(UseRoughnessMap == 1) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
     else outRoughness = Roughness;
-    if(UseMetalnessMap) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
+    if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
     else outMetalness = Metalness;
     float outSpecular = 0;
-    if(UseSpecularMap) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
+    if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
     else outSpecular = SpecularComponent;
     vec3 cc = mix(LightColor.rgb*c.rgb, LightColor.rgb, outMetalness);
     vec3 difcolor = cc;

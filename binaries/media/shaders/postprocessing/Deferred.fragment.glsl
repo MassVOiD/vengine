@@ -459,7 +459,7 @@ void main()
     }
 
     if(UseVDAO == 1 && UseHBAO == 0) color1 += Radiosity();
-    if(UseVDAO == 1 && UseHBAO == 1) color1 += Radiosity() * texture(HBAOTex, UV).r;
+    if(UseVDAO == 1 && UseHBAO == 1) color1 += Radiosity() * temporalSSAO(UV);
     //   if(UseVDAO == 0 && UseHBAO == 1) color1 += texture(HBAOTex, UV).rrr;
     
     // experiment

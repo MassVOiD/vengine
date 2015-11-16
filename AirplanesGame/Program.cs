@@ -10,9 +10,9 @@ namespace AirplanesGame
     {
         private class Config
         {
-            public static int Height = 1010;
+            public static int Height = 720;
             public static string MediaPath = "media";
-            public static int Width = 1920;
+            public static int Width = 1280;
         }
 
         private static void Main(string[] args)
@@ -51,7 +51,6 @@ namespace AirplanesGame
             Camera.MainDisplayCamera = camera;
             Camera.Current = camera;
             var airplan = new Airplane(nn);
-            World.Root.PhysicalWorld.AddRigidBody(airplan.Body.CreateRigidBody(true));
             World.Root.RootScene.Add(airplan.Body);
             var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
             var whitebox = new Mesh3d(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
@@ -82,12 +81,10 @@ namespace AirplanesGame
              World.Root.Add(lucy);*/
 
             Commons.SetUpInputBehaviours();
-
-            World.Root.SortByDepthMasking();
+            
 
             System.Threading.Thread.Sleep(1000);
-
-            window.StartPhysicsThread();
+            
             renderThread.Wait();
         }
     }

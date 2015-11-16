@@ -5,7 +5,7 @@ layout(triangles, fractional_odd_spacing, ccw) in;
 #include Mesh3dUniforms.glsl
 
 in Data {
-    int instanceId;
+    flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
@@ -13,7 +13,7 @@ in Data {
     vec3 Data;
 } Input[];
 out Data {
-    int instanceId;
+    flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;

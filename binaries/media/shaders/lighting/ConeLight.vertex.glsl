@@ -5,7 +5,7 @@
 
 uniform vec3 LightPosition;
 out Data {
-    int instanceId;
+    flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
