@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Threading.Tasks;
 using OpenTK;
+using OpenTK.Graphics.OpenGL4;
 using VEngine;
 
 namespace ShadowsTester
@@ -10,8 +11,8 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 1600;
-            public static int Height = 900;
+            public static int Width = 1920;
+            public static int Height = 1040;
             public static string MediaPath = "media";
         }
 
@@ -38,7 +39,8 @@ namespace ShadowsTester
             {
                 GLThread.SetCurrentThreadCores(2);
 
-                window = new VEngineWindowAdapter("VENGINE/ShadowsTester OpenGL 4.3 " + DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString(), Config.Width, Config.Height, GameWindowFlags.Default);
+                window = new VEngineWindowAdapter("VENGINE Initializing", Config.Width, Config.Height, GameWindowFlags.Default);
+                window.Title = "VENGINE@" + GL.GetString(StringName.Vendor) + " " + GL.GetString(StringName.Renderer);
 
                 GLThread.GraphicsSettings.UseDeferred = true;
                 GLThread.GraphicsSettings.UseRSM = false;
@@ -60,11 +62,11 @@ namespace ShadowsTester
             //new PlanetScene().Create();
             //   new SculptScene().Create();
             //   new SponzaScene().Create();
-            new OldCityScene();
-            // new PathTraceTest().Create();
+           // new OldCityScene();
+           // // new PathTraceTest().Create();
             //  new NatureScene().Create();
             //  new IndirectTestScene().Create();
-           //new DragonScene();
+           new DragonScene();
           //   new ManyCubesScene().Create();
             //  new ComputeBallsScene().Create();
             //new CarScene().Create();

@@ -68,7 +68,7 @@ vec3 makeFog(){
 	vec3 cspaceEnd = texture(worldPosTex, UV).xyz;
     if(length(cspaceEnd) > 800) cspaceEnd = normalize(cspaceEnd) * 100;
 	vec3 fragmentPosWorld3d = FromCameraSpace(cspaceEnd);
-    return clamp(vec3(raymarchFog(CameraPosition, fragmentPosWorld3d)), 0.0, 1.0);
+    return vec3(raymarchFog(CameraPosition, fragmentPosWorld3d));
 }
 
 void main()

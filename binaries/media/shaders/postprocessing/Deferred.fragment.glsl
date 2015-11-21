@@ -303,6 +303,9 @@ vec3 Radiosity()
     float vdaosampling = vals.y * 2;
     float vdaorefract = vals.z;
 
+    uint tangentEncoded = texture(meshIdTex, UV).a;
+    vec3 tangent = unpackSnorm4x8(tangentEncoded).xyz;
+	
     vec3 posCenter = texture(worldPosTex, UV).rgb;
     vec3 normalCenter = normalize(texture(normalsTex, UV).rgb);
     vec3 ambient = vec3(0);
@@ -314,12 +317,28 @@ vec3 Radiosity()
     uint counter = 0;   
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
     
-    int samples = int(mix(1, 14, 1.0 - meshRoughness));
+    mat3 TBN = inverse(transpose(mat3(
+        normalCenter,
+        cross(tangent, normalCenter),
+        tangent
+    )));
     
-    
-    for(int i=0; i<samples; i++)
+   // int samples = int(mix(8, 48, 1.0 - meshRoughness));
+    float samples = mix(3, 12, 1.0 - meshRoughness);
+    float stepsize = PI*2 / samples;
+    float ringsize = length(posCenter)*0.8;
+    //for(float g = 0; g < samples; g+=1)
+    for(float g = 0.0; g <= PI*2; g+=stepsize)
     {
-        vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
+        float minang = 0;
+
+        //vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * ringsize;
+		float grd = getRand() * stepsize;
+        vec2 zx = vec2(sin(g+grd), cos(g+grd));
+        vec3 displace = normalize(mix((TBN * normalize(vec3(zx, sqrt(1.0 - length(zx))))), dir, meshRoughness));
+        //vec3 displace = normalize(BRDFBiased(dir, norm, meshRoughness, (vec2(getRand2(), getRand2())))) * ringsize;
+        
+       // vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
         //float fresnel = fresnelSchlick(dot(displace, normalCenter));
         
         vec3 color = shadePhotonSpecular(UV, lookupCubeMap(displace));
@@ -378,7 +397,7 @@ vec3 Radiosity()
     
     vec3 vdaoRefract = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaorefract;
     
-    return (vdaoMain + vdaoRefract) * VDAOGlobalMultiplier * 0.2;
+    return (vdaoMain + vdaoRefract) * VDAOGlobalMultiplier;
 }
 
 
@@ -410,8 +429,6 @@ void main()
     // if(alpha < 0.99){
     //nUV = refractUV();
     // }
-    Seed(UV*88);
-    randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec3 colorOriginal = texture(diffuseColorTex, nUV).rgb;    
     vec4 normal = texture(normalsTex, nUV);
     meshDiffuse = normal.a;
@@ -432,6 +449,8 @@ void main()
     //}
     gl_FragDepth = texture(depthTex, nUV).r;
     vec4 fragmentPosWorld3d = texture(worldPosTex, nUV);
+    Seed(fragmentPosWorld3d.xy + fragmentPosWorld3d.yz);
+    randsPointer = int(randomizer * 123.86786 ) % RandomsCount;
     vec3 cameraRelativeToVPos = normalize(-fragmentPosWorld3d.xyz);
     fragmentPosWorld3d.xyz = FromCameraSpace(fragmentPosWorld3d.xyz);
 
@@ -459,7 +478,7 @@ void main()
     }
 
     if(UseVDAO == 1 && UseHBAO == 0) color1 += Radiosity();
-    if(UseVDAO == 1 && UseHBAO == 1) color1 += Radiosity() * temporalSSAO(UV);
+    if(UseVDAO == 1 && UseHBAO == 1) color1 += Radiosity() * texture(HBAOTex, UV).a;
     //   if(UseVDAO == 0 && UseHBAO == 1) color1 += texture(HBAOTex, UV).rrr;
     
     // experiment

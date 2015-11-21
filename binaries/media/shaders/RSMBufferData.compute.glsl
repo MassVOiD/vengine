@@ -10,7 +10,7 @@ float reverseLogEx(float dd, float far){
 layout(binding = 22) uniform usampler2D LightData;
 layout(binding = 23) uniform sampler2D LightDepth;
 
-layout( local_size_x = 32, local_size_y = 32, local_size_z = 1 ) in;
+layout( local_size_x = 1, local_size_y = 1, local_size_z = 1 ) in;
 uniform mat4 MatP;
 uniform mat4 MatV;
 uniform mat4 MatI;

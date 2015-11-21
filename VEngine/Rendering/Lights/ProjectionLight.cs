@@ -56,7 +56,7 @@ namespace VEngine
             ViewPort = new Size(mapwidth, mapheight);
             if(RSMBuffer == null)
                 RSMBuffer = new ShaderStorageBuffer();
-            RSMBuffer.Type = BufferUsageHint.StaticRead;
+            RSMBuffer.Type = BufferUsageHint.DynamicDraw;
             GLThread.Invoke(() => RSMBuffer.MapData(Enumerable.Repeat<byte>(1, 64 * 64 * 4 * 12).ToArray()));
             RSMBufferShader = new ComputeShader("RSMBufferData.compute.glsl");
         }
@@ -151,7 +151,7 @@ namespace VEngine
             //ParticleSystem.DrawAll(true);
             Camera.Current = last;
             NeedsRefreshing = false;
-            GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
+            GL.MemoryBarrier(MemoryBarrierFlags.TextureUpdateBarrierBit);
             RSMBufferShader.Use();
             RSMBuffer.Use(9);
             FBO.UseTexture(22);
@@ -160,7 +160,8 @@ namespace VEngine
             RSMBufferShader.SetUniform("MatI", (parentTransformation));
             RSMBufferShader.SetUniform("Far", camera.Far);
             RSMBufferShader.SetUniform("LightPos", GetPosition());
-            RSMBufferShader.Dispatch(2, 2);
+            RSMBufferShader.Dispatch(64, 64);
+            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
         }
 
         public void SetPosition(Vector3 position, Vector3 lookat)

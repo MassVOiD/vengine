@@ -288,6 +288,7 @@ namespace VEngine
         public void SetTextureFromMedia(string key)
         {
             Tex = new Texture(Media.Get(key));
+            Mode = GenericMaterial.DrawMode.TextureOnly;
         }
 
         public void SetOptimizedBalls(List<Vector4> PositionsAndScales)

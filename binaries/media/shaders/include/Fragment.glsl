@@ -261,6 +261,7 @@ vec3 makeSphereNormals(vec2 uv, float r) {
 
 in flat uint TestInstId;
 void finishFragment(vec4 incolor){
+	if(incolor.a < 0.01) discard;
     discardIfAlphaMasked();
    // if(Selected) color *= 3;
     //outColor = vec4(1);

@@ -103,36 +103,53 @@ vec3 softLuminance(vec2 fuv){
     vec3 outc = vec3(0);
     float counter = 1.0;
     vec3 posCenter = texture(worldPosTex, fuv).rgb;
+	uint tangentEncoded = texture(meshIdTex, fuv).a;
+    vec3 tangent = unpackSnorm4x8(tangentEncoded).xyz;
     vec3 normCenter = texture(normalsTex, fuv).rgb;
     vec3 dir = normalize(reflect(posCenter, normCenter));
-    float meshRoughness = 1.0 - texture(meshDataTex, fuv).a;
-    float samples = mix(5.0, 1.0, meshRoughness);
+    float meshRoughness = 1.0 - texture(meshDataTex, fuv).a; // glossyness actually
+   // float samples = mix(32.0, 1.0, meshRoughness);
     vec3 nnormal = mix(dir, normCenter, 1.0 - meshRoughness);
     float dist = length(posCenter);
+
     TBN = inverse(transpose(mat3(
-        normalize(nnormal.xzy),
-        cross(nnormal, normalize(nnormal.xzy)),
-        nnormal
-    )));    
-    
-    for(float gx = 0.0; gx < samples + 1; gx+=1)
+        tangent,
+        cross(normCenter, tangent),
+        normCenter
+    )));
+	float samples = mix(5, 5, 1.0 - meshRoughness);
+    float stepsize = PI*2 / samples;
+    float ringsize = length(posCenter)*0.8;
+    //for(float g = 0; g < samples; g+=1)
+    for(float g = 0.0; g <= PI*2; g+=stepsize)
     {
+        float minang = 0;
+
+        //vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * ringsize;
+		float grd = getRand() * stepsize;
+        vec2 zx = vec2(sin(g+grd), cos(g+grd));
+        vec3 displace = mix((TBN * normalize(vec3(zx, sqrt(1.0 - length(zx))))), dir, meshRoughness) * ringsize;
+        //vec3 displace = normalize(BRDFBiased(dir, norm, meshRoughness, (vec2(getRand2(), getRand2())))) * ringsize;
+        
+   // for(float gx = 0.0; gx < samples + 1; gx+=1)
+   // {
         //vec2 rdr = vec2(gx, gy) / samples;
-        vec2 rdr = vec2(getRand(), getRand());
-        vec3 displace = normalize(BiasedBRDF(dir, normCenter, meshRoughness, rdr)) * 0.8 * dist;
+       // vec2 rdr = vec2(getRand(), getRand());
+       // vec3 displace = normalize(BiasedBRDF(dir, normCenter, meshRoughness, rdr)) * 0.8 * dist;
         vec2 sspos2 = projectOnScreen(FromCameraSpace(posCenter) + displace);
-        for(float g2 = 0.01; g2 < 1.0; g2+=0.1)
+        for(float g2 = 0.01; g2 < 1.0; g2+=0.2)
         {
             float fv = getRand();
+            fv *= fv;
             vec2 gauss = mix(fuv, sspos2, fv);
             //if(texture(diffuseColorTex, gauss).r >= 999){ 
             //    continue;
            // }
-            vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*1.0) : texture(currentTex, gauss).rgb;
+            vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*1.0) : texture(currentTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*1.0;
             vec3 pos = texture(worldPosTex, gauss).rgb;
-            //vec3 norm = texture(normalsTex, gauss).rgb;
-            float ftp = dot(normalize(pos - posCenter), displace);
-            outc += shadePhoton(fuv, color) * fv * step(meshRoughness - 0.02, ftp);
+            vec3 norm = texture(normalsTex, gauss).rgb;
+            float ftp = max(0, dot(norm, normalize(posCenter - pos)));
+            outc += shadePhoton(fuv, color) * ftp;
             counter+=1;
         }
     }
@@ -251,15 +268,15 @@ void main()
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
         color1 += texture(currentTex, nUV).rgb;
-        //color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).r) : (softLuminance(nUV));
+        //color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).a) : (softLuminance(nUV));
     }
     
     if(UseRSM == 1 && UseHBAO == 1){
-        color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * temporalSSAO(nUV);
+        color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * texture(HBAOTex, nUV).a;
     } else if(UseRSM == 1 && UseHBAO == 0){
-        color1 += mixAlbedo(texture(indirectTex, nUV).rgb);
+        color1 += texture(indirectTex, nUV).rgb;
     } else if(UseRSM == 0 && UseVDAO == 0 && UseHBAO == 1){
-        color1 += vec3(temporalSSAO(nUV));
+      //  color1 += vec3(texture(HBAOTex, nUV).a);
     }
     //color1 += texture(HBAOTex, nUV).rrr;
     color1 += lightPoints();

@@ -155,7 +155,7 @@ namespace VEngine
 
             Width = initialWidth;
             Height = initialHeight;
-            // initialWidth *= 2; initialHeight *= 2;
+          //   initialWidth *= 2; initialHeight *= 2;
             RandomsSSBO.Type = BufferUsageHint.StreamRead;
             RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
 
@@ -186,13 +186,13 @@ namespace VEngine
                 ColorPixelType = PixelType.UnsignedByte
             };
             //LastWorldPosFramebuffer = new Framebuffer(initialWidth / 5, initialHeight / 5)
-            /*HelperFullResFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            HelperFullResFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
             {
                 ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rg8,
-                ColorPixelFormat = PixelFormat.Rg,
+                ColorInternalFormat = PixelInternalFormat.Rgba8,
+                ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.UnsignedByte
-            };*/
+            };
              LastDeferredFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
              {
                  ColorOnly = true,
@@ -201,7 +201,7 @@ namespace VEngine
                  ColorPixelType = PixelType.UnsignedByte
              };
             IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            SSAOFramebuffer = new Framebuffer((int)(initialWidth / 2f), (int)(initialHeight / 2f))
+            SSAOFramebuffer = new Framebuffer((int)(initialWidth / 1), (int)(initialHeight / 1))
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba8,
@@ -287,6 +287,7 @@ namespace VEngine
             Mesh3d.PostProcessingUniformsOnly = false;
             GL.CullFace(CullFaceMode.Back);
             StartMeasureMS();
+            GL.BlendFunc(0, BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
             MRT.Use();
             LastMRTTime = StopMeasureMS();
             World.Root.Draw();
@@ -309,10 +310,10 @@ namespace VEngine
             {
                 SwitchToFB(SSAOFramebuffer);
                 SSAO();
-                /*
-                SwitchToFB(HelperFullResFrameBuffer);
-                Blur(HelperFullResFrameBuffer, HelperFullResFrameBuffer, SSAOFramebuffer, 14);
-                HelperFullResFrameBuffer.UseTexture(23);*/
+                
+               // SwitchToFB(HelperFullResFrameBuffer);
+              //  Blur(HelperFullResFrameBuffer, HelperFullResFrameBuffer, SSAOFramebuffer, 14);
+               // HelperFullResFrameBuffer.UseTexture(23);
             }
             // Blur(IndirectFramebuffer.TexColor, 8, IndirectFramebuffer.Width,
             // IndirectFramebuffer.Height, BlurMode.Temporal); Blur(SSAOFramebuffer.TexColor, 8,
@@ -341,9 +342,9 @@ namespace VEngine
 
             // SwitchToFB(Pass2FrameBuffer);
 
-            /*  Blur(SSAOFramebuffer.TexColor, Pass1FrameBuffer.TexColor, 28, SSAOFramebuffer.Width, SSAOFramebuffer.Height, Pass1FrameBuffer.Width, Pass1FrameBuffer.Height, BlurMode.Temporal);
-              Blur(IndirectFramebuffer.TexColor, Pass1FrameBuffer.TexColor, 28, IndirectFramebuffer.Width, IndirectFramebuffer.Height, Pass1FrameBuffer.Width, Pass1FrameBuffer.Height, BlurMode.Temporal);
-              */
+            //  Blur(SSAOFramebuffer.TexColor, Pass1FrameBuffer.TexColor, 28, SSAOFramebuffer.Width, SSAOFramebuffer.Height, Pass1FrameBuffer.Width, Pass1FrameBuffer.Height, BlurMode.Temporal);
+            //  Blur(IndirectFramebuffer.TexColor, Pass1FrameBuffer.TexColor, 28, IndirectFramebuffer.Width, IndirectFramebuffer.Height, Pass1FrameBuffer.Width, Pass1FrameBuffer.Height, BlurMode.Temporal);
+              
 
             SwitchToFB(Pass1FrameBuffer);
 
@@ -475,7 +476,7 @@ namespace VEngine
         private void Blur(Framebuffer output, Framebuffer helper, Framebuffer source, int length)
         {
             // GL.BindImageTexture(0, output.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba16f);
-            GL.BindImageTexture(1, helper.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rg8);
+            GL.BindImageTexture(1, helper.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba8);
             GL.ActiveTexture(TextureUnit.Texture2);
             GL.BindTexture(TextureTarget.Texture2D, source.TexColor);
             GL.ActiveTexture(TextureUnit.Texture3);
@@ -494,7 +495,7 @@ namespace VEngine
             GL.MemoryBarrier(MemoryBarrierFlags.TextureFetchBarrierBit);
 
             // GL.BindImageTexture(0, output.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba16f);
-            GL.BindImageTexture(1, helper.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rg8);
+            GL.BindImageTexture(1, helper.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba8);
             BlurShader.SetUniform("Length", length);
             BlurShader.SetUniform("Direction", 1);
             BlurShader.SetUniform("FarPlane", Camera.Current.Far);

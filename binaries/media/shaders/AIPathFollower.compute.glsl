@@ -314,7 +314,7 @@ void UnifiedPhysics(uint index){
         Positions[index].xyz += PhysicsStep * PathPoints[index].xyz;
         float xy = 115;
         vec3 boundmin = vec3(-xy, 1, -xy);
-        vec3 boundmax = vec3(xy, 199, xy);
+        vec3 boundmax = vec3(xy, 111199, xy);
         if(Positions[index].x > boundmax.x) {collectedCollisionsSum.x *= -1; collectedCollisionsSum *= BOUNC*ELASTIC;}
         if(Positions[index].x < boundmin.x) {collectedCollisionsSum.x *= -1; collectedCollisionsSum *= BOUNC*ELASTIC;}
         if(Positions[index].y > boundmax.y) {collectedCollisionsSum.y *= -1; collectedCollisionsSum *= BOUNC*ELASTIC;}

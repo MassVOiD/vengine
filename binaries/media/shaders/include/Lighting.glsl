@@ -29,7 +29,7 @@ float rand2s(vec2 co){
 }
 float ArandsPointer = 0;
 float LightingGetRand(){
-    float r = rand2s(vec2(ArandsPointer, ArandsPointer*2.42354) + Time);
+    float r = rand2s(vec2(ArandsPointer, ArandsPointer*2.42354));
     ArandsPointer+=0.5432;
     return r;
 }
@@ -52,7 +52,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	}
     if(counter == 0) return 0.0;
     float bbb = average/counter;
-	return clamp((distance2 - bbb) *7-0.05, 0, 12);
+	return clamp((distance2 - bbb) *7-0.25, 0, 12);
 }
 
 float LastProbeDistance = 0.0;
@@ -73,14 +73,15 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	vec2 fakeUV = vec2(0.0);
 	
 	float counter = 0;
-  
+	
     float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
-    float pssblur = 0.3;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1);
+    float pssblur = max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.2;
     for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
             fakeUV = uv + vec2(sin(x+y), cos(x+y)) * LightingGetRand() * pssblur * 0.009;
             distance1 = lookupDepthFromLight(i, fakeUV);
-            if(distance3 -  distance1 > 0.00003) accum += 1.0 ;
+
+            if(distance3 -  distance1 > 0.00035) accum += 1.0 ;
             counter+=1;
         }
     }

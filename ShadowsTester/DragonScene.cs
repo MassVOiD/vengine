@@ -12,6 +12,19 @@ namespace ShadowsTester
 {
     public class DragonScene
     {
+        class VegetationPart {
+            public string Texture, Model;
+            public float Scale, ScaleVariation;
+            public int Count;
+            public VegetationPart(string t, string m, float s, float sv, int c)
+            {
+                Texture = t;
+                Model = m;
+                Scale = s;
+                ScaleVariation = sv;
+                Count = c;
+            }
+        }
         public DragonScene()
         {
             var scene = World.Root.RootScene;
@@ -33,8 +46,8 @@ namespace ShadowsTester
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
              Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
-           // var color3 = GenericMaterial.FromMedia("kafel2_a.png", "kafel2_n.png");
-            var color2 = new GenericMaterial(Color.WhiteSmoke);
+            //var color2 = GenericMaterial.FromMedia("3a.jpg", "3n.jpg");
+            var color2 = new GenericMaterial(Color.Red);
             Mesh3d water3 = new Mesh3d(groundInfo, color2);
             water3.SetMass(0);
             water3.Scale(30);
@@ -61,27 +74,36 @@ namespace ShadowsTester
              }, 60).Start();*/
 
             Random rand = new Random();
-            List<Vector4> disps = new List<Vector4>();
-            for(int i = 0; i < 12; i++)
+
+            List<VegetationPart> vegs = new List<VegetationPart>();
+            // grass
+            vegs.Add(new VegetationPart("vurt_reachflowers2.dds", "6billboardsgrass.obj", 2.0f, 1.4f, 38001));
+            vegs.Add(new VegetationPart("vurt_AssortedPlants.dds", "6billboardsgrass.obj", 2.0f, 1.2f, 35010));
+            vegs.Add(new VegetationPart("vurt_brownplants.dds", "6billboardsgrass.obj", 2.0f, 2.2f, 36010));
+            vegs.Add(new VegetationPart("snowgrass01.dds", "6billboardsgrass.obj", 2.4f, 1.2f, 37010));
+
+            //tress
+            vegs.Add(new VegetationPart("vurt_ heather.dds", "4billboardstrees.obj", 15.0f, 6.6f, 89));
+            vegs.Add(new VegetationPart("vurt_aspenleaves.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
+            vegs.Add(new VegetationPart("vurt_FFleavesG2.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
+            vegs.Add(new VegetationPart("vurt_PineSnowy.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
+
+            float vegarea = 340;
+            foreach(var v in vegs)
             {
-                disps.Add(new Vector4((float)(rand.NextDouble() * 2.0 - 1.0) * 20.0f,
-                    4.0f,
-                    (float)(rand.NextDouble() * 2.0 - 1.0) * 20.0f,
-                    (float)(rand.NextDouble() + 0.25f)));
-            }
-            var ss = new GameScene("wierzba.scene");
-            ss.Load();
-            ss.Meshes.ForEach((o) =>
-            {
-                //scene.Add(o);
-                InstancedMesh3d ioc = new InstancedMesh3d(o.MainObjectInfo, o.MainMaterial);
-                foreach(var d in disps)
-                    ioc.Transformations.Add(new TransformationManager(d.Xyz, Quaternion.FromAxisAngle(Vector3.UnitY, d.W * 3.0f), 1.0f));
+                InstancedMesh3d ioc = new InstancedMesh3d(Object3dInfo.LoadFromObjSingle(Media.Get(v.Model)), new GenericMaterial(Color.White));
+                ioc.Material.SetTextureFromMedia(v.Texture);
+                for(int i = 0; i < v.Count; i++)
+                    ioc.Transformations.Add(new TransformationManager(new Vector3((float)(rand.NextDouble() * 2.0 - 1.0) * vegarea,
+                        0.0f,
+                        (float)(rand.NextDouble() * 2.0 - 1.0) * vegarea), Quaternion.FromAxisAngle(Vector3.UnitY, (float)(rand.NextDouble() + 0.25f) * 3.0f), (float)(rand.NextDouble()) * v.ScaleVariation + v.Scale));
                 ioc.UpdateMatrix();
                 scene.Add(ioc);
-            });
+            }
+
+            
             //var groundInfo = Object3dInfo.LoadFromObjSingle(Media.Get("ldspc.obj"));
-            //var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
+            var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
             //ldspc.obj
             /* Object3dInfo waterInfo = Object3dInfo.LoadFromRaw(Media.Get("Realistic tree.vbo.raw"), Media.Get("Realistic tree.indices.raw"));
              Object3dInfo waterInfo2 = Object3dInfo.LoadFromObjSingle(Media.Get("terrain_simplified_normalized.obj"));
@@ -171,8 +193,8 @@ namespace ShadowsTester
             Object3dInfo cathobj = Object3dInfo.LoadFromObjSingle(Media.Get("cathedral2.obj"));
             var cath = new Mesh3d(cathobj, new GenericMaterial(Color.LightSteelBlue));
             //cath.Scale(0.8f);
-           // scene.Add(cath);
-            
+           // scene.Add(cath);*/
+            /*
             Object3dInfo cathobja = Object3dInfo.LoadFromObjSingle(Media.Get("ryj.obj"));
             var catha = new Mesh3d(cathobja, GenericMaterial.FromMedia("ryj_albedo.jpg"));
             catha.MainMaterial.SetRoughnessMapFromMedia("ryj_roughness.jpg");
@@ -187,9 +209,9 @@ namespace ShadowsTester
             //scene.Add(chair);
             Object3dInfo roomobj = Object3dInfo.LoadFromObjSingle(Media.Get("roomclean.obj"));
             var room = new Mesh3d(roomobj, new GenericMaterial(Color.WhiteSmoke));
-            room.Translate(70, 8.1f, 0);*/
+            room.Translate(70, 8.1f, 0);
             // scene.Add(room);
-
+            */
             /*
             Object3dInfo fenceobj = Object3dInfo.LoadFromObjSingle(Media.Get("fenceplane.obj"));
             var fence = new Mesh3d(fenceobj, new GenericMaterial(Color.WhiteSmoke));
@@ -221,11 +243,11 @@ namespace ShadowsTester
             color3.Type = GenericMaterial.MaterialType.Parallax;
             color3.Metalness = 0;
             color3.Roughness = 0.2f;
-            Mesh3d water3 = new Mesh3d(groundInfo, color3);
-            water3.SetMass(0);
-            water3.Scale(30);
-            water3.Translate(-100, 0, 0);
-            scene.Add(water3);*/
+            Mesh3d water31 = new Mesh3d(groundInfo, color3);
+            water31.SetMass(0);
+            water31.Scale(30);
+            water31.Translate(-100, 0, 0);
+            scene.Add(water31);*/
             /*
             var color4 = GenericMaterial.FromMedia("rock_02_dif.jpg");
             //var color2 = new GenericMaterial(Color.WhiteSmoke);
@@ -280,8 +302,8 @@ namespace ShadowsTester
             Mesh3d water6 = new Mesh3d(groundInfo, color6);
             water6.SetMass(0);
             water6.Scale(30);
-            water6.Translate(100, 0, 100);
-            *//*
+            water6.Translate(100, 0, 100);*/
+            /*
             var oflow = Object3dInfo.LoadFromObj(Media.Get("flower.obj"));
             foreach(var of in oflow)
             {
@@ -350,11 +372,11 @@ namespace ShadowsTester
             List<Vector4> ps = new List<Vector4>();
             float inc = 0.0f;
             float time = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000;
-            for(int x = -5; x < 5; x += 3)
+            for(int x = 0; x < 100; x += 1)
             {
-                for(int y = 1; y < 4150; y += 3)
+                for(int y = 0; y < 100; y += 1)
                 {
-                    for(int z = -5; z < 5; z += 3)
+                    for(int z = 0; z < 100; z += 1)
                     {
                         inc += 1f;
                         ps.Add(new Vector4(x + (float)rand.NextDouble() * 0.2f, y + (float)rand.NextDouble() * 0.2f, z + (float)rand.NextDouble() * 0.2f, 1.0f));

@@ -15,7 +15,7 @@ namespace VEngine
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(8, 0, 0, 0), title, flags,
-                DisplayDevice.Default, 4, 3,
+                DisplayDevice.Default, 4, 4,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             GLThread.DisplayAdapter = this;

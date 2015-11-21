@@ -80,7 +80,7 @@ namespace GLSLLint
                             if(match.Success)
                             {
                                 Console.WriteLine(match.Value);
-                                int id = int.Parse(match2.Groups[1].Value) - 1;
+                                int id = int.Parse(match.Groups[1].Value) - 1;
                                 if(id >= codes.Length)
                                     id = codes.Length - 1;
                                 Console.WriteLine("in line AMD: " + codes[id].Trim());

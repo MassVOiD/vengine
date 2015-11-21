@@ -111,8 +111,14 @@ float hbao(vec2 uv){
     vec3 posc = texture(worldPosTex, uv).rgb;
     vec3 norm = texture(normalsTex, uv).rgb;
     
-    
+    /*
     TBN = inverse(transpose(mat3(
+        norm,
+        cross(tangent, norm),
+        tangent
+    )));*/
+	
+	TBN = inverse(transpose(mat3(
         tangent,
         cross(norm, tangent),
         norm
@@ -121,35 +127,36 @@ float hbao(vec2 uv){
     float buf = 0.0, div = 1.0/(length(posc)+1.0);
     float counter = 0.0;
     vec3 dir = normalize(reflect(posc, norm));
-    float meshRoughness = 1.0 - texture(meshDataTex, uv).a;
-    float samples = mix(24, 24, 1.0 - meshRoughness);
+    float meshRoughness = texture(meshDataTex, uv).a;
+    float samples = mix(3, 12, meshRoughness);
     float stepsize = PI*2 / samples;
-    float ringsize = length(posc)*0.3;
+    float ringsize = length(posc)*0.8;
     //for(float g = 0; g < samples; g+=1)
     for(float g = 0.0; g <= PI*2; g+=stepsize)
     {
         float minang = 0;
 
         //vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * ringsize;
-        vec2 zx = vec2(sin(g), cos(g));
-        vec3 displace = mix((TBN * normalize(vec3(zx, sqrt(1.0 - length(zx))))), dir, meshRoughness) * ringsize;
+		float grd = getRand2() * stepsize;
+        vec2 zx = vec2(sin(g+grd), cos(g+grd));
+        vec3 displace = mix((TBN * normalize(vec3(zx, sqrt(1.0 - length(zx))))), dir, 1.0 - meshRoughness) * ringsize;
         //vec3 displace = normalize(BRDFBiased(dir, norm, meshRoughness, (vec2(getRand2(), getRand2())))) * ringsize;
         
         vec2 sspos2 = projectOnScreen(FromCameraSpace(posc) + displace);
         for(float g3 = 0.02; g3 < 1.0; g3+=0.1)
         {
-            float z = getRand2();
-            vec2 gauss = mix(uv, sspos2, z*z);
+            //float z = getRand2();
+            vec2 gauss = mix(uv, sspos2, g3*g3);
             //if(gauss.x < 0 || gauss.x > 1.0 || gauss.y < 0 || gauss.y > 1) break;
             vec3 pos = texture(worldPosTex,  gauss).rgb;
             float dt = max(0, dot(norm, normalize(pos - posc)));
-            minang = max(dt * max(0, (ringsize - length(pos - posc)*0.3)/ringsize), minang);
+            minang = max(dt * max(0, (ringsize - length(pos - posc)*1.3)/ringsize), minang);
         }
         //if(minang > aocutoff) minang = 1;
         buf += minang;
         counter+=1.0;
     }
-    return pow(1.0 - (buf/counter), aostrength + (1.0 - meshRoughness) * 2);
+    return 1.0 - (buf/counter);
 }
 
 uniform float AOGlobalModifier;

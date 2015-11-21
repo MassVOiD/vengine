@@ -125,7 +125,7 @@ vec3 RSM(){
 
     float octaves[] = float[4](0.8, 2.0, 4.0, 6.0);
     
-    #define RSMSamples 16
+    #define RSMSamples 64
     for(int i=0;i<LightsCount;i++){
         //break;
         for(int x=0;x<RSMSamples;x++){
@@ -170,7 +170,7 @@ vec3 RSM(){
         }
     
     }
-    return 11*color1 / (RSMSamples);
+    return color1 / (RSMSamples);
 }
 
 uniform float RSMGlobalMultiplier;
