@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using BulletSharp;
 using OpenTK;
-using VEngine.UI;
 
 namespace VEngine
 {
@@ -14,12 +13,9 @@ namespace VEngine
 
         public Scene RootScene;
 
-        public UIRenderer UI;
-
         public World()
         {
             RootScene = new Scene();
-            UI = new UIRenderer();
             if(Root == null)
                 Root = this;
         }
@@ -30,6 +26,24 @@ namespace VEngine
         
         public void Draw(bool ignoreMeshWithDisabledDepthTest = false, bool ignoreDisableDepthWriteFlag = false)
         {
+            var sp = GenericMaterial.OverrideShaderPack != null ? GenericMaterial.OverrideShaderPack : GenericMaterial.MainShaderPack;
+            sp.ProgramsList.ForEach((shader) =>
+            {
+                if(!shader.Compiled)
+                    return;
+                shader.Use();
+
+                shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
+                shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
+
+                shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+                shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+                shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+                shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
+                shader.SetUniform("FarPlane", Camera.Current.Far);
+                shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
+                shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+            });
             RootScene.Draw(Matrix4.Identity);
         }
         

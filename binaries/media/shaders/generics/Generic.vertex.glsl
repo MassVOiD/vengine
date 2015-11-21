@@ -32,15 +32,10 @@ void main(){
 	Output.TexCoord = vec2(in_uv.x, in_uv.y);
     
     vec3 inorm = in_normal;
-	mat4 mmat = ModelMatrix;
-    if(Instances > 0) mmat = ModelMatrixes[gl_InstanceID];
+	mat4 mmat = ModelMatrixes[gl_InstanceID];
 
     vec3 mspace = v.xyz;
-    if(UseBoneSystem == 1){
-        int bone = determineBone(mspace);
-        mspace = applyBoneRotationChain(mspace, bone);
-        inorm = applyBoneRotationChainNormal(inorm, bone);
-    }
+
     //v = vec4(mspace, 1);
     vec3 wpos = (InitialTransformation * mmat * v).xyz;
     vec3 norm = inorm;

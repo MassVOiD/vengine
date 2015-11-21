@@ -37,8 +37,7 @@ namespace VEngine
                 Maximum = max;
             }
         }
-
-        public static PathTracing.PathTracer Tracer;
+        
         public ShaderStorageBuffer AABoxesBuffer;
         public ShaderStorageBuffer AABoxesContainersBuffer;
         public int AABoxesCount;
@@ -111,7 +110,7 @@ namespace VEngine
             SSAOFramebuffer,
             FogFramebuffer;
 
-        private Mesh3d PostProcessingMesh;
+        private Object3dInfo PostProcessingMesh;
         private ShaderStorageBuffer RandomsSSBO = new ShaderStorageBuffer();
         // public static uint RandomIntFrame = 1;
 
@@ -223,8 +222,7 @@ namespace VEngine
 
             BlurShader = new ComputeShader("Blur.compute.glsl");
 
-            Object3dInfo postPlane3dInfo = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
-            PostProcessingMesh = new Mesh3d(postPlane3dInfo, new GenericMaterial(Color.Pink));
+            PostProcessingMesh = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
         }
 
         private enum BlurMode
@@ -240,42 +238,6 @@ namespace VEngine
             {
                 RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
             }
-            // okay lets do it
-            if(Tracer != null)
-            {
-                //FullScene3DTexture.Clear();
-                // FullScene3DTexture.Use(0);
-                //GL.BindImageTexture(22u, (uint)FullScene3DTexture.Handle, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
-                GL.Disable(EnableCap.CullFace);
-                //GL.CullFace(CullFaceMode.Back);
-                // GL.DepthFunc(DepthFunction.Always);
-                DisableBlending();
-                Mesh3d.PostProcessingUniformsOnly = false;
-                MRT.Use();
-                World.Root.Draw();
-                Mesh3d.PostProcessingUniformsOnly = true;
-                //GL.DepthFunc(DepthFunction.Always);
-                //GL.Disable(EnableCap.CullFace);
-                SwitchToFB1();
-                /*if(VDAOFramebuffer.TexColor <= 0)
-                {
-                    VDAOFramebuffer.Use();
-                    RSMFramebuffer.Use();
-                    SwitchToFB0();
-                }
-                Tracer.PathTraceToImage(MRT, VDAOFramebuffer.TexColor, RSMFramebuffer.TexColor, VDAOFramebuffer.Width, VDAOFramebuffer.Height);
-                GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
-               // SwitchToFB0();
-              //  VDAOFramebuffer.UseTexture(0);
-                //PathTracerOutputShader.Use();
-               // ShaderProgram.Lock = true;
-               // PostProcessingMesh.Draw();
-               // ShaderProgram.Lock = false;
-                SwitchToFB(RSMFramebuffer);// not really related
-                VDAOFramebuffer.UseTexture(0);
-                Blit();*/
-                // return;
-            }
             stopwatch.Stop();
             lastTime = (lastTime * 20 + stopwatch.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L))) / 21;
             stopwatch.Reset();
@@ -283,15 +245,13 @@ namespace VEngine
 
             DisableBlending();
             // RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
-
-            Mesh3d.PostProcessingUniformsOnly = false;
+            
             GL.CullFace(CullFaceMode.Back);
             StartMeasureMS();
-            GL.BlendFunc(0, BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.BlendFunc(0, BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             MRT.Use();
             LastMRTTime = StopMeasureMS();
             World.Root.Draw();
-            Mesh3d.PostProcessingUniformsOnly = true;
 
             MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureWorldPosition(15);
@@ -396,10 +356,8 @@ namespace VEngine
            // Blit();
             EnableFullBlend();
             
-
-            if(World.Root != null && World.Root.UI != null)
-                World.Root.UI.DrawAll();
-            Mesh3d.PostProcessingUniformsOnly = false;
+            
+           // Mesh3d.PostProcessingUniformsOnly = false;
         }
 
         public void SetAABoxes(List<AABContainers> containers, List<AAB> boxes)
@@ -460,17 +418,13 @@ namespace VEngine
         private void Blit()
         {
             BlitShader.Use();
-            ShaderProgram.Lock = true;
-            PostProcessingMesh.Draw(Matrix4.Identity);
-            ShaderProgram.Lock = false;
+            DrawPPMesh();
         }
 
         private void Bloom()
         {
             BloomShader.Use();
-            ShaderProgram.Lock = true;
-            PostProcessingMesh.Draw(Matrix4.Identity);
-            ShaderProgram.Lock = false;
+            DrawPPMesh();
         }
 
         private void Blur(Framebuffer output, Framebuffer helper, Framebuffer source, int length)
@@ -508,10 +462,9 @@ namespace VEngine
 
         private float DrawPPMesh()
         {
-            ShaderProgram.Lock = true;
             StartMeasureMS();
-            PostProcessingMesh.Draw(Matrix4.Identity);
-            ShaderProgram.Lock = false;
+            SetUniformsShared();
+            PostProcessingMesh.Draw();
             return StopMeasureMS();
         }
 
@@ -587,9 +540,7 @@ namespace VEngine
             RayTraceShadowsShader.SetUniform("AABoxesCount", AABoxesCount);
             RayTraceShadowsShader.SetUniform("AABoxesContainersCount", AABoxesContainersCount);
             // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
-            ShaderProgram.Lock = true;
-            PostProcessingMesh.Draw(Matrix4.Identity);
-            ShaderProgram.Lock = false;
+            DrawPPMesh();
         }
 
         private void DisableBlending()
@@ -655,9 +606,7 @@ namespace VEngine
         private void MotionBlur()
         {
             MotionBlurShader.Use();
-            ShaderProgram.Lock = true;
-            PostProcessingMesh.Draw(Matrix4.Identity);
-            ShaderProgram.Lock = false;
+            DrawPPMesh();
         }
 
         private void SSAO()
@@ -671,6 +620,21 @@ namespace VEngine
             SSAOShader.SetUniform("AOGlobalModifier", AOGlobalModifier);
             SSAOShader.SetUniform("RandomsCount", 16 * 16 * 16);
             LastSSAOTime = DrawPPMesh();
+        }
+
+        public void SetUniformsShared()
+        {
+            var shader = ShaderProgram.Current;
+            shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
+            shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
+
+            shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+            shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+            shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+            shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
+            shader.SetUniform("FarPlane", Camera.Current.Far);
+            shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
+            shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
         }
 
         private Framebuffer SwitchBetweenFB()

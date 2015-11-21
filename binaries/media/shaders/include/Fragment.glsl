@@ -267,6 +267,8 @@ void finishFragment(vec4 incolor){
     //outColor = vec4(1);
     vec4 color = incolor;
     vec3 wpos = Input.WorldPos;
+	float dst = distance(wpos, CameraPosition);
+	if(dst < LodDistanceStart || dst >= LodDistanceEnd) discard;
     vec3 normalNew  = normalize(Input.Normal);
    // vec3 normalNew  = normalize(cross(dFdx(wpos), dFdy(wpos)));
     
@@ -313,97 +315,90 @@ void finishFragment(vec4 incolor){
     
     
     
-	if(IgnoreLighting == 0){
-		if(UseNormalMap == 1){
-			//normalNew = perturb_normal(normalNew, Input.WorldPos, Input.TexCoord * NormalMapScale);   
-            vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
-         //  map.y = - map.y;
-           map = map * 2 - 1;
-           //map.r = - map.r;
-           map.g = - map.g;
-          // map.x = - map.x;
-            normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
-           // normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
-    
-		} 
-        if(UseBumpMap == 1){
-          //  float factor = ( texture(bumpMapTex, Input.TexCoord).r);
-            //factor = factor - 119;
-        //    factor = (factor) ;
-        //    worldBumpMapSize = factor;
-        //    vec3 bitan = cross(normal, tangent);
-        //    factor = factor * 2 - 1;
-        //    vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
-        //    nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
-         //   normalNew =  TBN * examineBumpMap();
-    
-		} else {
+	if(UseNormalMap == 1){
+		//normalNew = perturb_normal(normalNew, Input.WorldPos, Input.TexCoord * NormalMapScale);   
+		vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
+	 //  map.y = - map.y;
+	   map = map * 2 - 1;
+	   //map.r = - map.r;
+	   map.g = - map.g;
+	  // map.x = - map.x;
+		normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
+	   // normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
 
+	} 
+	if(UseBumpMap == 1){
+	  //  float factor = ( texture(bumpMapTex, Input.TexCoord).r);
+		//factor = factor - 119;
+	//    factor = (factor) ;
+	//    worldBumpMapSize = factor;
+	//    vec3 bitan = cross(normal, tangent);
+	//    factor = factor * 2 - 1;
+	//    vec3 nee = normalize((normalNew - ((tangent) * factor*-0.5)));
+	//    nee = dot(nee, normalNew) < 0 ?  nee = -nee : nee;
+	 //   normalNew =  TBN * examineBumpMap();
+
+	} else {
+
+	}
+	if(MaterialType == MaterialTypeWater){
+		float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
+		//factor += 0.2 * rand2d(Input.TexCoord);
+		if(Input.Data.z < 0.99){
+			if(factor > Input.Data.x + 0.01) discard;
 		}
-        if(MaterialType == MaterialTypeWater){
-            float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
-            //factor += 0.2 * rand2d(Input.TexCoord);
-            if(Input.Data.z < 0.99){
-                if(factor > Input.Data.x + 0.01) discard;
-            }
-        }
+	}
 
 #define MaterialTypeParallax 11
-        if(MaterialType == MaterialTypeParallax){
-            float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
-            //factor += 0.2 * rand2d(Input.TexCoord);
-            //if(distance(CameraPosition, wpos)<3.0){
-                if(Input.Data.x < 0.99){
-                    if(factor > Input.Data.x) discard;
-                    //if(factor > Input.Data.y) discard;
-             
-                }
-          //  } else {
-           //     if(Input.Data.x > 0.01) discard;
-           //     else {
-         //           wpos -= Input.Data.z * Input.Normal * (factor);
-        //        }
-         //   }
-        }
-        if(MaterialType == MaterialTypeWetDrops){
-            float pn = snoise(Input.WorldPos* 13.);
-            //pn = clamp(pow(pn, 3.0), 0.5, 1.0);
-			normalNew = normalize(normalNew - (Input.Tangent * pn * 0.05));
-           // outColor.xyz *= (factor + 1) / 8 + 0.75;
-        }
-        /*AORange
+	if(MaterialType == MaterialTypeParallax){
+		float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
+		//factor += 0.2 * rand2d(Input.TexCoord);
+		//if(distance(CameraPosition, wpos)<3.0){
+			if(Input.Data.x < 0.99){
+				if(factor > Input.Data.x) discard;
+				//if(factor > Input.Data.y) discard;
+		 
+			}
+	  //  } else {
+	   //     if(Input.Data.x > 0.01) discard;
+	   //     else {
+	 //           wpos -= Input.Data.z * Input.Normal * (factor);
+	//        }
+	 //   }
+	}
+	if(MaterialType == MaterialTypeWetDrops){
+		float pn = snoise(Input.WorldPos* 13.);
+		//pn = clamp(pow(pn, 3.0), 0.5, 1.0);
+		normalNew = normalize(normalNew - (Input.Tangent * pn * 0.05));
+	   // outColor.xyz *= (factor + 1) / 8 + 0.75;
+	}
+	/*AORange
 AOStrength
 AOAngleCutoff
 VDAOMultiplier
 VDAOSamplingMultiplier
 VDAORefreactionMultiplier
 SubsurfaceScatteringMultiplier*/
-        uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
-        uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
-        
-        vec3 rn, rt;
-        uint id;
-        
-		if(Instances == 0){
-            rn = (InitialRotation * RotationMatrix * vec4(normalNew, 0)).xyz;
-            rt = (InitialRotation * RotationMatrix * vec4(Input.Tangent, 0)).xyz; 
-            id = MeshID;
-		} else {
-            rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
-            rt = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
-            id = InstancedIds[Input.instanceId];
-		}
-        
-        if(dot(rn, CameraPosition -Input.WorldPos) <=0) {
-            rn *= -1;
-        }
-        uint packpart3 = packSnorm4x8(vec4(rt, 0));
-        outId = uvec4(id, packpart1, packpart2, packpart3);
-        if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
-        outNormals = vec4(rn, DiffuseComponent);
-	} else {
-		outNormals = vec4(0, 0, 0, 1);
-	}	
+	uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
+	uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
+	
+	vec3 rn, rt;
+	uint id;
+	
+
+	rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
+	rt = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
+	id = InstancedIds[Input.instanceId];
+
+	
+	if(dot(rn, CameraPosition -Input.WorldPos) <=0) {
+		rn *= -1;
+	}
+	uint packpart3 = packSnorm4x8(vec4(rt, 0));
+	outId = uvec4(id, packpart1, packpart2, packpart3);
+	if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
+	outNormals = vec4(rn, DiffuseComponent);
+
 	// mesh data is packed as follows:
 	/*
 	outColor.a - invalid to read
@@ -420,7 +415,7 @@ SubsurfaceScatteringMultiplier*/
     else outMetalness = Metalness;
     
 	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
-	outMeshData = vec4(Selected, 0, outMetalness, outRoughness);
+	outMeshData = vec4(0, 0, outMetalness, outRoughness);
 	updateDepthFromWorldPos(wpos);
     // lets do it, from -32 to 32
     /*vec3 normalized = (wpos)  *3;

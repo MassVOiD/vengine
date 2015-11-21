@@ -15,9 +15,7 @@ namespace ShadowsTester
             public static int Height = 1040;
             public static string MediaPath = "media";
         }
-
-        public static
-            ConsoleManager cmg = new ConsoleManager();
+        
 
         public static FreeCamera FreeCam;
 

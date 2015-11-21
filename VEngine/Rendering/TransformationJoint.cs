@@ -3,7 +3,7 @@ using OpenTK;
 
 namespace VEngine
 {
-    public class MeshLinker
+    public class TransformationJoint
     {
         public class LinkInfo
         {
@@ -35,24 +35,10 @@ namespace VEngine
                 if(link.Child is Mesh3d)
                 {
                     Mesh3d mesh = link.Child as Mesh3d;
-                    if(mesh.PhysicalBody != null)
-                    {
-                        var newpos = link.Parent.GetTransformationManager().GetPosition() + link.Offset.Rotate(link.Parent.GetTransformationManager().GetOrientation());
-                        var oldpos = mesh.Transformation.GetPosition();
-                        mesh.PhysicalBody.LinearVelocity = (mesh.PhysicalBody.LinearVelocity * 2.0f + (newpos - oldpos) * 10.0f) / 3.0f;
-                        //mesh.PhysicalBody.AngularVelocity *= 0.9f;
-                        if(link.UpdateRotation)
-                            mesh.PhysicalBody.WorldTransform = Matrix4.CreateFromQuaternion(Quaternion.Multiply(link.Parent.GetTransformationManager().GetOrientation(), link.Rotation))
-                            * Matrix4.CreateTranslation(link.Parent.GetTransformationManager().GetPosition() + link.Offset.Rotate(link.Parent.GetTransformationManager().GetOrientation()));
-                        else
-                            mesh.PhysicalBody.WorldTransform = Matrix4.CreateFromQuaternion(mesh.PhysicalBody.Orientation) * Matrix4.CreateTranslation(link.Parent.GetTransformationManager().GetPosition() + link.Offset.Rotate(link.Parent.GetTransformationManager().GetOrientation()));
-                    }
-                    else
-                    {
-                        link.Child.GetTransformationManager().SetPosition(link.Parent.GetTransformationManager().GetPosition() + link.Offset.Rotate(link.Parent.GetTransformationManager().GetOrientation()));
-                        if(link.UpdateRotation)
-                            link.Child.GetTransformationManager().SetOrientation(Quaternion.Multiply(link.Parent.GetTransformationManager().GetOrientation(), link.Rotation));
-                    }
+                    link.Child.GetTransformationManager().SetPosition(link.Parent.GetTransformationManager().GetPosition() + link.Offset.Rotate(link.Parent.GetTransformationManager().GetOrientation()));
+                    if(link.UpdateRotation)
+                        link.Child.GetTransformationManager().SetOrientation(Quaternion.Multiply(link.Parent.GetTransformationManager().GetOrientation(), link.Rotation));
+
                 }
                 else if(link.Child is Camera)
                 {

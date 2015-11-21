@@ -28,14 +28,14 @@ namespace ShadowsTester
             SelectedMesh = mesh;
             this.Invoke(new Action(() =>
             {
-                aoRangeBar.Value = (int)(mesh.MainMaterial.AORange * (float)aoRangeBar.Maximum);
-                aoStrengthBar.Value = (int)(mesh.MainMaterial.AOStrength * (float)aoStrengthBar.Maximum);
-                aoCutoffBar.Value = (int)(mesh.MainMaterial.AOAngleCutoff * (float)aoCutoffBar.Maximum);
-                subScatBar.Value = (int)(mesh.MainMaterial.SubsurfaceScatteringMultiplier * (float)subScatBar.Maximum);
-                vdaoMultBar.Value = (int)(mesh.MainMaterial.VDAOMultiplier * (float)vdaoMultBar.Maximum);
-                vdaoSamplingBar.Value = (int)(mesh.MainMaterial.VDAOSamplingMultiplier * (float)vdaoSamplingBar.Maximum);
-                vdaoRefractionBar.Value = (int)(mesh.MainMaterial.VDAORefreactionMultiplier * (float)vdaoRefractionBar.Maximum);
-                selectedMeshLabel.Text = mesh.Name == null ? "Unnamed mesh" : mesh.Name;
+                aoRangeBar.Value = (int)(mesh.GetLodLevel(0).Material.AORange * (float)aoRangeBar.Maximum);
+                aoStrengthBar.Value = (int)(mesh.GetLodLevel(0).Material.AOStrength * (float)aoStrengthBar.Maximum);
+                aoCutoffBar.Value = (int)(mesh.GetLodLevel(0).Material.AOAngleCutoff * (float)aoCutoffBar.Maximum);
+                subScatBar.Value = (int)(mesh.GetLodLevel(0).Material.SubsurfaceScatteringMultiplier * (float)subScatBar.Maximum);
+                vdaoMultBar.Value = (int)(mesh.GetLodLevel(0).Material.VDAOMultiplier * (float)vdaoMultBar.Maximum);
+                vdaoSamplingBar.Value = (int)(mesh.GetLodLevel(0).Material.VDAOSamplingMultiplier * (float)vdaoSamplingBar.Maximum);
+                vdaoRefractionBar.Value = (int)(mesh.GetLodLevel(0).Material.VDAORefreactionMultiplier * (float)vdaoRefractionBar.Maximum);
+                selectedMeshLabel.Text = mesh.GetInstance(0).Name == null ? "Unnamed mesh" : mesh.GetInstance(0).Name;
             }));
         }
 
@@ -43,42 +43,42 @@ namespace ShadowsTester
         {
             if(SelectedMesh == null)
                 return;
-            SelectedMesh.MainMaterial.AORange = ((float)aoRangeBar.Value / (float)aoRangeBar.Maximum);
+            SelectedMesh.GetLodLevel(0).Material.AORange = ((float)aoRangeBar.Value / (float)aoRangeBar.Maximum);
         }
 
         private void aoStrengthBar_Scroll(object sender, EventArgs e)
         {
             if(SelectedMesh == null)
                 return;
-            SelectedMesh.MainMaterial.AOStrength = ((float)aoStrengthBar.Value / (float)aoStrengthBar.Maximum);
+            SelectedMesh.GetLodLevel(0).Material.AOStrength = ((float)aoStrengthBar.Value / (float)aoStrengthBar.Maximum);
         }
 
         private void aoCutoffBar_Scroll(object sender, EventArgs e)
         {
             if(SelectedMesh == null)
                 return;
-            SelectedMesh.MainMaterial.AOAngleCutoff = ((float)aoCutoffBar.Value / (float)aoCutoffBar.Maximum);
+            SelectedMesh.GetLodLevel(0).Material.AOAngleCutoff = ((float)aoCutoffBar.Value / (float)aoCutoffBar.Maximum);
         }
 
         private void vdaoMultBar_Scroll(object sender, EventArgs e)
         {
             if(SelectedMesh == null)
                 return;
-            SelectedMesh.MainMaterial.VDAOMultiplier = ((float)vdaoMultBar.Value / (float)vdaoMultBar.Maximum);
+            SelectedMesh.GetLodLevel(0).Material.VDAOMultiplier = ((float)vdaoMultBar.Value / (float)vdaoMultBar.Maximum);
         }
 
         private void vdaoSamplingBar_Scroll(object sender, EventArgs e)
         {
             if(SelectedMesh == null)
                 return;
-            SelectedMesh.MainMaterial.VDAOSamplingMultiplier = ((float)vdaoSamplingBar.Value / (float)vdaoSamplingBar.Maximum);
+            SelectedMesh.GetLodLevel(0).Material.VDAOSamplingMultiplier = ((float)vdaoSamplingBar.Value / (float)vdaoSamplingBar.Maximum);
         }
 
         private void vdaoRefractionBar_Scroll(object sender, EventArgs e)
         {
             if(SelectedMesh == null)
                 return;
-            SelectedMesh.MainMaterial.VDAORefreactionMultiplier = ((float)vdaoRefractionBar.Value / (float)vdaoRefractionBar.Maximum);
+            SelectedMesh.GetLodLevel(0).Material.VDAORefreactionMultiplier = ((float)vdaoRefractionBar.Value / (float)vdaoRefractionBar.Maximum);
         }
 
         private void ambientLightBar_Scroll(object sender, EventArgs e)

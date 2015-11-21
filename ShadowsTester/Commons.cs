@@ -11,7 +11,8 @@ namespace ShadowsTester
         public static FreeCamera FreeCam;
         private static ComputeShader MousePicker;
         public static int MouseX, MouseY;
-        private static Mesh3d Picked;
+        private static Mesh3dInstance Picked;
+        private static Mesh3d PickedMesh;
         private static ShaderStorageBuffer PickingResult;
         private static ProjectionLight RedLight;
 
@@ -133,14 +134,15 @@ namespace ShadowsTester
                         {
                             if(m is Mesh3d)
                             {
-                                if((m as Mesh3d).MeshColoredID == id)
+                                foreach(var inst in (m as Mesh3d).GetInstances())
                                 {
-                                    (m as Mesh3d).Selected = true;
-                                    Picked = m as Mesh3d;
-                                    SettingsController.Instance.SetMesh(Picked);
+                                    if(inst.Id == id)
+                                    {
+                                        Picked = inst;
+                                        PickedMesh = (m as Mesh3d);
+                                        //SettingsController.Instance.SetMesh(inst);
+                                    }
                                 }
-                                else
-                                    (m as Mesh3d).Selected = false;
                             }
                         }
                     }
@@ -271,92 +273,92 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Comma)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.Roughness -= 0.05f;
-                        if(Picked.MainMaterial.Roughness < 0)
-                            Picked.MainMaterial.Roughness = 0;
+                        PickedMesh.GetLodLevel(0).Material.Roughness -= 0.05f;
+                        if(PickedMesh.GetLodLevel(0).Material.Roughness < 0)
+                            PickedMesh.GetLodLevel(0).Material.Roughness = 0;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.Period)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.Roughness += 0.05f;
-                        if(Picked.MainMaterial.Roughness > 1)
-                            Picked.MainMaterial.Roughness = 1;
+                        PickedMesh.GetLodLevel(0).Material.Roughness += 0.05f;
+                        if(PickedMesh.GetLodLevel(0).Material.Roughness > 1)
+                            PickedMesh.GetLodLevel(0).Material.Roughness = 1;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.G)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.SpecularComponent -= 0.05f;
-                        if(Picked.MainMaterial.SpecularComponent < 0)
-                            Picked.MainMaterial.SpecularComponent = 0;
+                        PickedMesh.GetLodLevel(0).Material.SpecularComponent -= 0.05f;
+                        if(PickedMesh.GetLodLevel(0).Material.SpecularComponent < 0)
+                            PickedMesh.GetLodLevel(0).Material.SpecularComponent = 0;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.H)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.SpecularComponent += 0.05f;
-                        if(Picked.MainMaterial.SpecularComponent > 1)
-                            Picked.MainMaterial.SpecularComponent = 1;
+                        PickedMesh.GetLodLevel(0).Material.SpecularComponent += 0.05f;
+                        if(PickedMesh.GetLodLevel(0).Material.SpecularComponent > 1)
+                            PickedMesh.GetLodLevel(0).Material.SpecularComponent = 1;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.Semicolon)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.Metalness -= 0.05f;
-                        if(Picked.MainMaterial.Metalness < 0)
-                            Picked.MainMaterial.Metalness = 0;
+                        PickedMesh.GetLodLevel(0).Material.Metalness -= 0.05f;
+                        if(PickedMesh.GetLodLevel(0).Material.Metalness < 0)
+                            PickedMesh.GetLodLevel(0).Material.Metalness = 0;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.Quote)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.Metalness += 0.05f;
-                        if(Picked.MainMaterial.Metalness > 1)
-                            Picked.MainMaterial.Metalness = 1;
+                        PickedMesh.GetLodLevel(0).Material.Metalness += 0.05f;
+                        if(PickedMesh.GetLodLevel(0).Material.Metalness > 1)
+                            PickedMesh.GetLodLevel(0).Material.Metalness = 1;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.T)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.ParallaxHeightMultiplier -= 0.1f;
-                        if(Picked.MainMaterial.ParallaxHeightMultiplier <=0.01f)
-                            Picked.MainMaterial.ParallaxHeightMultiplier = 0.01f;
+                        PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier -= 0.1f;
+                        if(PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier <=0.01f)
+                            PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier = 0.01f;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.Y)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.ParallaxHeightMultiplier+=0.1f;
-                        if(Picked.MainMaterial.ParallaxHeightMultiplier >= 24)
-                            Picked.MainMaterial.ParallaxHeightMultiplier = 24;
+                        PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier+=0.1f;
+                        if(PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier >= 24)
+                            PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier = 24;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.U)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.ParallaxInstances--;
-                        if(Picked.MainMaterial.ParallaxInstances <= 0)
-                            Picked.MainMaterial.ParallaxInstances = 0;
+                        PickedMesh.GetLodLevel(0).Material.ParallaxInstances--;
+                        if(PickedMesh.GetLodLevel(0).Material.ParallaxInstances <= 0)
+                            PickedMesh.GetLodLevel(0).Material.ParallaxInstances = 0;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.I)
                 {
-                    if(Picked != null)
+                    if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        Picked.MainMaterial.ParallaxInstances++;
-                        if(Picked.MainMaterial.ParallaxInstances >= 24)
-                            Picked.MainMaterial.ParallaxInstances = 24;
+                        PickedMesh.GetLodLevel(0).Material.ParallaxInstances++;
+                        if(PickedMesh.GetLodLevel(0).Material.ParallaxInstances >= 24)
+                            PickedMesh.GetLodLevel(0).Material.ParallaxInstances = 24;
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.Pause)

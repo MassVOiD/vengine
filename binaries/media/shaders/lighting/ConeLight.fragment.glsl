@@ -70,12 +70,8 @@ void finishFragment(vec4 c){
     vec3 cc = mix(LightColor.rgb*c.rgb, LightColor.rgb, outMetalness);
     vec3 difcolor = cc;
     vec3 difcolor2 = LightColor.rgb*c.rgb;
-    vec3 rn;
-    if(Instances == 0){
-        rn = (InitialRotation * RotationMatrix * vec4(Input.Normal, 0)).xyz;
-    } else {
-        rn = (InitialRotation * RotationMatrixes[int(Input.instanceId)] * vec4(Input.Normal, 0)).xyz;
-    }
+    vec3 rn = (InitialRotation * RotationMatrixes[int(Input.instanceId)] * vec4(Input.Normal, 0)).xyz;
+    
     
     //vec3 radiance = mix(difcolor2, difcolor*outRoughness, outMetalness);
     outColor = uvec4(packUnorm4x8(vec4(c.xyz, outRoughness)), packSnorm4x8(vec4(rn, outMetalness)), 0,0);

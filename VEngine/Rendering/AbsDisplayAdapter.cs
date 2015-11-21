@@ -72,19 +72,18 @@ namespace VEngine
             Pipeline.PostProcessor.ExecutePostProcessing();
             //DrawAll();
             GLThread.InvokeOnAfterDraw();
-
-            World.Root.UI.DrawAll();
-
+            
             GLThread.CheckErrors();
 
             SwapBuffers();
         }
 
+
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f));
             GLThread.InvokeOnUpdate();
-            MeshLinker.Resolve();
+            TransformationJoint.Resolve();
             //Debugger.Send("FrameTime", e.Time);
             //Debugger.Send("FPS", 1.0 / e.Time);
             var keyboard = OpenTK.Input.Keyboard.GetState();

@@ -27,7 +27,7 @@ namespace VEngine.FileFormats
 
         public static string FromMesh3dList(List<Mesh3d> meshes, string directory, string nameprefix = "mesh_", bool saveFiles = false)
         {
-            var materials = meshes.Select<Mesh3d, GenericMaterial>((a) => a.MainMaterial).Distinct();
+            var materials = meshes.SelectMany<Mesh3d, GenericMaterial>((a) => a.GetLodLevels().Select<LodLevel, GenericMaterial>((ax) => ax.Material)).Distinct();
             var output = new StringBuilder();
             int i = 0;
             foreach(var material in materials)
@@ -80,63 +80,69 @@ namespace VEngine.FileFormats
             }
             foreach(var mesh in meshes)
             {
-                var element = mesh.MainObjectInfo;
-                output.Append("mesh ");
-                output.Append(nameprefix);
-                output.AppendLine(mesh.Name);
-                if(saveFiles)
+                var elements = mesh.GetLodLevels();
+                var i0 = mesh.GetInstance(0);
+                foreach(var elementC in elements)
                 {
-                    MemoryStream vboStream = new MemoryStream();
-                    MemoryStream indicesStream = new MemoryStream();
+                    var element = elementC.Info3d;
+                    output.Append("mesh ");
+                    output.Append(nameprefix);
+                    output.AppendLine(mesh.GetInstance(0).Name);
+                    if(saveFiles)
+                    {
+                        MemoryStream vboStream = new MemoryStream();
+                        MemoryStream indicesStream = new MemoryStream();
 
-                    foreach(float v in element.VBO)
-                        vboStream.Write(BitConverter.GetBytes(v), 0, 4);
-                    foreach(uint v in element.Indices)
-                        indicesStream.Write(BitConverter.GetBytes(v), 0, 4);
+                        foreach(float v in element.VBO)
+                            vboStream.Write(BitConverter.GetBytes(v), 0, 4);
+                        foreach(uint v in element.Indices)
+                            indicesStream.Write(BitConverter.GetBytes(v), 0, 4);
 
-                    vboStream.Flush();
-                    indicesStream.Flush();
+                        vboStream.Flush();
+                        indicesStream.Flush();
 
-                    if(File.Exists(directory + nameprefix + element.Name + ".vbo.raw"))
-                        File.Delete(directory + nameprefix + element.Name + ".vbo.raw");
-                    File.WriteAllBytes(directory + nameprefix + element.Name + ".vbo.raw", vboStream.ToArray());
-                    if(File.Exists(directory + nameprefix + element.Name + ".indices.raw"))
-                        File.Delete(directory + nameprefix + element.Name + ".indices.raw");
-                    File.WriteAllBytes(directory + nameprefix + element.Name + ".indices.raw", indicesStream.ToArray());
+                        if(File.Exists(directory + nameprefix + element.Name + ".vbo.raw"))
+                            File.Delete(directory + nameprefix + element.Name + ".vbo.raw");
+                        File.WriteAllBytes(directory + nameprefix + element.Name + ".vbo.raw", vboStream.ToArray());
+                        if(File.Exists(directory + nameprefix + element.Name + ".indices.raw"))
+                            File.Delete(directory + nameprefix + element.Name + ".indices.raw");
+                        File.WriteAllBytes(directory + nameprefix + element.Name + ".indices.raw", indicesStream.ToArray());
+                    }
+                    output.Append("usematerial ");
+                    output.Append(nameprefix);
+                    output.AppendLine(elementC.Material.Name);
+
+                    output.Append("vbo ");
+                    output.AppendLine(nameprefix + element.Name + ".vbo.raw");
+
+                    output.Append("ibo ");
+                    output.AppendLine(nameprefix + element.Name + ".indices.raw");
+
+
+                    output.Append("translate ");
+                    output.Append(i0.GetPosition().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    output.Append(" ");
+                    output.Append(i0.GetPosition().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    output.Append(" ");
+                    output.AppendLine(i0.GetPosition().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+                    output.Append("rotate ");
+                    output.Append(i0.GetOrientation().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    output.Append(" ");
+                    output.Append(i0.GetOrientation().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    output.Append(" ");
+                    output.Append(i0.GetOrientation().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    output.Append(" ");
+                    output.AppendLine(i0.GetOrientation().W.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+                    output.Append("scale ");
+                    output.Append(i0.GetScale().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    output.Append(" ");
+                    output.Append(i0.GetScale().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    output.Append(" ");
+                    output.AppendLine(i0.GetScale().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    output.AppendLine();
                 }
-                output.Append("vbo ");
-                output.AppendLine(nameprefix + element.Name + ".vbo.raw");
-
-                output.Append("ibo ");
-                output.AppendLine(nameprefix + element.Name + ".indices.raw");
-
-                output.Append("usematerial ");
-                output.Append(nameprefix);
-                output.AppendLine(mesh.MainMaterial.Name);
-
-                output.Append("translate ");
-                output.Append(mesh.GetPosition().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.Append(" ");
-                output.Append(mesh.GetPosition().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.Append(" ");
-                output.AppendLine(mesh.GetPosition().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
-
-                output.Append("rotate ");
-                output.Append(mesh.GetOrientation().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.Append(" ");
-                output.Append(mesh.GetOrientation().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.Append(" ");
-                output.Append(mesh.GetOrientation().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.Append(" ");
-                output.AppendLine(mesh.GetOrientation().W.ToString(System.Globalization.CultureInfo.InvariantCulture));
-
-                output.Append("scale ");
-                output.Append(mesh.GetScale().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.Append(" ");
-                output.Append(mesh.GetScale().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.Append(" ");
-                output.AppendLine(mesh.GetScale().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.AppendLine();
             }
             return output.ToString();
         }
@@ -151,7 +157,7 @@ namespace VEngine.FileFormats
             if(vbo.Length == 0 || ibo.Length == 0)
                 return;
             var obj = Object3dInfo.LoadFromRaw(Media.Get(vbo), Media.Get(ibo));
-            mesh.MainObjectInfo = obj;
+            mesh.GetLodLevel(0).Info3d = obj;
         }
 
         private void LoadFromString(string[] lines)
@@ -220,15 +226,15 @@ namespace VEngine.FileFormats
                     case "mesh":
                     {
                         flush();
-                        tempMesh = new Mesh3d();
-                        tempMesh.SetMass(0);
-                        tempMesh.Name = data;
+                        tempMesh = Mesh3d.Empty;
+                        tempMesh.AddInstance(new Mesh3dInstance(new TransformationManager(Vector3.Zero), data));
+                        //tempMesh.Name = data;
                         break;
                     }
 
                     case "usematerial":
                     {
-                        tempMesh.MainMaterial = Materials.First((a) => a.Name == data);
+                        tempMesh.AddLodLevel(null, Materials.First((a) => a.Name == data), 0, 999999);
                         break;
                     }
                     case "scaleuv":
@@ -239,14 +245,14 @@ namespace VEngine.FileFormats
                             throw new Exception("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y))
                             throw new Exception("Invalid line in scene string: " + l);
-                        tempMesh.MainObjectInfo.ScaleUV(x, y);
+                        tempMesh.GetLodLevel(0).Info3d.ScaleUV(x, y);
                         break;
                     }
                     case "vbo":
                     {
                         vertexbuffer = data;
                         ApplyVboIbo(tempMesh, vertexbuffer, indexbuffer);
-                        if(tempMesh.MainObjectInfo != null)
+                        if(tempMesh.GetLodLevel(0).Info3d != null)
                         {
                             vertexbuffer = "";
                             indexbuffer = "";
@@ -257,7 +263,7 @@ namespace VEngine.FileFormats
                     {
                         indexbuffer = data;
                         ApplyVboIbo(tempMesh, vertexbuffer, indexbuffer);
-                        if(tempMesh.MainObjectInfo != null)
+                        if(tempMesh.GetLodLevel(0).Info3d != null)
                         {
                             vertexbuffer = "";
                             indexbuffer = "";
@@ -279,7 +285,7 @@ namespace VEngine.FileFormats
                             throw new Exception("Invalid line in scene string: " + l);
                         if(tempMesh != null)
                         {
-                            tempMesh.Transformation.Translate(x, y, z);
+                            tempMesh.GetInstance(0).Transformation.Translate(x, y, z);
                         }
                         if(tempCamera != null)
                         {
@@ -308,7 +314,7 @@ namespace VEngine.FileFormats
                             throw new Exception("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out z))
                             throw new Exception("Invalid line in scene string: " + l);
-                        tempMesh.Transformation.Scale(x, y, z);
+                        tempMesh.GetInstance(0).Transformation.Scale(x, y, z);
                         break;
                     }
                     case "rotate":
@@ -341,7 +347,7 @@ namespace VEngine.FileFormats
 
                         if(tempMesh != null)
                         {
-                            tempMesh.Transformation.Rotate(rot);
+                            tempMesh.GetInstance(0).Transformation.Rotate(rot);
                         }
                         if(tempCamera != null)
                         {

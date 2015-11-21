@@ -91,16 +91,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AMCParser.cs" />
     <Compile Include="ExpressionEvaluator.cs" />
     <Compile Include="FileFormats\GameScene.cs" />
     <Compile Include="Game\KeyboardController.cs" />
     <Compile Include="ObjectIDGenerator.cs" />
     <Compile Include="PathTracing\JitterRandomSequenceGenerator.cs" />
-    <Compile Include="PathTracing\PathTracer.cs" />
-    <Compile Include="PathTracing\SceneOctalTree.cs" />
     <Compile Include="RainSystem.cs" />
-    <Compile Include="Rendering\ArmatureAnimation.cs" />
     <Compile Include="Rendering\Camera.cs" />
     <Content Include="Config.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -109,34 +105,26 @@
     <Compile Include="Rendering\CubeMapFramebuffer.cs" />
     <Compile Include="Rendering\DeferredPipeline.cs" />
     <Compile Include="Rendering\Materials\GenericMaterial.cs" />
+    <Compile Include="Rendering\Meshing\LodLevel.cs" />
+    <Compile Include="Rendering\Meshing\Mesh3dInstance.cs" />
+    <Compile Include="Rendering\Meshing\Mesh3d.cs" />
     <Compile Include="Rendering\MRTFramebuffer.cs" />
-    <Compile Include="Game\GameConsole\GameConsole.cs" />
-    <Compile Include="Internals\Debugger.cs" />
-    <Compile Include="Rendering\Fog\FogDensitySphere.cs" />
-    <Compile Include="Rendering\Fog\FogPool.cs" />
     <Compile Include="Rendering\GraphicsSettings.cs" />
     <Compile Include="Internals\Interpolator.cs" />
-    <Compile Include="Internals\IntHashGenerator.cs" />
     <Compile Include="Rendering\Lights\PointLight.cs" />
     <Compile Include="Rendering\Lights\ProjectionLight.cs" />
     <Compile Include="Rendering\Framebuffer.cs" />
     <Compile Include="Rendering\CubeMapTexture.cs" />
     <Compile Include="Rendering\PassiveVoxelizer.cs" />
-    <Compile Include="Rendering\TreeGenerator.cs" />
     <Compile Include="Texture3D.cs" />
-    <Compile Include="Utilities\Generators\MeshGenerator.cs" />
     <Compile Include="Utilities\Generators\Object3dGenerator.cs" />
     <Compile Include="Rendering\GLThread.cs" />
     <Compile Include="Rendering\Lights\SimplePointLight.cs" />
     <Compile Include="Internals\MathExtensions.cs" />
-    <Compile Include="Rendering\InstancedMesh3d.cs" />
-    <Compile Include="Rendering\MeshLinker.cs" />
-    <Compile Include="Rendering\Particles\ParticleGenerator.cs" />
-    <Compile Include="Rendering\Particles\ParticleSystem.cs" />
+    <Compile Include="Rendering\TransformationJoint.cs" />
     <Compile Include="Rendering\PostProcessing.cs" />
     <Compile Include="Rendering\RenderableInterfaces.cs" />
     <Compile Include="Utilities\Media.cs" />
-    <Compile Include="Rendering\Mesh3d.cs" />
     <Compile Include="Rendering\Object3dInfo.cs" />
     <Compile Include="Rendering\Scene.cs" />
     <Compile Include="SettingsWindow.cs">
@@ -149,11 +137,6 @@
     <Compile Include="Internals\ShaderPreparser.cs" />
     <Compile Include="Rendering\ShaderStorageBuffer.cs" />
     <Compile Include="Internals\TransformationManager.cs" />
-    <Compile Include="Rendering\UI\AbsUIElement.cs" />
-    <Compile Include="Rendering\UI\Picture.cs" />
-    <Compile Include="Rendering\UI\Rectangle.cs" />
-    <Compile Include="Rendering\UI\Text.cs" />
-    <Compile Include="Rendering\UI\UIRenderer.cs" />
     <Compile Include="Internals\ValuePointer.cs" />
     <Compile Include="Rendering\VEngineInvisibleAdapter.cs" />
     <Compile Include="Rendering\World.cs" />
@@ -172,9 +155,7 @@
       <DependentUpon>SettingsWindow.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utilities\Formats\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
