@@ -284,6 +284,11 @@ vec3 lookupCubeMap(vec3 displace){
     return vec3pow(c*1.1, 3.7) * 1;
 }
 
+vec3 MMAL(vec3 normal, vec3 reflected, float roughness){
+	float levels = float(textureQueryLevels(cubeMapTex)) - 1;
+	float mx = log2(roughness*512+1)/log2(512);
+	return textureLod(cubeMapTex, mix(reflected, normal, mx), mx * levels).rgb;
+}
 
 uniform int UseVDAO;
 uniform int UseHBAO;
@@ -316,6 +321,8 @@ vec3 Radiosity()
     
     uint counter = 0;   
     float meshRoughness = 1.0 - texture(meshDataTex, UV).a;
+	
+	//return MMAL(normalCenter, 1.0 - meshRoughness);
     
     mat3 TBN = inverse(transpose(mat3(
         normalCenter,
@@ -324,39 +331,39 @@ vec3 Radiosity()
     )));
     
    // int samples = int(mix(8, 48, 1.0 - meshRoughness));
-    float samples = mix(3, 12, 1.0 - meshRoughness);
+    float samples = mix(13, 64, 1.0 - meshRoughness);
     float stepsize = PI*2 / samples;
     float ringsize = length(posCenter)*0.8;
     //for(float g = 0; g < samples; g+=1)
-    for(float g = 0.0; g <= PI*2; g+=stepsize)
-    {
+    //for(float g = 0.0; g <= PI*2; g+=stepsize)
+    //{
         float minang = 0;
 
         //vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * ringsize;
-		float grd = getRand() * stepsize;
-        vec2 zx = vec2(sin(g+grd), cos(g+grd));
-        vec3 displace = normalize(mix((TBN * normalize(vec3(zx, sqrt(1.0 - length(zx))))), dir, meshRoughness));
+		//float grd = getRand() * stepsize;
+        //vec2 zx = vec2(sin(g+grd), cos(g+grd));
+       // vec3 displace = normalize(mix((TBN * normalize(vec3(zx, sqrt(1.0 - length(zx))))), dir, meshRoughness));
         //vec3 displace = normalize(BRDFBiased(dir, norm, meshRoughness, (vec2(getRand2(), getRand2())))) * ringsize;
         
        // vec3 displace = normalize(BRDF(dir, normalCenter, meshRoughness));
         //float fresnel = fresnelSchlick(dot(displace, normalCenter));
         
-        vec3 color = shadePhotonSpecular(UV, lookupCubeMap(displace));
+        vec3 color = shadePhotonSpecular(UV, MMAL(normalCenter, dir, 1.0 - meshRoughness));
        // vec3 color = vec3(0);
        // color = getIntersect(color, FromCameraSpace(posCenter), displace);
-        float dotdiffuse = max(0, dot(displace, normalCenter));
-        vec3 radiance = makeFresnel(1.0 - max(0, dot(displace, vdir)), color);
+     //   float dotdiffuse = max(0, dot(displace, normalCenter));
+        vec3 radiance = makeFresnel(1.0 - max(0, dot(normalCenter, vdir)), color);
         ambient += radiance;// * vi * vi2;
-        counter++;
-    }
-    vec3 vdaoMain = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaomult;
+      //  counter++;
+   // }
+    vec3 vdaoMain = (ambient) * vdaomult;
     float metalness =  texture(meshDataTex, UV).z;
     
     if(metalness < 1.0){
         ambient = vec3(0);
         counter = 0;  
-        for(int i=0; i<samples; i++)
-        {
+       // for(int i=0; i<samples; i++)
+       // {
             vec3 displace = normalize(BRDF(dir, normalCenter, 0.0));
             
             float vi = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace);
@@ -364,14 +371,14 @@ vec3 Radiosity()
             float vi2 = testVisibility3d(FromCameraSpace(posCenter), FromCameraSpace(posCenter) + displace*0.1);
             vi2 = HitPos.x > 0 && reverseLog(vi2) < 0.1  ? reverseLog(vi2)*10.0 : 1.0;
                     
-            vec3 color = shadePhoton(UV, lookupCubeMap(displace));
+            vec3 color = shadePhoton(UV, MMAL(normalCenter, dir, 1.0));
            // color = getIntersect(color, FromCameraSpace(posCenter), displace);
             float dotdiffuse = max(0, dot(displace, normalCenter));
             vec3 radiance = color;
             ambient += radiance;// * vi * vi2;
-            counter++;
-        }        
-        vec3 vdaoFullDiffuse = counter == 0 ? vec3(0) : (ambient / (counter)) * vdaomult;
+           // counter++;
+       // }        
+        vec3 vdaoFullDiffuse = (ambient) * vdaomult;
         vdaoMain = mix((vdaoMain + vdaoFullDiffuse)*0.5, vdaoMain, metalness);
     }
     

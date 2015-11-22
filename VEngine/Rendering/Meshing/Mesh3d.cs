@@ -12,15 +12,11 @@ namespace VEngine
         List<LodLevel> LodLevels;
         List<Mesh3dInstance> Instances;
 
-        ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer, Ids;
 
         private Mesh3d()
         {
             LodLevels = new List<LodLevel>();
             Instances = new List<Mesh3dInstance>();
-            ModelMatricesBuffer = new ShaderStorageBuffer();
-            RotationMatricesBuffer = new ShaderStorageBuffer();
-            Ids = new ShaderStorageBuffer();
         }
 
         public static Mesh3d Create(Object3dInfo objectInfo, GenericMaterial material)
@@ -117,47 +113,28 @@ namespace VEngine
                 if(Instances.Count((a) => a.Transformation.HasBeenModified()) > 0)
                     UpdateMatrix(true);
             }
-            ModelMatricesBuffer.Use(0);
-            RotationMatricesBuffer.Use(1);
-            Ids.Use(2);
-            ShaderProgram shader = ShaderProgram.Current;
+
+            var shader = ShaderProgram.Current;
             shader.SetUniform("Instances", Instances.Count);
         }
 
         public void Draw(Matrix4 parentTransformation)
         {
+            
             for(int i = 0; i < LodLevels.Count; i++)
                 LodLevels[i].Draw(parentTransformation, this, Instances.Count);
         }
 
-
         public void UpdateMatrix(bool instantRebuffer = false)
         {
-            var RotationMatrix = new List<Matrix4>();
-            var Matrix = new List<Matrix4>();
-            var MeshColoredID = new List<uint>();
-            for(int i = 0; i < Instances.Count; i++)
-            {
-                MeshColoredID.Add(Instances[i].Id);
-                RotationMatrix.Add(Matrix4.CreateFromQuaternion(Instances[i].GetOrientation()));
-                Matrix.Add(Matrix4.CreateScale(Instances[i].GetScale()) * RotationMatrix[i] * Matrix4.CreateTranslation(Instances[i].GetPosition()));
-            }
-            if(!instantRebuffer)
-            {
-                GLThread.Invoke(() =>
-                {
-                    ModelMatricesBuffer.MapData(Matrix.ToArray());
-                    RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
-                    Ids.MapData(MeshColoredID.ToArray());
-                });
-            }
-            else
-            {
-                ModelMatricesBuffer.MapData(Matrix.ToArray());
-                RotationMatricesBuffer.MapData(RotationMatrix.ToArray());
-                Ids.MapData(MeshColoredID.ToArray());
-            }
+            for(int i = 0; i < LodLevels.Count; i++)
+                LodLevels[i].UpdateMatrix(Instances, instantRebuffer);
         }
-        
+
+        public void UpdateMatrixSingleLodLevel(int level, bool instantRebuffer = false)
+        {
+            LodLevels[level].UpdateMatrix(Instances, instantRebuffer);
+        }
+
     }
 }

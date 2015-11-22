@@ -53,7 +53,7 @@ void discardSphereBounds(vec2 uvxs) {
 }
     
 void finishFragment(vec4 c){   
-	if(c.a < 0.98) discard; 
+	if(c.a < 0.01) discard; 
     if(MaterialType == MaterialTypeRainsOptimizedSphere){
         vec2 uvs = Input.TexCoord * 2.0 - 1.0;
         discardSphereBounds(uvs);

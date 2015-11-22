@@ -722,7 +722,7 @@ vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 	vec4 pass = BloomPass(vec4(color, 1.0), uv);
 	pass = HDRPass(pass, uv);
 	pass = VibrancePass(pass);
-	return vec3pow(pass.rgb, 1.6);
+	return vec3pow(pass.rgb, 1.4);
 }
 
 void main()
@@ -759,7 +759,7 @@ void main()
     }
     
     if(UseBloom == 1) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
-	//color1.rgb = ExecutePostProcessing(color1.rgb, UV);
+	color1.rgb = ExecutePostProcessing(color1.rgb, UV);
     color1.a = texture(depthTex, UV).r;
     
     vec3 last = texture(lastIndirectTex, UV).rgb;
@@ -771,6 +771,6 @@ void main()
         //additiveMix *= texture(HBAOTex, UV).a;
        // if(abs(texture(lastIndirectTex, UV).a - depth) > 0.0003) additiveMix = color1.rgb;
     }
-    
+    //additiveMix = texture(diffuseColorTex, UV).rgb;
     outColor = clamp(vec4(additiveMix, depth), 0.0, 1.0);
 }

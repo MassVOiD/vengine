@@ -48,7 +48,7 @@ namespace ShadowsTester
               */
             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
             //var color2 = GenericMaterial.FromMedia("3a.jpg", "3n.jpg");
-            var color2 = new GenericMaterial(Color.White);
+            var color2 = new GenericMaterial(Color.Green);
             Mesh3d water3 = Mesh3d.Create(groundInfo, color2);
             water3.GetInstance(0).Scale(30);
             scene.Add(water3);
@@ -58,16 +58,16 @@ namespace ShadowsTester
             /*
             List<VegetationPart> vegs = new List<VegetationPart>();
             // grass
-            vegs.Add(new VegetationPart("vurt_reachflowers2.dds", "6billboardsgrass.obj", 2.0f, 1.4f, 38001));
-            vegs.Add(new VegetationPart("vurt_AssortedPlants.dds", "6billboardsgrass.obj", 2.0f, 1.2f, 35010));
-            vegs.Add(new VegetationPart("vurt_brownplants.dds", "6billboardsgrass.obj", 2.0f, 2.2f, 36010));
-            vegs.Add(new VegetationPart("snowgrass01.dds", "6billboardsgrass.obj", 2.4f, 1.2f, 37010));
+            vegs.Add(new VegetationPart("vurt_reachflowers2.dds", "6billboardsgrass.obj", 0.8f, 1.4f, 3801));
+            vegs.Add(new VegetationPart("vurt_AssortedPlants.dds", "6billboardsgrass.obj", 0.8f, 1.2f, 3510));
+            vegs.Add(new VegetationPart("vurt_brownplants.dds", "6billboardsgrass.obj", 0.8f, 2.2f, 3610));
+            vegs.Add(new VegetationPart("snowgrass01.dds", "6billboardsgrass.obj", 0.8f, 1.2f, 3710));
 
             //tress
-            vegs.Add(new VegetationPart("vurt_ heather.dds", "4billboardstrees.obj", 15.0f, 6.6f, 89));
-            vegs.Add(new VegetationPart("vurt_aspenleaves.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
-            vegs.Add(new VegetationPart("vurt_FFleavesG2.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
-            vegs.Add(new VegetationPart("vurt_PineSnowy.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
+            //vegs.Add(new VegetationPart("vurt_ heather.dds", "4billboardstrees.obj", 15.0f, 6.6f, 89));
+           // vegs.Add(new VegetationPart("vurt_aspenleaves.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
+           // vegs.Add(new VegetationPart("vurt_FFleavesG2.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
+           // vegs.Add(new VegetationPart("vurt_PineSnowy.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
 
             float vegarea = 340;
             foreach(var v in vegs)
@@ -81,50 +81,83 @@ namespace ShadowsTester
                         (float)(rand.NextDouble() * 2.0 - 1.0) * vegarea), Quaternion.FromAxisAngle(Vector3.UnitY, (float)(rand.NextDouble() + 0.25f) * 3.0f), (float)(rand.NextDouble()) * v.ScaleVariation + v.Scale), v.Model));
                 ioc.UpdateMatrix();
                 scene.Add(ioc);
-            }
-            */
+            }*/
+            /*
+            
+            Object3dInfo[] tree_0 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod0.obj"));
+            Object3dInfo[] tree_1 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod1.obj"));
+            Object3dInfo[] tree_2 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod2.obj"));
+            Object3dInfo[] tree_3 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod3.obj"));
 
-            Object3dInfo ml0 = Object3dInfo.LoadFromObjSingle(Media.Get("monkey0.obj"));
-            Object3dInfo ml1 = Object3dInfo.LoadFromObjSingle(Media.Get("monkey1.obj"));
-            Object3dInfo ml2 = Object3dInfo.LoadFromObjSingle(Media.Get("monkey2.obj"));
-            Object3dInfo ml3 = Object3dInfo.LoadFromObjSingle(Media.Get("monkey3.obj"));
+            var tree_root_0 = tree_0[1];
+            var tree_root_1 = tree_1[0];
+            var tree_root_2 = tree_2[1];
+            var tree_root_3 = tree_3[1];
 
-            GenericMaterial gm0 = new GenericMaterial(Color.Blue);
-            GenericMaterial gm1 = new GenericMaterial(Color.Green);
-            GenericMaterial gm2 = new GenericMaterial(Color.Yellow);
-            GenericMaterial gm3 = new GenericMaterial(Color.Red);
+            var tree_leaves_0 = tree_0[0];
+            var tree_leaves_1 = tree_1[1];
+            var tree_leaves_2 = tree_2[0];
+            var tree_leaves_3 = tree_3[0];
 
-            LodLevel ll0 = new LodLevel(ml0, gm0, 0, 10);
-            LodLevel ll1 = new LodLevel(ml1, gm1, 10, 20);
-            LodLevel ll2 = new LodLevel(ml2, gm2, 20, 30);
-            LodLevel ll3 = new LodLevel(ml3, gm3, 30, 200);
+            GenericMaterial rootmaterial = GenericMaterial.FromMedia("env1.dds", "env1n.dds");
+            GenericMaterial leavesmaterial = GenericMaterial.FromMedia("tree_leaves.png");
 
-            Mesh3d ioc = Mesh3d.Empty;
-            ioc.AddLodLevel(ll0);
-            ioc.AddLodLevel(ll1);
-            ioc.AddLodLevel(ll2);
-            ioc.AddLodLevel(ll3);
+            LodLevel rootl0 = new LodLevel(tree_root_0, rootmaterial, 0, 30);
+            LodLevel rootl1 = new LodLevel(tree_root_1, rootmaterial, 30, 60);
+            LodLevel rootl2 = new LodLevel(tree_root_2, rootmaterial, 60, 180);
+            LodLevel rootl3 = new LodLevel(tree_root_3, rootmaterial, 180, 300);
 
-            for(int i = 0; i < 10000; i++)
+            LodLevel leavesl0 = new LodLevel(tree_leaves_0, leavesmaterial, 0, 30);
+            LodLevel leavesl1 = new LodLevel(tree_leaves_1, leavesmaterial, 30, 60);
+            LodLevel leavesl2 = new LodLevel(tree_leaves_2, leavesmaterial, 60, 180);
+            LodLevel leavesl3 = new LodLevel(tree_leaves_3, leavesmaterial, 180, 3100);
+
+            Mesh3d roots = Mesh3d.Empty;
+            roots.AddLodLevel(rootl0);
+            roots.AddLodLevel(rootl1);
+            roots.AddLodLevel(rootl2);
+            roots.AddLodLevel(rootl3);
+            Mesh3d leaves = Mesh3d.Empty;
+            leaves.AddLodLevel(leavesl0);
+            leaves.AddLodLevel(leavesl1);
+            leaves.AddLodLevel(leavesl2);
+            leaves.AddLodLevel(leavesl3);
+
+            for(int i = 0; i < 11110; i++)
             {
-                ioc.AddInstance(
-                    new Mesh3dInstance(
+                var inst = new Mesh3dInstance(
                         new TransformationManager(
-                            new Vector3((float)(rand.NextDouble() * 2.0 - 1.0) * 100,
-                                        (float)(rand.NextDouble()) * 2.0f + 1.0f,
-                                        (float)(rand.NextDouble() * 2.0 - 1.0) * 100),
-                            Quaternion.FromAxisAngle(Vector3.UnitY, (float)(rand.NextDouble() + 0.25f) * 3.0f), 
+                            new Vector3((float)(rand.NextDouble() * 2.0 - 1.0) * 400,
+                                        0,
+                                        (float)(rand.NextDouble() * 2.0 - 1.0) * 400),
+                            Quaternion.FromAxisAngle(Vector3.UnitY, (float)(rand.NextDouble() + 0.25f) * 3.0f),
                             1.0f
-                        ), 
-                    "")
-                );
+                        ),
+                    "");
+                roots.AddInstance(inst);
+                leaves.AddInstance(inst);
             }
 
-            ioc.UpdateMatrix();
-            scene.Add(ioc);
+            roots.UpdateMatrix();
+            leaves.UpdateMatrix();
+            scene.Add(roots);
+            scene.Add(leaves);
+            int level = 0;
+            GLThread.CreateTimer(() =>
+            {
+                roots.UpdateMatrixSingleLodLevel(level);
+                leaves.UpdateMatrixSingleLodLevel(level);
+                level++;
+                if(level > 3)
+                    level = 0;
+            }, 100).Start();
             
             var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
-            
+            */
+
+            var ferrari = new GameScene("ferrari.scene");
+            ferrari.Load();
+            ferrari.Meshes.ForEach((a) => scene.Add(a));
         }
     }
 }

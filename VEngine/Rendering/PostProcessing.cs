@@ -248,9 +248,11 @@ namespace VEngine
             
             GL.CullFace(CullFaceMode.Back);
             StartMeasureMS();
-            GL.BlendFunc(0, BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             MRT.Use();
             LastMRTTime = StopMeasureMS();
+            GL.Enable(EnableCap.Blend);
+            GL.BlendEquation(BlendEquationMode.FuncAdd);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             World.Root.Draw();
 
             MRT.UseTextureDiffuseColor(14);
@@ -545,7 +547,8 @@ namespace VEngine
 
         private void DisableBlending()
         {
-            GL.Disable(EnableCap.Blend);
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.Zero);
         }
 
         private void EnableFullBlend()

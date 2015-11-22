@@ -268,7 +268,7 @@ void finishFragment(vec4 incolor){
     vec4 color = incolor;
     vec3 wpos = Input.WorldPos;
 	float dst = distance(wpos, CameraPosition);
-	if(dst < LodDistanceStart || dst >= LodDistanceEnd) discard;
+	//if(dst < LodDistanceStart || dst >= LodDistanceEnd) discard;
     vec3 normalNew  = normalize(Input.Normal);
    // vec3 normalNew  = normalize(cross(dFdx(wpos), dFdy(wpos)));
     
