@@ -28,6 +28,7 @@ void updateDepth(){
 	float badass_depth = toLogDepth(depth);
 	gl_FragDepth = badass_depth;
 }
+
 void updateDepthFromWorldPos(vec3 w){
 	float depth = distance(w, CameraPosition);
 	float badass_depth = toLogDepth(depth);
@@ -40,8 +41,9 @@ float getDepth(){
 	return badass_depth;
 }
 #define MATH_E 2.7182818284
+// dd = log2(depth+1) / lg
 float reverseLogEx(float dd, float far){
-	return pow(2, dd * log2(far+1.0)) - 1;
+	return pow(2, dd * (log2(far+1.0)) - 1);
 }
 float reverseLog(float dd){
 	return reverseLogEx(dd, FarPlane);

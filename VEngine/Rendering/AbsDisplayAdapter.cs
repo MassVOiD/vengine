@@ -53,6 +53,7 @@ namespace VEngine
         protected override void OnLoad(System.EventArgs e)
         {
             VSync = VSyncMode.Off;
+            //this.Context.
 
             var s = GL.GetString(StringName.Version);
             Console.WriteLine(s);

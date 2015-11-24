@@ -82,7 +82,7 @@ namespace ShadowsTester
                 ioc.UpdateMatrix();
                 scene.Add(ioc);
             }*/
-            /*
+            
             
             Object3dInfo[] tree_0 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod0.obj"));
             Object3dInfo[] tree_1 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod1.obj"));
@@ -123,7 +123,7 @@ namespace ShadowsTester
             leaves.AddLodLevel(leavesl2);
             leaves.AddLodLevel(leavesl3);
 
-            for(int i = 0; i < 11110; i++)
+            for(int i = 0; i < 2110; i++)
             {
                 var inst = new Mesh3dInstance(
                         new TransformationManager(
@@ -151,13 +151,16 @@ namespace ShadowsTester
                 if(level > 3)
                     level = 0;
             }, 100).Start();
-            
-            var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
-            */
 
-            var ferrari = new GameScene("ferrari.scene");
-            ferrari.Load();
-            ferrari.Meshes.ForEach((a) => scene.Add(a));
+            //  var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
+
+           // var terrain = Mesh3d.Create(Object3dInfo.LoadFromObjSingle(Media.Get("terrain1.obj")), GenericMaterial.FromColor(Color.Aquamarine));
+           // terrain.GetInstance(0).Scale(1000.0f);
+          //  scene.Add(terrain);
+        
+          //  var ferrari = new GameScene("ferrari.scene");
+          //  ferrari.Load();
+          //  ferrari.Meshes.ForEach((a) => scene.Add(a));
         }
     }
 }

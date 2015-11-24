@@ -26,7 +26,6 @@ namespace VEngine
         public Camera(Vector3 position, Vector3 lookAt, float aspectRatio, float fov, float near, float far)
         {
             Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
-            //ViewMatrix = Matrix4.LookAt(position, lookAt, new Vector3(0, 1, 0));
             Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
             Far = far;
             if(Current == null)
@@ -36,6 +35,7 @@ namespace VEngine
             Pitch = 0.0f;
             Roll = 0.0f;
             Update();
+            ViewMatrix = Matrix4.LookAt(position, lookAt, new Vector3(0, 1, 0));
         }
 
         public Camera(Vector3 position, Vector3 lookAt, Vector2 size, float near, float far)

@@ -14,7 +14,7 @@ namespace ShadowsTester
         public FreeCamera(float aspectRatio, float fov)
         {
             float fovdegree = 90;
-            Cam = new Camera(new Vector3(0, 0, 0), new Vector3(0, 2, 0), aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
+            Cam = new Camera(new Vector3(0, 5, 0), new Vector3(0, 0, 1), aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
             Camera.MainDisplayCamera = Cam;
            
             GLThread.OnUpdate += UpdateSterring;

@@ -153,7 +153,7 @@ vec3 softLuminance(vec2 fuv){
             counter+=1;
         }
     }
-    return outc / counter;
+    return outc*5 / counter;
 }
 vec3 blurByUV(sampler2D sampler, vec2 fuv, float force){
     vec3 outc = vec3(0);
@@ -276,7 +276,7 @@ void main()
     } else if(UseRSM == 1 && UseHBAO == 0){
         color1 += texture(indirectTex, nUV).rgb;
     } else if(UseRSM == 0 && UseVDAO == 0 && UseHBAO == 1){
-      //  color1 += vec3(texture(HBAOTex, nUV).a);
+        color1 += vec3(texture(HBAOTex, nUV).a);
     }
     //color1 += texture(HBAOTex, nUV).rrr;
     color1 += lightPoints();

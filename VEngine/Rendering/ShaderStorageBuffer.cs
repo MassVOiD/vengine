@@ -12,6 +12,7 @@ namespace VEngine
         private bool Generated;
 
         private int Handle = -1;
+        public int last = 0;
 
         public ShaderStorageBuffer()
         {
@@ -26,6 +27,7 @@ namespace VEngine
             }
             GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
             GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, Type);
+            last = buffer.Length;
         }
 
         public void MapData(dynamic structure)

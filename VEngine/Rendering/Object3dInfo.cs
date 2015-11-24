@@ -536,6 +536,7 @@ namespace VEngine
 
         public void DrawInstanced(int count)
         {
+            if(count == 0) return;
             DrawPrepare();
             GL.DrawArraysInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, 0, IndicesCount,
                      count);

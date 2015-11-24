@@ -245,14 +245,15 @@ namespace VEngine
 
             DisableBlending();
             // RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
-            
-            GL.CullFace(CullFaceMode.Back);
+
+            // GL.CullFace(CullFaceMode.Back);
+            GL.Disable(EnableCap.CullFace);
             StartMeasureMS();
             MRT.Use();
             LastMRTTime = StopMeasureMS();
-            GL.Enable(EnableCap.Blend);
-            GL.BlendEquation(BlendEquationMode.FuncAdd);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+           // GL.Disable(EnableCap.Blend);
+            //GL.BlendEquation(BlendEquationMode.FuncAdd);
+            //GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             World.Root.Draw();
 
             MRT.UseTextureDiffuseColor(14);
@@ -547,15 +548,15 @@ namespace VEngine
 
         private void DisableBlending()
         {
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.Zero);
+           // GL.Disable(EnableCap.Blend);
+           // GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.Zero);
         }
 
         private void EnableFullBlend()
         {
-            GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.BlendEquation(BlendEquationMode.FuncAdd);
+          //  GL.Disable(EnableCap.Blend);
+          //  GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+           // GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
 
         private void Fog()

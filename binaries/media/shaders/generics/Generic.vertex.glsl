@@ -20,11 +20,9 @@ layout (std430, binding = 4) buffer BallsBuff
     vec4 BallsPositionsAndScales[]; 
 }; 
 
-out flat uint TestInstId;
 void main(){
 
 	Output.instanceId = int(gl_InstanceID);
-    TestInstId = gl_InstanceID;
     vec4 v = vec4(in_position,1);
     
 
