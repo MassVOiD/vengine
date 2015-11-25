@@ -8,11 +8,7 @@ namespace VEngine
     public class ProjectionLight : ILight, IShadowMapableLight, ITransformable
     {
         public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack("ConeLight.fragment.glsl");
-
-        public static ShaderStorageBuffer RSMBuffer;
-
-        public float Attenuation = 1.0f;
-
+        
         public Camera camera;
 
         public float CullerMultiplier = 1.0f;
@@ -37,8 +33,6 @@ namespace VEngine
 
         private float FarPlane;
 
-        private ComputeShader RSMBufferShader;
-
         private Size ViewPort;
 
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
@@ -46,19 +40,11 @@ namespace VEngine
             FarPlane = far;
             camera = new Camera(position, Vector3.Zero, mapwidth / mapheight, fov, near, far);
             camera.LookAt(Vector3.Zero);
-            FBO = new Framebuffer(mapwidth, mapheight, false);
-            FBO.ColorInternalFormat = PixelInternalFormat.Rg32ui;
-            FBO.ColorPixelFormat = PixelFormat.RgInteger;
-            FBO.ColorPixelType = PixelType.UnsignedInt;
+            FBO = new Framebuffer(mapwidth, mapheight, true);
             FBO.DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
             FBO.DepthPixelFormat = PixelFormat.DepthComponent;
             FBO.DepthPixelType = PixelType.Float;
             ViewPort = new Size(mapwidth, mapheight);
-            if(RSMBuffer == null)
-                RSMBuffer = new ShaderStorageBuffer();
-            RSMBuffer.Type = BufferUsageHint.DynamicDraw;
-            GLThread.Invoke(() => RSMBuffer.MapData(Enumerable.Repeat<byte>(1, 64 * 64 * 4 * 12).ToArray()));
-            RSMBufferShader = new ComputeShader("RSMBufferData.compute.glsl");
         }
 
         public void BuildOrthographicProjection(float width, float height, float near, float far)
@@ -151,17 +137,6 @@ namespace VEngine
             //ParticleSystem.DrawAll(true);
             Camera.Current = last;
             NeedsRefreshing = false;
-            GL.MemoryBarrier(MemoryBarrierFlags.TextureUpdateBarrierBit);
-            RSMBufferShader.Use();
-            RSMBuffer.Use(9);
-            FBO.UseTexture(22);
-            RSMBufferShader.SetUniform("MatP", (camera.ProjectionMatrix));
-            RSMBufferShader.SetUniform("MatV", (camera.ViewMatrix));
-            RSMBufferShader.SetUniform("MatI", (parentTransformation));
-            RSMBufferShader.SetUniform("Far", camera.Far);
-            RSMBufferShader.SetUniform("LightPos", GetPosition());
-            RSMBufferShader.Dispatch(64, 64);
-            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
         }
 
         public void SetPosition(Vector3 position, Vector3 lookat)

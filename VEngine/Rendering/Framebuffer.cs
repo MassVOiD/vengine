@@ -145,8 +145,8 @@ namespace VEngine
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
             if(!ColorOnly){
-            TexDepth = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+                TexDepth = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, TexDepth);
                 if(DepthOnly)
                 {
                     GL.TexImage2D(TextureTarget.Texture2D, 0, DepthInternalFormat, Width, Height, 0, DepthPixelFormat, DepthPixelType, (IntPtr)0);

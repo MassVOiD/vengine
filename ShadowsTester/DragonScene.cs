@@ -123,7 +123,7 @@ namespace ShadowsTester
             leaves.AddLodLevel(leavesl2);
             leaves.AddLodLevel(leavesl3);
 
-            for(int i = 0; i < 2110; i++)
+            for(int i = 0; i < 29110; i++)
             {
                 var inst = new Mesh3dInstance(
                         new TransformationManager(
@@ -145,12 +145,12 @@ namespace ShadowsTester
             int level = 0;
             GLThread.CreateTimer(() =>
             {
-                roots.UpdateMatrixSingleLodLevel(level);
-                leaves.UpdateMatrixSingleLodLevel(level);
+                roots.UpdateMatrix();
+                leaves.UpdateMatrix();
                 level++;
                 if(level > 3)
                     level = 0;
-            }, 100).Start();
+            }, 1150).Start();
 
             //  var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
 

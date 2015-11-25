@@ -112,6 +112,7 @@ namespace VEngine
             {
                 if(Instances.Count((a) => a.Transformation.HasBeenModified()) > 0)
                     UpdateMatrix(true);
+                Instances.ForEach((a) => a.Transformation.ClearModifiedFlag());
             }
 
             var shader = ShaderProgram.Current;

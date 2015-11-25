@@ -17,7 +17,6 @@ uniform int MaterialType;
 #define MaterialTypeWater 2
 #define MaterialTypeSky 3
 #define MaterialTypeWetDrops 4
-#define MaterialTypeWetDrops 4
 #define MaterialTypeRainsDropSystem 12
 #define MaterialTypeRainsOptimizedSphere 13
 
@@ -112,57 +111,22 @@ void finishFragment(vec4 incolor){
    //         rand2d(vec2(iid * 0.321534, iid * 0.5554)), 
    //         rand2d(vec2(iid * 1.4326, iid * 0.757)));
     }
-	outColor = vec4((color.xyz), color.a);
 
-    mat3 TBN2 = (transpose(mat3(
-        normalize(Input.Tangent),
-        cross(Input.Normal, normalize(Input.Tangent)),
-        Input.Normal
-    )));
-    vec3 tangentwspace = TBN * Input.Tangent;
-    float outSpecular = 0;
-    if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
-    else outSpecular = SpecularComponent;
-    
-    
-    
-	if(UseNormalMap == 1){
-		//normalNew = perturb_normal(normalNew, Input.WorldPos, Input.TexCoord * NormalMapScale);   
+	if(UseNormalMap == 1){  
 		vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
-	 //  map.y = - map.y;
-	   map = map * 2 - 1;
-	   //map.r = - map.r;
-	   map.g = - map.g;
-	  // map.x = - map.x;
+		map = map * 2 - 1;
+		map.g = - map.g;
 		normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
-	   // normalNew = perturb_normalRaw(normalNew, normalize(wpos - CameraPosition), map);
-
 	} 
 
 #define MaterialTypeParallax 11
 	if(MaterialType == MaterialTypeParallax){
 		float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
-		//factor += 0.2 * rand2d(Input.TexCoord);
-		//if(distance(CameraPosition, wpos)<3.0){
-			if(Input.Data.x < 0.99){
-				if(factor > Input.Data.x) discard;
-				//if(factor > Input.Data.y) discard;
-		 
-			}
-	  //  } else {
-	   //     if(Input.Data.x > 0.01) discard;
-	   //     else {
-	 //           wpos -= Input.Data.z * Input.Normal * (factor);
-	//        }
-	 //   }
+		if(Input.Data.x < 0.99){
+			if(factor > Input.Data.x) discard;
+		}
 	}
-	/*AORange
-AOStrength
-AOAngleCutoff
-VDAOMultiplier
-VDAOSamplingMultiplier
-VDAORefreactionMultiplier
-SubsurfaceScatteringMultiplier*/
+	
 	uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
 	uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
 	
@@ -192,19 +156,20 @@ SubsurfaceScatteringMultiplier*/
 	*/
     float outRoughness = 0;
     float outMetalness = 0;
-    if(UseRoughnessMap == 1) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
+    float outSpecular = 0;
+    
+	if(UseRoughnessMap == 1) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
     else outRoughness = Roughness;
-    if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
+    
+	if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
     else outMetalness = Metalness;
     
+	if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
+    else outSpecular = SpecularComponent;
+    
+	outColor = vec4((color.xyz), color.a);
 	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
 	outNormals = vec4(rn, DiffuseComponent);
 	outMeshData = vec4(0, 0, outMetalness, outRoughness);
 	updateDepthFromWorldPos(wpos);
-    // lets do it, from -32 to 32
-    /*vec3 normalized = (wpos)  *3;
-    normalized = clamp(normalized, -32, 32);
-    normalized = normalized + 32;
-    ivec3 imgcoord = ivec3(int(normalized.x), int(normalized.y), int(normalized.z));
-    imageStore(full3dScene, imgcoord, uvec4(FrameINT, 0, 0, 0));*/
 }

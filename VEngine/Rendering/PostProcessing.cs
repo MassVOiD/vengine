@@ -603,7 +603,6 @@ namespace VEngine
             IndirectShader.SetUniform("RandomsCount", 16 * 16 * 16);
             RandomsSSBO.Use(6);
             SSAOFramebuffer.UseTexture(23);
-            ProjectionLight.RSMBuffer.Use(9);
             LastIndirectTime = DrawPPMesh();
         }
 

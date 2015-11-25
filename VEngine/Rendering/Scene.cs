@@ -155,7 +155,7 @@ namespace VEngine
                     fplanes.Add(l.GetFarPlane());
                     colors.Add(p.GetColor());
                     mmodes.Add((int)p.GetMixMode());
-                    l.UseTexture(ipointer * 2 + 2);
+                    l.UseTexture(ipointer + 2);
                     ipointer++;
                 }
 
