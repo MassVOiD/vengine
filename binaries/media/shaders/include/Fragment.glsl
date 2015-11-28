@@ -77,18 +77,12 @@ vec3 makeSphereNormals(vec2 uv, float r) {
 void finishFragment(vec4 incolor){
 	if(incolor.a < 0.01) discard;
     discardIfAlphaMasked();
-   // if(Selected) color *= 3;
-    //outColor = vec4(1);
+	
     vec4 color = incolor;
     vec3 wpos = Input.WorldPos;
-	float dst = distance(wpos, CameraPosition);
-	//if(dst < LodDistanceStart || dst >= LodDistanceEnd) discard;
+	
     vec3 normalNew  = normalize(Input.Normal);
-   // vec3 normalNew  = normalize(cross(dFdx(wpos), dFdy(wpos)));
     
-    
-    float worldBumpMapSize = 0;
-
     mat3 TBN = inverse(transpose(mat3(
         normalize(Input.Tangent),
         cross(Input.Normal, normalize(Input.Tangent)),
@@ -106,10 +100,6 @@ void finishFragment(vec4 incolor){
             normalNew *= -1;
         }
         wpos += normalNew * h;
-        //color.xyzw = vec4(1, 1, 1, 0.15);
-    //    color.xyz = vec3(rand2d(vec2(iid * 0.1211, iid * 0.4352)), 
-   //         rand2d(vec2(iid * 0.321534, iid * 0.5554)), 
-   //         rand2d(vec2(iid * 1.4326, iid * 0.757)));
     }
 
 	if(UseNormalMap == 1){  
@@ -127,33 +117,17 @@ void finishFragment(vec4 incolor){
 		}
 	}
 	
-	uint packpart1 = packUnorm4x8(vec4(AORange, AOStrength, AOAngleCutoff, SubsurfaceScatteringMultiplier));
-	uint packpart2 = packUnorm4x8(vec4(VDAOMultiplier, VDAOSamplingMultiplier, VDAORefreactionMultiplier, 0));
-	
-	vec3 rn, rt;
-	uint id;
-	
-
-	rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
-	rt = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
-	id = InstancedIds[Input.instanceId];
-
+	vec3 rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
+	vec3 rt = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
+	uint id = InstancedIds[Input.instanceId];
 	
 	if(dot(rn, CameraPosition - Input.WorldPos) <=0) {
 		rn *= -1;
 	}
 	uint packpart3 = packSnorm4x8(vec4(rt, 0));
-	outId = uvec4(id, packpart1, packpart2, packpart3);
+	outId = uvec4(id, 0, 0, packpart3);
 	if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
 
-	// mesh data is packed as follows:
-	/*
-	outColor.a - invalid to read
-	outWorldPos.a - specular component
-	outNormals.a - specular size
-	outMeshData.r - reflection strength
-	outMeshData.g - refraction strength
-	*/
     float outRoughness = 0;
     float outMetalness = 0;
     float outSpecular = 0;

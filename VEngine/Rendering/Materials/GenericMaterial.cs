@@ -313,13 +313,13 @@ namespace VEngine
             if(lastUserProgram == null)
                 lastUserProgram = ShaderProgram.Current;
             ShaderProgram.SwitchResult res = prg.Use();
-            if(res == ShaderProgram.SwitchResult.Locked)
-            {
-                prg = ShaderProgram.Current;
-            }
-            if(lastUserProgram == ShaderProgram.Current)
-                return true;
-            lastUserProgram = ShaderProgram.Current;
+          //  if(res == ShaderProgram.SwitchResult.Locked)
+          //  {
+          //      prg = ShaderProgram.Current;
+           // }
+           // if(lastUserProgram == ShaderProgram.Current)
+          //      return true;
+            //lastUserProgram = ShaderProgram.Current;
             prg.SetUniform("TesselationMultiplier", TesselationMultiplier);
             if(NormalMap != null)
             {
@@ -400,13 +400,13 @@ namespace VEngine
             prg.SetUniform("ParallaxHeightMultiplier", ParallaxHeightMultiplier);
             prg.SetUniform("ParallaxInstances", ParallaxInstances);
 
-            prg.SetUniform("AORange", AORange);
-            prg.SetUniform("AOStrength", AOStrength);
-            prg.SetUniform("AOAngleCutoff", AOAngleCutoff);
-            prg.SetUniform("VDAOMultiplier", VDAOMultiplier);
-            prg.SetUniform("VDAOSamplingMultiplier", VDAOSamplingMultiplier);
-            prg.SetUniform("VDAORefreactionMultiplier", VDAORefreactionMultiplier);
-            prg.SetUniform("SubsurfaceScatteringMultiplier", SubsurfaceScatteringMultiplier);
+           // prg.SetUniform("AORange", AORange);
+           // prg.SetUniform("AOStrength", AOStrength);
+           // prg.SetUniform("AOAngleCutoff", AOAngleCutoff);
+          //  prg.SetUniform("VDAOMultiplier", VDAOMultiplier);
+           // prg.SetUniform("VDAOSamplingMultiplier", VDAOSamplingMultiplier);
+           // prg.SetUniform("VDAORefreactionMultiplier", VDAORefreactionMultiplier);
+            //prg.SetUniform("SubsurfaceScatteringMultiplier", SubsurfaceScatteringMultiplier);
             // prg.SetUniform("FrameINT", (int)PostProcessing.RandomIntFrame);
 
             // GL.BindImageTexture(22u, (uint)PostProcessing.FullScene3DTexture.Handle, 0, false, 0,

@@ -38,7 +38,7 @@ namespace VEngine
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
             FarPlane = far;
-            camera = new Camera(position, Vector3.Zero, mapwidth / mapheight, fov, near, far);
+            camera = new Camera(position, Vector3.Zero, Vector3.UnitY, mapwidth / mapheight, fov, near, far);
             camera.LookAt(Vector3.Zero);
             FBO = new Framebuffer(mapwidth, mapheight, true);
             FBO.DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
@@ -103,9 +103,7 @@ namespace VEngine
         {
             if(IsStatic && !NeedsRefreshing)
                 return;
-
-            GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
-            FBO.Use();
+            
             if(camera.Transformation.HasBeenModified())
             {
                 camera.Update();
@@ -113,6 +111,7 @@ namespace VEngine
             }
             Camera last = Camera.Current;
             Camera.Current = camera;
+            FBO.Use();
             GL.Viewport(0, 0, ViewPort.Width, ViewPort.Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 

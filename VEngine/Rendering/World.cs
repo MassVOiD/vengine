@@ -24,6 +24,7 @@ namespace VEngine
 
         public event MeshCollideDelegate MeshCollide;
         
+        
         public void Draw(bool ignoreMeshWithDisabledDepthTest = false, bool ignoreDisableDepthWriteFlag = false)
         {
             var sp = GenericMaterial.OverrideShaderPack != null ? GenericMaterial.OverrideShaderPack : GenericMaterial.MainShaderPack;

@@ -38,12 +38,6 @@ namespace VEngine
             }
         }
         
-        public ShaderStorageBuffer AABoxesBuffer;
-        public ShaderStorageBuffer AABoxesContainersBuffer;
-        public int AABoxesCount;
-        public int AABoxesContainersCount;
-        public ShaderStorageBuffer DensityPoints;
-        public int DensityPointsCount = 0;
         public MRTFramebuffer MRT;
         public int Width, Height;
         public bool ShowSelected = false;
@@ -57,8 +51,7 @@ namespace VEngine
         public float LastMRTTime = 0;
         public float LastHDRTime = 0;
         public float LastTotalFrameTime = 0;
-
-        private Texture BokehTexture;
+        
 
         public float VDAOGlobalMultiplier = 1.0f, RSMGlobalMultiplier = 1.0f, AOGlobalModifier = 1.0f;
 
@@ -76,21 +69,13 @@ namespace VEngine
         private static Random Rand = new Random();
 
         private ShaderProgram
-                                    BloomShader,
+            BloomShader,
             FogShader,
             HDRShader,
             BlitShader,
-            DeferredShader,
-            CombinerShader,
-            PathTracerOutputShader,
-            MotionBlurShader,
-            RayTraceShadowsShader,
-            SSAOShader,
-            IndirectShader;
-
-        private ComputeShader CShader, BlurShader;
-
-        private CubeMapTexture CubeMap;
+            CombinerShader;
+        
+        public CubeMapTexture CubeMap;
 
         private Framebuffer LastFrameBuffer;
 
@@ -99,19 +84,13 @@ namespace VEngine
         private Texture NumbersTexture;
 
         private Framebuffer
-                                                    Pass1FrameBuffer,
+            Pass1FrameBuffer,
             Pass2FrameBuffer,
-            HelperFullResFrameBuffer,
-           // LastWorldPosFramebuffer,
            LastDeferredFramebuffer,
-           RayTracedShadowsFramebuffer,
             BloomFrameBuffer,
-            IndirectFramebuffer,
-            SSAOFramebuffer,
             FogFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
-        private ShaderStorageBuffer RandomsSSBO = new ShaderStorageBuffer();
         // public static uint RandomIntFrame = 1;
 
         // public static Texture3D FullScene3DTexture;
@@ -143,21 +122,13 @@ namespace VEngine
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 6, 0u);
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 7, 0u);*/
             //FullScene3DTexture = new Texture3D(new Vector3(64, 64, 64));
-            AABoxesBuffer = new ShaderStorageBuffer();
-            AABoxesContainersBuffer = new ShaderStorageBuffer();
-            DensityPoints = new ShaderStorageBuffer();
             NumbersTexture = new Texture(Media.Get("numbers.png"));
-            CShader = new ComputeShader("Blur.compute.glsl");
             CubeMap = new CubeMapTexture(Media.Get("posx.jpg"), Media.Get("posy.jpg"), Media.Get("posz.jpg"),
                 Media.Get("negx.jpg"), Media.Get("negy.jpg"), Media.Get("negz.jpg"));
-            BokehTexture = new Texture(Media.Get("bokeh.png"));
 
             Width = initialWidth;
             Height = initialHeight;
           //   initialWidth *= 2; initialHeight *= 2;
-            RandomsSSBO.Type = BufferUsageHint.StreamRead;
-            RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
-
             MRT = new MRTFramebuffer(initialWidth, initialHeight);
 
             Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
@@ -170,13 +141,7 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.UnsignedByte
             };
-            RayTracedShadowsFramebuffer = new Framebuffer(initialWidth / 3, initialHeight / 3)
-            {
-                ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rg8,
-                ColorPixelFormat = PixelFormat.Rg,
-                ColorPixelType = PixelType.UnsignedByte
-            };
+
             FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
             {
                 ColorOnly = true,
@@ -184,14 +149,7 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.UnsignedByte
             };
-            //LastWorldPosFramebuffer = new Framebuffer(initialWidth / 5, initialHeight / 5)
-            HelperFullResFrameBuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
-            {
-                ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rgba8,
-                ColorPixelFormat = PixelFormat.Rgba,
-                ColorPixelType = PixelType.UnsignedByte
-            };
+
              LastDeferredFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
              {
                  ColorOnly = true,
@@ -199,29 +157,14 @@ namespace VEngine
                  ColorPixelFormat = PixelFormat.Rgba,
                  ColorPixelType = PixelType.UnsignedByte
              };
-            IndirectFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1);
-            SSAOFramebuffer = new Framebuffer((int)(initialWidth / 1), (int)(initialHeight / 1))
-            {
-                ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rgba8,
-                ColorPixelFormat = PixelFormat.Rgba,
-                ColorPixelType = PixelType.UnsignedByte
-            };
+
 
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
             HDRShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "HDR.fragment.glsl");
             BlitShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Blit.fragment.glsl");
-            DeferredShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Deferred.fragment.glsl");
             CombinerShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Combiner.fragment.glsl");
-            PathTracerOutputShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Output.fragment.glsl");
-            MotionBlurShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "MotionBlur.fragment.glsl");
-            SSAOShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "SSAO.fragment.glsl");
-            IndirectShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Indirect.fragment.glsl");
-            RayTraceShadowsShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "RayTraceShadows.fragment.glsl");
-
-            BlurShader = new ComputeShader("Blur.compute.glsl");
-
+            
             PostProcessingMesh = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
         }
 
@@ -232,89 +175,64 @@ namespace VEngine
 
         private Matrix4 LastVP = Matrix4.Identity;
 
-        public void ExecutePostProcessing()
+        private void RenderCore()
+        {
+            MRT.Use();
+            World.Root.Draw();
+            
+            SwitchToFB(Pass1FrameBuffer);
+
+            MRT.UseTextureDiffuseColor(14);
+            MRT.UseTextureDepth(1);
+            MRT.UseTextureWorldPosition(15);
+            MRT.UseTextureNormals(16);
+            MRT.UseTextureMeshData(17);
+            MRT.UseTextureId(18);
+
+            Combine();
+
+            Pass1FrameBuffer.GenerateMipMaps();
+
+            SwitchToFB(Pass2FrameBuffer);
+
+            Pass1FrameBuffer.UseTexture(0);
+            MRT.UseTextureDepth(1);
+            NumbersTexture.Use(TextureUnit.Texture25);
+
+            HDR(lastTime == 0 ? 0 : 1000000 / lastTime);
+        }
+
+        private void RenderPrepareToBlit()
         {
             if(UnbiasedIntegrateRenderMode)
             {
-                RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
+                //RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
             }
             stopwatch.Stop();
             lastTime = (lastTime * 20 + stopwatch.ElapsedTicks / (Stopwatch.Frequency / (1000L * 1000L))) / 21;
             stopwatch.Reset();
             stopwatch.Start();
 
-            DisableBlending();
-            // RandomsSSBO.MapData(JitterRandomSequenceGenerator.Generate(1, 16 * 16 * 16, true).ToArray());
-
-            // GL.CullFace(CullFaceMode.Back);
-            GL.Disable(EnableCap.CullFace);
             StartMeasureMS();
             MRT.Use();
             LastMRTTime = StopMeasureMS();
-           // GL.Disable(EnableCap.Blend);
-            //GL.BlendEquation(BlendEquationMode.FuncAdd);
-            //GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             World.Root.Draw();
 
             MRT.UseTextureDiffuseColor(14);
+            MRT.UseTextureDepth(1);
             MRT.UseTextureWorldPosition(15);
             MRT.UseTextureNormals(16);
             MRT.UseTextureMeshData(17);
             MRT.UseTextureId(18);
-           // LastWorldPosFramebuffer.UseTexture(21);
 
             if(GLThread.GraphicsSettings.UseFog)
             {
                 SwitchToFB(FogFramebuffer);
-                MRT.UseTextureDepth(1);
                 Fog();
             }
-            if(GLThread.GraphicsSettings.UseHBAO)
-            {
-                SwitchToFB(SSAOFramebuffer);
-                SSAO();
-                
-               // SwitchToFB(HelperFullResFrameBuffer);
-              //  Blur(HelperFullResFrameBuffer, HelperFullResFrameBuffer, SSAOFramebuffer, 14);
-               // HelperFullResFrameBuffer.UseTexture(23);
-            }
-            // Blur(IndirectFramebuffer.TexColor, 8, IndirectFramebuffer.Width,
-            // IndirectFramebuffer.Height, BlurMode.Temporal); Blur(SSAOFramebuffer.TexColor, 8,
-            // SSAOFramebuffer.Width, SSAOFramebuffer.Height, BlurMode.Temporal);
-            // Blur(IndirectFramebuffer.TexColor, 8, IndirectFramebuffer.Width,
-            // IndirectFramebuffer.Height, BlurMode.Temporal);
-            if(GLThread.GraphicsSettings.UseDeferred)
-            {
-                SwitchToFB(RayTracedShadowsFramebuffer);
-                MRT.UseTextureDepth(1);
-                RaytraceShadows();
-                SwitchToFB(Pass2FrameBuffer);
-                MRT.UseTextureDepth(1);
-                Deferred();
-            }
-            else
-                SwitchToFB(Pass2FrameBuffer);
-
-            if(GLThread.GraphicsSettings.UseRSM)
-            {
-                SwitchToFB(IndirectFramebuffer);
-                Indirect();
-                FogFramebuffer.UseTexture(24);
-                IndirectFramebuffer.UseTexture(22);
-            }
-
-            // SwitchToFB(Pass2FrameBuffer);
-
-            //  Blur(SSAOFramebuffer.TexColor, Pass1FrameBuffer.TexColor, 28, SSAOFramebuffer.Width, SSAOFramebuffer.Height, Pass1FrameBuffer.Width, Pass1FrameBuffer.Height, BlurMode.Temporal);
-            //  Blur(IndirectFramebuffer.TexColor, Pass1FrameBuffer.TexColor, 28, IndirectFramebuffer.Width, IndirectFramebuffer.Height, Pass1FrameBuffer.Width, Pass1FrameBuffer.Height, BlurMode.Temporal);
-              
 
             SwitchToFB(Pass1FrameBuffer);
-
-            Pass2FrameBuffer.UseTexture(0);
-            MRT.UseTextureDepth(1);
-            RandomsSSBO.Use(0);
-            SSAOFramebuffer.UseTexture(23);
+            
             FogFramebuffer.UseTexture(24);
             Combine();
 
@@ -326,15 +244,9 @@ namespace VEngine
                 BloomFrameBuffer.UseTexture(26);
             }
 
-            /*   SwitchToFB(Pass2FrameBuffer);
-               Pass1FrameBuffer.UseTexture(0);
-               MRT.UseTextureDepth(1);
-               LastWorldPosFramebuffer.UseTexture(21);
-               MRT.UseTextureWorldPosition(15);
-
-               MotionBlur();*/
-
+            Pass1FrameBuffer.GenerateMipMaps();
             SwitchToFB(Pass2FrameBuffer);
+
 
             Pass1FrameBuffer.UseTexture(0);
             MRT.UseTextureDepth(1);
@@ -349,73 +261,62 @@ namespace VEngine
                 MRT.UseTextureDepth(1);
                 Blit();
             }
-            SwitchToFB0();
+        }
+        public void RenderToFramebuffer(Framebuffer framebuffer)
+        {
+            Width = framebuffer.Width;
+            Height = framebuffer.Height;
+
+            RenderPrepareToBlit();
+
+            framebuffer.Use(false, false);
+            GL.Viewport(0, 0, Width, Height);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             Pass2FrameBuffer.UseTexture(0);
             MRT.UseTextureDepth(1);
             Blit();
 
-           // SwitchToFB(LastWorldPosFramebuffer);
-          //  MRT.UseTextureWorldPosition(0);
-           // Blit();
-            EnableFullBlend();
-            
-            
-           // Mesh3d.PostProcessingUniformsOnly = false;
         }
 
-        public void SetAABoxes(List<AABContainers> containers, List<AAB> boxes)
+        private void FaceRender(CubeMapFramebuffer framebuffer, TextureTarget target)
         {
-            boxes.Sort((a, b) => a.Container.GetHashCode() - b.Container.GetHashCode());
-            List<byte> buffer = new List<byte>(boxes.Count * 4 * 4 * 4);
-            foreach(var b in boxes)
-            {
-                buffer.AddRange(BitConverter.GetBytes(b.Minimum.X));
-                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Y));
-                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Z));
-                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Z));
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Lequal);
+            framebuffer.SwitchCamera(target);
+            RenderPrepareToBlit();
 
-                buffer.AddRange(BitConverter.GetBytes(b.Maximum.X));
-                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Y));
-                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Z));
-                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Z));
+            GL.Disable(EnableCap.DepthTest);
+              GL.DepthFunc(DepthFunction.Always);
+             framebuffer.Use(true, false);
+             framebuffer.SwitchFace(target);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+           //   framebuffer.Use(true, true);
+             Pass2FrameBuffer.UseTexture(0);
+              MRT.UseTextureDepth(1);
+             Blit();
+              framebuffer.GenerateMipMaps();
+        }
 
-                buffer.AddRange(BitConverter.GetBytes(b.Color.X));
-                buffer.AddRange(BitConverter.GetBytes(b.Color.Y));
-                buffer.AddRange(BitConverter.GetBytes(b.Color.Z));
-                buffer.AddRange(BitConverter.GetBytes(b.Color.W));
+        public void RenderToCubeMapFramebuffer(CubeMapFramebuffer framebuffer)
+        {
+            World.Root.RootScene.RecreateSimpleLightsSSBO();
+            //Width = framebuffer.Width;
+            //Height = framebuffer.Height;
 
-                buffer.AddRange(BitConverter.GetBytes(containers.IndexOf(b.Container)));
-                buffer.AddRange(BitConverter.GetBytes(containers.IndexOf(b.Container)));
-                buffer.AddRange(BitConverter.GetBytes(containers.IndexOf(b.Container)));
-                buffer.AddRange(BitConverter.GetBytes(containers.IndexOf(b.Container)));
-            }
-            AABoxesCount = boxes.Count;
-            AABoxesBuffer.MapData(buffer.ToArray());
+           // framebuffer.Use(true, true);
+            var cam = Camera.Current;
+            FaceRender(framebuffer, TextureTarget.TextureCubeMapPositiveX);
+            FaceRender(framebuffer, TextureTarget.TextureCubeMapPositiveY);
+            FaceRender(framebuffer, TextureTarget.TextureCubeMapPositiveZ);
 
-            buffer = new List<byte>(containers.Count * 4 * 3 * 4);
-            foreach(var b in containers)
-            {
-                buffer.AddRange(BitConverter.GetBytes(b.Minimum.X));
-                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Y));
-                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Z));
-                buffer.AddRange(BitConverter.GetBytes(b.Minimum.Z));
+            FaceRender(framebuffer, TextureTarget.TextureCubeMapNegativeX);
+            FaceRender(framebuffer, TextureTarget.TextureCubeMapNegativeY);
+            FaceRender(framebuffer, TextureTarget.TextureCubeMapNegativeZ);
 
-                buffer.AddRange(BitConverter.GetBytes(b.Maximum.X));
-                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Y));
-                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Z));
-                buffer.AddRange(BitConverter.GetBytes(b.Maximum.Z));
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Lequal);
+            Camera.Current = cam;
 
-                var fi = boxes.FindIndex((a) => a.Container == b);
-                var ic = boxes.Count((a) => a.Container == b);
-                if(fi < 0)
-                    fi = 0;
-                buffer.AddRange(BitConverter.GetBytes(fi));
-                buffer.AddRange(BitConverter.GetBytes(ic));
-                buffer.AddRange(BitConverter.GetBytes(0));
-                buffer.AddRange(BitConverter.GetBytes(0));
-            }
-            AABoxesContainersCount = containers.Count;
-            AABoxesContainersBuffer.MapData(buffer.ToArray());
         }
 
         private void Blit()
@@ -430,39 +331,6 @@ namespace VEngine
             DrawPPMesh();
         }
 
-        private void Blur(Framebuffer output, Framebuffer helper, Framebuffer source, int length)
-        {
-            // GL.BindImageTexture(0, output.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba16f);
-            GL.BindImageTexture(1, helper.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba8);
-            GL.ActiveTexture(TextureUnit.Texture2);
-            GL.BindTexture(TextureTarget.Texture2D, source.TexColor);
-            GL.ActiveTexture(TextureUnit.Texture3);
-            GL.BindTexture(TextureTarget.Texture2D, MRT.TexDepth);
-            GL.ActiveTexture(TextureUnit.Texture4);
-            GL.BindTexture(TextureTarget.Texture2D, MRT.TexNormals);
-
-            BlurShader.Use();
-            BlurShader.SetUniform("Length", length);
-            BlurShader.SetUniform("Direction", 0);
-            BlurShader.SetUniform("FarPlane", Camera.Current.Far);
-            BlurShader.Dispatch(helper.Width / 32 + 1, helper.Height / 32 + 1, 1);
-
-            GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
-            GL.MemoryBarrier(MemoryBarrierFlags.TextureUpdateBarrierBit);
-            GL.MemoryBarrier(MemoryBarrierFlags.TextureFetchBarrierBit);
-
-            // GL.BindImageTexture(0, output.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba16f);
-            GL.BindImageTexture(1, helper.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.Rgba8);
-            BlurShader.SetUniform("Length", length);
-            BlurShader.SetUniform("Direction", 1);
-            BlurShader.SetUniform("FarPlane", Camera.Current.Far);
-            BlurShader.Dispatch(output.Width / 32 + 1, output.Height / 32 + 1, 1);
-
-            GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
-            GL.MemoryBarrier(MemoryBarrierFlags.TextureUpdateBarrierBit);
-            GL.MemoryBarrier(MemoryBarrierFlags.TextureFetchBarrierBit);
-        }
-
         private float DrawPPMesh()
         {
             StartMeasureMS();
@@ -474,78 +342,32 @@ namespace VEngine
         private void Combine()
         {
             CombinerShader.Use();
-            CombinerShader.SetUniform("RandomsCount", 16 * 16 * 16);
-            RandomsSSBO.Use(0);
+            World.Root.RootScene.SetLightingUniforms(CombinerShader, Matrix4.Identity);
+            //RandomsSSBO.Use(0);
+            MRT.UseTextureDepth(1);
             MRT.UseTextureWorldPosition(15);
             MRT.UseTextureNormals(16);
             MRT.UseTextureMeshData(17);
             MRT.UseTextureId(18);
             LastDeferredFramebuffer.UseTexture(20);
-            // World.Root.RootScene.SetLightingUniforms(CombinerShader, Matrix4.Identity, false);
+            CubeMap.Use(TextureUnit.Texture19);
+            World.Root.RootScene.MapLightsSSBOToShader(CombinerShader);
+            CombinerShader.SetUniform("RandomsCount", 16 * 16 * 16);
             CombinerShader.SetUniform("UseFog", GLThread.GraphicsSettings.UseFog);
             CombinerShader.SetUniform("UseLightPoints", GLThread.GraphicsSettings.UseLightPoints);
             CombinerShader.SetUniform("UseDepth", GLThread.GraphicsSettings.UseDepth);
             CombinerShader.SetUniform("UseDeferred", GLThread.GraphicsSettings.UseDeferred);
             CombinerShader.SetUniform("UseVDAO", GLThread.GraphicsSettings.UseVDAO);
+            CombinerShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
             CombinerShader.SetUniform("UseRSM", GLThread.GraphicsSettings.UseRSM);
             CombinerShader.SetUniform("UseSSReflections", GLThread.GraphicsSettings.UseSSReflections);
             CombinerShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
             CombinerShader.SetUniform("Brightness", Camera.Current.Brightness);
-            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+            CombinerShader.SetUniform("VDAOGlobalMultiplier", VDAOGlobalMultiplier);
+           // GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             LastCombinerTime = DrawPPMesh();
         }
-
-        private void Deferred()
-        {
-            DeferredShader.Use();
-            World.Root.RootScene.SetLightingUniforms(DeferredShader, Matrix4.Identity);
-            MRT.UseTextureDepth(1);
-            DeferredShader.SetUniform("UseVDAO", GLThread.GraphicsSettings.UseVDAO);
-            DeferredShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
-            DeferredShader.SetUniform("UseRSM", GLThread.GraphicsSettings.UseRSM);
-            DeferredShader.SetUniform("VDAOGlobalMultiplier", VDAOGlobalMultiplier);
-            CubeMap.Use(TextureUnit.Texture19);
-            DeferredShader.SetUniform("RandomsCount", 16 * 16 * 16);
-            RandomsSSBO.Use(6);
-            AABoxesBuffer.Use(7);
-            AABoxesContainersBuffer.Use(8);
-            MRT.UseTextureId(18);
-            RayTracedShadowsFramebuffer.UseTexture(22);
-            SSAOFramebuffer.UseTexture(23);
-            World.Root.RootScene.RecreateSimpleLightsSSBO();
-            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
-            World.Root.RootScene.MapLightsSSBOToShader(DeferredShader);
-            DeferredShader.SetUniform("AABoxesCount", AABoxesCount);
-            DeferredShader.SetUniform("AABoxesContainersCount", AABoxesContainersCount);
-            // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
-            LastDeferredTime = DrawPPMesh();
-            IndirectFramebuffer.UseTexture(22);
-        }
-        private void RaytraceShadows()
-        {
-            if(AABoxesCount == 0)
-                return;
-            RayTraceShadowsShader.Use();
-            World.Root.RootScene.SetLightingUniforms(RayTraceShadowsShader, Matrix4.Identity);
-            MRT.UseTextureDepth(1);
-            RayTraceShadowsShader.SetUniform("UseVDAO", GLThread.GraphicsSettings.UseVDAO);
-            RayTraceShadowsShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
-            RayTraceShadowsShader.SetUniform("UseRSM", GLThread.GraphicsSettings.UseRSM);
-            RayTraceShadowsShader.SetUniform("VDAOGlobalMultiplier", VDAOGlobalMultiplier);
-            CubeMap.Use(TextureUnit.Texture19);
-            RayTraceShadowsShader.SetUniform("RandomsCount", 16 * 16 * 16);
-            RandomsSSBO.Use(6);
-            AABoxesBuffer.Use(7);
-            AABoxesContainersBuffer.Use(8);
-            MRT.UseTextureId(18);
-            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
-            World.Root.RootScene.MapLightsSSBOToShader(RayTraceShadowsShader);
-            RayTraceShadowsShader.SetUniform("AABoxesCount", AABoxesCount);
-            RayTraceShadowsShader.SetUniform("AABoxesContainersCount", AABoxesContainersCount);
-            // DeferredShader.SetUniform("FrameINT", (int)RandomIntFrame);
-            DrawPPMesh();
-        }
-
+        
         private void DisableBlending()
         {
            // GL.Disable(EnableCap.Blend);
@@ -580,7 +402,6 @@ namespace VEngine
             HDRShader.SetUniform("UnbiasedIntegrateRenderMode", UnbiasedIntegrateRenderMode);
             HDRShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
             MRT.UseTextureDepth(1);
-            BokehTexture.Use(TextureUnit.Texture0 + 28);
             MRT.UseTextureId(18);
             LastDeferredFramebuffer.UseTexture(20);
             if(Camera.MainDisplayCamera != null)
@@ -591,40 +412,7 @@ namespace VEngine
             MRT.UseTextureDepth(1);
             LastHDRTime = DrawPPMesh();
         }
-
-        private void Indirect()
-        {
-            IndirectShader.Use();
-            World.Root.RootScene.SetLightingUniforms(IndirectShader, Matrix4.Identity);
-            MRT.UseTextureDepth(1);
-            IndirectShader.SetUniform("UseVDAO", GLThread.GraphicsSettings.UseVDAO);
-            IndirectShader.SetUniform("UseRSM", GLThread.GraphicsSettings.UseRSM);
-            DeferredShader.SetUniform("RSMGlobalMultiplier", RSMGlobalMultiplier);
-            IndirectShader.SetUniform("RandomsCount", 16 * 16 * 16);
-            RandomsSSBO.Use(6);
-            SSAOFramebuffer.UseTexture(23);
-            LastIndirectTime = DrawPPMesh();
-        }
-
-        private void MotionBlur()
-        {
-            MotionBlurShader.Use();
-            DrawPPMesh();
-        }
-
-        private void SSAO()
-        {
-            SSAOShader.Use();
-            RandomsSSBO.Use(6);
-            MRT.UseTextureDepth(1);
-            MRT.UseTextureId(18);
-            CubeMap.Use(TextureUnit.Texture19);
-            SSAOShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
-            SSAOShader.SetUniform("AOGlobalModifier", AOGlobalModifier);
-            SSAOShader.SetUniform("RandomsCount", 16 * 16 * 16);
-            LastSSAOTime = DrawPPMesh();
-        }
-
+        
         public void SetUniformsShared()
         {
             var shader = ShaderProgram.Current;
@@ -636,7 +424,7 @@ namespace VEngine
             shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
             shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
             shader.SetUniform("FarPlane", Camera.Current.Far);
-            shader.SetUniform("resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
+            shader.SetUniform("resolution", new Vector2(Width, Height));
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
         }
 
@@ -661,8 +449,6 @@ namespace VEngine
         private void SwitchToFB0()
         {
             Pass2FrameBuffer.RevertToDefault();
-            GL.Viewport(0, 0, Width, Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             //LastFrameBuffer.UseTexture(0);
         }
 

@@ -15,7 +15,7 @@ namespace VEngine
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(8, 0, 0, 0), title, flags,
-                DisplayDevice.Default, 4, 4,
+                DisplayDevice.Default, 4, 5,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             GLThread.DisplayAdapter = this;
@@ -70,7 +70,7 @@ namespace VEngine
             //LightPool.UseTextures(2);
             // this is here so you can issue draw calls from there if you want
             GLThread.InvokeOnBeforeDraw();
-            Pipeline.PostProcessor.ExecutePostProcessing();
+            Pipeline.PostProcessor.RenderToFramebuffer(Framebuffer.Default);
             //DrawAll();
             GLThread.InvokeOnAfterDraw();
             

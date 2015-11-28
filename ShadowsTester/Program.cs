@@ -62,11 +62,11 @@ namespace ShadowsTester
             //new PlanetScene().Create();
             //   new SculptScene().Create();
             //   new SponzaScene().Create();
-            //new OldCityScene();
+            new OldCityScene();
            // // new PathTraceTest().Create();
             //  new NatureScene().Create();
             //  new IndirectTestScene().Create();
-           new DragonScene();
+          // new DragonScene();
           //   new ManyCubesScene().Create();
             //  new ComputeBallsScene().Create();
             //new CarScene().Create();

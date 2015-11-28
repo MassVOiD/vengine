@@ -47,8 +47,8 @@ namespace ShadowsTester
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
-            //var color2 = GenericMaterial.FromMedia("3a.jpg", "3n.jpg");
-            var color2 = new GenericMaterial(Color.Green);
+            var color2 = GenericMaterial.FromMedia("3a.jpg", "3n.jpg");
+            //var color2 = new GenericMaterial(Color.Green);
             Mesh3d water3 = Mesh3d.Create(groundInfo, color2);
             water3.GetInstance(0).Scale(30);
             scene.Add(water3);
@@ -82,7 +82,7 @@ namespace ShadowsTester
                 ioc.UpdateMatrix();
                 scene.Add(ioc);
             }*/
-            
+            /*
             
             Object3dInfo[] tree_0 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod0.obj"));
             Object3dInfo[] tree_1 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod1.obj"));
@@ -122,8 +122,7 @@ namespace ShadowsTester
             leaves.AddLodLevel(leavesl1);
             leaves.AddLodLevel(leavesl2);
             leaves.AddLodLevel(leavesl3);
-
-            for(int i = 0; i < 29110; i++)
+            for(int i = 0; i < 9110; i++)
             {
                 var inst = new Mesh3dInstance(
                         new TransformationManager(
@@ -151,16 +150,17 @@ namespace ShadowsTester
                 if(level > 3)
                     level = 0;
             }, 1150).Start();
-
+            
+            */
             //  var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
 
-           // var terrain = Mesh3d.Create(Object3dInfo.LoadFromObjSingle(Media.Get("terrain1.obj")), GenericMaterial.FromColor(Color.Aquamarine));
-           // terrain.GetInstance(0).Scale(1000.0f);
-          //  scene.Add(terrain);
-        
-          //  var ferrari = new GameScene("ferrari.scene");
-          //  ferrari.Load();
-          //  ferrari.Meshes.ForEach((a) => scene.Add(a));
+            //  var terrain = Mesh3d.Create(Object3dInfo.LoadFromObjSingle(Media.Get("pisa.obj")), GenericMaterial.FromColor(Color.LightSlateGray));
+            //  terrain.GetInstance(0).Scale(1.0f);
+            //  scene.Add(terrain);
+
+              var ferrari = new GameScene("ferrari.scene");
+              ferrari.Load();
+              ferrari.Meshes.ForEach((a) => scene.Add(a));
         }
     }
 }

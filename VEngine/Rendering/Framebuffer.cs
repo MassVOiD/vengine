@@ -30,6 +30,22 @@ namespace VEngine
 
         private int FBO, RBO;
 
+        static Framebuffer DefaultF;
+
+        public static Framebuffer Default
+        {
+            get
+            {
+                if(DefaultF == null)
+                    DefaultF = new Framebuffer(GLThread.Resolution.Width, GLThread.Resolution.Height)
+                    {
+                        Generated = true,
+                        FBO = 0
+                    };
+                return DefaultF;
+            }
+        }
+
         public Framebuffer(int width, int height, bool depthOnly = false)
         {
             Generated = false;
@@ -84,6 +100,14 @@ namespace VEngine
                 GL.Viewport(0, 0, Width, Height);
             if(clearViewport)
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+        }
+
+        public void GenerateMipMaps()
+        {
+            GL.BindTexture(TextureTarget.Texture2D, TexColor);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         }
 
         public void UseTexture(int startIndex)

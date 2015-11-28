@@ -39,8 +39,8 @@ namespace VEngine
 
         public void Draw(Matrix4 parentTransformation)
         {
-            var cpos = Camera.MainDisplayCamera.GetPosition();
-            Renderables.Sort((a, b) =>
+           // var cpos = Camera.MainDisplayCamera.GetPosition();
+            /*Renderables.Sort((a, b) =>
             {
                 if(a is ITransformable && b is ITransformable)
                 {
@@ -52,7 +52,7 @@ namespace VEngine
                 }
                 else
                     return 0;
-            });
+            });*/
             for(int i = 0; i < Renderables.Count; i++)
                 Renderables[i].Draw(parentTransformation * Transformation.GetWorldTransform());
         }

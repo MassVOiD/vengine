@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
-    internal class CubeMapFramebuffer : ITransformable
+    public class CubeMapFramebuffer : ITransformable
     {
         public int Resolution;
         public TransformationManager Transformation;
@@ -33,24 +34,23 @@ namespace VEngine
 
         public int Width, Height;
 
-        public bool DepthOnly, MultiSample, ColorOnly;
+        private int FBO;
 
-        private int FBO, RBO;
+        Dictionary<TextureTarget, Camera> FacesCameras;
 
         public CubeMapFramebuffer(int width, int height, bool depthOnly = false)
         {
+            Transformation = new TransformationManager(Vector3.Zero);
             Generated = false;
-            ColorOnly = false;
             Width = width;
             Height = height;
-            DepthOnly = depthOnly;
         }
 
         public void RevertToDefault()
         {
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
-        
+
 
         public void Use(bool setViewport = true, bool clearViewport = true)
         {
@@ -59,29 +59,22 @@ namespace VEngine
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
             if(setViewport)
                 GL.Viewport(0, 0, Width, Height);
-           // if(clearViewport)
+            if(clearViewport)
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
         public void UseTexture(int startIndex)
         {
-            if(DepthOnly)
-            {
-                GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-                GL.BindTexture(TextureTarget.TextureCubeMap, TexDepth);
-            }
-            else
-            {
-               
-                GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-                GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
-                if(!ColorOnly)
-                {
-                    GL.ActiveTexture(TextureUnit.Texture1 + startIndex);
-                    GL.BindTexture(TextureTarget.TextureCubeMap, TexDepth);
-                }
-                
-            }
+            GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
+            GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
+        }
+
+        public void GenerateMipMaps()
+        {
+            GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.GenerateMipmap(GenerateMipmapTarget.TextureCubeMap);
         }
 
         private void Generate()
@@ -89,37 +82,63 @@ namespace VEngine
             Generated = true;
             FBO = GL.GenFramebuffer();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
-            
-                TexColor = GL.GenTexture();
-                GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
-            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, IntPtr.Zero);
-            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveY, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, IntPtr.Zero);
-            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveZ, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, IntPtr.Zero);
-            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeX, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, IntPtr.Zero);
-            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeY, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, IntPtr.Zero);
-            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeZ, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, IntPtr.Zero);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-            
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+
+            TexColor = GL.GenTexture();
+            GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveY, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveZ, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeX, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeY, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeZ, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapR, (int)TextureWrapMode.Repeat);
+
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.TextureCubeMapPositiveX, TexColor, 0);
 
-            GL.DrawBuffer( DrawBufferMode.ColorAttachment0);
+            GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
             if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             {
                 throw new Exception("Framebuffer not complete");
             }
+
+            FacesCameras = new Dictionary<TextureTarget, Camera>();
+            FacesCameras.Add(TextureTarget.TextureCubeMapPositiveX, new Camera(Vector3.Zero, new Vector3(1, 0, 0), -Vector3.UnitY, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
+            FacesCameras.Add(TextureTarget.TextureCubeMapPositiveY, new Camera(Vector3.Zero, new Vector3(0, 1, 0), Vector3.UnitZ, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
+            FacesCameras.Add(TextureTarget.TextureCubeMapPositiveZ, new Camera(Vector3.Zero, new Vector3(0, 0, 1), -Vector3.UnitY, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
+
+            FacesCameras.Add(TextureTarget.TextureCubeMapNegativeX, new Camera(Vector3.Zero, new Vector3(-1, 0, 0), -Vector3.UnitY, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
+            FacesCameras.Add(TextureTarget.TextureCubeMapNegativeY, new Camera(Vector3.Zero, new Vector3(0, -1, 0), -Vector3.UnitZ, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
+            FacesCameras.Add(TextureTarget.TextureCubeMapNegativeZ, new Camera(Vector3.Zero, new Vector3(0, 0, -1), -Vector3.UnitY, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
         }
 
-        void SwitchFace(TextureTarget face)
+        public void SwitchFace(TextureTarget face)
         {
+            if(!Generated)
+                Generate();
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, face, TexColor, 0);
+
+            GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
         }
+
+
+        public void SwitchCamera(TextureTarget face)
+        {
+            if(!Generated)
+                Generate();
+            var proj = FacesCameras[face].ProjectionMatrix;
+            FacesCameras[face].Transformation.SetPosition(Transformation.GetPosition());
+            FacesCameras[face].Update();
+            FacesCameras[face].ProjectionMatrix = proj;
+            Camera.Current = FacesCameras[face];
+        }
+
+
 
     }
 }

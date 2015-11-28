@@ -28,6 +28,11 @@ namespace VEngine
             Update(ref BitmapNegZ, negz);
             Generated = false;
         }
+        public CubeMapTexture(int handle)
+        {
+            Handle = handle;
+            Generated = true;
+        }
 
         public void FreeCPU()
         {

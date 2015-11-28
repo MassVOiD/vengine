@@ -260,6 +260,41 @@ vec3 lightPoints(){
     return color;
 }
 
+uniform float VDAOGlobalMultiplier;
+
+#include EnvironmentLight.glsl
+#include Direct.glsl
+#include AmbientOcclusion.glsl
+
+vec3 Lightning(){
+    if(texture(diffuseColorTex, UV).r >= 999){ 
+		return texture(cubeMapTex, normalize(texture(worldPosTex, UV).rgb)).rgb;
+    }
+    vec3 albedo = texture(diffuseColorTex, UV).rgb;
+    vec3 position = FromCameraSpace(texture(worldPosTex, UV).rgb);
+    vec3 normal = normalize(texture(normalsTex, UV).rgb);
+    float metalness =  texture(meshDataTex, UV).z;
+    float roughness =  texture(meshDataTex, UV).a;
+    float specular = texture(worldPosTex, UV).a;
+    float IOR =  0.0;
+	
+	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness, metalness, specular);
+	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, metalness, roughness, specular,IOR);
+
+	
+    if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
+    if(UseHBAO == 1) {
+		uint tangentEncoded = texture(meshIdTex, UV).a;
+		vec3 tangent = unpackSnorm4x8(tangentEncoded).xyz;
+		float ao = AmbientOcclusion(position, normal, tangent, roughness, metalness);
+		if(UseVDAO == 0) envlight = vec3(1);
+		directlight += envlight * ao;
+		
+	}
+
+    return directlight;
+}
+
 void main()
 {
     Seed(UV);
@@ -267,17 +302,12 @@ void main()
     vec2 nUV = UV;
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
-        color1 += texture(currentTex, nUV).rgb;
+        color1 += Lightning();
         //color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).a) : (softLuminance(nUV));
-    }
+    } else {
+		color1 = texture(diffuseColorTex, UV).rgb;
+	}
     
-    if(UseRSM == 1 && UseHBAO == 1){
-        color1 += mixAlbedo(texture(indirectTex, nUV).rgb) * texture(HBAOTex, nUV).a;
-    } else if(UseRSM == 1 && UseHBAO == 0){
-        color1 += texture(indirectTex, nUV).rgb;
-    } else if(UseRSM == 0 && UseVDAO == 0 && UseHBAO == 1){
-        color1 += vec3(texture(HBAOTex, nUV).a);
-    }
     //color1 += texture(HBAOTex, nUV).rrr;
     color1 += lightPoints();
     if(UseFog == 1) color1 += lookupFog(nUV);
