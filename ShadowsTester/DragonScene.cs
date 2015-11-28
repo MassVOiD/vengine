@@ -55,13 +55,13 @@ namespace ShadowsTester
 
 
             Random rand = new Random();
-            /*
+            
             List<VegetationPart> vegs = new List<VegetationPart>();
             // grass
             vegs.Add(new VegetationPart("vurt_reachflowers2.dds", "6billboardsgrass.obj", 0.8f, 1.4f, 3801));
-            vegs.Add(new VegetationPart("vurt_AssortedPlants.dds", "6billboardsgrass.obj", 0.8f, 1.2f, 3510));
-            vegs.Add(new VegetationPart("vurt_brownplants.dds", "6billboardsgrass.obj", 0.8f, 2.2f, 3610));
-            vegs.Add(new VegetationPart("snowgrass01.dds", "6billboardsgrass.obj", 0.8f, 1.2f, 3710));
+            vegs.Add(new VegetationPart("vurt_AssortedPlants.dds", "6billboardsgrass.obj", 0.8f, 1.2f, 3801));
+            vegs.Add(new VegetationPart("vurt_brownplants.dds", "6billboardsgrass.obj", 0.8f, 2.2f, 3801));
+            vegs.Add(new VegetationPart("snowgrass01.dds", "6billboardsgrass.obj", 0.8f, 1.2f, 3801));
 
             //tress
             //vegs.Add(new VegetationPart("vurt_ heather.dds", "4billboardstrees.obj", 15.0f, 6.6f, 89));
@@ -69,7 +69,7 @@ namespace ShadowsTester
            // vegs.Add(new VegetationPart("vurt_FFleavesG2.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
            // vegs.Add(new VegetationPart("vurt_PineSnowy.dds", "4billboardstrees.obj", 17.0f, 6.6f, 89));
 
-            float vegarea = 340;
+            float vegarea = 100;
             foreach(var v in vegs)
             {
                 Mesh3d ioc = Mesh3d.Create(Object3dInfo.LoadFromObjSingle(Media.Get(v.Model)), new GenericMaterial(Color.White));
@@ -81,8 +81,8 @@ namespace ShadowsTester
                         (float)(rand.NextDouble() * 2.0 - 1.0) * vegarea), Quaternion.FromAxisAngle(Vector3.UnitY, (float)(rand.NextDouble() + 0.25f) * 3.0f), (float)(rand.NextDouble()) * v.ScaleVariation + v.Scale), v.Model));
                 ioc.UpdateMatrix();
                 scene.Add(ioc);
-            }*/
-            /*
+            }
+            
             
             Object3dInfo[] tree_0 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod0.obj"));
             Object3dInfo[] tree_1 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod1.obj"));
@@ -122,13 +122,13 @@ namespace ShadowsTester
             leaves.AddLodLevel(leavesl1);
             leaves.AddLodLevel(leavesl2);
             leaves.AddLodLevel(leavesl3);
-            for(int i = 0; i < 9110; i++)
+            for(int i = 0; i < 510; i++)
             {
                 var inst = new Mesh3dInstance(
                         new TransformationManager(
-                            new Vector3((float)(rand.NextDouble() * 2.0 - 1.0) * 400,
+                            new Vector3((float)(rand.NextDouble() * 2.0 - 1.0) * 100,
                                         0,
-                                        (float)(rand.NextDouble() * 2.0 - 1.0) * 400),
+                                        (float)(rand.NextDouble() * 2.0 - 1.0) * 100),
                             Quaternion.FromAxisAngle(Vector3.UnitY, (float)(rand.NextDouble() + 0.25f) * 3.0f),
                             1.0f
                         ),
@@ -151,16 +151,37 @@ namespace ShadowsTester
                     level = 0;
             }, 1150).Start();
             
-            */
+            
             //  var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
 
             //  var terrain = Mesh3d.Create(Object3dInfo.LoadFromObjSingle(Media.Get("pisa.obj")), GenericMaterial.FromColor(Color.LightSlateGray));
             //  terrain.GetInstance(0).Scale(1.0f);
             //  scene.Add(terrain);
 
-              var ferrari = new GameScene("ferrari.scene");
-              ferrari.Load();
-              ferrari.Meshes.ForEach((a) => scene.Add(a));
+            // var ferrari = new GameScene("ferrari.scene");
+            //     ferrari.Load();
+            //  ferrari.Meshes.ForEach((a) => scene.Add(a));
+
+           // var dmk = Object3dInfo.LoadSceneFromObj(Media.Get("domek.obj"), Media.Get("domek.mtl"));
+            //dmk.ForEach((a) => scene.Add(a));
+            PostProcessing pp = new PostProcessing(128, 128);
+            CubeMapFramebuffer cubens = new CubeMapFramebuffer(128, 128);
+            var tex = new CubeMapTexture(cubens.TexColor);
+            GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
+            cubens.SetPosition(new Vector3(0, 1, 0));
+            GLThread.OnKeyPress += (o, e) =>
+            {
+                if(e.KeyChar == 'z')
+                    cubens.SetPosition(Camera.MainDisplayCamera.GetPosition());
+                if(e.KeyChar == 'x')
+                {
+                    GLThread.Invoke(() =>
+                    {
+                        pp.RenderToCubeMapFramebuffer(cubens);
+                        tex.Handle = cubens.TexColor;
+                    });
+                }
+            };
         }
     }
 }

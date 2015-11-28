@@ -19,7 +19,7 @@ out vec4 outColor;
 uniform float LensBlurAmount;
 uniform float CameraCurrentDepth;
 
-
+uniform int DisablePostEffects;
 float centerDepth;
 #define mPI (3.14159265)
 
@@ -222,7 +222,7 @@ vec3 hdr(vec3 color, vec2 uv){
 
 void main()
 {
-    vec4 color1 = fxaa(currentTex, UV);
+    vec4 color1 = texture(currentTex, UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
@@ -230,7 +230,7 @@ void main()
     //vec4 color1 = vec4(0,0,0,1);
     float depth = texture(depthTex, UV).r;
     centerDepth = depth;
-    if(LensBlurAmount > 0.001){
+    if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
         float adepth = length(texture(worldPosTex, vec2(0.5)).xyz);
         //float fDepth = reverseLog(CameraCurrentDepth);
@@ -239,7 +239,7 @@ void main()
     }
     float letterpixels = 10;
     float maxx = NumbersCount * (1.0 / letterpixels);
-    if(UV.x < maxx && UV.y < 0.05){
+    if(DisablePostEffects == 0 && UV.x < maxx && UV.y < 0.05){
         vec2 nuv = vec2(UV.x / maxx, UV.y / 0.05);
         float letterx = 1.0 / letterpixels;
         vec2 nuv2 = vec2(mod(UV.x / maxx, letterx), 1.0 - UV.y / 0.05);
@@ -253,9 +253,9 @@ void main()
         }
     }
     
-    if(UseBloom == 1) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
-	color1.xyz = hdr(color1.xyz, UV);
-	color1.rgb = ExecutePostProcessing(color1.rgb, UV);
+    if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
+	if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
+	//if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
     color1.a = texture(depthTex, UV).r;
     
     vec3 last = texture(lastIndirectTex, UV).rgb;

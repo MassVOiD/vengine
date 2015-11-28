@@ -25,14 +25,23 @@ namespace ShadowsTester
             vars.Add(new Tuple<string, object>("Scene", World.Root.RootScene));
             ExpressionEvaluator.Eval(vars, script);
 
-            CubeMapFramebuffer cubens = new CubeMapFramebuffer(512, 512);
+            PostProcessing pp = new PostProcessing(128, 128);
+            CubeMapFramebuffer cubens = new CubeMapFramebuffer(128, 128);
             var tex = new CubeMapTexture(cubens.TexColor);
             GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
-            GLThread.OnBeforeDraw += (o, e) =>
+            cubens.SetPosition(new Vector3(0, 1, 0));
+            GLThread.OnKeyPress += (o, e) =>
             {
-                cubens.SetPosition(Camera.Current.Transformation.GetPosition());
-                GLThread.DisplayAdapter.Pipeline.PostProcessor.RenderToCubeMapFramebuffer(cubens);
-                tex.Handle = cubens.TexColor;
+                if(e.KeyChar == 'z')
+                    cubens.SetPosition(Camera.MainDisplayCamera.GetPosition());
+                if(e.KeyChar == 'x')
+                {
+                    GLThread.Invoke(() =>
+                    {
+                        pp.RenderToCubeMapFramebuffer(cubens);
+                        tex.Handle = cubens.TexColor;
+                    });
+                }
             };
             /*
             List<Mesh3d> cubes = new List<Mesh3d>();

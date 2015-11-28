@@ -48,6 +48,7 @@ void discardIfAlphaMasked(){
 void main()
 {
 	discardIfAlphaMasked();
+	if(DrawMode == MODE_TEXTURE_ONLY && texture(currentTex, Input.TexCoord).a < 0.01) discard;
     vec3 wpos = Input.WorldPos;	
 	float depth = distance(wpos, LightPosition);
 	gl_FragDepth = toLogDepth(depth);

@@ -214,10 +214,10 @@ namespace VEngine
         public static bool BuildMipmapsForUncompressed = false;
 
         /// <summary>Selects the Magnification filter for following Textures to be loaded. (Default: Nearest)</summary>
-        public static TextureMagFilter MagnificationFilter = TextureMagFilter.Nearest;
+        public static TextureMagFilter MagnificationFilter = TextureMagFilter.Linear;
 
         /// <summary>Selects the Minification filter for following Textures to be loaded. (Default: Nearest)</summary>
-        public static TextureMinFilter MinificationFilter = TextureMinFilter.Nearest;
+        public static TextureMinFilter MinificationFilter = TextureMinFilter.Linear;
 
         /// <summary>Selects the S Wrapping for following Textures to be loaded. (Default: Repeat)</summary>
         public static TextureWrapMode WrapModeS = TextureWrapMode.Repeat;

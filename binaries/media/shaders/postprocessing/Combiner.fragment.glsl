@@ -295,6 +295,8 @@ vec3 Lightning(){
     return directlight;
 }
 
+uniform int DisablePostEffects;
+
 void main()
 {
     Seed(UV);
@@ -318,13 +320,15 @@ void main()
 
     gl_FragDepth = centerDepth;
 
-    color1 *= Brightness;
-    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
-    color1.rgb = vec3(pow(color1.r, gamma.r),
-    pow(color1.g, gamma.g),
-    pow(color1.b, gamma.b));
+	if(DisablePostEffects == 0){
+		color1 *= Brightness;
+		vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
+		color1.rgb = vec3(pow(color1.r, gamma.r),
+		pow(color1.g, gamma.g),
+		pow(color1.b, gamma.b));
+	}
     //float Y = dot(vec3(0.30, 0.59, 0.11), color1);
     //float YD = Brightness * (Brightness + 1.0) / (Brightness + 1.0);
     //color1 *= YD * Y;
-    outColor = vec4(clamp(color1, 0.0, 1.0), fxaa(depthTex, nUV).r);
+    outColor = vec4(color1, 1.0);
 }

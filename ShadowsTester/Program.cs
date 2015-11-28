@@ -57,27 +57,9 @@ namespace ShadowsTester
             var freeCamera = Commons.SetUpFreeCamera();
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
-
-           // System.Threading.Thread.Sleep(3000);
-            //new PlanetScene().Create();
-            //   new SculptScene().Create();
-            //   new SponzaScene().Create();
-            new OldCityScene();
-           // // new PathTraceTest().Create();
-            //  new NatureScene().Create();
-            //  new IndirectTestScene().Create();
-          // new DragonScene();
-          //   new ManyCubesScene().Create();
-            //  new ComputeBallsScene().Create();
-            //new CarScene().Create();
-
-            // new FortressScene().Create();
-
-            // new HallScene().Create(); new RoadScene().Create(); new HomeScene().Create();
             
-
-
-            //World.Root.SortByObject3d();
+          //  new OldCityScene();
+           new DragonScene();
 
             System.Windows.Forms.Application.Run(new SettingsController());
             renderThread.Wait();

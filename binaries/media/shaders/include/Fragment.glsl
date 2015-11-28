@@ -141,6 +141,15 @@ void finishFragment(vec4 incolor){
 	if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
     else outSpecular = SpecularComponent;
     
+	
+	/*vec3 albedo = color.xyz;
+    vec3 position = wpos;
+    vec3 normal = rn;
+    float metalness = outMetalness;
+    float roughness = outRoughness;
+    float specular = outSpecular;
+    float IOR =  0.0;*/
+	
 	outColor = vec4((color.xyz), color.a);
 	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
 	outNormals = vec4(rn, DiffuseComponent);

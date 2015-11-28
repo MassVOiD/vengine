@@ -51,15 +51,17 @@ namespace VEngine
         public float LastMRTTime = 0;
         public float LastHDRTime = 0;
         public float LastTotalFrameTime = 0;
+
+        private bool DisablePostEffects = false;
         
 
         public float VDAOGlobalMultiplier = 1.0f, RSMGlobalMultiplier = 1.0f, AOGlobalModifier = 1.0f;
 
-        private static uint[] postProcessingPlaneIndices = {
+        private uint[] postProcessingPlaneIndices = {
                 0, 1, 2, 3, 2, 1
             };
 
-        private static float[] postProcessingPlaneVertices = {
+        private float[] postProcessingPlaneVertices = {
                 -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
                 -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -277,13 +279,13 @@ namespace VEngine
             Blit();
 
         }
-
+        
         private void FaceRender(CubeMapFramebuffer framebuffer, TextureTarget target)
         {
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
             framebuffer.SwitchCamera(target);
-            RenderPrepareToBlit();
+            RenderCore();
 
             GL.Disable(EnableCap.DepthTest);
               GL.DepthFunc(DepthFunction.Always);
@@ -300,11 +302,12 @@ namespace VEngine
         public void RenderToCubeMapFramebuffer(CubeMapFramebuffer framebuffer)
         {
             World.Root.RootScene.RecreateSimpleLightsSSBO();
-            //Width = framebuffer.Width;
-            //Height = framebuffer.Height;
+            Width = framebuffer.Width;
+            Height = framebuffer.Height;
 
            // framebuffer.Use(true, true);
             var cam = Camera.Current;
+            DisablePostEffects = true;
             FaceRender(framebuffer, TextureTarget.TextureCubeMapPositiveX);
             FaceRender(framebuffer, TextureTarget.TextureCubeMapPositiveY);
             FaceRender(framebuffer, TextureTarget.TextureCubeMapPositiveZ);
@@ -312,7 +315,7 @@ namespace VEngine
             FaceRender(framebuffer, TextureTarget.TextureCubeMapNegativeX);
             FaceRender(framebuffer, TextureTarget.TextureCubeMapNegativeY);
             FaceRender(framebuffer, TextureTarget.TextureCubeMapNegativeZ);
-
+            DisablePostEffects = false;
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);
             Camera.Current = cam;
@@ -364,7 +367,8 @@ namespace VEngine
             CombinerShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
             CombinerShader.SetUniform("Brightness", Camera.Current.Brightness);
             CombinerShader.SetUniform("VDAOGlobalMultiplier", VDAOGlobalMultiplier);
-           // GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+            CombinerShader.SetUniform("DisablePostEffects", DisablePostEffects);
+            // GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             LastCombinerTime = DrawPPMesh();
         }
         
@@ -425,6 +429,7 @@ namespace VEngine
             shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
             shader.SetUniform("FarPlane", Camera.Current.Far);
             shader.SetUniform("resolution", new Vector2(Width, Height));
+            shader.SetUniform("DisablePostEffects", DisablePostEffects);
             shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
         }
 
@@ -445,13 +450,7 @@ namespace VEngine
                 LastFrameBuffer = buffer;
             }
         }
-
-        private void SwitchToFB0()
-        {
-            Pass2FrameBuffer.RevertToDefault();
-            //LastFrameBuffer.UseTexture(0);
-        }
-
+        
         private Framebuffer SwitchToFB1()
         {
             Pass1FrameBuffer.Use();

@@ -23,12 +23,12 @@ vec3 raymarchFog(vec3 start, vec3 end){
 		
 		
 		float fogDensity = 0.0;
-		float fogMultiplier = 12.4;
+		float fogMultiplier = 1.4;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
 		vec3 lastPos = start - mix(start, end, 0.01);
-        float samples = 1.0 / 0.01;
+        float samples = 1.0 / 0.002;
         float stepsize = distance(start, end) / samples;
-		for(float m = 0.0; m< 1.0;m+= 0.01){
+		for(float m = 0.0; m< 1.0;m+= 0.002){
 			vec3 pos = mix(start, end, m);
             float distanceMult = stepsize;
             //float distanceMult = 5;
@@ -66,7 +66,7 @@ vec3 raymarchFog(vec3 start, vec3 end){
 
 vec3 makeFog(){
 	vec3 cspaceEnd = texture(worldPosTex, UV).xyz;
-    if(length(cspaceEnd) > 800) cspaceEnd = normalize(cspaceEnd) * 100;
+    if(length(cspaceEnd) > 80) cspaceEnd = normalize(cspaceEnd) * 80;
 	vec3 fragmentPosWorld3d = FromCameraSpace(cspaceEnd);
     return vec3(raymarchFog(CameraPosition, fragmentPosWorld3d));
 }

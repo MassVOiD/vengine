@@ -404,17 +404,17 @@ namespace VEngine
                 }
                 else if(mat != null)
                 {
-                   // if(colorCache.ContainsKey(mat.DiffuseColor))
-                   // {
-                   //     material = colorCache[mat.DiffuseColor];
-                  //      mInfos[material] = mat;
-                 //   }
-                  //  else
-                  //  {
+                    if(colorCache.ContainsKey(mat.DiffuseColor))
+                    {
+                        material = colorCache[mat.DiffuseColor];
+                        mInfos[material] = mat;
+                    }
+                    else
+                    {
                         material = new GenericMaterial(Color.White);
                         mInfos[material] = mat;
                       //  colorCache.Add(mat.DiffuseColor, material);
-                  //  }
+                    }
                 }
                 else
                 {
