@@ -1,5 +1,7 @@
 
 #include_once Mesh3dUniforms.glsl
+
+
 in Data {
     flat int instanceId;
     vec3 WorldPos;
@@ -16,7 +18,8 @@ uniform int UseBumpMap;
 
 float toLogDepthEx(float depth, float far){
 	//float badass_depth = log(LogEnchacer*depth + 1.0f) / log(LogEnchacer*far + 1.0f);
-    float badass_depth = log2(max(1e-6, 1.0 + depth)) / (log2(far+1.0));
+    float badass_depth = log2(max(1e-6, 1.0 + depth)) / (log2(far));
+    //float badass_depth = log2(1.0 + depth) / log2(far+1.0);
 	return badass_depth;
 }
 float toLogDepth(float depth){
@@ -43,7 +46,8 @@ float getDepth(){
 #define MATH_E 2.7182818284
 // dd = log2(depth+1) / lg
 float reverseLogEx(float dd, float far){
-	return pow(2, dd * (log2(far+1.0)) - 1);
+	//return pow(2, dd * log2(far+1.0) ) - 1;
+	return pow(2, dd * log2(far)) - 1.0;
 }
 float reverseLog(float dd){
 	return reverseLogEx(dd, FarPlane);
@@ -60,13 +64,3 @@ bool intersectPoint(vec3 origin, vec3 direction, vec3 position, float radius){
     float cosine = calculateAngleOccupied(distance(position, origin), radius);
     return angle <= cosine;
 }
-
-/*
-void updateDepth(){
-	float depth = distance(Input.WorldPos, CameraPosition);
-	gl_FragDepth = depth;
-}
-float getDepth(){
-	float depth = distance(Input.WorldPos, CameraPosition);
-	return depth;
-}*/

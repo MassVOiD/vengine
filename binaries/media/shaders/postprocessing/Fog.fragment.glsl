@@ -60,12 +60,11 @@ vec3 raymarchFog(vec3 start, vec3 end){
 		color1 += LightsColors[i].xyz * fogDensity;
 		
 	}
-    vec3 worldPos = FromCameraSpace(texture(worldPosTex, UV).rgb);
 	return color1;
 }
 
 vec3 makeFog(){
-	vec3 cspaceEnd = texture(worldPosTex, UV).xyz;
+	vec3 cspaceEnd = reconstructCameraSpace(UV);
     if(length(cspaceEnd) > 80) cspaceEnd = normalize(cspaceEnd) * 80;
 	vec3 fragmentPosWorld3d = FromCameraSpace(cspaceEnd);
     return vec3(raymarchFog(CameraPosition, fragmentPosWorld3d));

@@ -19,7 +19,7 @@ namespace ShadowsTester
         public static ProjectionLight AddControllableLight()
         {
             float fovdegree = 90;
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1024, 1024, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
+            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 4096, 4096, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
             RedLight = redConeLight;
             redConeLight.LightColor = new Vector4(1, 1, 1, 395);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
@@ -125,7 +125,7 @@ namespace ShadowsTester
                         var state = OpenTK.Input.Mouse.GetState();
                         MousePicker.SetUniform("Mouse", new Vector2(MouseX, GLThread.Resolution.Height - MouseY));
                         PickingResult.Use(0);
-                        GL.BindImageTexture(0, GLThread.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rgba32ui);
+                        GL.BindImageTexture(0, GLThread.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rg32ui);
                         MousePicker.Dispatch(1, 1, 1);
                         OpenTK.Graphics.OpenGL4.GL.MemoryBarrier(OpenTK.Graphics.OpenGL4.MemoryBarrierFlags.ShaderStorageBarrierBit);
                         byte[] result = PickingResult.Read(0, 4);

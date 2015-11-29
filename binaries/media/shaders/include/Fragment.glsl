@@ -1,9 +1,8 @@
 uniform vec4 input_Color;
 layout(location = 0) out vec4 outColor;
-layout(location = 1) out vec4 outWorldPos;
-layout(location = 2) out vec4 outNormals;
-layout(location = 3) out vec4 outMeshData;
-layout(location = 4) out uvec4 outId;
+layout(location = 1) out vec4 outNormals;
+layout(location = 2) out vec4 outMeshData;
+layout(location = 3) out uvec2 outId;
 
 //layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
 
@@ -125,7 +124,6 @@ void finishFragment(vec4 incolor){
 		rn *= -1;
 	}
 	uint packpart3 = packSnorm4x8(vec4(rt, 0));
-	outId = uvec4(id, 0, 0, packpart3);
 	if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
 
     float outRoughness = 0;
@@ -151,8 +149,8 @@ void finishFragment(vec4 incolor){
     float IOR =  0.0;*/
 	
 	outColor = vec4((color.xyz), color.a);
-	outWorldPos = vec4(ToCameraSpace(wpos), outSpecular); 
 	outNormals = vec4(rn, DiffuseComponent);
-	outMeshData = vec4(0, 0, outMetalness, outRoughness);
+	outMeshData = vec4(0, outSpecular, outMetalness, outRoughness);
+	outId = uvec2(id, packpart3);
 	updateDepthFromWorldPos(wpos);
 }

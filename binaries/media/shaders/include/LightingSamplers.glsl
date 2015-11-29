@@ -10,7 +10,6 @@ layout(binding = 7) uniform sampler2D lightDepth5;
 
 
 layout(binding = 14) uniform sampler2D diffuseColorTex;
-layout(binding = 15) uniform sampler2D worldPosTex;
 layout(binding = 16) uniform sampler2D normalsTex;
 layout(binding = 17) uniform sampler2D meshDataTex;
 layout(binding = 18) uniform usampler2D meshIdTex;

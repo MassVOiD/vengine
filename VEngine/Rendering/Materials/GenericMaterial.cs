@@ -369,7 +369,6 @@ namespace VEngine
             {
                 prg.SetUniform("UseAlphaMask", 1);
                 AlphaMask.Use(TextureUnit.Texture28);
-                //GL.DepthFunc(DepthFunction.Always);
                 GL.Disable(EnableCap.CullFace);
             }
             else
@@ -377,7 +376,6 @@ namespace VEngine
                 prg.SetUniform("UseAlphaMask", 0);
                 GL.Disable(EnableCap.CullFace);
                 // GL.Enable(EnableCap.CullFace);
-                //GL.DepthFunc(DepthFunction.Lequal);
             }
 
             if(Tex != null)

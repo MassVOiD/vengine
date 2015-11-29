@@ -181,12 +181,11 @@ namespace VEngine
         {
             MRT.Use();
             World.Root.Draw();
-            
+
             SwitchToFB(Pass1FrameBuffer);
 
             MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureDepth(1);
-            MRT.UseTextureWorldPosition(15);
             MRT.UseTextureNormals(16);
             MRT.UseTextureMeshData(17);
             MRT.UseTextureId(18);
@@ -222,7 +221,6 @@ namespace VEngine
 
             MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureDepth(1);
-            MRT.UseTextureWorldPosition(15);
             MRT.UseTextureNormals(16);
             MRT.UseTextureMeshData(17);
             MRT.UseTextureId(18);
@@ -283,12 +281,9 @@ namespace VEngine
         private void FaceRender(CubeMapFramebuffer framebuffer, TextureTarget target)
         {
             GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Lequal);
             framebuffer.SwitchCamera(target);
             RenderCore();
 
-            GL.Disable(EnableCap.DepthTest);
-              GL.DepthFunc(DepthFunction.Always);
              framebuffer.Use(true, false);
              framebuffer.SwitchFace(target);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -317,7 +312,6 @@ namespace VEngine
             FaceRender(framebuffer, TextureTarget.TextureCubeMapNegativeZ);
             DisablePostEffects = false;
             GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Lequal);
             Camera.Current = cam;
 
         }
@@ -348,7 +342,6 @@ namespace VEngine
             World.Root.RootScene.SetLightingUniforms(CombinerShader, Matrix4.Identity);
             //RandomsSSBO.Use(0);
             MRT.UseTextureDepth(1);
-            MRT.UseTextureWorldPosition(15);
             MRT.UseTextureNormals(16);
             MRT.UseTextureMeshData(17);
             MRT.UseTextureId(18);

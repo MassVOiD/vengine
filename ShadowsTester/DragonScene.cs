@@ -55,7 +55,7 @@ namespace ShadowsTester
 
 
             Random rand = new Random();
-            
+            /*
             List<VegetationPart> vegs = new List<VegetationPart>();
             // grass
             vegs.Add(new VegetationPart("vurt_reachflowers2.dds", "6billboardsgrass.obj", 0.8f, 1.4f, 3801));
@@ -149,9 +149,9 @@ namespace ShadowsTester
                 level++;
                 if(level > 3)
                     level = 0;
-            }, 1150).Start();
-            
-            
+            }, 1150).Start();*/
+
+
             //  var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
 
             //  var terrain = Mesh3d.Create(Object3dInfo.LoadFromObjSingle(Media.Get("pisa.obj")), GenericMaterial.FromColor(Color.LightSlateGray));
@@ -162,8 +162,9 @@ namespace ShadowsTester
             //     ferrari.Load();
             //  ferrari.Meshes.ForEach((a) => scene.Add(a));
 
-           // var dmk = Object3dInfo.LoadSceneFromObj(Media.Get("domek.obj"), Media.Get("domek.mtl"));
-            //dmk.ForEach((a) => scene.Add(a));
+            var dmk = Object3dInfo.LoadSceneFromObj(Media.Get("stolik.obj"), Media.Get("stolik.mtl"));
+            dmk.ForEach((a) => scene.Add(a));
+
             PostProcessing pp = new PostProcessing(128, 128);
             CubeMapFramebuffer cubens = new CubeMapFramebuffer(128, 128);
             var tex = new CubeMapTexture(cubens.TexColor);

@@ -3,6 +3,7 @@
 in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
+#include UsefulIncludes.glsl
 #include FXAA.glsl
 
 uniform int Numbers[12];
@@ -42,8 +43,8 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float radius = max_radius;  
     float centerDepthDistance = abs((centerDepth) - (depthfocus));
     //float centerDepth = texture(texDepth, UV).r;
-    float focus = length(texture(worldPosTex, vec2(0.5)).rgb);
-    float cc = length(texture(worldPosTex, UV).rgb);
+    float focus = length(reconstructCameraSpace(vec2(0.5)));
+    float cc = length(reconstructCameraSpace(UV).rgb);
     for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0.1;y<1.0;y+= 0.1){  
             
@@ -55,7 +56,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             vec2 coord = UV+crd * 0.02 * amount;  
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            float depth = length(texture(worldPosTex, coord).xyz);
+            float depth = length(reconstructCameraSpace(coord));
             vec3 texel = texture(currentTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
@@ -119,13 +120,13 @@ uniform float InputFocalLength;
 float avgdepth(vec2 buv){
     float outc = float(0);
     float counter = 0;
-    float fDepth = length(texture(worldPosTex, vec2(0.5, 0.5)).rgb);
+    float fDepth = length(reconstructCameraSpace(vec2(0.5, 0.5)).rgb);
     for(float g = 0; g < mPI2; g+=0.4)
     { 
         for(float g2 = 0; g2 < 1.0; g2+=0.11)
         { 
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
-            vec3 color = texture(worldPosTex, buv + gauss).xyz;
+            vec3 color = reconstructCameraSpace(buv + gauss).xyz;
             float adepth = length(color);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
             float f = InputFocalLength;
@@ -147,61 +148,6 @@ float avgdepth(vec2 buv){
     return min(abs(outc / counter), 4.0);
 }
 
-vec3 edgeDetect(vec2 uv){
-    float minentrophy = 99, maxentrophy = 0, minentrophyangle = 0;
-    vec3 center = texture(currentTex, uv).rgb;
-    float texel = length(vec2(1.0) / resolution);
-    for(float g = 0; g < mPI2; g+=0.05)
-    { 
-            vec2 gauss = vec2(sin(g)*ratio, cos(g)) * texel*2;
-            vec2 newuv = uv + gauss;
-            vec3 col = texture(currentTex, newuv).rgb;
-            float entrophy = max(0, distance(center, col));
-            minentrophy = min(minentrophy, entrophy);
-            if(entrophy > maxentrophy){
-                minentrophyangle = g;
-            }
-            maxentrophy = max(maxentrophy, entrophy);
-    }
-    #define AA_RANGE (3.0)
-    vec3 buff = vec3(0);
-    float counter = 0.0;
-    
-    for(float a = 0; a < mPI2; a+=0.2)
-    { 
-        for(float g = -AA_RANGE; g < AA_RANGE; g+=1)
-        { 
-            vec2 gauss = vec2(sin(a)*ratio, cos(a)) * (texel) * g;
-            vec2 newuv = uv + gauss;
-            vec3 col = texture(currentTex, newuv).rgb;
-            float entrophy = max(0, distance(center, col));
-            
-                buff += col * entrophy + center * (1.0 - entrophy);
-                counter += entrophy;
-            
-        }
-    }
-
-    return counter == 0 ? vec3(0) : (buff / counter);
-}
-
-vec3 getAverageOfAdjacent(vec2 uv){
-    ivec2 center = ivec2(uv * resolution);
-    vec3 buf = vec3(0);
-    ivec2 unitx = ivec2(1, 0);
-    ivec2 unity = ivec2(0, 1);
-    buf += texelFetch(currentTex, center + unitx, 0).rgb;
-    buf += texelFetch(currentTex, center - unitx, 0).rgb;
-    buf += texelFetch(currentTex, center + unity, 0).rgb;
-    buf += texelFetch(currentTex, center - unity, 0).rgb;
-    
-    buf += texelFetch(currentTex, center + unitx + unity, 0).rgb;
-    buf += texelFetch(currentTex, center + unitx - unity, 0).rgb;
-    buf += texelFetch(currentTex, center - unitx + unity, 0).rgb;
-    buf += texelFetch(currentTex, center - unitx - unity, 0).rgb;
-    
-    return buf / 8;
-}
 
 uniform int ShowSelected;
 uniform int UnbiasedIntegrateRenderMode;
@@ -214,7 +160,7 @@ vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 
 vec3 hdr(vec3 color, vec2 uv){
 	
-	vec3 refbright = textureLod(currentTex, uv,12).rgb;
+	vec3 refbright = textureLod(currentTex, uv,6).rgb;
 	float reflen = length(refbright);
 	float mult = reflen > mPI2 ? 0 : cos(reflen);
 	return color * max(0.5, mult) * 2.0;
@@ -232,7 +178,7 @@ void main()
     centerDepth = depth;
     if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
-        float adepth = length(texture(worldPosTex, vec2(0.5)).xyz);
+        float adepth = length(reconstructCameraSpace(vec2(0.5)).xyz);
         //float fDepth = reverseLog(CameraCurrentDepth);
 
         color1.xyz = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
@@ -254,7 +200,7 @@ void main()
     }
     
     if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
-	if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
+	//if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
 	//if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
     color1.a = texture(depthTex, UV).r;
     

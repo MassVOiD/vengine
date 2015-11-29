@@ -65,13 +65,14 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float counter = 0;
 	
     float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
-    float pssblur = max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.2;
+	//return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
+    float pssblur = max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 0.1;
     for(float x = 0; x < mPI2; x+=0.5){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
             fakeUV = uv + vec2(sin(x+y), cos(x+y)) * LightingGetRand() * pssblur * 0.009;
             distance1 = lookupDepthFromLight(i, fakeUV);
 
-            if(distance3 -  distance1 > 0.00035) accum += 1.0 ;
+            if(distance3 -  distance1 > 0.000015) accum += 1.0 ;
             counter+=1;
         }
     }

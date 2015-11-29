@@ -30,3 +30,9 @@ float cosmix(float a, float b, float factor){
 float ncos(float a){
     return cosmix(0, 1, a);
 }
+
+vec3 reconstructCameraSpace(vec2 uv){
+	vec4 clip = inverse(ProjectionMatrix * ViewMatrix) * vec4(uv * 2.0 - 1.0, 0.01, 1.0);
+	vec3 dir = normalize((clip.xyz / clip.w).xyz - CameraPosition);
+	return dir * reverseLog(texture(depthTex, uv).r);
+}

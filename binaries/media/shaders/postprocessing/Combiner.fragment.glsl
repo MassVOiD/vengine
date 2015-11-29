@@ -2,8 +2,8 @@
 
 in vec2 UV;
 #include LogDepth.glsl
-#include UsefulIncludes.glsl
 #include Lighting.glsl
+#include UsefulIncludes.glsl
 #include FXAA.glsl
 #include Shade.glsl
 
@@ -102,8 +102,8 @@ vec3 softLuminance(vec2 fuv){
     }
     vec3 outc = vec3(0);
     float counter = 1.0;
-    vec3 posCenter = texture(worldPosTex, fuv).rgb;
-	uint tangentEncoded = texture(meshIdTex, fuv).a;
+    vec3 posCenter = reconstructCameraSpace(fuv);
+	uint tangentEncoded = texture(meshIdTex, fuv).g;
     vec3 tangent = unpackSnorm4x8(tangentEncoded).xyz;
     vec3 normCenter = texture(normalsTex, fuv).rgb;
     vec3 dir = normalize(reflect(posCenter, normCenter));
@@ -146,7 +146,7 @@ vec3 softLuminance(vec2 fuv){
             //    continue;
            // }
             vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*1.0) : texture(currentTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*1.0;
-            vec3 pos = texture(worldPosTex, gauss).rgb;
+            vec3 pos = reconstructCameraSpace(gauss);
             vec3 norm = texture(normalsTex, gauss).rgb;
             float ftp = max(0, dot(norm, normalize(posCenter - pos)));
             outc += shadePhoton(fuv, color) * ftp;
@@ -155,73 +155,9 @@ vec3 softLuminance(vec2 fuv){
     }
     return outc*5 / counter;
 }
-vec3 blurByUV(sampler2D sampler, vec2 fuv, float force){
-    vec3 outc = vec3(0);
-    int counter = 0;
-    for(float g = 0; g < mPI2; g+=GOLDEN_RATIO)
-    {
-        for(float g2 = 0; g2 < 3.0; g2+=1.0)
-        {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001 * force);
-            vec3 color = texture(sampler, fuv + gauss).rgb;
-            outc += color;
-            counter++;
-        }
-    }
-    return outc / counter;
-}
-vec3 blurByUV2(sampler2D sampler, vec2 fuv, float force){
-    vec3 outc = vec3(0);
-    float counter = 0;
-    float depthCenter = texture(depthTex, fuv).r;
-    for(float g = 0; g < mPI2; g+=0.3)
-    {
-        for(float g2 = 0.02; g2 < 1.0; g2+=0.02)
-        {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.01 * force);
-            vec3 color = clamp(texture(sampler, fuv + gauss).rgb, 0.02, 1.0);
-            float depthThere = texture(depthTex, fuv + gauss).r;
-           // if(abs(depthThere - depthCenter) < 0.001){
-                outc += color*length(color);
-                counter+=length(color);
-           // }
-        }
-    }
-    return clamp(outc / counter, 0.02, 1.0);
-}
-vec3 blurssao(sampler2D sampler, vec2 fuv, float force){
-    float roughs = texture(meshDataTex, fuv).a;
-    vec3 outc = vec3(0);
-    float counter = 0;
-    vec3 norm = texture(normalsTex, fuv).xyz;
-    float depthCenter = texture(depthTex, fuv).r;
-    for(float g = 0; g < mPI2; g+=0.1)
-    {
-        for(float g2 = 0.0002; g2 < 1.0; g2+=0.05)
-        {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * force)*0.004;
-            vec3 color = texture(sampler, fuv + gauss).rgb;
-            float depthd = texture(sampler, fuv + gauss).a;
-            if(abs(depthCenter-depthd)<0.005){
-                outc += color;
-                counter+=1;
-            }
-        }
-    }
-    vec3 a = texture(sampler, fuv).rgb;
-    if(counter == 0) return a;
-    return outc/counter;
-}
-
-vec3 mixAlbedo(vec3 a){
-    return mix(a*texture(diffuseColorTex, UV).rgb, a, texture(meshDataTex, UV).z);
-}
-
-
-
 
 vec3 emulateSkyWithDepth(vec2 uv){
-    vec3 worldPos = (texture(worldPosTex, uv).rgb);
+    vec3 worldPos = (reconstructCameraSpace(uv));
     float depth = length(worldPos)*0.001;
     worldPos = FromCameraSpace(worldPos);
     depth = depth * clamp(1.0 / (abs(worldPos.y) * 0.0001), 0.0, 1.0);
@@ -247,7 +183,7 @@ vec3 lightPoints(){
 		if(clipspace.z < 0.0) continue;
 
         float badass_depth = distance(LightsPos[i], CameraPosition);
-        float logg = length(texture(worldPosTex, sspace1).rgb);
+        float logg = length(reconstructCameraSpace(sspace1));
         float mixv = 1.0 - smoothstep(0.1, 2.5, distance(sspace1*resolution.xy * 0.01, UV*resolution.xy * 0.009));
 
         if(logg > badass_depth) {
@@ -268,14 +204,14 @@ uniform float VDAOGlobalMultiplier;
 
 vec3 Lightning(){
     if(texture(diffuseColorTex, UV).r >= 999){ 
-		return texture(cubeMapTex, normalize(texture(worldPosTex, UV).rgb)).rgb;
+		return texture(cubeMapTex, normalize(reconstructCameraSpace(UV))).rgb;
     }
     vec3 albedo = texture(diffuseColorTex, UV).rgb;
-    vec3 position = FromCameraSpace(texture(worldPosTex, UV).rgb);
+    vec3 position = FromCameraSpace(reconstructCameraSpace(UV));
     vec3 normal = normalize(texture(normalsTex, UV).rgb);
     float metalness =  texture(meshDataTex, UV).z;
     float roughness =  texture(meshDataTex, UV).a;
-    float specular = texture(worldPosTex, UV).a;
+    float specular = texture(meshDataTex, UV).b;
     float IOR =  0.0;
 	
 	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness, metalness, specular);
@@ -284,7 +220,7 @@ vec3 Lightning(){
 	
     if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
     if(UseHBAO == 1) {
-		uint tangentEncoded = texture(meshIdTex, UV).a;
+		uint tangentEncoded = texture(meshIdTex, UV).g;
 		vec3 tangent = unpackSnorm4x8(tangentEncoded).xyz;
 		float ao = AmbientOcclusion(position, normal, tangent, roughness, metalness);
 		if(UseVDAO == 0) envlight = vec3(1);
@@ -305,6 +241,9 @@ void main()
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
         color1 += Lightning();
+		//vec3 rc = reconstructCameraSpace(UV);
+		//float diff = distance(rc, texture(worldPosTex, UV).rgb);
+		//color1 += diff;
         //color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).a) : (softLuminance(nUV));
     } else {
 		color1 = texture(diffuseColorTex, UV).rgb;

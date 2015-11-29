@@ -1,6 +1,8 @@
 
 #define PI 3.14159265
 
+
+
 float orenNayarDiffuse(
 vec3 lightDirection,
 vec3 viewDirection,
@@ -142,7 +144,7 @@ vec3 shadePhoton(vec2 uv, vec3 color){
 }
 vec3 shadePhotonSpecular(vec2 uv, vec3 color){
     vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    float spec = texture(worldPosTex, uv).a;
+    float spec = texture(meshDataTex, uv).b;
     return mix(color*albedo, color, spec);
 }
 
@@ -150,9 +152,9 @@ vec3 shadeUV(vec2 uv,
     vec3 lightPosition, 
     vec4 lightColor
 ){
-    vec3 position = FromCameraSpace(texture(worldPosTex, uv).rgb);
+    vec3 position = FromCameraSpace(reconstructCameraSpace(uv));
     vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    float specular = texture(worldPosTex, uv).a;
+    float specular = texture(meshDataTex, uv).b;
     vec3 normal = normalize(texture(normalsTex, uv).rgb);
       
     float roughness = texture(meshDataTex, uv).a;
@@ -164,9 +166,9 @@ vec3 shadeUVNoAtt(vec2 uv,
     vec3 lightPosition, 
     vec4 lightColor
 ){
-    vec3 position = FromCameraSpace(texture(worldPosTex, uv).rgb);
+    vec3 position = FromCameraSpace(reconstructCameraSpace(uv));
     vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    float specular = texture(worldPosTex, uv).a;
+    float specular = texture(meshDataTex, uv).b;
     vec3 normal = normalize(texture(normalsTex, uv).rgb);
       
     float roughness = texture(meshDataTex, uv).a;
@@ -189,50 +191,3 @@ vec3 shadeUVNoAtt(vec2 uv,
      float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
      return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
  }
- 
-float temporalSSAO(vec2 uv){
-    vec3 desiredNormal = texture(normalsTex, uv).rgb;
-    float dc = texture(depthTex, uv).r;
-    vec2 texel = 1.0 / textureSize(HBAOTex, 0);
-    vec2 texel2 = 1.0 / textureSize(depthTex, 0);
-    float ao = texture(HBAOTex, uv).a;
-    float mindot = 0;
-    vec2 points[] = vec2[](
-        vec2(0),
-        vec2(1, 0),
-        -vec2(1, 0),
-        vec2(0, 1),
-        -vec2(0, 1),
-        vec2(1.0, 1.0),
-        -vec2(1.0, 1.0),
-        vec2(-1.0, 1.0),
-        vec2(1.0, -1.0)/*,
-
-        vec2(1.0*2, 0),
-        -vec2(1.0*2, 0),
-        vec2(0, 1.0*2),
-        -vec2(0, 1.0*2),
-        vec2(1.0, 1.0)*2,
-        -vec2(1.0, 1.0)*2,
-        vec2(-1.0, 1.0)*2,
-        vec2(1.0, -1.0)*2,
-        vec2(1.0*2, 1.0),
-        -vec2(1.0, 1.0*2),
-        vec2(-1.0*2, 1.0),
-        vec2(1.0, -1.0*2)*/
-    );
-    for(int i=0;i<points.length();i++){
-        vec4 n = texture(HBAOTex, uv + points[i] * texel);
-        float d = texture(depthTex, uv + points[i] * texel2).r;
-        if(abs(dc - d) > 0.005) continue;
-        float dt = dot(n.xyz, desiredNormal);
-        if(dt > mindot){
-            ao = n.a;
-            mindot = dt;
-        } else if (dt == mindot){
-           // ao = (ao + n.a) * 0.5;
-        }
-    }
-    
-    return ao;
-}
