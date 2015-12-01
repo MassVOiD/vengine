@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
-using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -14,7 +12,7 @@ namespace VEngine
 
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
-                new OpenTK.Graphics.GraphicsMode(8, 0, 0, 0), title, flags,
+                new OpenTK.Graphics.GraphicsMode(new ColorFormat(8, 8, 8, 8), 8, 0, 1), title, flags,
                 DisplayDevice.Default, 4, 5,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
@@ -49,7 +47,7 @@ namespace VEngine
                 CursorVisible = value;
             }
         }
-        
+
         protected override void OnLoad(System.EventArgs e)
         {
             VSync = VSyncMode.Off;
@@ -73,12 +71,11 @@ namespace VEngine
             Pipeline.PostProcessor.RenderToFramebuffer(Framebuffer.Default);
             //DrawAll();
             GLThread.InvokeOnAfterDraw();
-            
+
             GLThread.CheckErrors();
 
             SwapBuffers();
         }
-
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
@@ -115,7 +112,6 @@ namespace VEngine
                 }
             }
         }
-        
 
         private void VEngineWindowAdapter_KeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
         {

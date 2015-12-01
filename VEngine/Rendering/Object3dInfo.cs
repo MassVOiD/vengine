@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 //using BEPUutilities;
 using BulletSharp;
@@ -15,6 +14,21 @@ namespace VEngine
 {
     public class Object3dInfo
     {
+        public AxisAlignedBoundingBox AABB;
+
+        public uint[] Indices;
+
+        public string MaterialName = "", Name = "";
+
+        public float[] VBO;
+
+        public bool WireFrameRendering = false;
+
+        public struct AxisAlignedBoundingBox
+        {
+            public Vector3 Minimum, Maximum;
+        }
+
         public class MaterialInfo
         {
             public string AlphaMask;
@@ -39,62 +53,6 @@ namespace VEngine
                 AlphaMask = "";
             }
         }
-
-        private class ObjFileData
-        {
-            public List<uint> Indices;
-            public string Name, MaterialName;
-            public List<float> VBO;
-        }
-
-        private class TriangleInfo
-        {
-            private VertexInfo V1, V2, V3;
-
-            public List<float> ToFloatList()
-            {
-                var list = new List<float>();
-                list.AddRange(V1.ToFloatList());
-                list.AddRange(V2.ToFloatList());
-                list.AddRange(V3.ToFloatList());
-                return list;
-            }
-        }
-
-        private class VertexInfo
-        {
-            public Vector3 Position, Normal;
-            public Vector2 UV;
-
-            public List<float> ToFloatList()
-            {
-                return new List<float> { Position.X, Position.Y, Position.Z, UV.X, UV.Y, Normal.X, Normal.Y, Normal.Z };
-            }
-        }
-
-        public struct AxisAlignedBoundingBox
-        {
-            public Vector3 Minimum, Maximum;
-        }
-
-        public AxisAlignedBoundingBox AABB;
-
-        public uint[] Indices;
-
-        public string MaterialName = "", Name = "";
-
-        public float[] VBO;
-
-        public bool WireFrameRendering = false;
-
-        //private Object3dInfo Current = null;
-        private bool AreBuffersGenerated;
-
-        private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
-
-        private int CachedHash = -123;
-
-        private int VertexBuffer, IndexBuffer, VAOHandle, IndicesCount = 0;
 
         public Object3dInfo(List<float> vbo, List<uint> indices)
         {
@@ -288,7 +246,7 @@ namespace VEngine
                 {
                     match = Regex.Match(line, @"d ([0-9.-]+)");
                     float val = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
-                   // currentMaterial.Transparency = val;
+                    // currentMaterial.Transparency = val;
                 }
                 if(line.StartsWith("Ka"))
                 {
@@ -302,7 +260,7 @@ namespace VEngine
                         g = 255;
                     if(b > 255)
                         b = 255;
-                   // currentMaterial.AmbientColor = Color.FromArgb(r, g, b);
+                    // currentMaterial.AmbientColor = Color.FromArgb(r, g, b);
                 }
                 if(line.StartsWith("Kd"))
                 {
@@ -362,7 +320,6 @@ namespace VEngine
             }
             return outObjects;
         }
-        
 
         public static List<Mesh3d> LoadSceneFromObj(string objfile, string mtlfile, float scale = 1.0f)
         {
@@ -413,7 +370,7 @@ namespace VEngine
                     {
                         material = new GenericMaterial(Color.White);
                         mInfos[material] = mat;
-                      //  colorCache.Add(mat.DiffuseColor, material);
+                        //  colorCache.Add(mat.DiffuseColor, material);
                     }
                 }
                 else
@@ -536,7 +493,8 @@ namespace VEngine
 
         public void DrawInstanced(int count)
         {
-            if(count == 0) return;
+            if(count == 0)
+                return;
             DrawPrepare();
             GL.DrawArraysInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, 0, IndicesCount,
                      count);
@@ -635,6 +593,19 @@ namespace VEngine
             return convex;
         }
 
+        public float GetDivisorFromPoint(Vector3 point)
+        {
+            List<Vector3> vectors = new List<Vector3>();
+            float maxval = 0.0001f;
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                if((vertex - point).Length > maxval)
+                    maxval = vertex.Length;
+            }
+            return maxval;
+        }
+
         public int GetHash()
         {
             if(CachedHash == -123)
@@ -648,6 +619,19 @@ namespace VEngine
                 CachedHash = i;
             }
             return CachedHash;
+        }
+
+        public float GetNormalizeDivisor()
+        {
+            List<Vector3> vectors = new List<Vector3>();
+            float maxval = 0.0001f;
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
+                if(vertex.Length > maxval)
+                    maxval = vertex.Length;
+            }
+            return maxval;
         }
 
         public List<int> GetOrderedIndices()
@@ -722,30 +706,6 @@ namespace VEngine
                 VBO[i + 2] /= maxval;
             }
         }
-        public float GetNormalizeDivisor()
-        {
-            List<Vector3> vectors = new List<Vector3>();
-            float maxval = 0.0001f;
-            for(int i = 0; i < VBO.Length; i += 8)
-            {
-                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
-                if(vertex.Length > maxval)
-                    maxval = vertex.Length;
-            }
-            return maxval;
-        }
-        public float GetDivisorFromPoint(Vector3 point)
-        {
-            List<Vector3> vectors = new List<Vector3>();
-            float maxval = 0.0001f;
-            for(int i = 0; i < VBO.Length; i += 8)
-            {
-                var vertex = new Vector3(VBO[i], VBO[i + 1], VBO[i + 2]);
-                if((vertex - point).Length > maxval)
-                    maxval = vertex.Length;
-            }
-            return maxval;
-        }
 
         public void OriginToCenter()
         {
@@ -801,6 +761,23 @@ namespace VEngine
                 VBO[i + 6] = normal.Y;
                 VBO[i + 7] = normal.Z;
             }
+        }
+
+        public void UpdateBoundingBox()
+        {
+            var vertices = GetRawVertexList();
+            var a = vertices[0];
+            var b = vertices[0];
+            foreach(var v in vertices)
+            {
+                a = Min(a, v);
+                b = Max(b, v);
+            }
+            AABB = new AxisAlignedBoundingBox()
+            {
+                Minimum = a,
+                Maximum = b
+            };
         }
 
         public void UpdateTangents()
@@ -899,6 +876,47 @@ namespace VEngine
                 VBO[vboIndex1 + 8] = tan.X;
                 VBO[vboIndex1 + 9] = tan.Y;
                 VBO[vboIndex1 + 10] = tan.Z;
+            }
+        }
+
+        //private Object3dInfo Current = null;
+        private bool AreBuffersGenerated;
+
+        private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
+
+        private int CachedHash = -123;
+
+        private int VertexBuffer, IndexBuffer, VAOHandle, IndicesCount = 0;
+
+        private class ObjFileData
+        {
+            public List<uint> Indices;
+            public string Name, MaterialName;
+            public List<float> VBO;
+        }
+
+        private class TriangleInfo
+        {
+            public List<float> ToFloatList()
+            {
+                var list = new List<float>();
+                list.AddRange(V1.ToFloatList());
+                list.AddRange(V2.ToFloatList());
+                list.AddRange(V3.ToFloatList());
+                return list;
+            }
+
+            private VertexInfo V1, V2, V3;
+        }
+
+        private class VertexInfo
+        {
+            public Vector3 Position, Normal;
+            public Vector2 UV;
+
+            public List<float> ToFloatList()
+            {
+                return new List<float> { Position.X, Position.Y, Position.Z, UV.X, UV.Y, Normal.X, Normal.Y, Normal.Z };
             }
         }
 
@@ -1194,23 +1212,6 @@ namespace VEngine
             //Indices = new uint[0];
 
             AreBuffersGenerated = true;
-        }
-
-        public void UpdateBoundingBox()
-        {
-            var vertices = GetRawVertexList();
-            var a = vertices[0];
-            var b = vertices[0];
-            foreach(var v in vertices)
-            {
-                a = Min(a, v);
-                b = Max(b, v);
-            }
-            AABB = new AxisAlignedBoundingBox()
-            {
-                Minimum = a,
-                Maximum = b
-            };
         }
 
         /*

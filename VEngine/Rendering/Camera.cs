@@ -1,10 +1,37 @@
-﻿using BulletSharp;
-using OpenTK;
+﻿using OpenTK;
 
 namespace VEngine
 {
     public class Camera : ITransformable
     {
+
+        class FrustumCone
+        {
+            public Vector3 Origin;
+            public Vector3 LeftBottom;
+            public Vector3 RightBottom;
+            public Vector3 LeftTop;
+            public Vector3 RightTop;
+
+            private static Vector3 GetDir(Vector3 origin, Vector2 uv, Matrix4 inv)
+            {
+                var clip = Vector4.Transform(new Vector4(uv.X, uv.Y, 0.01f, 1), inv);
+                return (clip.Xyz / clip.W - origin).Normalized();
+            }
+
+            public static FrustumCone Create(Vector3 origin, Matrix4 view, Matrix4 proj)
+            {
+                var f = new FrustumCone();
+                f.Origin = origin;
+                var inVP = Matrix4.Mult(view, proj).Inverted();
+                f.LeftBottom = GetDir(origin, new Vector2(-1, -1), inVP);
+                f.RightBottom = GetDir(origin, new Vector2(1, -1), inVP);
+                f.LeftTop = GetDir(origin, new Vector2(-1, 1), inVP);
+                f.RightTop = GetDir(origin, new Vector2(1, 1), inVP);
+                return f;
+            }
+        }
+
         static public Camera Current;
 
         static public Camera MainDisplayCamera;
@@ -13,15 +40,15 @@ namespace VEngine
 
         public float CurrentDepthFocus = 0.06f;
 
-        public float LensBlurAmount = 0.0f;
-
         public float FocalLength = 75.0f;
-
+        public float LensBlurAmount = 0.0f;
         public float Pitch, Roll, Far;
 
         public TransformationManager Transformation;
 
-        public Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
+        private Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
+
+        FrustumCone cone;
 
         public Camera(Vector3 position, Vector3 lookAt, Vector3 up, float aspectRatio, float fov, float near, float far)
         {
@@ -66,6 +93,26 @@ namespace VEngine
             return Transformation;
         }
 
+        public void SetProjectionMatrix(Matrix4 proj)
+        {
+            this.ProjectionMatrix = proj;
+            Update();
+        }
+        public Matrix4 GetProjectionMatrix()
+        {
+            return ProjectionMatrix;
+        }
+
+        public Matrix4 GetViewMatrix()
+        {
+            return ViewMatrix;
+        }
+        public Matrix4 GetRotationMatrix()
+        {
+            return RotationMatrix;
+        }
+
+
         public void LookAt(Vector3 location)
         {
             RotationMatrix = Matrix4.CreateFromQuaternion(Matrix4.LookAt(Vector3.Zero, -(location - Transformation.GetPosition()).Normalized(), new Vector3(0, 1, 0)).ExtractRotation());
@@ -90,11 +137,39 @@ namespace VEngine
 
             Update();*/
         }
-        
+
+        public void SetUniforms()
+        {
+            if(cone == null)
+                return;
+            lock (Transformation)
+            {
+                var s = ShaderProgram.Current;
+                s.SetUniform("FrustumConeLeftBottom", cone.LeftBottom);
+                //s.SetUniform("FrustumConeLeftTop", cone.LeftTop);
+                //s.SetUniform("FrustumConeRightBottom", cone.RightBottom);
+                //s.SetUniform("FrustumConeRightTop", cone.RightTop);
+                s.SetUniform("FrustumConeBottomLeftToBottomRight",cone.RightBottom - cone.LeftBottom);
+                s.SetUniform("FrustumConeBottomLeftToTopLeft", cone.LeftTop - cone.LeftBottom);
+            }
+        }
+
         public void Update()
         {
-            RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());
-            ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
+            lock(Transformation)
+            {
+                var tRotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());
+                var tViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
+                try
+                {
+                    var tcone = FrustumCone.Create(Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
+                    cone = tcone;
+                }
+                catch { }
+                RotationMatrix = tRotationMatrix;
+                ViewMatrix = tViewMatrix;
+            }
+
         }
 
         public void UpdateFromRollPitch()
@@ -104,6 +179,12 @@ namespace VEngine
             Transformation.SetOrientation(Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted()));
             RotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
             ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
+            try
+            {
+                var tcone = FrustumCone.Create(Transformation.GetPosition(), ViewMatrix, ProjectionMatrix);
+                cone = tcone;
+            }
+            catch { }
         }
 
         public void UpdateInverse()

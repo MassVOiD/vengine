@@ -3,7 +3,6 @@
     public class ValuePointer<T>
     {
         public T R;
-        private bool BeenModified = false;
 
         public ValuePointer(T i)
         {
@@ -74,5 +73,7 @@
         {
             return R - a;
         }
+
+        private bool BeenModified = false;
     }
 }

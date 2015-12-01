@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using BulletSharp;
 using OpenTK;
 
 namespace VEngine
@@ -23,8 +22,7 @@ namespace VEngine
         public delegate void MeshCollideDelegate(Mesh3d meshA, Mesh3d meshB, Vector3 collisionPoint, Vector3 normalA);
 
         public event MeshCollideDelegate MeshCollide;
-        
-        
+
         public void Draw(bool ignoreMeshWithDisabledDepthTest = false, bool ignoreDisableDepthWriteFlag = false)
         {
             var sp = GenericMaterial.OverrideShaderPack != null ? GenericMaterial.OverrideShaderPack : GenericMaterial.MainShaderPack;
@@ -34,8 +32,9 @@ namespace VEngine
                     return;
                 shader.Use();
 
-                shader.SetUniform("ViewMatrix", Camera.Current.ViewMatrix);
-                shader.SetUniform("ProjectionMatrix", Camera.Current.ProjectionMatrix);
+                shader.SetUniform("ViewMatrix", Camera.Current.GetViewMatrix());
+                shader.SetUniform("ProjectionMatrix", Camera.Current.GetProjectionMatrix());
+                Camera.Current.SetUniforms();
 
                 shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
                 shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
@@ -47,6 +46,5 @@ namespace VEngine
             });
             RootScene.Draw(Matrix4.Identity);
         }
-        
     }
 }

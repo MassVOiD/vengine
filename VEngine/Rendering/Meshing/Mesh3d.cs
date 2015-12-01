@@ -2,30 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 
 namespace VEngine
 {
     public class Mesh3d : IRenderable
     {
-        List<LodLevel> LodLevels;
-        List<Mesh3dInstance> Instances;
-
-
-        private Mesh3d()
-        {
-            LodLevels = new List<LodLevel>();
-            Instances = new List<Mesh3dInstance>();
-        }
-
-        public static Mesh3d Create(Object3dInfo objectInfo, GenericMaterial material)
-        {
-            var m = new Mesh3d();
-            m.AddLodLevel(objectInfo, material, 0, 99999);
-            m.AddInstance(new Mesh3dInstance(new TransformationManager(Vector3.Zero), ""));
-            return m;
-        }
         public static Mesh3d Empty
         {
             get
@@ -34,16 +16,12 @@ namespace VEngine
             }
         }
 
-        // Instance Managing
-
-        public List<Mesh3dInstance> GetInstances()
+        public static Mesh3d Create(Object3dInfo objectInfo, GenericMaterial material)
         {
-            return Instances;
-        }
-
-        public Mesh3dInstance GetInstance(int i)
-        {
-            return Instances[i];
+            var m = new Mesh3d();
+            m.AddLodLevel(objectInfo, material, 0, 99999);
+            m.AddInstance(new Mesh3dInstance(new TransformationManager(Vector3.Zero), ""));
+            return m;
         }
 
         public void AddInstance(Mesh3dInstance instance)
@@ -58,29 +36,6 @@ namespace VEngine
             return i;
         }
 
-        public void RemoveInstance(Mesh3dInstance instance)
-        {
-            Instances.Remove(instance);
-        }
-
-        public void ClearInstances()
-        {
-            Instances.Clear();
-        }
-
-        // lod managing
-
-
-        public List<LodLevel> GetLodLevels()
-        {
-            return LodLevels;
-        }
-
-        public LodLevel GetLodLevel(int i)
-        {
-            return LodLevels[i];
-        }
-
         public void AddLodLevel(LodLevel level)
         {
             LodLevels.Add(level);
@@ -93,9 +48,9 @@ namespace VEngine
             return i;
         }
 
-        public void RemoveLodLevel(LodLevel level)
+        public void ClearInstances()
         {
-            LodLevels.Remove(level);
+            Instances.Clear();
         }
 
         public void ClearLodLevels()
@@ -103,8 +58,43 @@ namespace VEngine
             LodLevels.Clear();
         }
 
-        // rest
+        public void Draw(Matrix4 parentTransformation)
+        {
+            for(int i = 0; i < LodLevels.Count; i++)
+                LodLevels[i].Draw(parentTransformation, this, Instances.Count);
+        }
 
+        public Mesh3dInstance GetInstance(int i)
+        {
+            return Instances[i];
+        }
+
+        public List<Mesh3dInstance> GetInstances()
+        {
+            return Instances;
+        }
+
+        public LodLevel GetLodLevel(int i)
+        {
+            return LodLevels[i];
+        }
+
+        public List<LodLevel> GetLodLevels()
+        {
+            return LodLevels;
+        }
+
+        // Instance Managing
+        public void RemoveInstance(Mesh3dInstance instance)
+        {
+            Instances.Remove(instance);
+        }
+
+        // lod managing
+        public void RemoveLodLevel(LodLevel level)
+        {
+            LodLevels.Remove(level);
+        }
 
         public void SetUniforms()
         {
@@ -119,13 +109,7 @@ namespace VEngine
             shader.SetUniform("Instances", Instances.Count);
         }
 
-        public void Draw(Matrix4 parentTransformation)
-        {
-            
-            for(int i = 0; i < LodLevels.Count; i++)
-                LodLevels[i].Draw(parentTransformation, this, Instances.Count);
-        }
-
+        // rest
         public void UpdateMatrix(bool instantRebuffer = false)
         {
             for(int i = 0; i < LodLevels.Count; i++)
@@ -137,5 +121,13 @@ namespace VEngine
             LodLevels[level].UpdateMatrix(Instances, instantRebuffer);
         }
 
+        private List<Mesh3dInstance> Instances;
+        private List<LodLevel> LodLevels;
+
+        private Mesh3d()
+        {
+            LodLevels = new List<LodLevel>();
+            Instances = new List<Mesh3dInstance>();
+        }
     }
 }

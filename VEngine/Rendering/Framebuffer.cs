@@ -14,6 +14,7 @@ namespace VEngine
 
         public PixelInternalFormat DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
 
+        public bool DepthOnly, MultiSample, ColorOnly;
         public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
 
         public PixelType DepthPixelType = PixelType.Float;
@@ -26,11 +27,14 @@ namespace VEngine
 
         public int Width, Height;
 
-        public bool DepthOnly, MultiSample, ColorOnly;
-
-        private int FBO, RBO;
-
-        static Framebuffer DefaultF;
+        public Framebuffer(int width, int height, bool depthOnly = false)
+        {
+            Generated = false;
+            ColorOnly = false;
+            Width = width;
+            Height = height;
+            DepthOnly = depthOnly;
+        }
 
         public static Framebuffer Default
         {
@@ -46,13 +50,12 @@ namespace VEngine
             }
         }
 
-        public Framebuffer(int width, int height, bool depthOnly = false)
+        public void GenerateMipMaps()
         {
-            Generated = false;
-            ColorOnly = false;
-            Width = width;
-            Height = height;
-            DepthOnly = depthOnly;
+            GL.BindTexture(TextureTarget.Texture2D, TexColor);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
         }
 
         public Vector3h GetColor(float x, float y)
@@ -102,14 +105,6 @@ namespace VEngine
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-        public void GenerateMipMaps()
-        {
-            GL.BindTexture(TextureTarget.Texture2D, TexColor);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-        }
-
         public void UseTexture(int startIndex)
         {
             if(DepthOnly)
@@ -139,6 +134,9 @@ namespace VEngine
             }
         }
 
+        private static Framebuffer DefaultF;
+        private int FBO, RBO;
+
         private void Generate()
         {
             Generated = true;
@@ -163,19 +161,20 @@ namespace VEngine
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
             }
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 
-            if(!ColorOnly){
+            if(!ColorOnly)
+            {
                 TexDepth = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture2D, TexDepth);
                 if(DepthOnly)
                 {
                     GL.TexImage2D(TextureTarget.Texture2D, 0, DepthInternalFormat, Width, Height, 0, DepthPixelFormat, DepthPixelType, (IntPtr)0);
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
                     GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
                 }

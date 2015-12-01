@@ -1,17 +1,15 @@
 ﻿using System;
+using System.IO;
 using System.Text.RegularExpressions;
 using OpenTK.Graphics.OpenGL4;
 using VEngine;
-using System.IO;
 
 namespace GLSLLint
 {
     internal class Program
     {
-
-        class Linter
+        private class Linter
         {
-            VEngineInvisibleAdapter window;
             public Linter()
             {
                 window = new VEngineInvisibleAdapter();
@@ -100,6 +98,8 @@ namespace GLSLLint
                 }
                 return "";
             }
+
+            private VEngineInvisibleAdapter window;
         }
 
         private static void CompileRecurse(Linter linter, string directory)

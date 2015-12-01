@@ -39,6 +39,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
     //if(amount < 0.02) return texture(currentTex, UV).rgb;
     //amount -= 0.02;
+	//amount = max(0, amount - 0.1);
 	//return textureLod(currentTex, UV, amount*2).rgb;
     float radius = max_radius;  
     float centerDepthDistance = abs((centerDepth) - (depthfocus));
@@ -91,6 +92,24 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 	outc += textureLod(currentTex, buv, 9).rgb;
 	outc *= max(0.0, length(outc) - 1.0) * 0.4;
 	return vec3pow(outc * 1.1, 1.7) * 0.15;
+	
+}
+vec3 funnybloom(vec2 buv){
+    vec3 outc = vec3(0);
+
+	outc += textureLod(currentTex, buv, 0).rgb;
+	outc += textureLod(currentTex, buv, 1).rgb;
+	outc += textureLod(currentTex, buv, 2).rgb;
+	outc += textureLod(currentTex, buv, 3).rgb;
+	outc += textureLod(currentTex, buv, 4).rgb;
+	outc += textureLod(currentTex, buv, 5).rgb;
+	outc += textureLod(currentTex, buv, 6).rgb;
+	outc += textureLod(currentTex, buv, 7).rgb;
+	outc += textureLod(currentTex, buv, 8).rgb;
+	outc += textureLod(currentTex, buv, 9).rgb;
+	outc += textureLod(currentTex, buv, 10).rgb;
+	outc += textureLod(currentTex, buv, 11).rgb;
+	return outc / 12.0;
 	
 }
 #include noise3D.glsl
@@ -159,8 +178,8 @@ vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 }
 
 vec3 hdr(vec3 color, vec2 uv){
-	
-	vec3 refbright = textureLod(currentTex, uv,6).rgb;
+	float levels = float(textureQueryLevels(currentTex)) - 1;
+	vec3 refbright = textureLod(currentTex, uv,levels).rgb;
 	float reflen = length(refbright);
 	float mult = reflen > mPI2 ? 0 : cos(reflen);
 	return color * max(0.5, mult) * 2.0;
@@ -169,6 +188,7 @@ vec3 hdr(vec3 color, vec2 uv){
 void main()
 {
     vec4 color1 = texture(currentTex, UV);
+	//color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
@@ -201,14 +221,14 @@ void main()
     
     if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
 	//if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
-	//if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
+	if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
     color1.a = texture(depthTex, UV).r;
     
     vec3 last = texture(lastIndirectTex, UV).rgb;
     float f1 = length(last) / length(vec3(1));
     float f2 = length(color1.rgb);
     
-    vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.4538 : 1.0);
+    vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.04538 : 1.0);
     if(UnbiasedIntegrateRenderMode == 1){
         //additiveMix *= texture(HBAOTex, UV).a;
        // if(abs(texture(lastIndirectTex, UV).a - depth) > 0.0003) additiveMix = color1.rgb;

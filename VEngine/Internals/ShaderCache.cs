@@ -4,8 +4,6 @@ namespace VEngine
 {
     internal class ShaderCache
     {
-        private static Dictionary<string, ShaderProgram> Cache = new Dictionary<string, ShaderProgram>();
-
         public static void CacheShaderProgram(string allnames, ShaderProgram compiled)
         {
             lock (Cache)
@@ -19,5 +17,7 @@ namespace VEngine
         {
             return Cache.ContainsKey(allnames) ? Cache[allnames] : null;
         }
+
+        private static Dictionary<string, ShaderProgram> Cache = new Dictionary<string, ShaderProgram>();
     }
 }

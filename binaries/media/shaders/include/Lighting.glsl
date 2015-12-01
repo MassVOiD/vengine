@@ -52,7 +52,7 @@ float rand2d(vec2 co){
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float accum = 0.0;
     
-    ArandsPointer = float(ArandsPointer + rand2s(uv) * 113.86786 );
+    ArandsPointer = float(ArandsPointer + rand2s(uv+Time) * 113.86786 );
 	float distance2 = distance(pos, LightsPos[i]);
     
 	mat4 lightPV = (LightsPs[i] * LightsVs[i]);
@@ -66,8 +66,8 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	
     float distance3 = toLogDepthEx(distance2, LightsFarPlane[i]);
 	//return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
-    float pssblur = max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 0.1;
-    for(float x = 0; x < mPI2; x+=0.5){ 
+    float pssblur = 1.0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
+    for(float x = 0; x < mPI2; x+=0.8){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
             fakeUV = uv + vec2(sin(x+y), cos(x+y)) * LightingGetRand() * pssblur * 0.009;
             distance1 = lookupDepthFromLight(i, fakeUV);

@@ -13,35 +13,9 @@ namespace VEngine
     {
         public static ShaderProgram Current = null;
         static public bool Lock = false;
+        public bool Compiled;
         public int Handle = -1;
         public bool UsingTesselation = false;
-        private static List<ShaderProgram> AllPrograms = new List<ShaderProgram>();
-        public bool Compiled;
-        private string FragmentFile;
-        private string GeometryFile;
-        private Dictionary<string, string> Globals = new Dictionary<string, string>();
-        private string lastCombinedSourcesHash;
-
-        private string TessControlFile;
-        private string TessEvalFile;
-        private Dictionary<string, int> UniformLocationsCache;
-        private Dictionary<string, object> ValuesMap;
-
-        private string VertexFile;
-        private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
-
-        private ShaderProgram(string vertexFile, string fragmentFile, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
-        {
-            ValuesMap = new Dictionary<string, object>();
-            VertexFile = vertexFile;
-            FragmentFile = fragmentFile;
-            GeometryFile = geometryFile;
-            TessControlFile = tesscontrolFile;
-            TessEvalFile = tessevalFile;
-            lastCombinedSourcesHash = "";
-            Recompile();
-            AllPrograms.Add(this);
-        }
 
         public enum SwitchResult
         {
@@ -145,6 +119,7 @@ namespace VEngine
             if(location >= 0 && CheckCache(name, data))
                 GL.Uniform1(location, data);
         }
+
         public void SetUniform(string name, int data)
         {
             //if(name == "Instances")
@@ -299,6 +274,33 @@ namespace VEngine
                 return SwitchResult.Switched;
             }
             return SwitchResult.Locked;
+        }
+
+        private static List<ShaderProgram> AllPrograms = new List<ShaderProgram>();
+        private string FragmentFile;
+        private string GeometryFile;
+        private Dictionary<string, string> Globals = new Dictionary<string, string>();
+        private string lastCombinedSourcesHash;
+
+        private string TessControlFile;
+        private string TessEvalFile;
+        private Dictionary<string, int> UniformLocationsCache;
+        private Dictionary<string, object> ValuesMap;
+
+        private string VertexFile;
+        private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
+
+        private ShaderProgram(string vertexFile, string fragmentFile, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
+        {
+            ValuesMap = new Dictionary<string, object>();
+            VertexFile = vertexFile;
+            FragmentFile = fragmentFile;
+            GeometryFile = geometryFile;
+            TessControlFile = tesscontrolFile;
+            TessEvalFile = tessevalFile;
+            lastCombinedSourcesHash = "";
+            Recompile();
+            AllPrograms.Add(this);
         }
 
         private static int GetUniformLocation(string name)

@@ -9,12 +9,7 @@ namespace ShadowsTester
     internal class Commons
     {
         public static FreeCamera FreeCam;
-        private static ComputeShader MousePicker;
         public static int MouseX, MouseY;
-        private static Mesh3dInstance Picked;
-        private static Mesh3d PickedMesh;
-        private static ShaderStorageBuffer PickingResult;
-        private static ProjectionLight RedLight;
 
         public static ProjectionLight AddControllableLight()
         {
@@ -31,14 +26,18 @@ namespace ShadowsTester
                     fovdegree += 5f;
                     if(fovdegree >= 180)
                         fovdegree = 179;
-                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out redConeLight.camera.ProjectionMatrix);
+                    Matrix4 a = Matrix4.Zero;
+                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out a);
+                    redConeLight.camera.SetProjectionMatrix(a);
                 }
                 if(e.Key == OpenTK.Input.Key.K)
                 {
                     fovdegree -= 5f;
                     if(fovdegree <= 10)
                         fovdegree = 10;
-                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out redConeLight.camera.ProjectionMatrix);
+                    Matrix4 a = Matrix4.Zero;
+                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out a);
+                    redConeLight.camera.SetProjectionMatrix(a);
                 }
             };
             World.Root.RootScene.Add(redConeLight);
@@ -124,6 +123,7 @@ namespace ShadowsTester
                         MousePicker.Use();
                         var state = OpenTK.Input.Mouse.GetState();
                         MousePicker.SetUniform("Mouse", new Vector2(MouseX, GLThread.Resolution.Height - MouseY));
+                        MousePicker.SetUniform("Resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
                         PickingResult.Use(0);
                         GL.BindImageTexture(0, GLThread.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rg32ui);
                         MousePicker.Dispatch(1, 1, 1);
@@ -213,27 +213,8 @@ namespace ShadowsTester
             return freeCamera;
         }
 
-        static Dictionary<int, TransformationManager> CameraSavedViews;
-
-        static void SaveCamera(int index)
-        {
-            CameraSavedViews[index] = FreeCam.Cam.Transformation.Copy();
-        }
-
-        static void InterpolateCameraFromSaved(int index)
-        {
-            if(!CameraSavedViews.ContainsKey(index))
-                return;
-            var pos = CameraSavedViews[index].GetPosition();
-            var orient = CameraSavedViews[index].GetOrientation();
-
-            Interpolator.Interpolate<Vector3>(FreeCam.Cam.Transformation.Position, FreeCam.Cam.Transformation.Position.R, pos, 8.0f, Interpolator.Easing.EaseInOut);
-            Interpolator.Interpolate<Quaternion>(FreeCam.Cam.Transformation.Orientation, FreeCam.Cam.Transformation.Orientation.R, orient, 8.0f, Interpolator.Easing.EaseInOut);
-        }
-
         public static void SetUpInputBehaviours()
         {
-           
             GLThread.OnKeyUp += (o, e) =>
             {
                 if(e.Key == OpenTK.Input.Key.F1 && !e.Shift)
@@ -330,7 +311,7 @@ namespace ShadowsTester
                     if(PickedMesh.GetLodLevel(0) != null)
                     {
                         PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier -= 0.1f;
-                        if(PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier <=0.01f)
+                        if(PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier <= 0.01f)
                             PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier = 0.01f;
                     }
                 }
@@ -338,7 +319,7 @@ namespace ShadowsTester
                 {
                     if(PickedMesh.GetLodLevel(0) != null)
                     {
-                        PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier+=0.1f;
+                        PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier += 0.1f;
                         if(PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier >= 24)
                             PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier = 24;
                     }
@@ -383,6 +364,7 @@ namespace ShadowsTester
                     //redConeLight.SetPosition(freeCamera.Cam.Transformation.GetPosition(), freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection());
                     RedLight.GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition());
                     RedLight.GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
+                    RedLight.camera.Update();
                 }
                 if(e.Key == OpenTK.Input.Key.Tilde)
                 {
@@ -407,6 +389,29 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Number2)
                     GLThread.GraphicsSettings.UseHBAO = !GLThread.GraphicsSettings.UseHBAO;
             };
+        }
+
+        private static Dictionary<int, TransformationManager> CameraSavedViews;
+        private static ComputeShader MousePicker;
+        private static Mesh3dInstance Picked;
+        private static Mesh3d PickedMesh;
+        private static ShaderStorageBuffer PickingResult;
+        private static ProjectionLight RedLight;
+
+        private static void InterpolateCameraFromSaved(int index)
+        {
+            if(!CameraSavedViews.ContainsKey(index))
+                return;
+            var pos = CameraSavedViews[index].GetPosition();
+            var orient = CameraSavedViews[index].GetOrientation();
+
+            Interpolator.Interpolate<Vector3>(FreeCam.Cam.Transformation.Position, FreeCam.Cam.Transformation.Position.R, pos, 8.0f, Interpolator.Easing.EaseInOut);
+            Interpolator.Interpolate<Quaternion>(FreeCam.Cam.Transformation.Orientation, FreeCam.Cam.Transformation.Orientation.R, orient, 8.0f, Interpolator.Easing.EaseInOut);
+        }
+
+        private static void SaveCamera(int index)
+        {
+            CameraSavedViews[index] = FreeCam.Cam.Transformation.Copy();
         }
     }
 }

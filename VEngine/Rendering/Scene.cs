@@ -7,20 +7,6 @@ namespace VEngine
     sealed public class Scene : IRenderable, ITransformable
     {
         public TransformationManager Transformation;
-        private static List<byte> Buffer;
-        private static List<Vector4> colors = new List<Vector4>();
-        private static List<float> fplanes = new List<float>();
-        private static int ipointer = 0;
-        private static int LastBufferElements = 0;
-        private static List<int> mmodes = new List<int>();
-        private static List<Matrix4> pmats = new List<Matrix4>();
-        private static List<Vector3> poss = new List<Vector3>();
-        private static List<float> ShadowMapsFarPlanes;
-        private static int SimpleLightsCount = 0;
-        private static ShaderStorageBuffer SSBO = new ShaderStorageBuffer();
-        private static List<Matrix4> vmats = new List<Matrix4>();
-        private List<ILight> Lights = new List<ILight>();
-        private List<IRenderable> Renderables = new List<IRenderable>();
 
         public Scene()
         {
@@ -39,7 +25,7 @@ namespace VEngine
 
         public void Draw(Matrix4 parentTransformation)
         {
-           // var cpos = Camera.MainDisplayCamera.GetPosition();
+            // var cpos = Camera.MainDisplayCamera.GetPosition();
             /*Renderables.Sort((a, b) =>
             {
                 if(a is ITransformable && b is ITransformable)
@@ -179,6 +165,21 @@ namespace VEngine
                 mmodes = new List<int>();
             }
         }
+
+        private static List<byte> Buffer;
+        private static List<Vector4> colors = new List<Vector4>();
+        private static List<float> fplanes = new List<float>();
+        private static int ipointer = 0;
+        private static int LastBufferElements = 0;
+        private static List<int> mmodes = new List<int>();
+        private static List<Matrix4> pmats = new List<Matrix4>();
+        private static List<Vector3> poss = new List<Vector3>();
+        private static List<float> ShadowMapsFarPlanes;
+        private static int SimpleLightsCount = 0;
+        private static ShaderStorageBuffer SSBO = new ShaderStorageBuffer();
+        private static List<Matrix4> vmats = new List<Matrix4>();
+        private List<ILight> Lights = new List<ILight>();
+        private List<IRenderable> Renderables = new List<IRenderable>();
 
         private static List<byte> Bytes(Vector4 vec)
         {

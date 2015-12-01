@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CSharp;
 
 namespace VEngine
@@ -14,7 +13,7 @@ namespace VEngine
         public static void Eval(List<Tuple<string, object>> localVariables, string expression)
         {
             CSharpCodeProvider codeProvider = new CSharpCodeProvider();
-            string cname = "EvaluationD"+ (uint)(DateTime.Now - GLThread.StartTime).TotalMilliseconds;
+            string cname = "EvaluationD" + (uint)(DateTime.Now - GLThread.StartTime).TotalMilliseconds;
             StringBuilder varssb = new StringBuilder();
             StringBuilder varssb2 = new StringBuilder();
             StringBuilder varssb3 = new StringBuilder();
@@ -60,8 +59,6 @@ namespace VEngine
                             {{
                                 " + setstr + @"
                             }}
-
-                            
                         }}
                     }}
 
@@ -73,7 +70,7 @@ namespace VEngine
             var referencedAssemblies =
                 AppDomain.CurrentDomain.GetAssemblies()
                 .Where(a => !a.FullName.StartsWith("mscorlib", StringComparison.InvariantCultureIgnoreCase))
-                .Where(a => !a.IsDynamic) 
+                .Where(a => !a.IsDynamic)
                 .Select(a => a.Location)
                 .ToArray();
             paramsa.ReferencedAssemblies.AddRange(referencedAssemblies);
@@ -96,7 +93,7 @@ namespace VEngine
             }
             Assembly assembly = results.CompiledAssembly;
             dynamic evaluator =
-                Activator.CreateInstance(assembly.GetType(cname+".Evaluator"));
+                Activator.CreateInstance(assembly.GetType(cname + ".Evaluator"));
             (evaluator.GetType() as Type).GetMethod("SetVal").Invoke(evaluator, localVariables.Select<Tuple<string, object>, object>((a) => a.Item2).ToArray());
             evaluator.Eval();
         }

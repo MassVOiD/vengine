@@ -8,10 +8,6 @@ namespace VEngine
     {
         public int Handle = -1;
 
-        private bool Generated;
-
-        private Vector3 Size;
-
         public Texture3D(int handle)
         {
             Handle = handle;
@@ -48,5 +44,9 @@ namespace VEngine
             GL.ActiveTexture(unit);
             GL.BindTexture(TextureTarget.Texture3D, Handle);
         }
+
+        private bool Generated;
+
+        private Vector3 Size;
     }
 }

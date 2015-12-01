@@ -2,32 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 
 namespace VEngine
 {
     public class RainSystem
     {
-        class RainDrop
-        {
-            public Vector3 Center;
-            public float Radius;
-            public RainDrop(Vector3 center)
-            {
-                Center = center;
-                Radius = 0;
-            }
-        }
-
-        float MaxRadius;
-        float MaxDrops;
-        float Speed = 1.0f;
-        float Strength;
-        List<RainDrop> Drops;
-        ShaderStorageBuffer DropsBuffer;
-        DateTime LastUpdate;
-
         public RainSystem(float maxRadius, float maxDrops, float speed, float strength)
         {
             Drops = new List<RainDrop>();
@@ -37,19 +17,6 @@ namespace VEngine
             Strength = strength;
             LastUpdate = DateTime.Now;
             GLThread.OnUpdate += UpdateDrops;
-        }
-
-        private void UpdateDrops(object sender, EventArgs e)
-        {
-            lock(Drops)
-            {
-                for(int i = 0; i < Drops.Count; i++)
-                {
-                    Drops[i].Radius += (0.01f * Speed);
-                }
-                LastUpdate = DateTime.Now;
-                Drops = Drops.Where((a) => a.Radius < MaxRadius).ToList();
-            }
         }
 
         public void AddDrop(Vector3 position)
@@ -78,6 +45,44 @@ namespace VEngine
             shader.SetUniform("DropsMaxRadius", MaxRadius);
             shader.SetUniform("DropsStrength", Strength);
         }
-        
+
+        private List<RainDrop> Drops;
+
+        private ShaderStorageBuffer DropsBuffer;
+
+        private DateTime LastUpdate;
+
+        private float MaxDrops;
+
+        private float MaxRadius;
+
+        private float Speed = 1.0f;
+
+        private float Strength;
+
+        private class RainDrop
+        {
+            public Vector3 Center;
+            public float Radius;
+
+            public RainDrop(Vector3 center)
+            {
+                Center = center;
+                Radius = 0;
+            }
+        }
+
+        private void UpdateDrops(object sender, EventArgs e)
+        {
+            lock (Drops)
+            {
+                for(int i = 0; i < Drops.Count; i++)
+                {
+                    Drops[i].Radius += (0.01f * Speed);
+                }
+                LastUpdate = DateTime.Now;
+                Drops = Drops.Where((a) => a.Radius < MaxRadius).ToList();
+            }
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -8,7 +7,7 @@ namespace VEngine
     public class ProjectionLight : ILight, IShadowMapableLight, ITransformable
     {
         public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack("ConeLight.fragment.glsl");
-        
+
         public Camera camera;
 
         public float CullerMultiplier = 1.0f;
@@ -31,10 +30,6 @@ namespace VEngine
 
         public bool NeedsRefreshing = true;
 
-        private float FarPlane;
-
-        private Size ViewPort;
-
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
             FarPlane = far;
@@ -49,14 +44,12 @@ namespace VEngine
 
         public void BuildOrthographicProjection(float width, float height, float near, float far)
         {
-            camera.ProjectionMatrix = Matrix4.CreateOrthographic(width, height, near, far);
-            camera.Update();
+            camera.SetProjectionMatrix(Matrix4.CreateOrthographic(width, height, near, far));
         }
 
         public void BuildOrthographicProjection(float left, float right, float bottom, float top, float near, float far)
         {
-            camera.ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, near, far);
-            camera.Update();
+            camera.SetProjectionMatrix(Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, near, far));
         }
 
         public Vector4 GetColor()
@@ -81,7 +74,7 @@ namespace VEngine
 
         public Matrix4 GetPMatrix()
         {
-            return camera.ProjectionMatrix;
+            return camera.GetProjectionMatrix();
         }
 
         public Vector3 GetPosition()
@@ -96,14 +89,14 @@ namespace VEngine
 
         public Matrix4 GetVMatrix()
         {
-            return camera.ViewMatrix;
+            return camera.GetViewMatrix();
         }
 
         public void Map(Matrix4 parentTransformation)
         {
             if(IsStatic && !NeedsRefreshing)
                 return;
-            
+
             if(camera.Transformation.HasBeenModified())
             {
                 camera.Update();
@@ -153,7 +146,7 @@ namespace VEngine
 
         public void SetProjection(Matrix4 matrix)
         {
-            camera.ProjectionMatrix = matrix;
+            camera.SetProjectionMatrix(matrix);
         }
 
         public void UpdateInverse()
@@ -165,5 +158,9 @@ namespace VEngine
         {
             FBO.UseTexture(index);
         }
+
+        private float FarPlane;
+
+        private Size ViewPort;
     }
 }

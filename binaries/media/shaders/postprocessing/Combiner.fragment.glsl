@@ -196,6 +196,7 @@ vec3 lightPoints(){
     return color;
 }
 
+
 uniform float VDAOGlobalMultiplier;
 
 #include EnvironmentLight.glsl
@@ -241,9 +242,8 @@ void main()
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
         color1 += Lightning();
-		//vec3 rc = reconstructCameraSpace(UV);
-		//float diff = distance(rc, texture(worldPosTex, UV).rgb);
-		//color1 += diff;
+		//vec3 rc = FromCameraSpace(reconstructCameraSpace(UV));
+		//color1 += rc * 0.1;
         //color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).a) : (softLuminance(nUV));
     } else {
 		color1 = texture(diffuseColorTex, UV).rgb;
@@ -269,5 +269,5 @@ void main()
     //float Y = dot(vec3(0.30, 0.59, 0.11), color1);
     //float YD = Brightness * (Brightness + 1.0) / (Brightness + 1.0);
     //color1 *= YD * Y;
-    outColor = vec4(color1, 1.0);
+    outColor = vec4(clamp(color1, 0.0, 1.0), 1.0);
 }

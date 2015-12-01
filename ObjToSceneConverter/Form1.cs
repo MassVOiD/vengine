@@ -38,6 +38,7 @@ namespace ObjToSceneConverter
 
         private void button4_Click(object sender, EventArgs e)
         {
+            System.Diagnostics.Process.GetCurrentProcess().MaxWorkingSet = new IntPtr(8L * 1024L * 1024L * 1024L);
             Media.SearchPath = "media";
             var meshes = Object3dInfo.LoadSceneFromObj(textBox1.Text, textBox2.Text);
             var s = GameScene.FromMesh3dList(meshes, textBox3.Text + "/", textBox4.Text, true);

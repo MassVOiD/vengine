@@ -15,13 +15,13 @@ float roughness) {
     float NdotV = dot(surfacenormal, viewDirection);
 
     float s = LdotV - NdotL * NdotV;
-    float t = mix(1.0, max(NdotL, NdotV), step(0.0, s));
+    float t = mix(1.0, max(0.02, max(NdotL, NdotV)), step(0.0, s));
 
     float sigma2 = roughness * roughness;
     float A = 1.0 + sigma2 * (1.0 / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
     float B = 0.45 * sigma2 / (sigma2 + 0.09);
 
-    return max(0.1, NdotL) * (A + B * s / t) / PI;
+    return max(0.0, NdotL) * (A + B * s / t) / PI;
 }
 
 float beckmannDistribution(float x, float roughness) {
@@ -47,14 +47,14 @@ vec3 viewDirection,
 vec3 surfacenormal,
 float roughness) {
 
-    float VdotN = max(dot(viewDirection, surfacenormal), 0.0);
-    float LdotN = max(dot(lightDirection, surfacenormal), 0.0);
+    float VdotN = max(dot(viewDirection, surfacenormal), 0.001);
+    float LdotN = max(dot(lightDirection, surfacenormal), 0.1);
 
     //Half angle vector
     vec3 H = normalize(lightDirection + viewDirection);
 
     //Geometric term
-    float NdotH = max(abs(dot(surfacenormal, H)), 0.0);
+    float NdotH = max(abs(dot(surfacenormal, H)), 0.0001);
     float VdotH = max(abs(dot(viewDirection, H)), 0.0001);
     float LdotH = max(abs(dot(lightDirection, H)), 0.0001);
     float G1 = (2.0 * NdotH * VdotN) / VdotH;
@@ -117,7 +117,6 @@ vec3 shade(
         normal,
         max(0.022, (roughness) + 0.01)
         );
-
     
     float diffuseComponent = (1.0 - metalness) * orenNayarDiffuse(
         lightRelativeToVPos,

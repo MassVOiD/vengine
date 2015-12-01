@@ -7,36 +7,19 @@ namespace VEngine
 {
     public class CubeMapFramebuffer : ITransformable
     {
+        public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.Rgba16f;
+        public PixelFormat ColorPixelFormat = PixelFormat.Rgba;
+        public PixelType ColorPixelType = PixelType.HalfFloat;
+        public PixelInternalFormat DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
+        public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
+        public PixelType DepthPixelType = PixelType.Float;
+        public int DrawBufferIndex = 0;
+        public bool Generated;
         public int Resolution;
+        public int TexColor, TexDepth;
         public TransformationManager Transformation;
 
-        public TransformationManager GetTransformationManager()
-        {
-            return Transformation;
-        }
-        public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.Rgba16f;
-
-        public PixelFormat ColorPixelFormat = PixelFormat.Rgba;
-
-        public PixelType ColorPixelType = PixelType.HalfFloat;
-
-        public PixelInternalFormat DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
-
-        public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
-
-        public PixelType DepthPixelType = PixelType.Float;
-
-        public int DrawBufferIndex = 0;
-
-        public bool Generated;
-
-        public int TexColor, TexDepth;
-
         public int Width, Height;
-
-        private int FBO;
-
-        Dictionary<TextureTarget, Camera> FacesCameras;
 
         public CubeMapFramebuffer(int width, int height, bool depthOnly = false)
         {
@@ -46,11 +29,42 @@ namespace VEngine
             Height = height;
         }
 
+        public void GenerateMipMaps()
+        {
+            GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.GenerateMipmap(GenerateMipmapTarget.TextureCubeMap);
+        }
+
+        public TransformationManager GetTransformationManager()
+        {
+            return Transformation;
+        }
+
         public void RevertToDefault()
         {
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
+        public void SwitchCamera(TextureTarget face)
+        {
+            if(!Generated)
+                Generate();
+            var proj = FacesCameras[face].GetProjectionMatrix();
+            FacesCameras[face].Transformation.SetPosition(Transformation.GetPosition());
+            FacesCameras[face].SetProjectionMatrix(proj);
+            Camera.Current = FacesCameras[face];
+        }
+
+        public void SwitchFace(TextureTarget face)
+        {
+            if(!Generated)
+                Generate();
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, face, TexColor, 0);
+
+            GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+        }
 
         public void Use(bool setViewport = true, bool clearViewport = true)
         {
@@ -69,13 +83,8 @@ namespace VEngine
             GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
         }
 
-        public void GenerateMipMaps()
-        {
-            GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.GenerateMipmap(GenerateMipmapTarget.TextureCubeMap);
-        }
+        private Dictionary<TextureTarget, Camera> FacesCameras;
+        private int FBO;
 
         private void Generate()
         {
@@ -116,29 +125,5 @@ namespace VEngine
             FacesCameras.Add(TextureTarget.TextureCubeMapNegativeY, new Camera(Vector3.Zero, new Vector3(0, -1, 0), -Vector3.UnitZ, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
             FacesCameras.Add(TextureTarget.TextureCubeMapNegativeZ, new Camera(Vector3.Zero, new Vector3(0, 0, -1), -Vector3.UnitY, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
         }
-
-        public void SwitchFace(TextureTarget face)
-        {
-            if(!Generated)
-                Generate();
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, face, TexColor, 0);
-
-            GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-        }
-
-
-        public void SwitchCamera(TextureTarget face)
-        {
-            if(!Generated)
-                Generate();
-            var proj = FacesCameras[face].ProjectionMatrix;
-            FacesCameras[face].Transformation.SetPosition(Transformation.GetPosition());
-            FacesCameras[face].Update();
-            FacesCameras[face].ProjectionMatrix = proj;
-            Camera.Current = FacesCameras[face];
-        }
-
-
-
     }
 }

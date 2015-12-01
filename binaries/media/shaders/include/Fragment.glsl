@@ -55,6 +55,7 @@ void discardIfAlphaMasked(){
 uniform int UseSpecularMap;
 uniform int UseRoughnessMap;
 uniform int UseMetalnessMap;
+uniform int InvertNormalMap;
 
 
 uniform int ShadingMode;
@@ -104,7 +105,11 @@ void finishFragment(vec4 incolor){
 	if(UseNormalMap == 1){  
 		vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
 		map = map * 2 - 1;
-		map.g = - map.g;
+		if(InvertNormalMap == 1){
+			map.r = - map.r;
+		} else {
+			map.g = - map.g;
+		}
 		normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
 	} 
 
@@ -120,9 +125,9 @@ void finishFragment(vec4 incolor){
 	vec3 rt = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
 	uint id = InstancedIds[Input.instanceId];
 	
-	if(dot(rn, CameraPosition - Input.WorldPos) <=0) {
-		rn *= -1;
-	}
+//	if(dot(rn, CameraPosition - Input.WorldPos) <=0) {
+	//	rn *= -1;
+//	}
 	uint packpart3 = packSnorm4x8(vec4(rt, 0));
 	if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
 

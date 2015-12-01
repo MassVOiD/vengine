@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using OpenTK;
 using VEngine;
 
@@ -19,14 +20,23 @@ namespace ShadowsTester
             // Media.Get("cryteksponza.mtl"), 0.03f);
 
             var script = System.IO.File.ReadAllText(Media.Get("init.js"));
-            
+
             //js.SetValue("Scene", World.Root.RootScene);
             var vars = new List<Tuple<string, object>>();
             vars.Add(new Tuple<string, object>("Scene", World.Root.RootScene));
             ExpressionEvaluator.Eval(vars, script);
 
-            PostProcessing pp = new PostProcessing(128, 128);
-            CubeMapFramebuffer cubens = new CubeMapFramebuffer(128, 128);
+            var testScene = new Scene();
+            //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
+            var lucyobj = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
+            lucyobj.ScaleUV(8.0f);
+            var lucy = Mesh3d.Create(lucyobj, GenericMaterial.FromColor(Color.White));
+            lucy.GetInstance(0).Scale(0.1f);
+            testScene.Add(lucy);
+            World.Root.RootScene.Add(testScene);
+
+            PostProcessing pp = new PostProcessing(512, 512);
+            CubeMapFramebuffer cubens = new CubeMapFramebuffer(512, 512);
             var tex = new CubeMapTexture(cubens.TexColor);
             GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
             cubens.SetPosition(new Vector3(0, 1, 0));
@@ -34,13 +44,15 @@ namespace ShadowsTester
             {
                 if(e.KeyChar == 'z')
                     cubens.SetPosition(Camera.MainDisplayCamera.GetPosition());
-                if(e.KeyChar == 'x')
+                
+            };
+            GLThread.OnBeforeDraw += (od, dsd) => {
+                if((lucy.GetInstance(0).GetPosition() - cubens.GetPosition()).Length > 0.01f)
                 {
-                    GLThread.Invoke(() =>
-                    {
-                        pp.RenderToCubeMapFramebuffer(cubens);
-                        tex.Handle = cubens.TexColor;
-                    });
+                    cubens.SetPosition(lucy.GetInstance(0).GetPosition());
+                    pp.RenderToCubeMapFramebuffer(cubens);
+                    GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;   
+                    tex.Handle = cubens.TexColor;
                 }
             };
             /*

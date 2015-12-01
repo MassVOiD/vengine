@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -6,7 +7,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using OpenTK.Graphics.OpenGL4;
 using OldGL = OpenTK.Graphics.OpenGL;
-using System.Diagnostics;
 
 namespace VEngine
 {
@@ -25,7 +25,7 @@ namespace VEngine
         private Size Size;
 
         private bool IsDDS = false;
-        TextureTarget ImageTextureTarget = TextureTarget.Texture2D;
+        private TextureTarget ImageTextureTarget = TextureTarget.Texture2D;
 
         public Texture(string file)
         {
@@ -196,6 +196,7 @@ namespace VEngine
             return (x + 1);
         }
     }
+
     public static class TextureLoaderParameters
     {
         /// <summary>(Debug Aid, should be set to false) If set to false only Errors will be printed. If set to true, debug information (Warnings and Queries) will be printed in addition to Errors.</summary>
@@ -228,25 +229,30 @@ namespace VEngine
         /// <summary>Selects the Texture Environment Mode for the following Textures to be loaded. Default: Modulate)</summary>
         public static TextureEnvMode EnvMode = TextureEnvMode.Modulate;
     }
-    static class ImageDDS
+
+    internal static class ImageDDS
     {
         #region Constants
+
         private const byte HeaderSizeInBytes = 128; // all non-image data together is 128 Bytes
         private const uint BitMask = 0x00000007; // bits = 00 00 01 11
 
-
         private static NotImplementedException Unfinished = new NotImplementedException("ERROR: Only 2 Dimensional DXT1/3/5 compressed images for now. 1D/3D Textures may not be compressed according to spec.");
+
         #endregion Constants
 
         #region Simplified In-Memory representation of the Image
+
         private static bool _IsCompressed;
         private static int _Width, _Height, _Depth, _MipMapCount;
         private static int _BytesForMainSurface; // must be handled with care when implementing uncompressed formats!
         private static byte _BytesPerBlock;
         private static PixelInternalFormat _PixelInternalFormat;
+
         #endregion Simplified In-Memory representation of the Image
 
         #region Flag Enums
+
         [Flags] // Surface Description
         private enum eDDSD : uint
         {
@@ -260,7 +266,7 @@ namespace VEngine
             DEPTH = 0x00800000 // is set for 3D Volume Textures
         }
 
-        [Flags] // Pixelformat 
+        [Flags] // Pixelformat
         private enum eDDPF : uint
         {
             NONE = 0x00000000, // not part of DX, added for convenience
@@ -346,9 +352,11 @@ namespace VEngine
             CUBEMAP_ALL_FACES = 0x0000FC00,
             VOLUME = 0x00200000 // for 3D Textures
         }
+
         #endregion Flag Enums
 
         #region Private Members
+
         private static string idString; // 4 bytes, must be "DDS "
         private static UInt32 dwSize; // Size of structure is 124 bytes, 128 including all sub-structs and the header
         private static UInt32 dwFlags; // Flags to indicate valid fields.
@@ -360,8 +368,10 @@ namespace VEngine
 #if READALL
         private static UInt32[] dwReserved1; // 11 UInt32s
 #endif
+
         // Pixelformat sub-struct, 32 bytes
         private static UInt32 pfSize; // Size of Pixelformat structure. This member must be set to 32.
+
         private static UInt32 pfFlags; // Flags to indicate valid fields.
         private static UInt32 pfFourCC; // This is the four-character code for compressed formats.
 #if READALL
@@ -371,18 +381,21 @@ namespace VEngine
         private static UInt32 pfBBitMask; // ..
         private static UInt32 pfABitMask; // For RGB formats, this contains the mask for the alpha channel, if any. dwFlags should include DDpf_ALPHAPIXELS in this case. For A8R8G8B8, this value would be 0xff000000.
 #endif
+
         // Capabilities sub-struct, 16 bytes
         private static UInt32 dwCaps1; // always includes DDSCAPS_TEXTURE. with more than one main surface DDSCAPS_COMPLEX should also be set.
+
         private static UInt32 dwCaps2; // For cubic environment maps, DDSCAPS2_CUBEMAP should be included as well as one or more faces of the map (DDSCAPS2_CUBEMAP_POSITIVEX, DDSCAPS2_CUBEMAP_NEGATIVEX, DDSCAPS2_CUBEMAP_POSITIVEY, DDSCAPS2_CUBEMAP_NEGATIVEY, DDSCAPS2_CUBEMAP_POSITIVEZ, DDSCAPS2_CUBEMAP_NEGATIVEZ). For volume textures, DDSCAPS2_VOLUME should be included.
 #if READALL
         private static UInt32[] dwReserved2; // 3 = 2 + 1 UInt32
 #endif
+
         #endregion Private Members
 
         /// <summary>
         /// This function will generate, bind and fill a Texture Object with a DXT1/3/5 compressed Texture in .dds Format.
         /// MipMaps below 4x4 Pixel Size are discarded, because DXTn's smallest unit is a 4x4 block of Pixel data.
-        /// It will set correct MipMap parameters, Filtering, Wrapping and EnvMode for the Texture. 
+        /// It will set correct MipMap parameters, Filtering, Wrapping and EnvMode for the Texture.
         /// The only call inside this function affecting OpenGL State is GL.BindTexture();
         /// </summary>
         /// <param name="filename">The name of the file you wish to load, including path and file extension.</param>
@@ -391,6 +404,7 @@ namespace VEngine
         public static void LoadFromDisk(string filename, out uint texturehandle, out TextureTarget dimension)
         {
             #region Prep data
+
             // invalidate whatever it was before
             dimension = (TextureTarget)0;
             texturehandle = TextureLoaderParameters.OpenGLDefaultTexture;
@@ -405,14 +419,17 @@ namespace VEngine
             _BytesPerBlock = 0;
             _PixelInternalFormat = PixelInternalFormat.Rgba8;
             byte[] _RawDataFromFile;
-            #endregion
+
+            #endregion Prep data
 
             #region Try
-            try // Exceptions will be thrown if any Problem occurs while working on the file. 
+
+            try // Exceptions will be thrown if any Problem occurs while working on the file.
             {
                 _RawDataFromFile = File.ReadAllBytes(@filename);
 
                 #region Translate Header to less cryptic representation
+
                 ConvertDX9Header(ref _RawDataFromFile); // The first 128 Bytes of the file is non-image data
 
                 // start by checking if all forced flags are present. Flags indicate valid fields, but aren't written by every tool .....
@@ -426,6 +443,7 @@ namespace VEngine
                     throw new ArgumentException("ERROR: File has invalid signature or missing Flags.");
 
                 #region Examine Flags
+
                 if(CheckFlag(dwFlags, (uint)eDDSD.WIDTH))
                     _Width = (int)dwWidth;
                 else
@@ -480,9 +498,11 @@ namespace VEngine
                     _BytesForMainSurface = (int)dwPitchOrLinearSize;
                     _IsCompressed = true;
                 }
+
                 #endregion Examine Flags
 
                 #region Examine Pixel Format, anything but DXTn will fail atm.
+
                 if(CheckFlag(pfFlags, (uint)eDDPF.FOURCC))
                     switch((eFOURCC)pfFourCC)
                     {
@@ -503,13 +523,15 @@ namespace VEngine
                         _BytesPerBlock = 16;
                         _IsCompressed = true;
                         break;
+
                         default:
-                        throw Unfinished; // handle uncompressed formats 
+                        throw Unfinished; // handle uncompressed formats
                     }
                 else
                     throw Unfinished;
                 // pf*Bitmasks should be examined here
-                #endregion
+
+                #endregion Examine Pixel Format, anything but DXTn will fail atm.
 
                 // Works, but commented out because some texture authoring tools don't set this flag.
                 /* Safety Check, if file is only 1x 2D surface without mipmaps, eDDSCAPS.COMPLEX should not be set
@@ -521,12 +543,16 @@ namespace VEngine
 
                 if(TextureLoaderParameters.Verbose)
                     Trace.WriteLine("\n" + GetDescriptionFromMemory(filename, dimension));
+
                 #endregion Translate Header to less cryptic representation
 
                 #region send the Texture to GL
+
                 #region Generate and Bind Handle
+
                 GL.GenTextures(1, out texturehandle);
                 GL.BindTexture(dimension, texturehandle);
+
                 #endregion Generate and Bind Handle
 
                 int Cursor = HeaderSizeInBytes;
@@ -539,6 +565,7 @@ namespace VEngine
                     for(int Level = 0; Level < _MipMapCount; Level++) // start at base image
                     {
                         #region determine Dimensions
+
                         int BlocksPerRow = (Width + 3) >> 2;
                         int BlocksPerColumn = (Height + 3) >> 2;
                         int SurfaceBlockCount = BlocksPerRow * BlocksPerColumn; //   // DXTn stores Texels in 4x4 blocks, a Color block is 8 Bytes, an Alpha block is 8 Bytes for DXT3/5
@@ -547,12 +574,14 @@ namespace VEngine
                         // this check must evaluate to false for 2D and Cube maps, or it's impossible to determine MipMap sizes.
                         if(TextureLoaderParameters.Verbose && Level == 0 && _IsCompressed && _BytesForMainSurface != SurfaceSizeInBytes)
                             Trace.WriteLine("Warning: Calculated byte-count of main image differs from what was read from file.");
+
                         #endregion determine Dimensions
 
                         // skip mipmaps smaller than a 4x4 Pixels block, which is the smallest DXTn unit.
                         if(Width > 2 && Height > 2)
                         { // Note: there could be a potential problem with non-power-of-two cube maps
                             #region Prepare Array for TexImage
+
                             byte[] RawDataOfSurface = new byte[SurfaceSizeInBytes];
                             if(!TextureLoaderParameters.FlipImages)
                             { // no changes to the image, copy as is
@@ -567,7 +596,9 @@ namespace VEngine
                                     {
                                         int target = (targetColumn * BlocksPerRow + row) * _BytesPerBlock;
                                         int source = (sourceColumn * BlocksPerRow + row) * _BytesPerBlock + Cursor;
+
                                         #region Swap Bytes
+
                                         switch(_PixelInternalFormat)
                                         {
                                             case (PixelInternalFormat)OldGL.ExtTextureCompressionS3tc.CompressedRgbS3tcDxt1Ext:
@@ -581,6 +612,7 @@ namespace VEngine
                                             RawDataOfSurface[target + 6] = _RawDataFromFile[source + 5];
                                             RawDataOfSurface[target + 7] = _RawDataFromFile[source + 4];
                                             break;
+
                                             case (PixelInternalFormat)OldGL.ExtTextureCompressionS3tc.CompressedRgbaS3tcDxt3Ext:
                                             // Alpha
                                             RawDataOfSurface[target + 0] = _RawDataFromFile[source + 6];
@@ -602,8 +634,9 @@ namespace VEngine
                                             RawDataOfSurface[target + 14] = _RawDataFromFile[source + 13];
                                             RawDataOfSurface[target + 15] = _RawDataFromFile[source + 12];
                                             break;
+
                                             case (PixelInternalFormat)OldGL.ExtTextureCompressionS3tc.CompressedRgbaS3tcDxt5Ext:
-                                            // Alpha, the first 2 bytes remain 
+                                            // Alpha, the first 2 bytes remain
                                             RawDataOfSurface[target + 0] = _RawDataFromFile[source + 0];
                                             RawDataOfSurface[target + 1] = _RawDataFromFile[source + 1];
 
@@ -621,16 +654,20 @@ namespace VEngine
                                             RawDataOfSurface[target + 14] = _RawDataFromFile[source + 13];
                                             RawDataOfSurface[target + 15] = _RawDataFromFile[source + 12];
                                             break;
+
                                             default:
                                             throw new ArgumentException("ERROR: Should have never arrived here! Bad _PixelInternalFormat! Should have been dealt with much earlier.");
                                         }
+
                                         #endregion Swap Bytes
                                     }
                                 }
                             }
+
                             #endregion Prepare Array for TexImage
 
                             #region Create TexImage
+
                             switch(dimension)
                             {
                                 case TextureTarget.Texture2D:
@@ -643,6 +680,7 @@ namespace VEngine
                                                          SurfaceSizeInBytes,
                                                          RawDataOfSurface);
                                 break;
+
                                 case TextureTarget.TextureCubeMap:
                                 GL.CompressedTexImage2D(TextureTarget.TextureCubeMapPositiveX + Slices,
                                                          Level,
@@ -653,15 +691,18 @@ namespace VEngine
                                                          SurfaceSizeInBytes,
                                                          RawDataOfSurface);
                                 break;
+
                                 case TextureTarget.Texture1D: // Untested
                                 case TextureTarget.Texture3D: // Untested
                                 default:
                                 throw new ArgumentException("ERROR: Use DXT for 2D Images only. Cannot evaluate " + dimension);
                             }
                             GL.Finish();
+
                             #endregion Create TexImage
 
                             #region Query Success
+
                             int width, height, internalformat, compressed;
                             switch(dimension)
                             {
@@ -673,12 +714,14 @@ namespace VEngine
                                 GL.GetTexLevelParameter(dimension, Level, GetTextureParameter.TextureInternalFormat, out internalformat);
                                 GL.GetTexLevelParameter(dimension, Level, GetTextureParameter.TextureCompressed, out compressed);
                                 break;
+
                                 case TextureTarget.TextureCubeMap:
                                 GL.GetTexLevelParameter(TextureTarget.TextureCubeMapPositiveX + Slices, Level, GetTextureParameter.TextureWidth, out width);
                                 GL.GetTexLevelParameter(TextureTarget.TextureCubeMapPositiveX + Slices, Level, GetTextureParameter.TextureHeight, out height);
                                 GL.GetTexLevelParameter(TextureTarget.TextureCubeMapPositiveX + Slices, Level, GetTextureParameter.TextureInternalFormat, out internalformat);
                                 GL.GetTexLevelParameter(TextureTarget.TextureCubeMapPositiveX + Slices, Level, GetTextureParameter.TextureCompressed, out compressed);
                                 break;
+
                                 default:
                                 throw Unfinished;
                             }
@@ -690,6 +733,7 @@ namespace VEngine
                                 GL.DeleteTextures(1, ref texturehandle);
                                 throw new ArgumentException("ERROR: Something went wrong after GL.CompressedTexImage(); Last GL Error: " + GLError.ToString());
                             }
+
                             #endregion Query Success
                         }
                         else
@@ -699,6 +743,7 @@ namespace VEngine
                         }
 
                         #region Prepare the next MipMap level
+
                         Width /= 2;
                         if(Width < 1)
                             Width = 1;
@@ -706,10 +751,12 @@ namespace VEngine
                         if(Height < 1)
                             Height = 1;
                         Cursor += SurfaceSizeInBytes;
+
                         #endregion Prepare the next MipMap level
                     }
 
                     #region Set States properly
+
                     GL.TexParameter(dimension, (TextureParameterName)All.TextureBaseLevel, 0);
                     GL.TexParameter(dimension, (TextureParameterName)All.TextureMaxLevel, trueMipMapCount);
 
@@ -718,10 +765,12 @@ namespace VEngine
 
                     if(TextureLoaderParameters.Verbose)
                         Trace.WriteLine("Verification: GL: " + GL.GetError().ToString() + " TextureMaxLevel: " + TexMaxLevel + ((TexMaxLevel == trueMipMapCount) ? " (Correct.)" : " (Wrong!)"));
+
                     #endregion Set States properly
                 }
 
                 #region Set Texture Parameters
+
                 GL.TexParameter(dimension, TextureParameterName.TextureMinFilter, (int)TextureLoaderParameters.MinificationFilter);
                 GL.TexParameter(dimension, TextureParameterName.TextureMagFilter, (int)TextureLoaderParameters.MagnificationFilter);
 
@@ -735,10 +784,12 @@ namespace VEngine
                 {
                     throw new ArgumentException("Error setting Texture Parameters. GL Error: " + GLError);
                 }
+
                 #endregion Set Texture Parameters
 
                 // If it made it here without throwing any Exception the result is a valid Texture.
                 return; // success
+
                 #endregion send the Texture to GL
             }
             catch(Exception e)
@@ -752,12 +803,14 @@ namespace VEngine
             {
                 _RawDataFromFile = null; // clarity, not really needed
             }
+
             #endregion Try
         }
 
         public static void LoadFromByteArray(byte[] _RawDataFromFile, out uint texturehandle, out TextureTarget dimension)
         {
             #region Prep data
+
             // invalidate whatever it was before
             dimension = (TextureTarget)0;
             texturehandle = TextureLoaderParameters.OpenGLDefaultTexture;
@@ -771,13 +824,15 @@ namespace VEngine
             _BytesForMainSurface = 0;
             _BytesPerBlock = 0;
             _PixelInternalFormat = PixelInternalFormat.Rgba8;
-            #endregion
+
+            #endregion Prep data
 
             #region Try
-            try // Exceptions will be thrown if any Problem occurs while working on the file. 
-            {
 
+            try // Exceptions will be thrown if any Problem occurs while working on the file.
+            {
                 #region Translate Header to less cryptic representation
+
                 ConvertDX9Header(ref _RawDataFromFile); // The first 128 Bytes of the file is non-image data
 
                 // start by checking if all forced flags are present. Flags indicate valid fields, but aren't written by every tool .....
@@ -791,6 +846,7 @@ namespace VEngine
                     throw new ArgumentException("ERROR: File has invalid signature or missing Flags.");
 
                 #region Examine Flags
+
                 if(CheckFlag(dwFlags, (uint)eDDSD.WIDTH))
                     _Width = (int)dwWidth;
                 else
@@ -845,9 +901,11 @@ namespace VEngine
                     _BytesForMainSurface = (int)dwPitchOrLinearSize;
                     _IsCompressed = true;
                 }
+
                 #endregion Examine Flags
 
                 #region Examine Pixel Format, anything but DXTn will fail atm.
+
                 if(CheckFlag(pfFlags, (uint)eDDPF.FOURCC))
                     switch((eFOURCC)pfFourCC)
                     {
@@ -868,13 +926,15 @@ namespace VEngine
                         _BytesPerBlock = 16;
                         _IsCompressed = true;
                         break;
+
                         default:
-                        throw Unfinished; // handle uncompressed formats 
+                        throw Unfinished; // handle uncompressed formats
                     }
                 else
                     throw Unfinished;
                 // pf*Bitmasks should be examined here
-                #endregion
+
+                #endregion Examine Pixel Format, anything but DXTn will fail atm.
 
                 // Works, but commented out because some texture authoring tools don't set this flag.
                 /* Safety Check, if file is only 1x 2D surface without mipmaps, eDDSCAPS.COMPLEX should not be set
@@ -884,14 +944,18 @@ namespace VEngine
                         Trace.WriteLine( "Warning: Image is declared complex, but contains only 1 surface." );
                 }*/
 
-               // if(TextureLoaderParameters.Verbose)
+                // if(TextureLoaderParameters.Verbose)
                 //    Trace.WriteLine("\n" + GetDescriptionFromMemory(filename, dimension));
+
                 #endregion Translate Header to less cryptic representation
 
                 #region send the Texture to GL
+
                 #region Generate and Bind Handle
+
                 GL.GenTextures(1, out texturehandle);
                 GL.BindTexture(dimension, texturehandle);
+
                 #endregion Generate and Bind Handle
 
                 int Cursor = HeaderSizeInBytes;
@@ -904,6 +968,7 @@ namespace VEngine
                     for(int Level = 0; Level < _MipMapCount; Level++) // start at base image
                     {
                         #region determine Dimensions
+
                         int BlocksPerRow = (Width + 3) >> 2;
                         int BlocksPerColumn = (Height + 3) >> 2;
                         int SurfaceBlockCount = BlocksPerRow * BlocksPerColumn; //   // DXTn stores Texels in 4x4 blocks, a Color block is 8 Bytes, an Alpha block is 8 Bytes for DXT3/5
@@ -912,12 +977,14 @@ namespace VEngine
                         // this check must evaluate to false for 2D and Cube maps, or it's impossible to determine MipMap sizes.
                         if(TextureLoaderParameters.Verbose && Level == 0 && _IsCompressed && _BytesForMainSurface != SurfaceSizeInBytes)
                             Trace.WriteLine("Warning: Calculated byte-count of main image differs from what was read from file.");
+
                         #endregion determine Dimensions
 
                         // skip mipmaps smaller than a 4x4 Pixels block, which is the smallest DXTn unit.
                         if(Width > 2 && Height > 2)
                         { // Note: there could be a potential problem with non-power-of-two cube maps
                             #region Prepare Array for TexImage
+
                             byte[] RawDataOfSurface = new byte[SurfaceSizeInBytes];
                             if(!TextureLoaderParameters.FlipImages)
                             { // no changes to the image, copy as is
@@ -932,7 +999,9 @@ namespace VEngine
                                     {
                                         int target = (targetColumn * BlocksPerRow + row) * _BytesPerBlock;
                                         int source = (sourceColumn * BlocksPerRow + row) * _BytesPerBlock + Cursor;
+
                                         #region Swap Bytes
+
                                         switch(_PixelInternalFormat)
                                         {
                                             case (PixelInternalFormat)OldGL.ExtTextureCompressionS3tc.CompressedRgbS3tcDxt1Ext:
@@ -946,6 +1015,7 @@ namespace VEngine
                                             RawDataOfSurface[target + 6] = _RawDataFromFile[source + 5];
                                             RawDataOfSurface[target + 7] = _RawDataFromFile[source + 4];
                                             break;
+
                                             case (PixelInternalFormat)OldGL.ExtTextureCompressionS3tc.CompressedRgbaS3tcDxt3Ext:
                                             // Alpha
                                             RawDataOfSurface[target + 0] = _RawDataFromFile[source + 6];
@@ -967,8 +1037,9 @@ namespace VEngine
                                             RawDataOfSurface[target + 14] = _RawDataFromFile[source + 13];
                                             RawDataOfSurface[target + 15] = _RawDataFromFile[source + 12];
                                             break;
+
                                             case (PixelInternalFormat)OldGL.ExtTextureCompressionS3tc.CompressedRgbaS3tcDxt5Ext:
-                                            // Alpha, the first 2 bytes remain 
+                                            // Alpha, the first 2 bytes remain
                                             RawDataOfSurface[target + 0] = _RawDataFromFile[source + 0];
                                             RawDataOfSurface[target + 1] = _RawDataFromFile[source + 1];
 
@@ -986,16 +1057,20 @@ namespace VEngine
                                             RawDataOfSurface[target + 14] = _RawDataFromFile[source + 13];
                                             RawDataOfSurface[target + 15] = _RawDataFromFile[source + 12];
                                             break;
+
                                             default:
                                             throw new ArgumentException("ERROR: Should have never arrived here! Bad _PixelInternalFormat! Should have been dealt with much earlier.");
                                         }
+
                                         #endregion Swap Bytes
                                     }
                                 }
                             }
+
                             #endregion Prepare Array for TexImage
 
                             #region Create TexImage
+
                             switch(dimension)
                             {
                                 case TextureTarget.Texture2D:
@@ -1008,6 +1083,7 @@ namespace VEngine
                                                          SurfaceSizeInBytes,
                                                          RawDataOfSurface);
                                 break;
+
                                 case TextureTarget.TextureCubeMap:
                                 GL.CompressedTexImage2D(TextureTarget.TextureCubeMapPositiveX + Slices,
                                                          Level,
@@ -1018,16 +1094,20 @@ namespace VEngine
                                                          SurfaceSizeInBytes,
                                                          RawDataOfSurface);
                                 break;
+
                                 case TextureTarget.Texture1D: // Untested
                                 case TextureTarget.Texture3D: // Untested
                                 default:
                                 throw new ArgumentException("ERROR: Use DXT for 2D Images only. Cannot evaluate " + dimension);
                             }
                             GL.Finish();
+
                             #endregion Create TexImage
 
                             GLError = GL.GetError();
+
                             #region Query Success
+
                             int width, height, internalformat, compressed;
                             switch(dimension)
                             {
@@ -1039,22 +1119,25 @@ namespace VEngine
                                 GL.GetTexLevelParameter(dimension, Level, GetTextureParameter.TextureInternalFormat, out internalformat);
                                 GL.GetTexLevelParameter(dimension, Level, GetTextureParameter.TextureCompressed, out compressed);
                                 break;
+
                                 case TextureTarget.TextureCubeMap:
                                 GL.GetTexLevelParameter(TextureTarget.TextureCubeMapPositiveX + Slices, Level, GetTextureParameter.TextureWidth, out width);
                                 GL.GetTexLevelParameter(TextureTarget.TextureCubeMapPositiveX + Slices, Level, GetTextureParameter.TextureHeight, out height);
                                 GL.GetTexLevelParameter(TextureTarget.TextureCubeMapPositiveX + Slices, Level, GetTextureParameter.TextureInternalFormat, out internalformat);
                                 GL.GetTexLevelParameter(TextureTarget.TextureCubeMapPositiveX + Slices, Level, GetTextureParameter.TextureCompressed, out compressed);
                                 break;
+
                                 default:
                                 throw Unfinished;
                             }
                             GLError = GL.GetError();
-                                Console.WriteLine("GL: " + GLError.ToString() + " Level: " + Level + " DXTn: " + ((compressed == 1) ? "Yes" : "No") + " Frmt:" + (OldGL.ExtTextureCompressionS3tc)internalformat + " " + width + "*" + height);
+                            Console.WriteLine("GL: " + GLError.ToString() + " Level: " + Level + " DXTn: " + ((compressed == 1) ? "Yes" : "No") + " Frmt:" + (OldGL.ExtTextureCompressionS3tc)internalformat + " " + width + "*" + height);
                             if(GLError != ErrorCode.NoError || compressed == 0 || width == 0 || height == 0 || internalformat == 0)
                             {
                                 GL.DeleteTextures(1, ref texturehandle);
                                 throw new ArgumentException("ERROR: Something went wrong after GL.CompressedTexImage(); Last GL Error: " + GLError.ToString());
                             }
+
                             #endregion Query Success
                         }
                         else
@@ -1064,6 +1147,7 @@ namespace VEngine
                         }
 
                         #region Prepare the next MipMap level
+
                         Width /= 2;
                         if(Width < 1)
                             Width = 1;
@@ -1071,10 +1155,12 @@ namespace VEngine
                         if(Height < 1)
                             Height = 1;
                         Cursor += SurfaceSizeInBytes;
+
                         #endregion Prepare the next MipMap level
                     }
 
                     #region Set States properly
+
                     GL.TexParameter(dimension, (TextureParameterName)All.TextureBaseLevel, 0);
                     GL.TexParameter(dimension, (TextureParameterName)All.TextureMaxLevel, trueMipMapCount);
 
@@ -1083,6 +1169,7 @@ namespace VEngine
 
                     if(TextureLoaderParameters.Verbose)
                         Trace.WriteLine("Verification: GL: " + GL.GetError().ToString() + " TextureMaxLevel: " + TexMaxLevel + ((TexMaxLevel == trueMipMapCount) ? " (Correct.)" : " (Wrong!)"));
+
                     #endregion Set States properly
                 }
 
@@ -1091,24 +1178,28 @@ namespace VEngine
                 {
                     throw new ArgumentException("Error setting texture. GL Error: " + GLError);
                 }
+
                 #region Set Texture Parameters
+
                 GL.TexParameter(dimension, TextureParameterName.TextureMinFilter, (int)TextureLoaderParameters.MinificationFilter);
                 GL.TexParameter(dimension, TextureParameterName.TextureMagFilter, (int)TextureLoaderParameters.MagnificationFilter);
 
                 GL.TexParameter(dimension, TextureParameterName.TextureWrapS, (int)TextureLoaderParameters.WrapModeS);
                 GL.TexParameter(dimension, TextureParameterName.TextureWrapT, (int)TextureLoaderParameters.WrapModeT);
 
-              //  OldGL.GL.TexEnv(OldGL.TextureEnvTarget.TextureEnv, OldGL.TextureEnvParameter.TextureEnvMode, (int)TextureLoaderParameters.EnvMode);
+                //  OldGL.GL.TexEnv(OldGL.TextureEnvTarget.TextureEnv, OldGL.TextureEnvParameter.TextureEnvMode, (int)TextureLoaderParameters.EnvMode);
 
                 GLError = GL.GetError();
                 if(GLError != ErrorCode.NoError)
                 {
                     throw new ArgumentException("Error setting Texture Parameters. GL Error: " + GLError);
                 }
+
                 #endregion Set Texture Parameters
 
                 // If it made it here without throwing any Exception the result is a valid Texture.
                 return; // success
+
                 #endregion send the Texture to GL
             }
             catch(Exception e)
@@ -1122,10 +1213,12 @@ namespace VEngine
             {
                 _RawDataFromFile = null; // clarity, not really needed
             }
+
             #endregion Try
         }
 
         #region Helpers
+
         private static void ConvertDX9Header(ref byte[] input)
         {
             UInt32 offset = 0;
@@ -1174,7 +1267,7 @@ namespace VEngine
             dwCaps2 = GetUInt32(ref input, offset);
             offset += 4;
 #if READALL
-            dwReserved2 = new UInt32[3]; // offset is 4+112 here, + 12 = 4+124 
+            dwReserved2 = new UInt32[3]; // offset is 4+112 here, + 12 = 4+124
 #endif
             offset += 4 * 3;
         }
@@ -1244,9 +1337,11 @@ namespace VEngine
             Result = Result | (uint)(ThreeBits[0][3] << 21);
             return Result;
         }
+
         #endregion Helpers
 
         #region String Representations
+
         private static string GetDescriptionFromFile(string filename)
         {
             return "\n--> Header of " + filename +
@@ -1283,6 +1378,7 @@ namespace VEngine
                    "\nBytes for Main Image: " + _BytesForMainSurface +
                    "\nMipMaps: " + _MipMapCount;
         }
+
         #endregion String Representations
     }
 }

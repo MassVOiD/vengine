@@ -12,16 +12,6 @@ namespace VEngine
 
         static public bool Lock = false;
 
-        private static List<ComputeShader> AllComputeShaders = new List<ComputeShader>();
-
-        private bool Compiled;
-
-        private string ComputeFile;
-
-        private int Handle = -1;
-
-        private Dictionary<string, int> UniformLocationsCache;
-
         public ComputeShader(string file)
         {
             UniformLocationsCache = new Dictionary<string, int>();
@@ -213,6 +203,16 @@ namespace VEngine
             GL.UseProgram(Handle);
             Current = this;
         }
+
+        private static List<ComputeShader> AllComputeShaders = new List<ComputeShader>();
+
+        private bool Compiled;
+
+        private string ComputeFile;
+
+        private int Handle = -1;
+
+        private Dictionary<string, int> UniformLocationsCache;
 
         private static int GetUniformLocation(string name)
         {

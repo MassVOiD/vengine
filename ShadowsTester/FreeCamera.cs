@@ -1,5 +1,4 @@
 ﻿using System;
-using BulletSharp;
 using OpenTK;
 using VEngine;
 
@@ -16,7 +15,7 @@ namespace ShadowsTester
             float fovdegree = 90;
             Cam = new Camera(new Vector3(0, 5, 0), new Vector3(0, 0, 1), Vector3.UnitY, aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
             Camera.MainDisplayCamera = Cam;
-           
+
             GLThread.OnUpdate += UpdateSterring;
             GLThread.OnMouseMove += OnMouseMove;
 
@@ -24,10 +23,12 @@ namespace ShadowsTester
             {
                 if(e.Key == OpenTK.Input.Key.M)
                 {
-                    fovdegree += 5f;    
+                    fovdegree += 5f;
                     if(fovdegree >= 180)
                         fovdegree = 180;
-                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out Cam.ProjectionMatrix);
+                    Matrix4 a = Matrix4.Zero;
+                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out a);
+                    Cam.SetProjectionMatrix(a);
                     Camera.Current.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
                 }
                 if(e.Key == OpenTK.Input.Key.N)
@@ -35,7 +36,9 @@ namespace ShadowsTester
                     fovdegree -= 5f;
                     if(fovdegree <= 10)
                         fovdegree = 10;
-                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out Cam.ProjectionMatrix);
+                    Matrix4 a = Matrix4.Zero;
+                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out a);
+                    Cam.SetProjectionMatrix(a);
                     Camera.Current.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
                 }
             };

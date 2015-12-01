@@ -13,8 +13,6 @@ namespace VEngine
             public bool UpdateRotation = true;
         }
 
-        private static List<LinkInfo> Links = new List<LinkInfo>();
-
         public static LinkInfo Link(ITransformable parent, ITransformable child, Vector3 offset, Quaternion Rotation)
         {
             var link = new LinkInfo()
@@ -38,7 +36,6 @@ namespace VEngine
                     link.Child.GetTransformationManager().SetPosition(link.Parent.GetTransformationManager().GetPosition() + link.Offset.Rotate(link.Parent.GetTransformationManager().GetOrientation()));
                     if(link.UpdateRotation)
                         link.Child.GetTransformationManager().SetOrientation(Quaternion.Multiply(link.Parent.GetTransformationManager().GetOrientation(), link.Rotation));
-
                 }
                 else if(link.Child is Camera)
                 {
@@ -60,5 +57,7 @@ namespace VEngine
         {
             Links.Remove(info);
         }
+
+        private static List<LinkInfo> Links = new List<LinkInfo>();
     }
 }

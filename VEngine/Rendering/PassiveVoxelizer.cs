@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
@@ -10,9 +8,11 @@ namespace VEngine
 {
     public class PassiveVoxelizer
     {
-        ShaderStorageBuffer BoxesSSBO;
-        ShaderProgram VoxelizerShader;
-        Framebuffer DrawingFramebuffer;
+        public class Voxel
+        {
+            public float Density;
+            public Vector3 Maximum, Minimum;
+        }
 
         public PassiveVoxelizer()
         {
@@ -25,12 +25,6 @@ namespace VEngine
                 ColorPixelType = PixelType.Byte,
                 ColorPixelFormat = PixelFormat.Red
             };
-        }
-
-        public class Voxel
-        {
-            public Vector3 Maximum, Minimum;
-            public float Density;
         }
 
         public List<Voxel> Voxelize(Object3dInfo objinfo, int gridSize)
@@ -65,7 +59,7 @@ namespace VEngine
             GL.ColorMask(true, false, false, false);
             VoxelizerShader.Use();
             //VoxelizerShader.SetUniform("NormalizationDivisor", 1.0f / divisor);
-           // VoxelizerShader.SetUniform("CenterToZero", transFromCenter);
+            // VoxelizerShader.SetUniform("CenterToZero", transFromCenter);
             VoxelizerShader.SetUniform("Grid", gridSize);
             BoxesSSBO.Use(4);
             copy.Draw();
@@ -74,7 +68,6 @@ namespace VEngine
             int cursor = 0;
             int i = 0;
             var newVoxels = new List<Voxel>();
-            
 
             for(int x = 0; x < gridSize; x++)
             {
@@ -104,5 +97,9 @@ namespace VEngine
             GL.ColorMask(true, true, true, true);
             return newVoxels;
         }
+
+        private ShaderStorageBuffer BoxesSSBO;
+        private Framebuffer DrawingFramebuffer;
+        private ShaderProgram VoxelizerShader;
     }
 }

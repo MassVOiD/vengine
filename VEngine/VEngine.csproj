@@ -73,7 +73,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BulletSharp, Version=2.83.0.0, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="BulletSharp, Version=2.83.5.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dependencies\BulletSharp.dll</HintPath>
     </Reference>
@@ -97,6 +97,8 @@
     <Compile Include="Game\KeyboardController.cs" />
     <Compile Include="ObjectIDGenerator.cs" />
     <Compile Include="PathTracing\JitterRandomSequenceGenerator.cs" />
+    <Compile Include="PhysicalBody.cs" />
+    <Compile Include="Physics.cs" />
     <Compile Include="RainSystem.cs" />
     <Compile Include="Rendering\Camera.cs" />
     <Content Include="Config.css">
@@ -112,7 +114,6 @@
     <Compile Include="Rendering\MRTFramebuffer.cs" />
     <Compile Include="Rendering\GraphicsSettings.cs" />
     <Compile Include="Internals\Interpolator.cs" />
-    <Compile Include="Rendering\Lights\PointLight.cs" />
     <Compile Include="Rendering\Lights\ProjectionLight.cs" />
     <Compile Include="Rendering\Framebuffer.cs" />
     <Compile Include="Rendering\CubeMapTexture.cs" />

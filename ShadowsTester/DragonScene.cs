@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using OpenTK;
-using OpenTK.Graphics.OpenGL4;
 using VEngine;
 using VEngine.FileFormats;
 using VEngine.Generators;
@@ -12,20 +10,6 @@ namespace ShadowsTester
 {
     public class DragonScene
     {
-        class VegetationPart
-        {
-            public string Texture, Model;
-            public float Scale, ScaleVariation;
-            public int Count;
-            public VegetationPart(string t, string m, float s, float sv, int c)
-            {
-                Texture = t;
-                Model = m;
-                Scale = s;
-                ScaleVariation = sv;
-                Count = c;
-            }
-        }
         public DragonScene()
         {
             var scene = World.Root.RootScene;
@@ -47,12 +31,14 @@ namespace ShadowsTester
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
-            var color2 = GenericMaterial.FromMedia("3a.jpg", "3n.jpg");
+            var color2 = GenericMaterial.FromMedia("albed.jpg", "normel.png");
+            color2.SetRoughnessMapFromMedia("roughnez.png");
+            color2.SetMetalnessMapFromMedia("metal.png");
+            color2.InvertNormalMap = true;
             //var color2 = new GenericMaterial(Color.Green);
             Mesh3d water3 = Mesh3d.Create(groundInfo, color2);
             water3.GetInstance(0).Scale(30);
             scene.Add(water3);
-
 
             Random rand = new Random();
             /*
@@ -82,8 +68,7 @@ namespace ShadowsTester
                 ioc.UpdateMatrix();
                 scene.Add(ioc);
             }
-            
-            
+
             Object3dInfo[] tree_0 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod0.obj"));
             Object3dInfo[] tree_1 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod1.obj"));
             Object3dInfo[] tree_2 = Object3dInfo.LoadFromObj(Media.Get("tree_1_lod2.obj"));
@@ -122,7 +107,7 @@ namespace ShadowsTester
             leaves.AddLodLevel(leavesl1);
             leaves.AddLodLevel(leavesl2);
             leaves.AddLodLevel(leavesl3);
-            for(int i = 0; i < 510; i++)
+            for(int i = 0; i < 110; i++)
             {
                 var inst = new Mesh3dInstance(
                         new TransformationManager(
@@ -151,24 +136,23 @@ namespace ShadowsTester
                     level = 0;
             }, 1150).Start();*/
 
-
             //  var sph1 = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
 
             //  var terrain = Mesh3d.Create(Object3dInfo.LoadFromObjSingle(Media.Get("pisa.obj")), GenericMaterial.FromColor(Color.LightSlateGray));
             //  terrain.GetInstance(0).Scale(1.0f);
             //  scene.Add(terrain);
 
-            // var ferrari = new GameScene("ferrari.scene");
-            //     ferrari.Load();
-            //  ferrari.Meshes.ForEach((a) => scene.Add(a));
+             var ferrari = new GameScene("ferrari.scene");
+                 ferrari.Load();
+              ferrari.Meshes.ForEach((a) => scene.Add(a));
 
-            var dmk = Object3dInfo.LoadSceneFromObj(Media.Get("stolik.obj"), Media.Get("stolik.mtl"));
+            var dmk = Object3dInfo.LoadSceneFromObj(Media.Get("cathedral.obj"), Media.Get("cathedral.mtl"));
+       
             dmk.ForEach((a) => scene.Add(a));
 
             PostProcessing pp = new PostProcessing(128, 128);
             CubeMapFramebuffer cubens = new CubeMapFramebuffer(128, 128);
             var tex = new CubeMapTexture(cubens.TexColor);
-            GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
             cubens.SetPosition(new Vector3(0, 1, 0));
             GLThread.OnKeyPress += (o, e) =>
             {
@@ -179,10 +163,27 @@ namespace ShadowsTester
                     GLThread.Invoke(() =>
                     {
                         pp.RenderToCubeMapFramebuffer(cubens);
+                        GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
                         tex.Handle = cubens.TexColor;
                     });
                 }
             };
+        }
+
+        private class VegetationPart
+        {
+            public int Count;
+            public float Scale, ScaleVariation;
+            public string Texture, Model;
+
+            public VegetationPart(string t, string m, float s, float sv, int c)
+            {
+                Texture = t;
+                Model = m;
+                Scale = s;
+                ScaleVariation = sv;
+                Count = c;
+            }
         }
     }
 }

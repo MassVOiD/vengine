@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
+using System.Text;
 using SD = SharpDX.Toolkit.Graphics;
 
 namespace Command_line_tools
 {
-    class Program
+    internal class Program
     {
-        static void CommandTexturePack(string albedo, string normal, string bump, string discard, string specular, string roughness, string metalness, string albedoDiscardOutput)
+        private static void CommandTexturePack(string albedo, string normal, string bump, string discard, string specular, string roughness, string metalness, string albedoDiscardOutput)
         {
             var albedoBitmap = albedo == "" ? null : new Bitmap(Image.FromFile(albedo));
             var normalBitmap = normal == "" ? null : new Bitmap(Image.FromFile(normal));
@@ -24,7 +20,8 @@ namespace Command_line_tools
 
             int ais = albedoBitmap.Width * albedoBitmap.Height;
             var albedoalphaBuffer = new Color[ais];
-            for(int i = 0; i < ais; i++) {
+            for(int i = 0; i < ais; i++)
+            {
                 var apix = albedoBitmap.GetPixel(i % albedoBitmap.Width, (int)Math.Floor((double)i / albedoBitmap.Width));
                 var dpix = discardBitmap.GetPixel(i % albedoBitmap.Width, (int)Math.Floor((double)i / albedoBitmap.Width));
                 albedoalphaBuffer[ais] = Color.FromArgb(dpix.R * 255, apix.R * 255, apix.G * 255, apix.B * 255);
@@ -35,7 +32,7 @@ namespace Command_line_tools
             img.Save(albedoDiscardOutput, SharpDX.Toolkit.Graphics.ImageFileType.Dds);
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
         }
     }

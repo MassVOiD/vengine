@@ -30,9 +30,17 @@ float cosmix(float a, float b, float factor){
 float ncos(float a){
     return cosmix(0, 1, a);
 }
-
+uniform vec3 FrustumConeLeftBottom;
+uniform vec3 FrustumConeBottomLeftToBottomRight;
+uniform vec3 FrustumConeBottomLeftToTopLeft;
+//mat4 imvp =inverse(ProjectionMatrix * ViewMatrix);
 vec3 reconstructCameraSpace(vec2 uv){
-	vec4 clip = inverse(ProjectionMatrix * ViewMatrix) * vec4(uv * 2.0 - 1.0, 0.01, 1.0);
+	vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
+	return dir * reverseLog(texture(depthTex, uv).r);
+}
+mat4 imvp =inverse(ProjectionMatrix * ViewMatrix);
+vec3 reconstructCameraSpacexxx(vec2 uv){
+	vec4 clip = imvp * vec4(uv * 2.0 - 1.0, 0.01, 1.0);
 	vec3 dir = normalize((clip.xyz / clip.w).xyz - CameraPosition);
 	return dir * reverseLog(texture(depthTex, uv).r);
 }

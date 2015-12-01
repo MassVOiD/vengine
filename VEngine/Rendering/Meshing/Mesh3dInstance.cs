@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace VEngine
 {
     public class Mesh3dInstance : ITransformable
     {
-        public TransformationManager Transformation;
-        public string Name;
         public uint Id;
+        public string Name;
+        public TransformationManager Transformation;
 
         public Mesh3dInstance(TransformationManager trans, string name)
         {

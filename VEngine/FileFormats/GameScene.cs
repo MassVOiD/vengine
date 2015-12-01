@@ -118,7 +118,6 @@ namespace VEngine.FileFormats
                     output.Append("ibo ");
                     output.AppendLine(nameprefix + element.Name + ".indices.raw");
 
-
                     output.Append("translate ");
                     output.Append(i0.GetPosition().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     output.Append(" ");
@@ -376,6 +375,13 @@ namespace VEngine.FileFormats
                         if(tempMaterial == null)
                             throw new Exception("Invalid line in scene string: " + l);
                         tempMaterial.Type = (GenericMaterial.MaterialType)Enum.Parse(typeof(GenericMaterial.MaterialType), data, true);
+                        break;
+                    }
+                    case "invertnormalmap":
+                    {
+                        if(tempMaterial == null)
+                            throw new Exception("Invalid line in scene string: " + l);
+                        tempMaterial.InvertNormalMap = data == "true" ? true : false;
                         break;
                     }
                     case "normalmap":

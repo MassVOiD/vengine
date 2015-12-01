@@ -8,7 +8,6 @@ namespace VEngine
         public static Sun Current;
         public Vector4 LightColor;
         public Quaternion Orientation;
-        private Dictionary<float, ProjectionLight> Cascades;
 
         public Sun(Quaternion orientation, Vector4 color, params float[] levels)
         {
@@ -37,6 +36,8 @@ namespace VEngine
 
             GLThread.OnUpdate += GLThread_OnUpdate;
         }
+
+        private Dictionary<float, ProjectionLight> Cascades;
 
         private void GLThread_OnUpdate(object sender, System.EventArgs e)
         {

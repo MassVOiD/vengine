@@ -7,15 +7,45 @@ namespace VEngine
 {
     public class ShaderStorageBuffer
     {
-        public BufferUsageHint Type = BufferUsageHint.DynamicDraw;
-
-        private bool Generated;
-
-        private int Handle = -1;
         public int last = 0;
+        public BufferUsageHint Type = BufferUsageHint.DynamicDraw;
 
         public ShaderStorageBuffer()
         {
+        }
+
+        public static byte[] Serialize(dynamic structure)
+        {
+            if(structure.GetType().IsArray)
+            {
+                var objs = structure;
+                var buf = new List<byte>();
+                for(int i = 0; i < objs.Length; i++)
+                {
+                    int size = Marshal.SizeOf(structure[i]);
+                    byte[] arr = new byte[size];
+                    IntPtr ptr = Marshal.AllocHGlobal(size);
+
+                    Marshal.StructureToPtr(structure[i], ptr, true);
+                    Marshal.Copy(ptr, arr, 0, size);
+                    Marshal.FreeHGlobal(ptr);
+
+                    buf.AddRange(arr);
+                }
+                return buf.ToArray();
+            }
+            else
+            {
+                int size = Marshal.SizeOf(structure);
+                byte[] arr = new byte[size];
+                IntPtr ptr = Marshal.AllocHGlobal(size);
+
+                Marshal.StructureToPtr(structure, ptr, true);
+                Marshal.Copy(ptr, arr, 0, size);
+                Marshal.FreeHGlobal(ptr);
+
+                return arr;
+            }
         }
 
         public void MapData(byte[] buffer)
@@ -64,40 +94,6 @@ namespace VEngine
             }
         }
 
-        public static byte[] Serialize(dynamic structure)
-        {
-            if(structure.GetType().IsArray)
-            {
-                var objs = structure;
-                var buf = new List<byte>();
-                for(int i = 0; i < objs.Length; i++)
-                {
-                    int size = Marshal.SizeOf(structure[i]);
-                    byte[] arr = new byte[size];
-                    IntPtr ptr = Marshal.AllocHGlobal(size);
-
-                    Marshal.StructureToPtr(structure[i], ptr, true);
-                    Marshal.Copy(ptr, arr, 0, size);
-                    Marshal.FreeHGlobal(ptr);
-
-                    buf.AddRange(arr);
-                }
-                return buf.ToArray();
-            }
-            else
-            {
-                int size = Marshal.SizeOf(structure);
-                byte[] arr = new byte[size];
-                IntPtr ptr = Marshal.AllocHGlobal(size);
-
-                Marshal.StructureToPtr(structure, ptr, true);
-                Marshal.Copy(ptr, arr, 0, size);
-                Marshal.FreeHGlobal(ptr);
-
-                return arr;
-            }
-        }
-
         public void MapSubData(byte[] buffer, uint start, uint length)
         {
             if(!Generated)
@@ -117,13 +113,18 @@ namespace VEngine
             return data;
         }
 
-        public void Use(uint point)
-        {
-            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, (uint)Handle);
-        }
         public void Release(uint point)
         {
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, 0);
         }
+
+        public void Use(uint point)
+        {
+            GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, (uint)Handle);
+        }
+
+        private bool Generated;
+
+        private int Handle = -1;
     }
 }

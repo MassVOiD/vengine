@@ -21,8 +21,6 @@ namespace VEngine
 
         public int TexDiffuse, TexNormals, TexMeshData, TexDepth, TexId;
 
-        private int FBO, RBO, Width, Height;
-
         public MRTFramebuffer(int width, int height)
         {
             Generated = false;
@@ -85,7 +83,9 @@ namespace VEngine
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
-        
+
+        private int FBO, RBO, Width, Height;
+
         private void Generate()
         {
             Generated = true;
@@ -102,7 +102,7 @@ namespace VEngine
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            
+
             TexNormals = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, TexNormals);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, (IntPtr)0);
@@ -111,6 +111,15 @@ namespace VEngine
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+            TexMeshData = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, TexMeshData);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, (IntPtr)0);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 
             TexMeshData = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, TexMeshData);
@@ -151,7 +160,7 @@ namespace VEngine
 
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TexDepth, 0);
 
-            GL.DrawBuffers(5, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2, DrawBuffersEnum.ColorAttachment3});
+            GL.DrawBuffers(5, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2, DrawBuffersEnum.ColorAttachment3 });
 
             if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             {

@@ -8,6 +8,59 @@ namespace VEngine
 {
     public class GenericMaterial
     {
+        public static ShaderPack MainShaderPack = new ShaderPack("Generic.fragment.glsl");
+
+        public static ShaderPack OverrideShaderPack = null;
+
+        public float
+            AORange = 0.5f,
+            AOStrength = 0.5f,
+            AOAngleCutoff = 0.0f,
+            VDAOMultiplier = 0.5f,
+            VDAOSamplingMultiplier = 0.5f,
+            VDAORefreactionMultiplier = 0.0f,
+            SubsurfaceScatteringMultiplier = 0.0f;
+
+        public ShaderStorageBuffer BallsBuffer;
+
+        public bool CastShadows = true;
+
+        public Vector4 Color;
+
+        public bool IgnoreLighting = false;
+
+        public bool InvertNormalMap = true;
+
+        public float Metalness = 0.5f;
+
+        public DrawMode Mode;
+
+        public string Name;
+
+        public Texture NormalMap, BumpMap, AlphaMask, RoughnessMap, MetalnessMap, SpecularMap;
+
+        public float NormalMapScale = 1.0f;
+
+        public float ParallaxHeightMultiplier = 1.0f;
+
+        public int ParallaxInstances = 12;
+
+        public bool ReceiveShadows = true;
+
+        public float ReflectionStrength = 0;
+
+        public float RefractionStrength = 0;
+
+        public float Roughness = 0.5f;
+
+        public float SpecularComponent = 0.0f, DiffuseComponent = 1.0f;
+
+        public float TesselationMultiplier = 1.0f;
+
+        public Texture Tex;
+
+        public MaterialType Type;
+
         public class ShaderPack
         {
             public ShaderProgram
@@ -21,6 +74,7 @@ namespace VEngine
                 // Geometry32iPoints,
                 //Geometry96iLines,
                 Geometry96iTriangles;
+
             //Geometry96iPoints;
             /* TesselatedGeometry1iLines,
              TesselatedGeometry1iTriangles,
@@ -71,7 +125,7 @@ namespace VEngine
                 /*if(Geometry96iPoints == null)
                     Geometry96iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry96iPoints.glsl");
-                
+
                 if(TesselatedGeometry1iLines == null)
                     TesselatedGeometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry1iLines.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
@@ -122,48 +176,6 @@ namespace VEngine
                    // TesselatedGeometry96iPoints
                 });
             }
-        }
-
-        public static ShaderPack MainShaderPack = new ShaderPack("Generic.fragment.glsl");
-        public static ShaderPack OverrideShaderPack = null;
-        public bool CastShadows = true;
-        public Vector4 Color;
-        public bool IgnoreLighting = false;
-        public float Metalness = 0.5f;
-        public DrawMode Mode;
-        public string Name;
-        public Texture NormalMap, BumpMap, AlphaMask, RoughnessMap, MetalnessMap, SpecularMap;
-        public float NormalMapScale = 1.0f;
-        public bool ReceiveShadows = true;
-        public float ReflectionStrength = 0;
-        public float RefractionStrength = 0;
-        public float Roughness = 0.5f;
-        public float SpecularComponent = 0.0f, DiffuseComponent = 1.0f;
-        public float TesselationMultiplier = 1.0f;
-        public float ParallaxHeightMultiplier = 1.0f;
-        public int ParallaxInstances = 12;
-
-        public float
-            AORange = 0.5f,
-            AOStrength = 0.5f,
-            AOAngleCutoff = 0.0f,
-            VDAOMultiplier = 0.5f,
-            VDAOSamplingMultiplier = 0.5f,
-            VDAORefreactionMultiplier = 0.0f,
-            SubsurfaceScatteringMultiplier = 0.0f;
-
-        public Texture Tex;
-        public MaterialType Type;
-
-        private ShaderProgram lastUserProgram = null;
-
-        private RainSystem RainsDropSystem = null;
-
-        public ShaderStorageBuffer BallsBuffer;
-
-        public void SetRainSystem(RainSystem rs)
-        {
-            RainsDropSystem = rs;
         }
 
         public GenericMaterial(Texture tex, Texture normalMap = null, Texture bumpMap = null)
@@ -220,16 +232,16 @@ namespace VEngine
 
             DropsSystem,
             OptimizedSpheres
+        }
 
+        public static GenericMaterial FromColor(Color color)
+        {
+            return new GenericMaterial(color);
         }
 
         public static GenericMaterial FromMedia(string key)
         {
             return new GenericMaterial(new Texture(Media.Get(key)));
-        }
-        public static GenericMaterial FromColor(Color color)
-        {
-            return new GenericMaterial(color);
         }
 
         public static GenericMaterial FromMedia(string key, string normalmap_key)
@@ -275,6 +287,24 @@ namespace VEngine
             NormalMap = new Texture(Media.Get(key));
         }
 
+        public void SetOptimizedBalls(List<Vector4> PositionsAndScales)
+        {
+            var bytes = new List<byte>();
+            foreach(var p in PositionsAndScales)
+            {
+                bytes.AddRange(BitConverter.GetBytes(p.X));
+                bytes.AddRange(BitConverter.GetBytes(p.Y));
+                bytes.AddRange(BitConverter.GetBytes(p.Z));
+                bytes.AddRange(BitConverter.GetBytes(p.W));
+            }
+            GLThread.Invoke(() => BallsBuffer.MapData(bytes.ToArray()));
+        }
+
+        public void SetRainSystem(RainSystem rs)
+        {
+            RainsDropSystem = rs;
+        }
+
         public void SetRoughnessMapFromMedia(string key)
         {
             RoughnessMap = new Texture(Media.Get(key));
@@ -291,19 +321,6 @@ namespace VEngine
             Mode = GenericMaterial.DrawMode.TextureOnly;
         }
 
-        public void SetOptimizedBalls(List<Vector4> PositionsAndScales)
-        {
-            var bytes = new List<byte>();
-            foreach(var p in PositionsAndScales)
-            {
-                bytes.AddRange(BitConverter.GetBytes(p.X));
-                bytes.AddRange(BitConverter.GetBytes(p.Y));
-                bytes.AddRange(BitConverter.GetBytes(p.Z));
-                bytes.AddRange(BitConverter.GetBytes(p.W));
-            }
-            GLThread.Invoke(() => BallsBuffer.MapData(bytes.ToArray()));
-        }
-
         public bool Use()
         {
             var prg = GetShaderProgram();
@@ -313,17 +330,18 @@ namespace VEngine
             if(lastUserProgram == null)
                 lastUserProgram = ShaderProgram.Current;
             ShaderProgram.SwitchResult res = prg.Use();
-          //  if(res == ShaderProgram.SwitchResult.Locked)
-          //  {
-          //      prg = ShaderProgram.Current;
-           // }
-           // if(lastUserProgram == ShaderProgram.Current)
-          //      return true;
+            //  if(res == ShaderProgram.SwitchResult.Locked)
+            //  {
+            //      prg = ShaderProgram.Current;
+            // }
+            // if(lastUserProgram == ShaderProgram.Current)
+            //      return true;
             //lastUserProgram = ShaderProgram.Current;
             prg.SetUniform("TesselationMultiplier", TesselationMultiplier);
             if(NormalMap != null)
             {
                 prg.SetUniform("UseNormalMap", 1);
+                prg.SetUniform("InvertNormalMap", InvertNormalMap);
                 prg.SetUniform("NormalMapScale", NormalMapScale);
                 NormalMap.Use(TextureUnit.Texture27);
             }
@@ -374,7 +392,7 @@ namespace VEngine
             else
             {
                 prg.SetUniform("UseAlphaMask", 0);
-                GL.Disable(EnableCap.CullFace);
+                GL.Enable(EnableCap.CullFace);
                 // GL.Enable(EnableCap.CullFace);
             }
 
@@ -398,12 +416,12 @@ namespace VEngine
             prg.SetUniform("ParallaxHeightMultiplier", ParallaxHeightMultiplier);
             prg.SetUniform("ParallaxInstances", ParallaxInstances);
 
-           // prg.SetUniform("AORange", AORange);
-           // prg.SetUniform("AOStrength", AOStrength);
-           // prg.SetUniform("AOAngleCutoff", AOAngleCutoff);
-          //  prg.SetUniform("VDAOMultiplier", VDAOMultiplier);
-           // prg.SetUniform("VDAOSamplingMultiplier", VDAOSamplingMultiplier);
-           // prg.SetUniform("VDAORefreactionMultiplier", VDAORefreactionMultiplier);
+            // prg.SetUniform("AORange", AORange);
+            // prg.SetUniform("AOStrength", AOStrength);
+            // prg.SetUniform("AOAngleCutoff", AOAngleCutoff);
+            //  prg.SetUniform("VDAOMultiplier", VDAOMultiplier);
+            // prg.SetUniform("VDAOSamplingMultiplier", VDAOSamplingMultiplier);
+            // prg.SetUniform("VDAORefreactionMultiplier", VDAORefreactionMultiplier);
             //prg.SetUniform("SubsurfaceScatteringMultiplier", SubsurfaceScatteringMultiplier);
             // prg.SetUniform("FrameINT", (int)PostProcessing.RandomIntFrame);
 
@@ -412,5 +430,9 @@ namespace VEngine
 
             return true;
         }
+
+        private ShaderProgram lastUserProgram = null;
+
+        private RainSystem RainsDropSystem = null;
     }
 }

@@ -13,7 +13,6 @@ namespace VEngine
         static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
         static public Size Resolution;
         static public DateTime StartTime;
-        private static Queue<Action> ActionQueue = new Queue<Action>();
 
         static public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyDown, OnKeyUp;
 
@@ -141,6 +140,8 @@ namespace VEngine
                 }
             }
         }
+
+        private static Queue<Action> ActionQueue = new Queue<Action>();
 
         [DllImport("kernel32")]
         private static extern int GetCurrentThreadId();
