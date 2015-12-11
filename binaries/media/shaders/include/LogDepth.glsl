@@ -16,6 +16,8 @@ uniform int UseBumpMap;
 //log2(x+1) / log2(100+1)
 //y=2^( (X)* log2(100+1))
 
+#define FarPlane (10000.0f)
+
 float toLogDepthEx(float depth, float far){
 	//float badass_depth = log(LogEnchacer*depth + 1.0f) / log(LogEnchacer*far + 1.0f);
     float badass_depth = log2(max(1e-6, 1.0 + depth)) / (log2(far));

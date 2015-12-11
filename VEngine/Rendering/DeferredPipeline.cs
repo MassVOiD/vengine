@@ -9,8 +9,7 @@ namespace VEngine
 
         public DeferredPipeline()
         {
-            GLThread.StartTime = DateTime.Now;
-            PostProcessor = new PostProcessing(GLThread.Resolution.Width, GLThread.Resolution.Height);
+            PostProcessor = new PostProcessing(Game.Resolution.Width, Game.Resolution.Height);
 
             GL.Enable(EnableCap.DepthTest);
             GL.DepthFunc(DepthFunction.Lequal);

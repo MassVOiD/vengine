@@ -14,7 +14,7 @@ namespace VEngine
         private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
         {
             var field = propertyGrid1.SelectedObject.GetType().GetProperty(e.ChangedItem.Label.Trim());
-            field.SetValue(GLThread.GraphicsSettings, e.ChangedItem.Value);
+            field.SetValue(Game.GraphicsSettings, e.ChangedItem.Value);
         }
     }
 }

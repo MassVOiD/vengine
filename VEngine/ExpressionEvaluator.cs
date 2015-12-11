@@ -13,7 +13,7 @@ namespace VEngine
         public static void Eval(List<Tuple<string, object>> localVariables, string expression)
         {
             CSharpCodeProvider codeProvider = new CSharpCodeProvider();
-            string cname = "EvaluationD" + (uint)(DateTime.Now - GLThread.StartTime).TotalMilliseconds;
+            string cname = "EvaluationD" + (uint)(DateTime.Now - Game.StartTime).TotalMilliseconds;
             StringBuilder varssb = new StringBuilder();
             StringBuilder varssb2 = new StringBuilder();
             StringBuilder varssb3 = new StringBuilder();

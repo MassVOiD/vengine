@@ -1,18 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using OpenTK;
 using VEngine;
-using VEngine.FileFormats;
 using VEngine.Generators;
+using BulletSharp;
+using System.Drawing;
 
 namespace ShadowsTester
 {
     public class DragonScene
     {
+        private class VegetationPart
+        {
+            public int Count;
+            public float Scale, ScaleVariation;
+            public string Texture, Model;
+
+            public VegetationPart(string t, string m, float s, float sv, int c)
+            {
+                Texture = t;
+                Model = m;
+                Scale = s;
+                ScaleVariation = sv;
+                Count = c;
+            }
+        }
+
         public DragonScene()
         {
-            var scene = World.Root.RootScene;
+            var scene = Game.World.Scene;
             var whiteboxInfo = Object3dInfo.LoadFromObjSingle(Media.Get("whiteroom.obj"));
             var whitebox = Mesh3d.Create(whiteboxInfo, new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
             whitebox.GetInstance(0).Scale(3000);
@@ -30,17 +46,57 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(600, 600), Vector3.UnitY, 3, (x, y) => 0);
-            var color2 = GenericMaterial.FromMedia("albed.jpg", "normel.png");
-            color2.SetRoughnessMapFromMedia("roughnez.png");
-            color2.SetMetalnessMapFromMedia("metal.png");
-            color2.InvertNormalMap = true;
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(20, 20), Vector3.UnitY, 15, (x, y) => 0);
+            //var color2 = GenericMaterial.FromColor(Color.White);
+            var color2 = GenericMaterial.FromMedia("DisplaceIT_Ground_Pebble1_Color.bmp", "DisplaceIT_Ground_Pebble1_NormalBump2.bmp", "DisplaceIT_Ground_Pebble1_Displace.bmp");
+            //  color2.SetRoughnessMapFromMedia("roughnez.png");
+            // color2.SetMetalnessMapFromMedia("metal.png");
+            //  color2.InvertNormalMap = true;
+            //color2.SetNormalMapFromMedia("mech_n.png");
+            // color2.SetBumpMapFromMedia("dddsdsdsd.png");
+            //     color2.Type = GenericMaterial.MaterialType.Grass;
             //var color2 = new GenericMaterial(Color.Green);
-            Mesh3d water3 = Mesh3d.Create(groundInfo, color2);
-            water3.GetInstance(0).Scale(30);
+            var o = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
+            o.OriginToCenter();
+            o.Normalize();
+            Mesh3d water3 = Mesh3d.Create(o, color2);
             scene.Add(water3);
+            var b2 = Game.World.Physics.CreateBody(1.0f, water3.GetInstance(0), new SphereShape(1.0f));
+            b2.Body.Restitution = 1;
+            b2.Enable();
+
+            var w4 = Mesh3d.Create(groundInfo, color2);
+            scene.Add(w4);
+            var b = Game.World.Physics.CreateBody(0, w4.GetInstance(0), new StaticPlaneShape(Vector3.UnitY, 0));
+            b.Body.Restitution = 1;
+            b.Enable();
+            // Mesh3d water4 = Mesh3d.Create(groundInfo, new GenericMaterial(Color.White));
+            //   water4.GetInstance(0).Scale(1);
+            // scene.Add(water4);
+
+            //Game.World.Physics.Gravity = new Vector3(0, -1, 0);
 
             Random rand = new Random();
+
+
+            var barrelinfo = Object3dInfo.LoadFromObjSingle(Media.Get("barrel.obj"));
+            var barrelshape = Physics.CreateConvexCollisionShape(barrelinfo);
+            var barrels = Mesh3d.Create(barrelinfo, GenericMaterial.FromColor(Color.White));
+            barrels.ClearInstances();
+
+            Game.OnKeyUp += (ox, oe) =>
+            {
+                if(oe.Key == OpenTK.Input.Key.Keypad0)
+                {
+                    var instance = barrels.AddInstance(new TransformationManager(Camera.MainDisplayCamera.GetPosition()));
+                    var phys = Game.World.Physics.CreateBody(0.7f, instance, barrelshape);
+                    phys.Enable();
+                    phys.Body.LinearVelocity += Camera.MainDisplayCamera.GetDirection()*6;
+                }
+            };
+            Game.World.Scene.Add(barrels);
+
+
             /*
             List<VegetationPart> vegs = new List<VegetationPart>();
             // grass
@@ -127,7 +183,7 @@ namespace ShadowsTester
             scene.Add(roots);
             scene.Add(leaves);
             int level = 0;
-            GLThread.CreateTimer(() =>
+            Game.CreateTimer(() =>
             {
                 roots.UpdateMatrix();
                 leaves.UpdateMatrix();
@@ -142,48 +198,40 @@ namespace ShadowsTester
             //  terrain.GetInstance(0).Scale(1.0f);
             //  scene.Add(terrain);
 
-             var ferrari = new GameScene("ferrari.scene");
+            /*     var ferrari = new GameScene("ferrari.scene");
                  ferrari.Load();
-              ferrari.Meshes.ForEach((a) => scene.Add(a));
+                 ferrari.Meshes.ForEach((a) =>
+             {
+                 a.GetLodLevel(0).Info3d.DrawGridInsteadOfTriangles = true;
+                 scene.Add(a);
+             });*/
 
-            var dmk = Object3dInfo.LoadSceneFromObj(Media.Get("cathedral.obj"), Media.Get("cathedral.mtl"));
-       
-            dmk.ForEach((a) => scene.Add(a));
+            //      var dmk = Object3dInfo.LoadSceneFromObj(Media.Get("conf.obj"), Media.Get("conf.mtl"));
+
+            //      dmk.ForEach((a) =>
+            //    {
+            //  a.GetLodLevel(0).Info3d.DrawGridInsteadOfTriangles = true;
+            //       scene.Add(a);
+            //   });
 
             PostProcessing pp = new PostProcessing(128, 128);
             CubeMapFramebuffer cubens = new CubeMapFramebuffer(128, 128);
             var tex = new CubeMapTexture(cubens.TexColor);
             cubens.SetPosition(new Vector3(0, 1, 0));
-            GLThread.OnKeyPress += (o, e) =>
+            Game.OnKeyPress += (ao, e) =>
             {
                 if(e.KeyChar == 'z')
                     cubens.SetPosition(Camera.MainDisplayCamera.GetPosition());
                 if(e.KeyChar == 'x')
                 {
-                    GLThread.Invoke(() =>
+                    Game.Invoke(() =>
                     {
                         pp.RenderToCubeMapFramebuffer(cubens);
-                        GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
+                        Game.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
                         tex.Handle = cubens.TexColor;
                     });
                 }
             };
-        }
-
-        private class VegetationPart
-        {
-            public int Count;
-            public float Scale, ScaleVariation;
-            public string Texture, Model;
-
-            public VegetationPart(string t, string m, float s, float sv, int c)
-            {
-                Texture = t;
-                Model = m;
-                Scale = s;
-                ScaleVariation = sv;
-                Count = c;
-            }
         }
     }
 }

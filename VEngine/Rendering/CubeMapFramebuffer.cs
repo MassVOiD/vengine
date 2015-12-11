@@ -21,6 +21,10 @@ namespace VEngine
 
         public int Width, Height;
 
+        private Dictionary<TextureTarget, Camera> FacesCameras;
+
+        private int FBO;
+
         public CubeMapFramebuffer(int width, int height, bool depthOnly = false)
         {
             Transformation = new TransformationManager(Vector3.Zero);
@@ -82,9 +86,6 @@ namespace VEngine
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
             GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
         }
-
-        private Dictionary<TextureTarget, Camera> FacesCameras;
-        private int FBO;
 
         private void Generate()
         {

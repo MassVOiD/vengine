@@ -1,96 +1,137 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using BulletSharp;
 using OpenTK;
 
 namespace VEngine
 {
-    class Physics
+    public class Physics
     {
-        ///create 125 (5x5x5) dynamic objects
-        const int ArraySizeX = 5, ArraySizeY = 5, ArraySizeZ = 5;
 
-        ///scaling of the objects (0.1 = 20 centimeter boxes )
-        const float StartPosX = -5;
-        const float StartPosY = -5;
-        const float StartPosZ = -3;
+        private DbvtBroadphase broadphase;
 
-        public DiscreteDynamicsWorld World
+        private CollisionConfiguration collisionConf;
+
+        private List<CollisionShape> collisionShapes = new List<CollisionShape>();
+
+        private CollisionDispatcher dispatcher;
+
+        public delegate void MeshCollideDelegate(Mesh3d meshA, Mesh3d meshB, Vector3 collisionPoint, Vector3 normalA);
+
+        public event MeshCollideDelegate MeshCollide;
+
+
+        private DiscreteDynamicsWorld World;
+
+        private List<PhysicalBody> ActiveBodies;
+
+        public Vector3 Gravity
         {
-            get; set;
+            get
+            {
+                return World.Gravity;
+            }
+            set
+            {
+                World.Gravity = value;
+            }
         }
-        CollisionDispatcher dispatcher;
-        DbvtBroadphase broadphase;
-        List<CollisionShape> collisionShapes = new List<CollisionShape>();
-        CollisionConfiguration collisionConf;
 
         public Physics()
         {
-            // collision configuration contains default setup for memory, collision setup
+            ActiveBodies = new List<PhysicalBody>();
             collisionConf = new DefaultCollisionConfiguration();
             dispatcher = new CollisionDispatcher(collisionConf);
 
             broadphase = new DbvtBroadphase();
             World = new DiscreteDynamicsWorld(dispatcher, broadphase, null, collisionConf);
-            World.Gravity = new Vector3(0, -10, 0);
-
-            // create the ground
-            CollisionShape groundShape = new BoxShape(50, 50, 50);
-            collisionShapes.Add(groundShape);
-            CollisionObject ground = LocalCreateRigidBody(0, Matrix4.CreateTranslation(0, -50, 0), groundShape);
-            ground.UserObject = "Ground";
-
-            // create a few dynamic rigidbodies
-            const float mass = 1.0f;
-
-            CollisionShape colShape = new BoxShape(1);
-            collisionShapes.Add(colShape);
-            Vector3 localInertia = colShape.CalculateLocalInertia(mass);
-
-            var rbInfo = new RigidBodyConstructionInfo(mass, null, colShape, localInertia);
-
-            const float start_x = StartPosX - ArraySizeX / 2;
-            const float start_y = StartPosY;
-            const float start_z = StartPosZ - ArraySizeZ / 2;
-
-            int k, i, j;
-            for(k = 0; k < ArraySizeY; k++)
-            {
-                for(i = 0; i < ArraySizeX; i++)
-                {
-                    for(j = 0; j < ArraySizeZ; j++)
-                    {
-                        Matrix4 startTransform = Matrix4.CreateTranslation(
-                            new Vector3(
-                                2 * i + start_x,
-                                2 * k + start_y,
-                                2 * j + start_z
-                                )
-                            );
-
-                        // using motionstate is recommended, it provides interpolation capabilities
-                        // and only synchronizes 'active' objects
-                        rbInfo.MotionState = new DefaultMotionState(startTransform);
-
-                        RigidBody body = new RigidBody(rbInfo);
-
-                        // make it drop from a height
-                        body.Translate(new Vector3(0, 20, 0));
-
-                        World.AddRigidBody(body);
-                    }
-                }
-            }
-
-            rbInfo.Dispose();
+            World.SolverInfo.SolverMode = SolverModes.InterleaveContactAndFrictionConstraints;
+            World.SolverInfo.Restitution = 0;
+            World.Gravity = new Vector3(0, -9.81f, 0);
         }
 
-        public virtual void Update(float elapsedTime)
+        public PhysicalBody CreateBody(float mass, Mesh3dInstance mesh, CollisionShape shape)
+        {
+            return CreateBody(mass, mesh.Transformation, shape);
+        }
+
+        public PhysicalBody CreateBody(float mass, TransformationManager startTransform, CollisionShape shape)
+        {
+            var rb = CreateRigidBody(mass, startTransform.GetWorldTransform(), shape);
+            var pb = new PhysicalBody(rb, shape, startTransform);
+            return pb;
+        }
+
+        public void AddBody(PhysicalBody body)
+        {
+            World.AddRigidBody(body.Body);
+            ActiveBodies.Add(body);
+        }
+
+        public void RemoveBody(PhysicalBody body)
+        {
+            World.RemoveRigidBody(body.Body);
+            ActiveBodies.Remove(body);
+        }
+
+        public void UpdateAllModifiedTransformations()
+        {
+            for(int i = 0; i < ActiveBodies.Count; i++)
+            {
+                var b = ActiveBodies[i];
+                if(b.Transformation.HasBeenModified())
+                {
+                    b.ReadChanges();
+                    b.Body.Activate();
+                }
+            }
+        }
+
+        public void SimulationStep(float elapsedTime)
         {
             World.StepSimulation(elapsedTime);
+            for(int i = 0; i < ActiveBodies.Count; i++)
+            {
+                var b = ActiveBodies[i];
+                if(b.Body.ActivationState != ActivationState.IslandSleeping)
+                {
+                    b.ApplyChanges();
+                }
+            }
+        }
+
+        public static CollisionShape CreateConvexCollisionShape(Object3dInfo info)
+        {
+            return info.GetConvexHull();
+        }
+        public static CollisionShape CreateBoundingBoxShape(Object3dInfo info)
+        {
+            info.UpdateBoundingBox();
+            return new BoxShape(info.AABB.Maximum - info.AABB.Minimum);
+        }
+
+        private RigidBody CreateRigidBody(float mass, Matrix4 startTransform, CollisionShape shape)
+        {
+            bool isDynamic = (mass != 0.0f);
+
+            Vector3 localInertia = Vector3.Zero;
+            if(isDynamic)
+                shape.CalculateLocalInertia(mass, out localInertia);
+
+            DefaultMotionState myMotionState = new DefaultMotionState(startTransform);
+
+            RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
+            RigidBody body = new RigidBody(rbInfo);
+
+
+            body.SetSleepingThresholds(0, 0);
+            body.ContactProcessingThreshold = 0;
+            body.CcdMotionThreshold = 0;
+
+            //World.AddRigidBody(body);
+
+            return body;
         }
 
         public void ExitPhysics()
@@ -131,22 +172,5 @@ namespace VEngine
             collisionConf.Dispose();
         }
 
-        public RigidBody LocalCreateRigidBody(float mass, Matrix4 startTransform, CollisionShape shape)
-        {
-            bool isDynamic = (mass != 0.0f);
-
-            Vector3 localInertia = Vector3.Zero;
-            if(isDynamic)
-                shape.CalculateLocalInertia(mass, out localInertia);
-
-            DefaultMotionState myMotionState = new DefaultMotionState(startTransform);
-
-            RigidBodyConstructionInfo rbInfo = new RigidBodyConstructionInfo(mass, myMotionState, shape, localInertia);
-            RigidBody body = new RigidBody(rbInfo);
-
-            World.AddRigidBody(body);
-
-            return body;
-        }
     }
 }

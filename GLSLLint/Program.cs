@@ -10,6 +10,8 @@ namespace GLSLLint
     {
         private class Linter
         {
+            private VEngineInvisibleAdapter window;
+
             public Linter()
             {
                 window = new VEngineInvisibleAdapter();
@@ -98,8 +100,6 @@ namespace GLSLLint
                 }
                 return "";
             }
-
-            private VEngineInvisibleAdapter window;
         }
 
         private static void CompileRecurse(Linter linter, string directory)

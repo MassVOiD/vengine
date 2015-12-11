@@ -21,6 +21,8 @@ namespace VEngine
 
         public int TexDiffuse, TexNormals, TexMeshData, TexDepth, TexId;
 
+        private int FBO, RBO, Width, Height;
+
         public MRTFramebuffer(int width, int height)
         {
             Generated = false;
@@ -83,8 +85,6 @@ namespace VEngine
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
-
-        private int FBO, RBO, Width, Height;
 
         private void Generate()
         {

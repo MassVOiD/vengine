@@ -5,6 +5,8 @@ namespace VEngine
 {
     public class TransformationJoint
     {
+        private static List<LinkInfo> Links = new List<LinkInfo>();
+
         public class LinkInfo
         {
             public Vector3 Offset;
@@ -57,7 +59,5 @@ namespace VEngine
         {
             Links.Remove(info);
         }
-
-        private static List<LinkInfo> Links = new List<LinkInfo>();
     }
 }

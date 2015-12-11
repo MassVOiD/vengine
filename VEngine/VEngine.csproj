@@ -119,6 +119,8 @@
     <Compile Include="Rendering\CubeMapTexture.cs" />
     <Compile Include="Rendering\PassiveVoxelizer.cs" />
     <Compile Include="Texture3D.cs" />
+    <Compile Include="UI\AbsUIElement.cs" />
+    <Compile Include="UI\UIMLTree.cs" />
     <Compile Include="Utilities\Generators\Object3dGenerator.cs" />
     <Compile Include="Rendering\GLThread.cs" />
     <Compile Include="Rendering\Lights\SimplePointLight.cs" />

@@ -11,6 +11,14 @@ namespace VEngine
         public int Handle = -1;
         public bool UseNearestFilter = false;
 
+        private byte[] BitmapPosX,
+                                                            BitmapPosY,
+            BitmapPosZ, BitmapNegX, BitmapNegY, BitmapNegZ;
+
+        private bool Generated;
+
+        private Size Size;
+
         public CubeMapTexture(string posx, string posy, string posz, string negx, string negy, string negz)
         {
             Update(ref BitmapPosX, posx);
@@ -82,13 +90,6 @@ namespace VEngine
             GL.ActiveTexture(unit);
             GL.BindTexture(TextureTarget.TextureCubeMap, Handle);
         }
-
-        private byte[] BitmapPosX,
-                                                            BitmapPosY,
-            BitmapPosZ, BitmapNegX, BitmapNegY, BitmapNegZ;
-
-        private bool Generated;
-        private Size Size;
 
         private static byte[] BitmapToByteArray(Bitmap bitmap)
         {

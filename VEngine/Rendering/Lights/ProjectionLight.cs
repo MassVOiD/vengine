@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using OpenTK;
+﻿using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
@@ -20,26 +19,16 @@ namespace VEngine
 
         public Vector4 LightColor = new Vector4(1, 1, 1, 1);
 
-        public LightMixMode LightMixMode = LightMixMode.Additive;
-
-        public MixRange LightMixRange = new MixRange()
-        {
-            Start = 0,
-            End = 100000.0f
-        };
-
         public bool NeedsRefreshing = true;
 
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
-            FarPlane = far;
             camera = new Camera(position, Vector3.Zero, Vector3.UnitY, mapwidth / mapheight, fov, near, far);
             camera.LookAt(Vector3.Zero);
             FBO = new Framebuffer(mapwidth, mapheight, true);
             FBO.DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
             FBO.DepthPixelFormat = PixelFormat.DepthComponent;
             FBO.DepthPixelType = PixelType.Float;
-            ViewPort = new Size(mapwidth, mapheight);
         }
 
         public void BuildOrthographicProjection(float width, float height, float near, float far)
@@ -55,21 +44,6 @@ namespace VEngine
         public Vector4 GetColor()
         {
             return LightColor;
-        }
-
-        public float GetFarPlane()
-        {
-            return FarPlane;
-        }
-
-        public LightMixMode GetMixMode()
-        {
-            return LightMixMode;
-        }
-
-        public MixRange GetMixRange()
-        {
-            return LightMixRange;
         }
 
         public Matrix4 GetPMatrix()
@@ -92,7 +66,7 @@ namespace VEngine
             return camera.GetViewMatrix();
         }
 
-        public void Map(Matrix4 parentTransformation)
+        public void Map()
         {
             if(IsStatic && !NeedsRefreshing)
                 return;
@@ -105,8 +79,6 @@ namespace VEngine
             Camera last = Camera.Current;
             Camera.Current = camera;
             FBO.Use();
-            GL.Viewport(0, 0, ViewPort.Width, ViewPort.Height);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             MainShaderPack.ProgramsList.ForEach((shader) =>
             {
@@ -115,13 +87,10 @@ namespace VEngine
                 shader.Use();
                 ShaderProgram.Current.SetUniform("LightPosition", camera.Transformation.GetPosition());
                 ShaderProgram.Current.SetUniform("LightColor", LightColor);
-                ShaderProgram.Current.SetUniform("CameraTransformation", parentTransformation);
             });
 
             GenericMaterial.OverrideShaderPack = MainShaderPack;
-            //Shader.GetShaderProgram().SetUniform("FarPlane", Camera.MainDisplayCamera.Far);
-            //Shader.GetShaderProgram().SetUniform("LogEnchacer", 0.01f);
-            World.Root.Draw(false, true);
+            Game.World.Draw(false, true);
             GenericMaterial.OverrideShaderPack = null;
             //if(Skybox.Current != null)
             //    Skybox.Current.Draw();
@@ -158,9 +127,5 @@ namespace VEngine
         {
             FBO.UseTexture(index);
         }
-
-        private float FarPlane;
-
-        private Size ViewPort;
     }
 }

@@ -4,6 +4,7 @@ in vec2 UV;
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
+#include Shade.glsl
 #include FXAA.glsl
 
 uniform int Numbers[12];
@@ -30,6 +31,9 @@ float sideLength = sqrt(1+1-2*cos(mPI2 / ngonsides));
 float PIOverSides = mPI2/ngonsides;
 float PIOverSidesOver2 = PIOverSides/2;
 float triangleHeight = 0.85;
+uniform int ShowSelected;
+uniform int UnbiasedIntegrateRenderMode;
+
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -51,13 +55,13 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             
             //ngon
             
-            vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (rand(UV + vec2(x, y)));
+            vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (rand(UV + vec2(x, y) + (UnbiasedIntegrateRenderMode == 1 ? Time : 0)));
             //float alpha = texture(alphaMaskTex, crd*1.41421).r;
             //if(length(crd) > 1.0) continue;
             vec2 coord = UV+crd * 0.02 * amount;  
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            float depth = length(reconstructCameraSpace(coord));
+            float depth = reverseLog(texture(depthTex, coord).r);
             vec3 texel = texture(currentTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
@@ -145,8 +149,8 @@ float avgdepth(vec2 buv){
         for(float g2 = 0; g2 < 1.0; g2+=0.11)
         { 
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
-            vec3 color = reconstructCameraSpace(buv + gauss).xyz;
-            float adepth = length(color);
+            float adepth = (reverseLog(texture(depthTex, buv + gauss).r));
+			//if(adepth < fDepth) adepth = fDepth + (fDepth - adepth);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
             float f = InputFocalLength;
             //float f = 715.0; //focal length in mm
@@ -164,17 +168,14 @@ float avgdepth(vec2 buv){
             counter++;
         }
     }
-    return min(abs(outc / counter), 4.0);
+    return min(abs(outc / counter), 14.0);
 }
 
-
-uniform int ShowSelected;
-uniform int UnbiasedIntegrateRenderMode;
 
 
 vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 
-	return vec3pow(color.rgb, 1.4);
+	return vec3pow(color.rgb, 1.9);
 }
 
 vec3 hdr(vec3 color, vec2 uv){
@@ -228,11 +229,15 @@ void main()
     float f1 = length(last) / length(vec3(1));
     float f2 = length(color1.rgb);
     
+	vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
+	color1.rgb = vec3(pow(color1.r, gamma.r),
+	pow(color1.g, gamma.g),
+	pow(color1.b, gamma.b));
     vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.04538 : 1.0);
     if(UnbiasedIntegrateRenderMode == 1){
         //additiveMix *= texture(HBAOTex, UV).a;
        // if(abs(texture(lastIndirectTex, UV).a - depth) > 0.0003) additiveMix = color1.rgb;
     }
     //additiveMix = texture(diffuseColorTex, UV).rgb;
-    outColor = clamp(vec4(additiveMix, depth), 0.0, 1.0);
+    outColor = clamp(vec4(additiveMix, depth), 0.0, 10000.0);
 }

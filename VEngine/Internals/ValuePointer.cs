@@ -4,6 +4,8 @@
     {
         public T R;
 
+        private bool BeenModified = false;
+
         public ValuePointer(T i)
         {
             R = i;
@@ -19,11 +21,6 @@
             return a / b;
         }
 
-        public static dynamic Mul(dynamic a, dynamic b)
-        {
-            return a * b;
-        }
-
         public static implicit operator T(ValuePointer<T> d)
         {
             return d.R;
@@ -32,6 +29,11 @@
         public static implicit operator ValuePointer<T>(T d)
         {
             return new ValuePointer<T>(d);
+        }
+
+        public static dynamic Mul(dynamic a, dynamic b)
+        {
+            return a * b;
         }
 
         public static dynamic Sub(dynamic a, dynamic b)
@@ -73,7 +75,5 @@
         {
             return R - a;
         }
-
-        private bool BeenModified = false;
     }
 }

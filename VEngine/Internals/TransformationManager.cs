@@ -22,8 +22,7 @@ namespace VEngine
 
         public static TransformationManager Rotate(this ITransformable o, Quaternion orient)
         {
-            o.GetTransformationManager().Orientation = Quaternion.Multiply(orient, o.GetTransformationManager().Orientation);
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Rotate(orient);
             return o.GetTransformationManager();
         }
 
@@ -36,29 +35,25 @@ namespace VEngine
 
         public static TransformationManager Scale(this ITransformable o, float scale)
         {
-            o.GetTransformationManager().ScaleValue.R *= scale;
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Scale(scale);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager Scale(this ITransformable o, Vector3 scale)
         {
-            o.GetTransformationManager().ScaleValue *= scale;
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Scale(scale);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager Scale(this ITransformable o, float x, float y, float z)
         {
-            o.GetTransformationManager().ScaleValue *= new Vector3(x, y, z);
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Scale(x, y, z);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager SetOrientation(this ITransformable o, Quaternion orient)
         {
-            o.GetTransformationManager().Orientation = orient;
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().SetOrientation(orient);
             return o.GetTransformationManager();
         }
 
@@ -71,59 +66,52 @@ namespace VEngine
 
         public static TransformationManager SetPosition(this ITransformable o, Vector3 pos)
         {
-            o.GetTransformationManager().Position = pos;
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().SetPosition(pos);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager SetPosition(this ITransformable o, float x, float y, float z)
         {
-            o.GetTransformationManager().Position = new Vector3(x, y, z);
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().SetPosition(x, y, z);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager SetScale(this ITransformable o, Vector3 scale)
         {
-            o.GetTransformationManager().ScaleValue = scale;
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Scale(scale);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager SetScale(this ITransformable o, float x, float y, float z)
         {
-            o.GetTransformationManager().ScaleValue = new Vector3(x, y, z);
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Scale(x, y, z);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager SetScale(this ITransformable o, float scale)
         {
-            o.GetTransformationManager().ScaleValue = new Vector3(scale, scale, scale);
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Scale(scale);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager Translate(this ITransformable o, Vector3 pos)
         {
-            o.GetTransformationManager().Position += pos;
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Translate(pos);
             return o.GetTransformationManager();
         }
 
         public static TransformationManager Translate(this ITransformable o, float x, float y, float z)
         {
-            o.GetTransformationManager().Position += new Vector3(x, y, z);
-            o.GetTransformationManager().MarkAsModified();
+            o.GetTransformationManager().Translate(x, y, z);
             return o.GetTransformationManager();
         }
     }
 
     public class TransformationManager
     {
-        public ValuePointer<Quaternion> Orientation;
-        public ValuePointer<Vector3> Position;
-        public ValuePointer<Vector3> ScaleValue;
+        private bool BeenModified;
+
+        private DateTime LastUpdated;
 
         public TransformationManager(Vector3 pos, Quaternion orient, Vector3 scale)
         {
@@ -132,6 +120,7 @@ namespace VEngine
             ScaleValue = scale;
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
         }
 
         public TransformationManager(Vector3 pos, Vector3 axis, float angle, Vector3 scale)
@@ -141,6 +130,7 @@ namespace VEngine
             ScaleValue = scale;
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
         }
 
         public TransformationManager(Vector3 pos, Quaternion orient, float scale)
@@ -150,6 +140,7 @@ namespace VEngine
             ScaleValue = new Vector3(scale, scale, scale);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
         }
 
         public TransformationManager(Vector3 pos, Vector3 axis, float angle, float scale)
@@ -159,6 +150,7 @@ namespace VEngine
             ScaleValue = new Vector3(scale, scale, scale);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
         }
 
         public TransformationManager(Vector3 pos, Quaternion orient)
@@ -168,6 +160,7 @@ namespace VEngine
             ScaleValue = new Vector3(1, 1, 1);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
         }
 
         public TransformationManager(Vector3 pos)
@@ -177,6 +170,26 @@ namespace VEngine
             ScaleValue = new Vector3(1, 1, 1);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
+        }
+
+        public delegate void DelegaetOnUpdate();
+
+        public event DelegaetOnUpdate OnUpdate;
+
+        public ValuePointer<Quaternion> Orientation
+        {
+            get; protected set;
+        }
+
+        public ValuePointer<Vector3> Position
+        {
+            get; protected set;
+        }
+
+        public ValuePointer<Vector3> ScaleValue
+        {
+            get; protected set;
         }
 
         public void ClearModifiedFlag()
@@ -233,6 +246,7 @@ namespace VEngine
         {
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
         }
 
         public TransformationManager Rotate(Quaternion orient)
@@ -240,6 +254,7 @@ namespace VEngine
             Orientation = Quaternion.Multiply(Orientation, orient);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -248,6 +263,7 @@ namespace VEngine
             ScaleValue.R *= scale;
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -256,6 +272,7 @@ namespace VEngine
             ScaleValue *= scale;
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -266,6 +283,7 @@ namespace VEngine
             ScaleValue *= new Vector3(x, y, z);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -274,6 +292,7 @@ namespace VEngine
             Orientation = orient;
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -282,6 +301,7 @@ namespace VEngine
             Position = pos;
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -291,6 +311,7 @@ namespace VEngine
             Position = new Vector3(x, y, z);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -299,6 +320,7 @@ namespace VEngine
             ScaleValue = scale;
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -308,6 +330,7 @@ namespace VEngine
             ScaleValue = new Vector3(x, y, z);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -316,6 +339,7 @@ namespace VEngine
             ScaleValue = new Vector3(scale, scale, scale);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -324,6 +348,7 @@ namespace VEngine
             Position += pos;
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
@@ -334,11 +359,16 @@ namespace VEngine
             Position += new Vector3(x, y, z);
             BeenModified = true;
             LastUpdated = DateTime.Now;
+            FireOnUpdate();
             return this;
         }
 
-        private bool BeenModified;
-        private DateTime LastUpdated;
+        private void FireOnUpdate()
+        {
+            if(OnUpdate != null)
+                OnUpdate.Invoke();
+        }
+
         //---------------/
         //---------------/
         //---------------/

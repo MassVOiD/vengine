@@ -10,6 +10,10 @@ namespace VEngine
         public int last = 0;
         public BufferUsageHint Type = BufferUsageHint.DynamicDraw;
 
+        private bool Generated;
+
+        private int Handle = -1;
+
         public ShaderStorageBuffer()
         {
         }
@@ -122,9 +126,5 @@ namespace VEngine
         {
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, point, (uint)Handle);
         }
-
-        private bool Generated;
-
-        private int Handle = -1;
     }
 }

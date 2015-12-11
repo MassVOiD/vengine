@@ -3,16 +3,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
-    public class GLThread
+    public class Game
     {
         static public AbsDisplayAdapter DisplayAdapter;
         static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
         static public Size Resolution;
         static public DateTime StartTime;
+        static public World World;
+        static public bool Initialized = false;
+        private static Queue<Action> ActionQueue = new Queue<Action>();
 
         static public event EventHandler<OpenTK.Input.KeyboardKeyEventArgs> OnKeyDown, OnKeyUp;
 
@@ -25,6 +30,52 @@ namespace VEngine
         static public event EventHandler<OpenTK.Input.MouseWheelEventArgs> OnMouseWheel;
 
         static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw, OnLoad;
+
+        static public void Initialize(Size resolution, string mediapath)
+        {
+            StartTime = DateTime.Now;
+            World = new World();
+            Media.SearchPath = mediapath;
+            Media.LoadFileMap();
+            Resolution = resolution;
+            SetCurrentThreadCores(1);
+
+            var thread = Task.Factory.StartNew(() =>
+            {
+                SetCurrentThreadCores(2);
+                DisplayAdapter = new VEngineWindowAdapter("VEngine App", resolution.Width, resolution.Height, GameWindowFlags.Default);
+
+                GraphicsSettings.UseDeferred = true;
+                GraphicsSettings.UseRSM = false;
+                GraphicsSettings.UseVDAO = true;
+                GraphicsSettings.UseFog = false;
+                GraphicsSettings.UseBloom = false;
+                GraphicsSettings.UseLightPoints = true;
+
+                DisplayAdapter.CursorVisible = false;
+
+                Invoke(() => Initialized = true);
+                DisplayAdapter.Run(60);
+            });
+        }
+
+        static public void JoinUntilInitialized()
+        {
+            while(!Initialized)
+            {
+                System.Threading.Thread.Sleep(100);
+            }
+            return;
+        }
+
+        static public void Initialize(string mediapath)
+        {
+            StartTime = DateTime.Now;
+            World = new World();
+            Media.SearchPath = mediapath;
+            Media.LoadFileMap();
+            SetCurrentThreadCores(1);
+        }
 
         static public void CheckErrors(string message = "Global")
         {
@@ -124,6 +175,19 @@ namespace VEngine
             }
         }
 
+        static public void InvokeSynchronized(Action action)
+        {
+            bool jobdone = false;
+            Action action2 = new Action(() =>
+            {
+                action.Invoke();
+                jobdone = true;
+            });
+            ActionQueue.Enqueue(action);
+            while(!jobdone)
+                ;
+        }
+
         static public System.Threading.Tasks.Task RunAsync(Action action)
         {
             return System.Threading.Tasks.Task.Run(action);
@@ -140,8 +204,6 @@ namespace VEngine
                 }
             }
         }
-
-        private static Queue<Action> ActionQueue = new Queue<Action>();
 
         [DllImport("kernel32")]
         private static extern int GetCurrentThreadId();

@@ -16,6 +16,7 @@ namespace VEngine
     {
         public AxisAlignedBoundingBox AABB;
 
+        public bool DrawGridInsteadOfTriangles = false;
         public uint[] Indices;
 
         public string MaterialName = "", Name = "";
@@ -23,6 +24,15 @@ namespace VEngine
         public float[] VBO;
 
         public bool WireFrameRendering = false;
+
+        //private Object3dInfo Current = null;
+        private bool AreBuffersGenerated;
+
+        private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
+
+        private int CachedHash = -123;
+
+        private int VertexBuffer, IndexBuffer, VAOHandle, IndicesCount = 0;
 
         public struct AxisAlignedBoundingBox
         {
@@ -51,6 +61,38 @@ namespace VEngine
                 NormapMapName = "";
                 SpecularMapName = "";
                 AlphaMask = "";
+            }
+        }
+
+        private class ObjFileData
+        {
+            public List<uint> Indices;
+            public string Name, MaterialName;
+            public List<float> VBO;
+        }
+
+        private class TriangleInfo
+        {
+            private VertexInfo V1, V2, V3;
+
+            public List<float> ToFloatList()
+            {
+                var list = new List<float>();
+                list.AddRange(V1.ToFloatList());
+                list.AddRange(V2.ToFloatList());
+                list.AddRange(V3.ToFloatList());
+                return list;
+            }
+        }
+
+        private class VertexInfo
+        {
+            public Vector3 Position, Normal;
+            public Vector2 UV;
+
+            public List<float> ToFloatList()
+            {
+                return new List<float> { Position.X, Position.Y, Position.Z, UV.X, UV.Y, Normal.X, Normal.Y, Normal.Z };
             }
         }
 
@@ -486,9 +528,9 @@ namespace VEngine
         public void Draw()
         {
             DrawPrepare();
-            GLThread.CheckErrors();
+            Game.CheckErrors();
             GL.DrawArrays(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, 0, IndicesCount);
-            //GLThread.CheckErrors();
+            //Game.CheckErrors();
         }
 
         public void DrawInstanced(int count)
@@ -496,9 +538,9 @@ namespace VEngine
             if(count == 0)
                 return;
             DrawPrepare();
-            GL.DrawArraysInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, 0, IndicesCount,
+            GL.DrawArraysInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : (DrawGridInsteadOfTriangles == false ? PrimitiveType.Triangles : PrimitiveType.Lines), 0, IndicesCount,
                      count);
-            //GLThread.CheckErrors();
+            //Game.CheckErrors();
         }
 
         public void FlipFaces()
@@ -872,51 +914,10 @@ namespace VEngine
                 var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
                 var tan1 = t1a[i];
                 var tan = (tan1 - nor1 * Vector3.Dot(nor1, tan1)).Normalized();
-                tan *= (Vector3.Dot(Vector3.Cross(nor1, tan1), t2a[i]) < 0.0f) ? -1.0f : 1.0f;
+                //tan *= (Vector3.Dot(Vector3.Cross(nor1, tan1), t2a[i]) < 0.0f) ? 1.0f : -1.0f;
                 VBO[vboIndex1 + 8] = tan.X;
                 VBO[vboIndex1 + 9] = tan.Y;
                 VBO[vboIndex1 + 10] = tan.Z;
-            }
-        }
-
-        //private Object3dInfo Current = null;
-        private bool AreBuffersGenerated;
-
-        private BvhTriangleMeshShape CachedBvhTriangleMeshShape;
-
-        private int CachedHash = -123;
-
-        private int VertexBuffer, IndexBuffer, VAOHandle, IndicesCount = 0;
-
-        private class ObjFileData
-        {
-            public List<uint> Indices;
-            public string Name, MaterialName;
-            public List<float> VBO;
-        }
-
-        private class TriangleInfo
-        {
-            public List<float> ToFloatList()
-            {
-                var list = new List<float>();
-                list.AddRange(V1.ToFloatList());
-                list.AddRange(V2.ToFloatList());
-                list.AddRange(V3.ToFloatList());
-                return list;
-            }
-
-            private VertexInfo V1, V2, V3;
-        }
-
-        private class VertexInfo
-        {
-            public Vector3 Position, Normal;
-            public Vector2 UV;
-
-            public List<float> ToFloatList()
-            {
-                return new List<float> { Position.X, Position.Y, Position.Z, UV.X, UV.Y, Normal.X, Normal.Y, Normal.Z };
             }
         }
 

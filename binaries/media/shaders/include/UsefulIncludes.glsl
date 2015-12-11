@@ -44,3 +44,6 @@ vec3 reconstructCameraSpacexxx(vec2 uv){
 	vec3 dir = normalize((clip.xyz / clip.w).xyz - CameraPosition);
 	return dir * reverseLog(texture(depthTex, uv).r);
 }
+vec3 getTangentPlane(vec3 inp){
+	return normalize(cross(inp.xzy,inp));	
+}

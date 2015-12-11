@@ -12,6 +12,22 @@ namespace VEngine
         public Object3dInfo Info3d;
         public GenericMaterial Material;
 
+        private const int matbsize = 16 * 4;
+
+        private const int uintbsize = 4;
+
+        private int instancesFiltered = 0;
+
+        private int InstancesFiltered = 0;
+
+        private byte[] Matrix = new byte[0];
+
+        private byte[] MeshColoredID = new byte[0];
+
+        private ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer, Ids;
+
+        private byte[] RotationMatrix = new byte[0];
+
         public LodLevel(Object3dInfo o3i, GenericMaterial gm, float distStart, float distEnd)
         {
             DistanceStart = distStart;
@@ -23,24 +39,22 @@ namespace VEngine
             Ids = new ShaderStorageBuffer();
         }
 
-        public void Draw(Matrix4 parentTransformation, Mesh3d container, int instances)
+        public void Draw(Mesh3d container, int instances)
         {
             Material.Use();
             container.SetUniforms();
-            SetUniforms(parentTransformation);
+            SetUniforms();
             ModelMatricesBuffer.Use(0);
             RotationMatricesBuffer.Use(1);
             Ids.Use(2);
             Info3d.DrawInstanced(InstancesFiltered);
         }
 
-        public void SetUniforms(Matrix4 parentTransformation)
+        public void SetUniforms()
         {
             ShaderProgram shader = ShaderProgram.Current;
             shader.SetUniform("LodDistanceStart", DistanceStart);
             shader.SetUniform("LodDistanceEnd", DistanceEnd);
-            shader.SetUniform("InitialTransformation", parentTransformation);
-            shader.SetUniform("InitialRotation", Matrix4.CreateFromQuaternion(parentTransformation.ExtractRotation()));
         }
 
         public void UpdateMatrix(List<Mesh3dInstance> instances, bool instantRebuffer = false)
@@ -70,7 +84,7 @@ namespace VEngine
             }
             if(!instantRebuffer)
             {
-                GLThread.Invoke(() =>
+                Game.Invoke(() =>
                 {
                     GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
                     ModelMatricesBuffer.MapData(Matrix);
@@ -92,15 +106,6 @@ namespace VEngine
                 InstancesFiltered = instancesFiltered;
             }
         }
-
-        private const int matbsize = 16 * 4;
-        private const int uintbsize = 4;
-        private int instancesFiltered = 0;
-        private int InstancesFiltered = 0;
-        private byte[] Matrix = new byte[0];
-        private byte[] MeshColoredID = new byte[0];
-        private ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer, Ids;
-        private byte[] RotationMatrix = new byte[0];
 
         private static void bset(byte[] src, ref byte[] dest, int start, int count)
         {

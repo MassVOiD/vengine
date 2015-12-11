@@ -61,30 +61,17 @@ namespace VEngine
 
         public MaterialType Type;
 
+        private ShaderProgram lastUserProgram = null;
+
+        private RainSystem RainsDropSystem = null;
+
         public class ShaderPack
         {
             public ShaderProgram
                 Program,
                 TesselatedProgram,
-                //Geometry1iLines,
                 Geometry1iTriangles,
-                //Geometry1iPoints,
-                //Geometry32iLines,
-                //Geometry32iTriangles,
-                // Geometry32iPoints,
-                //Geometry96iLines,
                 Geometry96iTriangles;
-
-            //Geometry96iPoints;
-            /* TesselatedGeometry1iLines,
-             TesselatedGeometry1iTriangles,
-             TesselatedGeometry1iPoints,
-             TesselatedGeometry32iLines,
-             TesselatedGeometry32iTriangles,
-             TesselatedGeometry32iPoints,
-             TesselatedGeometry96iLines,
-             TesselatedGeometry96iTriangles,
-             TesselatedGeometry96iPoints;*/
 
             public List<ShaderProgram> ProgramsList;
 
@@ -97,83 +84,17 @@ namespace VEngine
                 if(TesselatedProgram == null)
                     TesselatedProgram = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, null, "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                /*
-                if(Geometry1iLines == null)
-                    Geometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry1iLines.glsl");*/
                 if(Geometry1iTriangles == null)
                     Geometry1iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry1iTriangles.glsl");
-                /*if(Geometry1iPoints == null)
-                    Geometry1iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry1iPoints.glsl");
-                if(Geometry32iLines == null)
-                    Geometry32iLines = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry32iLines.glsl");
-                if(Geometry32iTriangles == null)
-                    Geometry32iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry32iTriangles.glsl");
-                if(Geometry32iPoints == null)
-                    Geometry32iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry32iPoints.glsl");
-                if(Geometry96iLines == null)
-                    Geometry96iLines = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iLines.glsl");*/
+                        fs, "Generic.geometry1iTriangles.geometry.glsl");
                 if(Geometry96iTriangles == null)
                     Geometry96iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iTriangles.glsl");
-                /*if(Geometry96iPoints == null)
-                    Geometry96iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iPoints.glsl");
-
-                if(TesselatedGeometry1iLines == null)
-                    TesselatedGeometry1iLines = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry1iLines.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(TesselatedGeometry1iTriangles == null)
-                    TesselatedGeometry1iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry1iTriangles.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(TesselatedGeometry1iPoints == null)
-                    TesselatedGeometry1iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry1iPoints.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(TesselatedGeometry32iLines == null)
-                    TesselatedGeometry32iLines = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry32iLines.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(TesselatedGeometry32iTriangles == null)
-                    TesselatedGeometry32iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry32iTriangles.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(TesselatedGeometry32iPoints == null)
-                    TesselatedGeometry32iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry32iPoints.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(TesselatedGeometry96iLines == null)
-                    TesselatedGeometry96iLines = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iLines.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(TesselatedGeometry96iTriangles == null)
-                    TesselatedGeometry96iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iTriangles.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(TesselatedGeometry96iPoints == null)
-                    TesselatedGeometry96iPoints = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iPoints.glsl", "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");*/
+                        fs, "Generic.geometry96iTriangles.geometry.glsl");
                 ProgramsList.AddRange(new ShaderProgram[] {
                     Program,
                     TesselatedProgram,
-                   // Geometry1iLines,
                     Geometry1iTriangles,
-                    //Geometry1iPoints,
-                   // Geometry32iLines,
-                   // Geometry32iTriangles,
-                   // Geometry32iPoints,
-                   // Geometry96iLines,
                     Geometry96iTriangles,
-                   // Geometry96iPoints,
-                   // TesselatedGeometry1iLines,
-                   // TesselatedGeometry1iTriangles,
-                   // TesselatedGeometry1iPoints,
-                  //  TesselatedGeometry32iLines,
-                  //  TesselatedGeometry32iTriangles,
-                   // TesselatedGeometry32iPoints,
-                   // TesselatedGeometry96iLines,
-                   // TesselatedGeometry96iTriangles,
-                   // TesselatedGeometry96iPoints
                 });
             }
         }
@@ -297,7 +218,7 @@ namespace VEngine
                 bytes.AddRange(BitConverter.GetBytes(p.Z));
                 bytes.AddRange(BitConverter.GetBytes(p.W));
             }
-            GLThread.Invoke(() => BallsBuffer.MapData(bytes.ToArray()));
+            Game.Invoke(() => BallsBuffer.MapData(bytes.ToArray()));
         }
 
         public void SetRainSystem(RainSystem rs)
@@ -389,10 +310,14 @@ namespace VEngine
                 AlphaMask.Use(TextureUnit.Texture28);
                 GL.Disable(EnableCap.CullFace);
             }
+            else if(Type == MaterialType.Grass)
+            {
+                GL.Disable(EnableCap.CullFace);
+            }
             else
             {
                 prg.SetUniform("UseAlphaMask", 0);
-                GL.Enable(EnableCap.CullFace);
+                GL.Disable(EnableCap.CullFace);
                 // GL.Enable(EnableCap.CullFace);
             }
 
@@ -430,9 +355,5 @@ namespace VEngine
 
             return true;
         }
-
-        private ShaderProgram lastUserProgram = null;
-
-        private RainSystem RainsDropSystem = null;
     }
 }

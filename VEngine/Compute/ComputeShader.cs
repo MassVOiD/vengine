@@ -12,6 +12,16 @@ namespace VEngine
 
         static public bool Lock = false;
 
+        private static List<ComputeShader> AllComputeShaders = new List<ComputeShader>();
+
+        private bool Compiled;
+
+        private string ComputeFile;
+
+        private int Handle = -1;
+
+        private Dictionary<string, int> UniformLocationsCache;
+
         public ComputeShader(string file)
         {
             UniformLocationsCache = new Dictionary<string, int>();
@@ -121,7 +131,7 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.UniformMatrix4(location, data.Length, false, floats.ToArray());
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -138,7 +148,7 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.Uniform3(location, data.Length, floats.ToArray());
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -154,7 +164,7 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.Uniform2(location, data.Length, floats.ToArray());
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -172,7 +182,7 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.Uniform4(location, data.Length, floats.ToArray());
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -182,7 +192,7 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.Uniform1(location, data.Length, data);
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -192,7 +202,7 @@ namespace VEngine
             if(location >= 0)
             {
                 GL.Uniform1(location, data.Length, data);
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -204,22 +214,12 @@ namespace VEngine
             Current = this;
         }
 
-        private static List<ComputeShader> AllComputeShaders = new List<ComputeShader>();
-
-        private bool Compiled;
-
-        private string ComputeFile;
-
-        private int Handle = -1;
-
-        private Dictionary<string, int> UniformLocationsCache;
-
         private static int GetUniformLocation(string name)
         {
             if(Current.Handle == -1)
                 return -1;
             int location = GL.GetUniformLocation(Current.Handle, name);
-            GLThread.CheckErrors();
+            Game.CheckErrors();
             return location;
         }
 

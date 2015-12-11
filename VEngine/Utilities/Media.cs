@@ -9,6 +9,16 @@ namespace VEngine
     {
         public static string SearchPath;
 
+        private static bool AlreadyLoading = false;
+
+        private static bool CompletedLoading = false;
+
+        private static Thread LoadingThread = null;
+
+        private static object locker = new object();
+
+        private static Dictionary<string, string> Map;
+
         public static string Get(string name)
         {
             if(!CompletedLoading)
@@ -67,12 +77,6 @@ namespace VEngine
                 return File.ReadAllText(Map[name.ToLower()]);
             }
         }
-
-        private static bool AlreadyLoading = false;
-        private static bool CompletedLoading = false;
-        private static Thread LoadingThread = null;
-        private static object locker = new object();
-        private static Dictionary<string, string> Map;
 
         private static void LoadFileMapImpl(string path = null)
         {

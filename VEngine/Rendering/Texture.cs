@@ -164,6 +164,7 @@ namespace VEngine
                     float maxAniso;
                     GL.GetFloat((GetPName)OldGL.ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out maxAniso);
                     GL.TexParameter(ImageTextureTarget, (TextureParameterName)OldGL.ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, maxAniso);
+                    //GL.TexParameter(ImageTextureTarget, (TextureParameterName)0x9366, 0x8008);
                 }
                 GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
                 GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);

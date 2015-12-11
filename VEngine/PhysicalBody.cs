@@ -1,41 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using BulletSharp;
 
 namespace VEngine
 {
-    class PhysicalBody : ITransformable
+    public class PhysicalBody : ITransformable
     {
+        public RigidBody Body;
         public CollisionShape Shape;
         public TransformationManager Transformation;
-        public RigidBody Body;
+        private bool Enabled;
 
-        public PhysicalBody()
+        public PhysicalBody(RigidBody rigidBody, CollisionShape shape, TransformationManager manager)
         {
-
+            Body = rigidBody;
+            Shape = shape;
+            Transformation = manager;
+            Enabled = false;
         }
-        
-        public void Enable()
-        {
 
+        public void ApplyChanges()
+        {
+            Transformation.SetPosition(Body.CenterOfMassPosition);
+            Transformation.SetOrientation(Body.Orientation);
         }
 
         public void Disable()
         {
-
+            Enabled = false;
+            Game.World.Physics.RemoveBody(this);
         }
 
-        public bool IsEnabled()
+        public void Enable()
         {
-            return false;
+            Enabled = true;
+            Game.World.Physics.AddBody(this);
         }
 
         public TransformationManager GetTransformationManager()
         {
             return Transformation;
+        }
+
+        public bool IsEnabled()
+        {
+            return Enabled;
+        }
+
+        public void ReadChanges()
+        {
+            Body.WorldTransform = Transformation.GetWorldTransform();
+            Shape.LocalScaling = Transformation.GetScale();
         }
     }
 }

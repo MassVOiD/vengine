@@ -8,6 +8,12 @@ namespace VEngine
 {
     public class PassiveVoxelizer
     {
+        private ShaderStorageBuffer BoxesSSBO;
+
+        private Framebuffer DrawingFramebuffer;
+
+        private ShaderProgram VoxelizerShader;
+
         public class Voxel
         {
             public float Density;
@@ -97,9 +103,5 @@ namespace VEngine
             GL.ColorMask(true, true, true, true);
             return newVoxels;
         }
-
-        private ShaderStorageBuffer BoxesSSBO;
-        private Framebuffer DrawingFramebuffer;
-        private ShaderProgram VoxelizerShader;
     }
 }

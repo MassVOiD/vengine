@@ -27,6 +27,10 @@ namespace VEngine
 
         public int Width, Height;
 
+        private static Framebuffer DefaultF;
+
+        private int FBO, RBO;
+
         public Framebuffer(int width, int height, bool depthOnly = false)
         {
             Generated = false;
@@ -41,7 +45,7 @@ namespace VEngine
             get
             {
                 if(DefaultF == null)
-                    DefaultF = new Framebuffer(GLThread.Resolution.Width, GLThread.Resolution.Height)
+                    DefaultF = new Framebuffer(Game.Resolution.Width, Game.Resolution.Height)
                     {
                         Generated = true,
                         FBO = 0
@@ -133,9 +137,6 @@ namespace VEngine
                 }
             }
         }
-
-        private static Framebuffer DefaultF;
-        private int FBO, RBO;
 
         private void Generate()
         {

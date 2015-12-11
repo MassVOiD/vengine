@@ -90,71 +90,6 @@ vec3 BiasedBRDF(vec3 reflectdir, vec3 norm, float roughness, vec2 uv){
     
     return mix(displace, reflectdir, roughness);
 }
-vec2 projectOnScreen(vec3 worldcoord){
-    vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4(worldcoord, 1.0);
-    vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
-    if(clipspace.z < 0.0) return vec2(-1);
-    return sspace1;
-}
-vec3 softLuminance(vec2 fuv){
-    if(texture(diffuseColorTex, UV).r >= 999){ 
-        return vec3(0);
-    }
-    vec3 outc = vec3(0);
-    float counter = 1.0;
-    vec3 posCenter = reconstructCameraSpace(fuv);
-	uint tangentEncoded = texture(meshIdTex, fuv).g;
-    vec3 tangent = unpackSnorm4x8(tangentEncoded).xyz;
-    vec3 normCenter = texture(normalsTex, fuv).rgb;
-    vec3 dir = normalize(reflect(posCenter, normCenter));
-    float meshRoughness = 1.0 - texture(meshDataTex, fuv).a; // glossyness actually
-   // float samples = mix(32.0, 1.0, meshRoughness);
-    vec3 nnormal = mix(dir, normCenter, 1.0 - meshRoughness);
-    float dist = length(posCenter);
-
-    TBN = inverse(transpose(mat3(
-        tangent,
-        cross(normCenter, tangent),
-        normCenter
-    )));
-	float samples = mix(5, 5, 1.0 - meshRoughness);
-    float stepsize = PI*2 / samples;
-    float ringsize = length(posCenter)*0.8;
-    //for(float g = 0; g < samples; g+=1)
-    for(float g = 0.0; g <= PI*2; g+=stepsize)
-    {
-        float minang = 0;
-
-        //vec3 displace = normalize(BRDF(dir, norm, meshRoughness)) * ringsize;
-		float grd = getRand() * stepsize;
-        vec2 zx = vec2(sin(g+grd), cos(g+grd));
-        vec3 displace = mix((TBN * normalize(vec3(zx, sqrt(1.0 - length(zx))))), dir, meshRoughness) * ringsize;
-        //vec3 displace = normalize(BRDFBiased(dir, norm, meshRoughness, (vec2(getRand2(), getRand2())))) * ringsize;
-        
-   // for(float gx = 0.0; gx < samples + 1; gx+=1)
-   // {
-        //vec2 rdr = vec2(gx, gy) / samples;
-       // vec2 rdr = vec2(getRand(), getRand());
-       // vec3 displace = normalize(BiasedBRDF(dir, normCenter, meshRoughness, rdr)) * 0.8 * dist;
-        vec2 sspos2 = projectOnScreen(FromCameraSpace(posCenter) + displace);
-        for(float g2 = 0.01; g2 < 1.0; g2+=0.2)
-        {
-            float fv = getRand();
-            fv *= fv;
-            vec2 gauss = mix(fuv, sspos2, fv);
-            //if(texture(diffuseColorTex, gauss).r >= 999){ 
-            //    continue;
-           // }
-            vec3 color = UseRSM == 1 ? (texture(currentTex, gauss).rgb + texture(indirectTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*1.0) : texture(currentTex, gauss).rgb + texture(lastIndirectTex, gauss).rgb*1.0;
-            vec3 pos = reconstructCameraSpace(gauss);
-            vec3 norm = texture(normalsTex, gauss).rgb;
-            float ftp = max(0, dot(norm, normalize(posCenter - pos)));
-            outc += shadePhoton(fuv, color) * ftp;
-            counter+=1;
-        }
-    }
-    return outc*5 / counter;
-}
 
 vec3 emulateSkyWithDepth(vec2 uv){
     vec3 worldPos = (reconstructCameraSpace(uv));
@@ -236,12 +171,13 @@ uniform int DisablePostEffects;
 
 void main()
 {
-    Seed(UV);
-    randsPointer = int(randomizer * 113.86786 ) % RandomsCount;
+    Seed(UV + Time);
+    randsPointer = (randomizer * 0.86786 ) ;
     vec2 nUV = UV;
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
         color1 += Lightning();
+        //color1 += softLuminance(UV);
 		//vec3 rc = FromCameraSpace(reconstructCameraSpace(UV));
 		//color1 += rc * 0.1;
         //color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).a) : (softLuminance(nUV));
@@ -261,13 +197,9 @@ void main()
 
 	if(DisablePostEffects == 0){
 		color1 *= Brightness;
-		vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
-		color1.rgb = vec3(pow(color1.r, gamma.r),
-		pow(color1.g, gamma.g),
-		pow(color1.b, gamma.b));
 	}
     //float Y = dot(vec3(0.30, 0.59, 0.11), color1);
     //float YD = Brightness * (Brightness + 1.0) / (Brightness + 1.0);
     //color1 *= YD * Y;
-    outColor = vec4(clamp(color1, 0.0, 1.0), 1.0);
+    outColor = vec4(clamp(color1, 0.0, 10000.0), 1.0);
 }

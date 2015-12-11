@@ -37,6 +37,47 @@ namespace VEngine
 
         public int Width, Height;
 
+        private static Random Rand = new Random();
+
+        private ShaderProgram
+            BloomShader,
+            FogShader,
+            HDRShader,
+            BlitShader,
+            CombinerShader;
+
+        private bool DisablePostEffects = false;
+
+        private Framebuffer LastFrameBuffer;
+
+        private long lastTime = 0;
+
+        private Matrix4 LastVP = Matrix4.Identity;
+
+        private Texture NumbersTexture;
+
+        private Framebuffer
+            Pass1FrameBuffer,
+            Pass2FrameBuffer,
+           LastDeferredFramebuffer,
+            BloomFrameBuffer,
+            FogFramebuffer;
+
+        private Object3dInfo PostProcessingMesh;
+
+        private uint[] postProcessingPlaneIndices = {
+                0, 1, 2, 3, 2, 1
+            };
+
+        private float[] postProcessingPlaneVertices = {
+                -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
+            };
+
+        private Stopwatch stopwatch = new Stopwatch(), separatestowatch = new Stopwatch();
+
         public class AAB
         {
             public Vector4 Color;
@@ -85,8 +126,20 @@ namespace VEngine
             //   initialWidth *= 4; initialHeight *= 4;
             MRT = new MRTFramebuffer(initialWidth, initialHeight);
 
-            Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight);
-            Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight);
+            Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+            Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
 
             BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6)
             {
@@ -121,9 +174,15 @@ namespace VEngine
             PostProcessingMesh = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
         }
 
+        // public static Texture3D FullScene3DTexture;
+        private enum BlurMode
+        {
+            Linear, Gaussian, Temporal, Additive
+        }
+
         public void RenderToCubeMapFramebuffer(CubeMapFramebuffer framebuffer)
         {
-            World.Root.RootScene.RecreateSimpleLightsSSBO();
+            Game.World.Scene.RecreateSimpleLightsSSBO();
             Width = framebuffer.Width;
             Height = framebuffer.Height;
 
@@ -170,10 +229,9 @@ namespace VEngine
             shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
             shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
             shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
-            shader.SetUniform("FarPlane", Camera.Current.Far);
             shader.SetUniform("resolution", new Vector2(Width, Height));
             shader.SetUniform("DisablePostEffects", DisablePostEffects);
-            shader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+            shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
         }
 
         public float StopMeasureMS()
@@ -184,55 +242,7 @@ namespace VEngine
             return (float)ms;
         }
 
-        private static Random Rand = new Random();
-
-        private ShaderProgram
-            BloomShader,
-            FogShader,
-            HDRShader,
-            BlitShader,
-            CombinerShader;
-
-        private bool DisablePostEffects = false;
-        private Framebuffer LastFrameBuffer;
-
-        private long lastTime = 0;
-
-        private Matrix4 LastVP = Matrix4.Identity;
-
-        private Texture NumbersTexture;
-
-        private Framebuffer
-            Pass1FrameBuffer,
-            Pass2FrameBuffer,
-           LastDeferredFramebuffer,
-            BloomFrameBuffer,
-            FogFramebuffer;
-
-        private Object3dInfo PostProcessingMesh;
-
-        private uint[] postProcessingPlaneIndices = {
-                0, 1, 2, 3, 2, 1
-            };
-
-        private float[] postProcessingPlaneVertices = {
-                -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-                -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
-            };
-
         // public static uint RandomIntFrame = 1;
-
-        // public static Texture3D FullScene3DTexture;
-
-        private Stopwatch stopwatch = new Stopwatch(), separatestowatch = new Stopwatch();
-
-        private enum BlurMode
-        {
-            Linear, Gaussian, Temporal, Additive
-        }
-
         private void Blit()
         {
             BlitShader.Use();
@@ -248,7 +258,7 @@ namespace VEngine
         private void Combine()
         {
             CombinerShader.Use();
-            World.Root.RootScene.SetLightingUniforms(CombinerShader, Matrix4.Identity);
+            Game.World.Scene.SetLightingUniforms(CombinerShader);
             //RandomsSSBO.Use(0);
             MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(16);
@@ -256,17 +266,17 @@ namespace VEngine
             MRT.UseTextureId(18);
             LastDeferredFramebuffer.UseTexture(20);
             CubeMap.Use(TextureUnit.Texture19);
-            World.Root.RootScene.MapLightsSSBOToShader(CombinerShader);
+            Game.World.Scene.MapLightsSSBOToShader(CombinerShader);
             CombinerShader.SetUniform("RandomsCount", 16 * 16 * 16);
-            CombinerShader.SetUniform("UseFog", GLThread.GraphicsSettings.UseFog);
-            CombinerShader.SetUniform("UseLightPoints", GLThread.GraphicsSettings.UseLightPoints);
-            CombinerShader.SetUniform("UseDepth", GLThread.GraphicsSettings.UseDepth);
-            CombinerShader.SetUniform("UseDeferred", GLThread.GraphicsSettings.UseDeferred);
-            CombinerShader.SetUniform("UseVDAO", GLThread.GraphicsSettings.UseVDAO);
-            CombinerShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
-            CombinerShader.SetUniform("UseRSM", GLThread.GraphicsSettings.UseRSM);
-            CombinerShader.SetUniform("UseSSReflections", GLThread.GraphicsSettings.UseSSReflections);
-            CombinerShader.SetUniform("UseHBAO", GLThread.GraphicsSettings.UseHBAO);
+            CombinerShader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
+            CombinerShader.SetUniform("UseLightPoints", Game.GraphicsSettings.UseLightPoints);
+            CombinerShader.SetUniform("UseDepth", Game.GraphicsSettings.UseDepth);
+            CombinerShader.SetUniform("UseDeferred", Game.GraphicsSettings.UseDeferred);
+            CombinerShader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
+            CombinerShader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
+            CombinerShader.SetUniform("UseRSM", Game.GraphicsSettings.UseRSM);
+            CombinerShader.SetUniform("UseSSReflections", Game.GraphicsSettings.UseSSReflections);
+            CombinerShader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
             CombinerShader.SetUniform("Brightness", Camera.Current.Brightness);
             CombinerShader.SetUniform("VDAOGlobalMultiplier", VDAOGlobalMultiplier);
             CombinerShader.SetUniform("DisablePostEffects", DisablePostEffects);
@@ -314,8 +324,8 @@ namespace VEngine
         private void Fog()
         {
             FogShader.Use();
-            World.Root.RootScene.SetLightingUniforms(FogShader, Matrix4.Identity);
-            FogShader.SetUniform("Time", (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds / 1000);
+            Game.World.Scene.SetLightingUniforms(FogShader);
+            FogShader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
             LastFogTime = DrawPPMesh();
         }
 
@@ -325,7 +335,7 @@ namespace VEngine
             //Console.WriteLine(time);
             int[] nums = lastTimeSTR.ToCharArray().Select<char, int>((a) => a - 48).ToArray();
             HDRShader.Use();
-            HDRShader.SetUniform("UseBloom", GLThread.GraphicsSettings.UseBloom);
+            HDRShader.SetUniform("UseBloom", Game.GraphicsSettings.UseBloom);
             HDRShader.SetUniform("NumbersCount", nums.Length);
             HDRShader.SetUniform("ShowSelected", ShowSelected);
             HDRShader.SetUniformArray("Numbers", nums);
@@ -346,7 +356,7 @@ namespace VEngine
         private void RenderCore()
         {
             MRT.Use();
-            World.Root.Draw();
+            Game.World.Draw();
 
             SwitchToFB(Pass1FrameBuffer);
 
@@ -383,7 +393,7 @@ namespace VEngine
             StartMeasureMS();
             MRT.Use();
             LastMRTTime = StopMeasureMS();
-            World.Root.Draw();
+            Game.World.Draw();
 
             MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureDepth(1);
@@ -391,7 +401,7 @@ namespace VEngine
             MRT.UseTextureMeshData(17);
             MRT.UseTextureId(18);
 
-            if(GLThread.GraphicsSettings.UseFog)
+            if(Game.GraphicsSettings.UseFog)
             {
                 SwitchToFB(FogFramebuffer);
                 Fog();
@@ -402,7 +412,7 @@ namespace VEngine
             FogFramebuffer.UseTexture(24);
             Combine();
 
-            if(GLThread.GraphicsSettings.UseBloom)
+            if(Game.GraphicsSettings.UseBloom)
             {
                 SwitchToFB(BloomFrameBuffer);
                 Pass1FrameBuffer.UseTexture(0);

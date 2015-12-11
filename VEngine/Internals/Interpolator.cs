@@ -7,45 +7,6 @@ namespace VEngine
 {
     public class Interpolator
     {
-        public enum Easing
-        {
-            Linear,
-            EaseIn,
-            EaseOut,
-            EaseInOut,
-            QuadEaseIn,
-            QuadEaseOut,
-            QuadEaseInOut
-        }
-
-        public static void Interpolate<T>(ValuePointer<T> value, T start, T end, float duration, Easing easing = Easing.Linear)
-        {
-            Interpolators.Add(new SingleInterpolation<T>()
-            {
-                Reference = value,
-                ValueStart = start,
-                ValueEnd = end,
-                Duration = duration,
-                StartTime = Stopwatch.GetTimestamp(),
-                Easing = easing
-            });
-        }
-
-        public static void StepAll()
-        {
-            var emp = new object[0];
-            var toRemove = new List<object>();
-            foreach(var i in Interpolators)
-            {
-                i.GetType().GetMethod("Interpolate").Invoke(i, emp);
-                bool ended = (bool)i.GetType().GetField("HasEnded").GetValue(i);
-                if(ended)
-                    toRemove.Add(i);
-            }
-            foreach(var r in toRemove)
-                Interpolators.Remove(r);
-        }
-
         private static List<object> Interpolators = new List<object>();
 
         private class SingleInterpolation<T>
@@ -161,6 +122,45 @@ namespace VEngine
                 }
                 return default(T);
             }
+        }
+
+        public enum Easing
+        {
+            Linear,
+            EaseIn,
+            EaseOut,
+            EaseInOut,
+            QuadEaseIn,
+            QuadEaseOut,
+            QuadEaseInOut
+        }
+
+        public static void Interpolate<T>(ValuePointer<T> value, T start, T end, float duration, Easing easing = Easing.Linear)
+        {
+            Interpolators.Add(new SingleInterpolation<T>()
+            {
+                Reference = value,
+                ValueStart = start,
+                ValueEnd = end,
+                Duration = duration,
+                StartTime = Stopwatch.GetTimestamp(),
+                Easing = easing
+            });
+        }
+
+        public static void StepAll()
+        {
+            var emp = new object[0];
+            var toRemove = new List<object>();
+            foreach(var i in Interpolators)
+            {
+                i.GetType().GetMethod("Interpolate").Invoke(i, emp);
+                bool ended = (bool)i.GetType().GetField("HasEnded").GetValue(i);
+                if(ended)
+                    toRemove.Add(i);
+            }
+            foreach(var r in toRemove)
+                Interpolators.Remove(r);
         }
     }
 }

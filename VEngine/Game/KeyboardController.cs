@@ -2,15 +2,24 @@
 using System.Collections.Generic;
 using OpenTK.Input;
 
-namespace VEngine.Game
+namespace VEngine
 {
     public class KeyboardController
     {
+        private List<Bind> Binds = new List<Bind>();
+
+        private class Bind
+        {
+            public Action Action;
+            public Key Key;
+            public BindType Type;
+        }
+
         public KeyboardController()
         {
-            GLThread.OnKeyDown += OnKeyDown;
-            GLThread.OnKeyUp += OnKeyUp;
-            // GLThread.OnUpdate += OnUpdate;
+            Game.OnKeyDown += OnKeyDown;
+            Game.OnKeyUp += OnKeyUp;
+            // Game.OnUpdate += OnUpdate;
         }
 
         public enum BindType
@@ -34,15 +43,6 @@ namespace VEngine.Game
         public void UnregisterKey(BindType type, Key key)
         {
             Binds.RemoveAll((a) => a.Key == key && a.Type == type);
-        }
-
-        private List<Bind> Binds = new List<Bind>();
-
-        private class Bind
-        {
-            public Action Action;
-            public Key Key;
-            public BindType Type;
         }
 
         private void OnKeyDown(object sender, KeyboardKeyEventArgs e)

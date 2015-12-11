@@ -10,6 +10,8 @@ namespace ShadowsTester
     {
         public static SettingsController Instance;
 
+        private Mesh3d SelectedMesh = null;
+
         public SettingsController()
         {
             Instance = this;
@@ -39,21 +41,19 @@ namespace ShadowsTester
                 return;
             this.Invoke(new Action(() =>
             {
-                deferredms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastDeferredTime.ToString();
-                ssaoms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastSSAOTime.ToString();
-                indirectms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastIndirectTime.ToString();
-                combinerms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastCombinerTime.ToString();
-                fogms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastFogTime.ToString();
-                mrtms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastMRTTime.ToString();
-                hdrms.Text = GLThread.DisplayAdapter.Pipeline.PostProcessor.LastHDRTime.ToString();
+                deferredms.Text = Game.DisplayAdapter.Pipeline.PostProcessor.LastDeferredTime.ToString();
+                ssaoms.Text = Game.DisplayAdapter.Pipeline.PostProcessor.LastSSAOTime.ToString();
+                indirectms.Text = Game.DisplayAdapter.Pipeline.PostProcessor.LastIndirectTime.ToString();
+                combinerms.Text = Game.DisplayAdapter.Pipeline.PostProcessor.LastCombinerTime.ToString();
+                fogms.Text = Game.DisplayAdapter.Pipeline.PostProcessor.LastFogTime.ToString();
+                mrtms.Text = Game.DisplayAdapter.Pipeline.PostProcessor.LastMRTTime.ToString();
+                hdrms.Text = Game.DisplayAdapter.Pipeline.PostProcessor.LastHDRTime.ToString();
             }));
         }
 
-        private Mesh3d SelectedMesh = null;
-
         private void ambientLightBar_Scroll(object sender, EventArgs e)
         {
-            GLThread.DisplayAdapter.Pipeline.PostProcessor.VDAOGlobalMultiplier = ((float)ambientLightBar.Value / (float)ambientLightBar.Maximum);
+            Game.DisplayAdapter.Pipeline.PostProcessor.VDAOGlobalMultiplier = ((float)ambientLightBar.Value / (float)ambientLightBar.Maximum);
         }
 
         private void aoCutoffBar_Scroll(object sender, EventArgs e)
@@ -65,7 +65,7 @@ namespace ShadowsTester
 
         private void aoGlobalBar_Scroll(object sender, EventArgs e)
         {
-            GLThread.DisplayAdapter.Pipeline.PostProcessor.AOGlobalModifier = 0.1f + ((float)aoGlobalBar.Value / (float)aoGlobalBar.Maximum) * 5.0f;
+            Game.DisplayAdapter.Pipeline.PostProcessor.AOGlobalModifier = 0.1f + ((float)aoGlobalBar.Value / (float)aoGlobalBar.Maximum) * 5.0f;
         }
 
         private void aoRangeBar_Scroll(object sender, EventArgs e)
@@ -84,7 +84,7 @@ namespace ShadowsTester
 
         private void indirectLightBar_Scroll(object sender, EventArgs e)
         {
-            GLThread.DisplayAdapter.Pipeline.PostProcessor.RSMGlobalMultiplier = ((float)indirectLightBar.Value / (float)indirectLightBar.Maximum) * 5.0f;
+            Game.DisplayAdapter.Pipeline.PostProcessor.RSMGlobalMultiplier = ((float)indirectLightBar.Value / (float)indirectLightBar.Maximum) * 5.0f;
         }
 
         private void vdaoMultBar_Scroll(object sender, EventArgs e)

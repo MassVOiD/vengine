@@ -4,13 +4,44 @@ using OpenTK;
 
 namespace VEngine
 {
-    sealed public class Scene : IRenderable, ITransformable
+    sealed public class Scene
     {
-        public TransformationManager Transformation;
+        private List<byte> Buffer;
+
+        private List<Vector4> colors = new List<Vector4>();
+
+        private List<float> fplanes = new List<float>();
+
+        private int ipointer = 0;
+
+        private int LastBufferElements = 0;
+
+        private List<int> mmodes = new List<int>();
+
+        private List<Matrix4> pmats = new List<Matrix4>();
+
+        private List<Vector3> poss = new List<Vector3>();
+
+        private List<float> ShadowMapsFarPlanes;
+
+        private int SimpleLightsCount = 0;
+
+        private ShaderStorageBuffer SSBO = new ShaderStorageBuffer();
+
+        private List<Matrix4> vmats = new List<Matrix4>();
+
+        private List<ILight> Lights = new List<ILight>();
+
+        private List<IRenderable> Renderables = new List<IRenderable>();
 
         public Scene()
         {
-            Transformation = new TransformationManager(Vector3.Zero, Quaternion.Identity, 1.0f);
+        }
+
+        public void Add(Scene e)
+        {
+            Lights.AddRange(e.Lights);
+            Renderables.AddRange(e.Renderables);
         }
 
         public void Add(ILight e)
@@ -23,7 +54,7 @@ namespace VEngine
             Renderables.Add(e);
         }
 
-        public void Draw(Matrix4 parentTransformation)
+        public void Draw()
         {
             // var cpos = Camera.MainDisplayCamera.GetPosition();
             /*Renderables.Sort((a, b) =>
@@ -40,7 +71,7 @@ namespace VEngine
                     return 0;
             });*/
             for(int i = 0; i < Renderables.Count; i++)
-                Renderables[i].Draw(parentTransformation * Transformation.GetWorldTransform());
+                Renderables[i].Draw();
         }
 
         public List<IRenderable> GetFlatRenderableList()
@@ -48,32 +79,21 @@ namespace VEngine
             var o = new List<IRenderable>();
             Renderables.ForEach((a) =>
             {
-                if(a is Scene)
-                    o.AddRange((a as Scene).GetFlatRenderableList());
-                else
-                    o.Add(a);
+                o.Add(a);
             });
             return o;
         }
-
-        public TransformationManager GetTransformationManager()
-        {
-            return Transformation;
-        }
-
-        public void MapLights(Matrix4 parentTransformation)
+        
+        public void MapLights()
         {
             for(int i = 0; i < Lights.Count; i++)
             {
                 var e = Lights[i];
                 if(e is IShadowMapableLight)
                 {
-                    (e as IShadowMapableLight).Map(parentTransformation * Transformation.GetWorldTransform());
+                    (e as IShadowMapableLight).Map();
                 }
             }
-            foreach(var e in Renderables)
-                if(e is Scene)
-                    (e as Scene).MapLights(parentTransformation * Transformation.GetWorldTransform());
         }
 
         public void MapLightsSSBOToShader(ShaderProgram sp)
@@ -102,9 +122,6 @@ namespace VEngine
                     SimpleLightsCount++;
                 }
             }
-            foreach(var e in Renderables)
-                if(e is Scene)
-                    (e as Scene).RecreateSimpleLightsSSBO(parentTransformation * Transformation.GetWorldTransform());
         }
 
         public void Remove(ILight e)
@@ -117,69 +134,42 @@ namespace VEngine
             Renderables.Remove(e);
         }
 
-        public void SetLightingUniforms(ShaderProgram shader, Matrix4 initialTransformation, bool initial = true)
+        public void SetLightingUniforms(ShaderProgram shader)
         {
-            Matrix4 newmat = initialTransformation * Transformation.GetWorldTransform();
-            if(initial)
-            {
-                pmats = new List<Matrix4>();
-                vmats = new List<Matrix4>();
-                poss = new List<Vector3>();
-                fplanes = new List<float>();
-                colors = new List<Vector4>();
-                mmodes = new List<int>();
-                ipointer = 0;
-            }
+            pmats = new List<Matrix4>();
+            vmats = new List<Matrix4>();
+            poss = new List<Vector3>();
+            fplanes = new List<float>();
+            colors = new List<Vector4>();
+            mmodes = new List<int>();
+            ipointer = 0;
+
             foreach(var e in Lights)
                 if(e is IShadowMapableLight)
                 {
                     var l = e as IShadowMapableLight;
                     var p = e as ILight;
                     pmats.Add(l.GetPMatrix());
-                    vmats.Add(newmat * l.GetVMatrix());
-                    poss.Add(mul(newmat, p.GetPosition()));
-                    fplanes.Add(l.GetFarPlane());
+                    vmats.Add(l.GetVMatrix());
+                    poss.Add(p.GetPosition());
                     colors.Add(p.GetColor());
-                    mmodes.Add((int)p.GetMixMode());
                     l.UseTexture(ipointer + 2);
                     ipointer++;
                 }
 
-            foreach(var e in Renderables)
-                if(e is Scene)
-                    (e as Scene).SetLightingUniforms(shader, newmat, false);
-            if(initial)
-            {
-                shader.SetUniformArray("LightsPs", pmats.ToArray());
-                shader.SetUniformArray("LightsVs", vmats.ToArray());
-                shader.SetUniformArray("LightsPos", poss.ToArray());
-                shader.SetUniformArray("LightsFarPlane", fplanes.ToArray());
-                shader.SetUniformArray("LightsColors", colors.ToArray());
-                shader.SetUniformArray("LightsMixModes", mmodes.ToArray());
-                shader.SetUniform("LightsCount", pmats.Count);
-                pmats = new List<Matrix4>();
-                vmats = new List<Matrix4>();
-                poss = new List<Vector3>();
-                fplanes = new List<float>();
-                colors = new List<Vector4>();
-                mmodes = new List<int>();
-            }
+            shader.SetUniformArray("LightsPs", pmats.ToArray());
+            shader.SetUniformArray("LightsVs", vmats.ToArray());
+            shader.SetUniformArray("LightsPos", poss.ToArray());
+            shader.SetUniformArray("LightsFarPlane", fplanes.ToArray());
+            shader.SetUniformArray("LightsColors", colors.ToArray());
+            shader.SetUniform("LightsCount", pmats.Count);
+            pmats = new List<Matrix4>();
+            vmats = new List<Matrix4>();
+            poss = new List<Vector3>();
+            fplanes = new List<float>();
+            colors = new List<Vector4>();
+            mmodes = new List<int>();
         }
-
-        private static List<byte> Buffer;
-        private static List<Vector4> colors = new List<Vector4>();
-        private static List<float> fplanes = new List<float>();
-        private static int ipointer = 0;
-        private static int LastBufferElements = 0;
-        private static List<int> mmodes = new List<int>();
-        private static List<Matrix4> pmats = new List<Matrix4>();
-        private static List<Vector3> poss = new List<Vector3>();
-        private static List<float> ShadowMapsFarPlanes;
-        private static int SimpleLightsCount = 0;
-        private static ShaderStorageBuffer SSBO = new ShaderStorageBuffer();
-        private static List<Matrix4> vmats = new List<Matrix4>();
-        private List<ILight> Lights = new List<ILight>();
-        private List<IRenderable> Renderables = new List<IRenderable>();
 
         private static List<byte> Bytes(Vector4 vec)
         {

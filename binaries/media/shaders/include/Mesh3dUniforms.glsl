@@ -1,6 +1,5 @@
 uniform mat4 ViewMatrix;
 uniform mat4 ProjectionMatrix;
-uniform float FarPlane;
 
 const int MAX_LIGHTS = 6;
 uniform int LightsCount;
@@ -10,10 +9,9 @@ uniform vec3 LightsPos[MAX_LIGHTS];
 uniform float LightsFarPlane[MAX_LIGHTS];
 uniform vec4 LightsColors[MAX_LIGHTS];
 
+uniform float ParallaxHeightMultiplier;
 
 uniform int Instances;
-uniform mat4 InitialTransformation;
-uniform mat4 InitialRotation;
 
 layout (std430, binding = 0) buffer MMBuffer
 {

@@ -16,10 +16,10 @@ namespace ShadowsTester
             Cam = new Camera(new Vector3(0, 5, 0), new Vector3(0, 0, 1), Vector3.UnitY, aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
             Camera.MainDisplayCamera = Cam;
 
-            GLThread.OnUpdate += UpdateSterring;
-            GLThread.OnMouseMove += OnMouseMove;
+            Game.OnUpdate += UpdateSterring;
+            Game.OnMouseMove += OnMouseMove;
 
-            GLThread.OnKeyUp += (o, e) =>
+            Game.OnKeyUp += (o, e) =>
             {
                 if(e.Key == OpenTK.Input.Key.M)
                 {
@@ -67,7 +67,7 @@ namespace ShadowsTester
         private void UpdateSterring(object o, EventArgs e)
         {
             var currentPosition = Cam.GetPosition();
-            if(GLThread.DisplayAdapter.IsCursorVisible)
+            if(Game.DisplayAdapter.IsCursorVisible)
                 return;
             var keyboard = OpenTK.Input.Keyboard.GetState();
             KeyboardHandler.Process();

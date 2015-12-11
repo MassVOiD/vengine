@@ -8,6 +8,16 @@ namespace VEngine
 {
     public class Mesh3d : IRenderable
     {
+        private List<Mesh3dInstance> Instances;
+
+        private List<LodLevel> LodLevels;
+
+        private Mesh3d()
+        {
+            LodLevels = new List<LodLevel>();
+            Instances = new List<Mesh3dInstance>();
+        }
+
         public static Mesh3d Empty
         {
             get
@@ -58,10 +68,10 @@ namespace VEngine
             LodLevels.Clear();
         }
 
-        public void Draw(Matrix4 parentTransformation)
+        public void Draw()
         {
             for(int i = 0; i < LodLevels.Count; i++)
-                LodLevels[i].Draw(parentTransformation, this, Instances.Count);
+                LodLevels[i].Draw(this, Instances.Count);
         }
 
         public Mesh3dInstance GetInstance(int i)
@@ -119,15 +129,6 @@ namespace VEngine
         public void UpdateMatrixSingleLodLevel(int level, bool instantRebuffer = false)
         {
             LodLevels[level].UpdateMatrix(Instances, instantRebuffer);
-        }
-
-        private List<Mesh3dInstance> Instances;
-        private List<LodLevel> LodLevels;
-
-        private Mesh3d()
-        {
-            LodLevels = new List<LodLevel>();
-            Instances = new List<Mesh3dInstance>();
         }
     }
 }

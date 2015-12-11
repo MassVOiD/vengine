@@ -35,7 +35,7 @@ void main(){
     vec3 mspace = v.xyz;
 
     //v = vec4(mspace, 1);
-    vec3 wpos = (InitialTransformation * mmat * v).xyz;
+    vec3 wpos = (mmat * v).xyz;
     vec3 norm = inorm;
     vec3 tang = in_tangent;
     if(MaterialType == MaterialTypeRainsOptimizedSphere){

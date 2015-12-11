@@ -19,16 +19,6 @@ namespace VEngine
             return Color;
         }
 
-        public LightMixMode GetMixMode()
-        {
-            return LightMixMode.Additive;
-        }
-
-        public MixRange GetMixRange()
-        {
-            return new MixRange();
-        }
-
         public Vector3 GetPosition()
         {
             return Transformation.Position;

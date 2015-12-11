@@ -16,8 +16,8 @@ namespace VEngine
                 DisplayDevice.Default, 4, 5,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
-            GLThread.DisplayAdapter = this;
-            GLThread.Resolution = new Size(Width, Height);
+            Game.DisplayAdapter = this;
+            Game.Resolution = new Size(Width, Height);
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
@@ -61,27 +61,29 @@ namespace VEngine
         {
             Interpolator.StepAll();
 
-            GLThread.InvokeQueue();
+            TransformationJoint.Resolve();
+            Game.World.Physics.UpdateAllModifiedTransformations();
+            Game.World.Physics.SimulationStep((float)(e.Time));
+            Game.InvokeQueue();
 
-            World.Root.RootScene.MapLights(Matrix4.Identity);
+            Game.World.Scene.MapLights();
 
             //LightPool.UseTextures(2);
             // this is here so you can issue draw calls from there if you want
-            GLThread.InvokeOnBeforeDraw();
+            Game.InvokeOnBeforeDraw();
             Pipeline.PostProcessor.RenderToFramebuffer(Framebuffer.Default);
             //DrawAll();
-            GLThread.InvokeOnAfterDraw();
+            Game.InvokeOnAfterDraw();
 
-            GLThread.CheckErrors();
+            Game.CheckErrors();
 
             SwapBuffers();
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - GLThread.StartTime).Milliseconds / 1000.0f * 10.0f));
-            GLThread.InvokeOnUpdate();
-            TransformationJoint.Resolve();
+            //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - Game.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - Game.StartTime).Milliseconds / 1000.0f * 10.0f));
+            Game.InvokeOnUpdate();
             //Debugger.Send("FrameTime", e.Time);
             //Debugger.Send("FPS", 1.0 / e.Time);
             var keyboard = OpenTK.Input.Keyboard.GetState();
@@ -90,7 +92,7 @@ namespace VEngine
             {
                 System.Diagnostics.Process.GetCurrentProcess().Kill();
                 // this disposing causes more errors than normal killing
-                //World.Root.DisposePhysics();
+                //Game.World.DisposePhysics();
                 //Exit();
             }
         }
@@ -103,49 +105,49 @@ namespace VEngine
                 {
                     var p = this.PointToScreen(new System.Drawing.Point(Width / 2, Height / 2));
                     var p2 = this.PointToScreen(new System.Drawing.Point(e.X, e.Y));
-                    GLThread.InvokeOnMouseMove(new OpenTK.Input.MouseMoveEventArgs(e.X, e.Y, p2.X - p.X, p2.Y - p.Y));
+                    Game.InvokeOnMouseMove(new OpenTK.Input.MouseMoveEventArgs(e.X, e.Y, p2.X - p.X, p2.Y - p.Y));
                     System.Windows.Forms.Cursor.Position = p;
                 }
                 else
                 {
-                    GLThread.InvokeOnMouseMove(e);
+                    Game.InvokeOnMouseMove(e);
                 }
             }
         }
 
         private void VEngineWindowAdapter_KeyDown(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
         {
-            GLThread.InvokeOnKeyDown(e);
+            Game.InvokeOnKeyDown(e);
         }
 
         private void VEngineWindowAdapter_KeyPress(object sender, KeyPressEventArgs e)
         {
-            GLThread.InvokeOnKeyPress(e);
+            Game.InvokeOnKeyPress(e);
         }
 
         private void VEngineWindowAdapter_KeyUp(object sender, OpenTK.Input.KeyboardKeyEventArgs e)
         {
-            GLThread.InvokeOnKeyUp(e);
+            Game.InvokeOnKeyUp(e);
         }
 
         private void VEngineWindowAdapter_Load(object sender, EventArgs e)
         {
-            GLThread.InvokeOnLoad();
+            Game.InvokeOnLoad();
         }
 
         private void VEngineWindowAdapter_MouseDown(object sender, OpenTK.Input.MouseButtonEventArgs e)
         {
-            GLThread.InvokeOnMouseDown(e);
+            Game.InvokeOnMouseDown(e);
         }
 
         private void VEngineWindowAdapter_MouseUp(object sender, OpenTK.Input.MouseButtonEventArgs e)
         {
-            GLThread.InvokeOnMouseUp(e);
+            Game.InvokeOnMouseUp(e);
         }
 
         private void VEngineWindowAdapter_MouseWheel(object sender, OpenTK.Input.MouseWheelEventArgs e)
         {
-            GLThread.InvokeOnMouseWheel(e);
+            Game.InvokeOnMouseWheel(e);
         }
     }
 }

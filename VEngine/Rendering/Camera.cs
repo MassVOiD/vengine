@@ -4,20 +4,33 @@ namespace VEngine
 {
     public class Camera : ITransformable
     {
+        static public Camera Current;
 
-        class FrustumCone
+        static public Camera MainDisplayCamera;
+
+        public float Brightness = 1.0f;
+
+        public float CurrentDepthFocus = 0.06f;
+
+        public float FocalLength = 75.0f;
+
+        public float LensBlurAmount = 0.0f;
+
+        public float Pitch, Roll, Far;
+
+        public TransformationManager Transformation;
+
+        private FrustumCone cone;
+
+        private Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
+
+        private class FrustumCone
         {
-            public Vector3 Origin;
             public Vector3 LeftBottom;
-            public Vector3 RightBottom;
             public Vector3 LeftTop;
+            public Vector3 Origin;
+            public Vector3 RightBottom;
             public Vector3 RightTop;
-
-            private static Vector3 GetDir(Vector3 origin, Vector2 uv, Matrix4 inv)
-            {
-                var clip = Vector4.Transform(new Vector4(uv.X, uv.Y, 0.01f, 1), inv);
-                return (clip.Xyz / clip.W - origin).Normalized();
-            }
 
             public static FrustumCone Create(Vector3 origin, Matrix4 view, Matrix4 proj)
             {
@@ -30,25 +43,13 @@ namespace VEngine
                 f.RightTop = GetDir(origin, new Vector2(1, 1), inVP);
                 return f;
             }
+
+            private static Vector3 GetDir(Vector3 origin, Vector2 uv, Matrix4 inv)
+            {
+                var clip = Vector4.Transform(new Vector4(uv.X, uv.Y, 0.01f, 1), inv);
+                return (clip.Xyz / clip.W - origin).Normalized();
+            }
         }
-
-        static public Camera Current;
-
-        static public Camera MainDisplayCamera;
-
-        public float Brightness = 1.0f;
-
-        public float CurrentDepthFocus = 0.06f;
-
-        public float FocalLength = 75.0f;
-        public float LensBlurAmount = 0.0f;
-        public float Pitch, Roll, Far;
-
-        public TransformationManager Transformation;
-
-        private Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
-
-        FrustumCone cone;
 
         public Camera(Vector3 position, Vector3 lookAt, Vector3 up, float aspectRatio, float fov, float near, float far)
         {
@@ -88,30 +89,25 @@ namespace VEngine
             return -direction.Xyz;
         }
 
-        public TransformationManager GetTransformationManager()
-        {
-            return Transformation;
-        }
-
-        public void SetProjectionMatrix(Matrix4 proj)
-        {
-            this.ProjectionMatrix = proj;
-            Update();
-        }
         public Matrix4 GetProjectionMatrix()
         {
             return ProjectionMatrix;
+        }
+
+        public Matrix4 GetRotationMatrix()
+        {
+            return RotationMatrix;
+        }
+
+        public TransformationManager GetTransformationManager()
+        {
+            return Transformation;
         }
 
         public Matrix4 GetViewMatrix()
         {
             return ViewMatrix;
         }
-        public Matrix4 GetRotationMatrix()
-        {
-            return RotationMatrix;
-        }
-
 
         public void LookAt(Vector3 location)
         {
@@ -138,6 +134,12 @@ namespace VEngine
             Update();*/
         }
 
+        public void SetProjectionMatrix(Matrix4 proj)
+        {
+            this.ProjectionMatrix = proj;
+            Update();
+        }
+
         public void SetUniforms()
         {
             if(cone == null)
@@ -149,14 +151,14 @@ namespace VEngine
                 //s.SetUniform("FrustumConeLeftTop", cone.LeftTop);
                 //s.SetUniform("FrustumConeRightBottom", cone.RightBottom);
                 //s.SetUniform("FrustumConeRightTop", cone.RightTop);
-                s.SetUniform("FrustumConeBottomLeftToBottomRight",cone.RightBottom - cone.LeftBottom);
+                s.SetUniform("FrustumConeBottomLeftToBottomRight", cone.RightBottom - cone.LeftBottom);
                 s.SetUniform("FrustumConeBottomLeftToTopLeft", cone.LeftTop - cone.LeftBottom);
             }
         }
 
         public void Update()
         {
-            lock(Transformation)
+            lock (Transformation)
             {
                 var tRotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());
                 var tViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
@@ -169,7 +171,6 @@ namespace VEngine
                 RotationMatrix = tRotationMatrix;
                 ViewMatrix = tViewMatrix;
             }
-
         }
 
         public void UpdateFromRollPitch()

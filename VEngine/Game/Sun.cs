@@ -9,6 +9,8 @@ namespace VEngine
         public Vector4 LightColor;
         public Quaternion Orientation;
 
+        private Dictionary<float, ProjectionLight> Cascades;
+
         public Sun(Quaternion orientation, Vector4 color, params float[] levels)
         {
             Current = this;
@@ -28,16 +30,10 @@ namespace VEngine
                 casc.FBO.DepthInternalFormat = OpenTK.Graphics.OpenGL4.PixelInternalFormat.DepthComponent32f;
 
                 Cascades.Add(start, casc);
-
-                casc.LightMixRange.Start = start;
-                casc.LightMixRange.End = start;
-                casc.LightMixMode = LightMixMode.SunCascade;
             }
 
-            GLThread.OnUpdate += GLThread_OnUpdate;
+            Game.OnUpdate += GLThread_OnUpdate;
         }
-
-        private Dictionary<float, ProjectionLight> Cascades;
 
         private void GLThread_OnUpdate(object sender, System.EventArgs e)
         {

@@ -8,9 +8,10 @@ uniform int DrawMode;
 
 void main()
 {
-    if(DrawMode == MODE_TEXTURE_ONLY) finishFragment(texture(currentTex, Input.TexCoord));
+	vec2 a = adjustParallaxUV();
+    if(DrawMode == MODE_TEXTURE_ONLY) finishFragment(texture(currentTex, a));
 	else if(DrawMode == MODE_COLOR_ONLY) finishFragment(input_Color);
-	else if(DrawMode == MODE_TEXTURE_MULT_COLOR) finishFragment(texture(currentTex, Input.TexCoord) * input_Color);
+	else if(DrawMode == MODE_TEXTURE_MULT_COLOR) finishFragment(texture(currentTex, a) * input_Color);
 	else if(DrawMode == MODE_ONE_MINUS_COLOR_OVER_TEXTURE) 
         finishFragment(vec4(1) - (input_Color / (texture(currentTex, Input.TexCoord) + vec4(1, 1, 1, 0))));
 }

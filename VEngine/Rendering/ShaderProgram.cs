@@ -17,6 +17,41 @@ namespace VEngine
         public int Handle = -1;
         public bool UsingTesselation = false;
 
+        private static List<ShaderProgram> AllPrograms = new List<ShaderProgram>();
+
+        private string FragmentFile;
+
+        private string GeometryFile;
+
+        private Dictionary<string, string> Globals = new Dictionary<string, string>();
+
+        private string lastCombinedSourcesHash;
+
+        private string TessControlFile;
+
+        private string TessEvalFile;
+
+        private Dictionary<string, int> UniformLocationsCache;
+
+        private Dictionary<string, object> ValuesMap;
+
+        private string VertexFile;
+
+        private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
+
+        private ShaderProgram(string vertexFile, string fragmentFile, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
+        {
+            ValuesMap = new Dictionary<string, object>();
+            VertexFile = vertexFile;
+            FragmentFile = fragmentFile;
+            GeometryFile = geometryFile;
+            TessControlFile = tesscontrolFile;
+            TessEvalFile = tessevalFile;
+            lastCombinedSourcesHash = "";
+            Recompile();
+            AllPrograms.Add(this);
+        }
+
         public enum SwitchResult
         {
             Switched,
@@ -186,7 +221,7 @@ namespace VEngine
             if(location >= 0 && CheckCache(name, data))
             {
                 GL.UniformMatrix4(location, data.Length, false, floats.ToArray());
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -203,7 +238,7 @@ namespace VEngine
             if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform3(location, data.Length, floats.ToArray());
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -219,7 +254,7 @@ namespace VEngine
             if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform2(location, data.Length, floats.ToArray());
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -237,7 +272,7 @@ namespace VEngine
             if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform4(location, data.Length, floats.ToArray());
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -247,7 +282,7 @@ namespace VEngine
             if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform1(location, data.Length, data);
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -257,7 +292,7 @@ namespace VEngine
             if(location >= 0 && CheckCache(name, data))
             {
                 GL.Uniform1(location, data.Length, data);
-                GLThread.CheckErrors(name);
+                Game.CheckErrors(name);
             }
         }
 
@@ -276,33 +311,6 @@ namespace VEngine
             return SwitchResult.Locked;
         }
 
-        private static List<ShaderProgram> AllPrograms = new List<ShaderProgram>();
-        private string FragmentFile;
-        private string GeometryFile;
-        private Dictionary<string, string> Globals = new Dictionary<string, string>();
-        private string lastCombinedSourcesHash;
-
-        private string TessControlFile;
-        private string TessEvalFile;
-        private Dictionary<string, int> UniformLocationsCache;
-        private Dictionary<string, object> ValuesMap;
-
-        private string VertexFile;
-        private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
-
-        private ShaderProgram(string vertexFile, string fragmentFile, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
-        {
-            ValuesMap = new Dictionary<string, object>();
-            VertexFile = vertexFile;
-            FragmentFile = fragmentFile;
-            GeometryFile = geometryFile;
-            TessControlFile = tesscontrolFile;
-            TessEvalFile = tessevalFile;
-            lastCombinedSourcesHash = "";
-            Recompile();
-            AllPrograms.Add(this);
-        }
-
         private static int GetUniformLocation(string name)
         {
             if(Current.Handle == -1)
@@ -310,7 +318,7 @@ namespace VEngine
             if(Current.UniformLocationsCache.ContainsKey(name))
                 return Current.UniformLocationsCache[name];
             int location = GL.GetUniformLocation(Current.Handle, name);
-            GLThread.CheckErrors("Locating " + name);
+            Game.CheckErrors("Locating " + name);
             //if(!Lock)
             Current.UniformLocationsCache.Add(name, location);
             //if(Lock && name == "Time")

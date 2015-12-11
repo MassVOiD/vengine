@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OpenTK;
 using VEngine;
+using VEngine.FileFormats;
 
 namespace ShadowsTester
 {
@@ -18,13 +19,19 @@ namespace ShadowsTester
               }*/
             // var scene = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"),
             // Media.Get("cryteksponza.mtl"), 0.03f);
-
-            var script = System.IO.File.ReadAllText(Media.Get("init.js"));
-
-            //js.SetValue("Scene", World.Root.RootScene);
-            var vars = new List<Tuple<string, object>>();
-            vars.Add(new Tuple<string, object>("Scene", World.Root.RootScene));
-            ExpressionEvaluator.Eval(vars, script);
+            var scene = new GameScene("Scene.scene");
+            scene.Load();
+            var cnt = scene.Meshes.Count;
+            var sc = new Vector3(2.0f, 2.0f, 2.0f);
+            for(var i = 0; i < cnt; i++)
+            {
+                var o = scene.Meshes[i];
+                var b = o.GetInstance(0).GetPosition();
+                b = new Vector3(b.X * 0.25f, b.Y * 0.25f, b.Z * 0.25f);
+                o.GetInstance(0).SetPosition(b);
+                o.GetInstance(0).Scale(0.25f);
+                Game.World.Scene.Add(o);
+            }
 
             var testScene = new Scene();
             //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
@@ -33,25 +40,25 @@ namespace ShadowsTester
             var lucy = Mesh3d.Create(lucyobj, GenericMaterial.FromColor(Color.White));
             lucy.GetInstance(0).Scale(0.1f);
             testScene.Add(lucy);
-            World.Root.RootScene.Add(testScene);
+            Game.World.Scene.Add(testScene);
 
             PostProcessing pp = new PostProcessing(512, 512);
             CubeMapFramebuffer cubens = new CubeMapFramebuffer(512, 512);
             var tex = new CubeMapTexture(cubens.TexColor);
-            GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
+            Game.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
             cubens.SetPosition(new Vector3(0, 1, 0));
-            GLThread.OnKeyPress += (o, e) =>
+            Game.OnKeyPress += (o, e) =>
             {
                 if(e.KeyChar == 'z')
                     cubens.SetPosition(Camera.MainDisplayCamera.GetPosition());
-                
             };
-            GLThread.OnBeforeDraw += (od, dsd) => {
+            Game.OnBeforeDraw += (od, dsd) =>
+            {
                 if((lucy.GetInstance(0).GetPosition() - cubens.GetPosition()).Length > 0.01f)
                 {
                     cubens.SetPosition(lucy.GetInstance(0).GetPosition());
                     pp.RenderToCubeMapFramebuffer(cubens);
-                    GLThread.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;   
+                    Game.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
                     tex.Handle = cubens.TexColor;
                 }
             };
@@ -59,17 +66,17 @@ namespace ShadowsTester
             List<Mesh3d> cubes = new List<Mesh3d>();
             for(int i = 0; i < 80; i++)
                 cubes.Add(new Mesh3d(Object3dInfo.LoadFromObjSingle(Media.Get("normalizedcube.obj")), new GenericMaterial(Color.White)));
-            cubes.ForEach((a) => World.Root.RootScene.Add(a));
+            cubes.ForEach((a) => Game.World.Scene.Add(a));
 
             List<SimplePointLight> lights = new List<SimplePointLight>();
             for(int i = 0; i < 80; i++)
             {
                 lights.Add(new SimplePointLight(new Vector3(0), Vector4.Zero));
-                World.Root.RootScene.Add(lights[i]);
+                Game.World.Scene.Add(lights[i]);
             }
-                GLThread.OnBeforeDraw += (o, e) =>
+                Game.OnBeforeDraw += (o, e) =>
             {
-                float timeadd = (float)(DateTime.Now - GLThread.StartTime).TotalMilliseconds * 0.00001f;
+                float timeadd = (float)(DateTime.Now - Game.StartTime).TotalMilliseconds * 0.00001f;
                 for(int x = 0; x < 80; x++)
                 {
                     var center = new Vector3((x - 40) * 0.1f, (float)Math.Cos(x+ timeadd * x), (float)Math.Sin(x + timeadd * x));
@@ -102,7 +109,7 @@ namespace ShadowsTester
             scene.Load();
             SimplePointLight p = new SimplePointLight(new Vector3(0, 3, 0), new Vector4(-2.2f, -2.2f, -2.2f, 2.6f));
             //LightPool.Add(p);
-            GLThread.OnKeyPress += (o, e) =>
+            Game.OnKeyPress += (o, e) =>
             {
                 if(e.KeyChar == 'o')
                     p.Color = new Vector4(p.Color.X + 1.1f, p.Color.Y + 1.1f, p.Color.Z + 1.1f, p.Color.W);

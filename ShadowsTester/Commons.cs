@@ -11,6 +11,18 @@ namespace ShadowsTester
         public static FreeCamera FreeCam;
         public static int MouseX, MouseY;
 
+        private static Dictionary<int, TransformationManager> CameraSavedViews;
+
+        private static ComputeShader MousePicker;
+
+        private static Mesh3dInstance Picked;
+
+        private static Mesh3d PickedMesh;
+
+        private static ShaderStorageBuffer PickingResult;
+
+        private static ProjectionLight RedLight;
+
         public static ProjectionLight AddControllableLight()
         {
             float fovdegree = 90;
@@ -19,7 +31,7 @@ namespace ShadowsTester
             redConeLight.LightColor = new Vector4(1, 1, 1, 395);
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
-            GLThread.OnKeyUp += (o, e) =>
+            Game.OnKeyUp += (o, e) =>
             {
                 if(e.Key == OpenTK.Input.Key.J)
                 {
@@ -40,9 +52,9 @@ namespace ShadowsTester
                     redConeLight.camera.SetProjectionMatrix(a);
                 }
             };
-            World.Root.RootScene.Add(redConeLight);
+            Game.World.Scene.Add(redConeLight);
 
-            GLThread.OnMouseMove += (o, e) =>
+            Game.OnMouseMove += (o, e) =>
             {
                 MouseX = e.X;
                 MouseY = e.Y;
@@ -75,13 +87,13 @@ namespace ShadowsTester
                     }
                 }
                 else
-                    FreeCam.Freeze = GLThread.DisplayAdapter.IsCursorVisible;
+                    FreeCam.Freeze = Game.DisplayAdapter.IsCursorVisible;
             };
-            GLThread.OnMouseWheel += (o, e) =>
+            Game.OnMouseWheel += (o, e) =>
             {
                 Camera.Current.LensBlurAmount -= e.Delta / 2.0f;
             };
-            GLThread.OnUpdate += (o, e) =>
+            Game.OnUpdate += (o, e) =>
             {
                 //SettingsController.Instance.UpdatePerformance();
                 /*var jpad = OpenTK.Input.GamePad.GetState(0);
@@ -110,27 +122,27 @@ namespace ShadowsTester
                     }
                 }*/
                 var kb = OpenTK.Input.Keyboard.GetState();
-                if(GLThread.DisplayAdapter.IsCursorVisible)
+                if(Game.DisplayAdapter.IsCursorVisible)
                 {
                     if(!kb.IsKeyDown(OpenTK.Input.Key.LControl))
                     {
-                        GLThread.DisplayAdapter.Pipeline.PostProcessor.ShowSelected = false;
+                        Game.DisplayAdapter.Pipeline.PostProcessor.ShowSelected = false;
                     }
                     else
                     {
-                        GLThread.DisplayAdapter.Pipeline.PostProcessor.ShowSelected = true;
+                        Game.DisplayAdapter.Pipeline.PostProcessor.ShowSelected = true;
                         PickingResult.MapData(Vector4.One);
                         MousePicker.Use();
                         var state = OpenTK.Input.Mouse.GetState();
-                        MousePicker.SetUniform("Mouse", new Vector2(MouseX, GLThread.Resolution.Height - MouseY));
-                        MousePicker.SetUniform("Resolution", new Vector2(GLThread.Resolution.Width, GLThread.Resolution.Height));
+                        MousePicker.SetUniform("Mouse", new Vector2(MouseX, Game.Resolution.Height - MouseY));
+                        MousePicker.SetUniform("Resolution", new Vector2(Game.Resolution.Width, Game.Resolution.Height));
                         PickingResult.Use(0);
-                        GL.BindImageTexture(0, GLThread.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rg32ui);
+                        GL.BindImageTexture(0, Game.DisplayAdapter.Pipeline.PostProcessor.MRT.TexId, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.Rg32ui);
                         MousePicker.Dispatch(1, 1, 1);
                         OpenTK.Graphics.OpenGL4.GL.MemoryBarrier(OpenTK.Graphics.OpenGL4.MemoryBarrierFlags.ShaderStorageBarrierBit);
                         byte[] result = PickingResult.Read(0, 4);
                         uint id = BitConverter.ToUInt32(result, 0);
-                        foreach(var m in World.Root.RootScene.GetFlatRenderableList())
+                        foreach(var m in Game.World.Scene.GetFlatRenderableList())
                         {
                             if(m is Mesh3d)
                             {
@@ -145,6 +157,45 @@ namespace ShadowsTester
                                 }
                             }
                         }
+                    }
+                }
+
+                if(kb.IsKeyDown(OpenTK.Input.Key.T) && Picked != null)
+                {
+                    if(kb.IsKeyDown(OpenTK.Input.Key.Keypad4))
+                    {
+                        Picked.Translate(new Vector3(-0.01f, 0, 0));
+                    }
+                    if(kb.IsKeyDown(OpenTK.Input.Key.Keypad6))
+                    {
+                        Picked.Translate(new Vector3(0.01f, 0, 0));
+                    }
+                    if(kb.IsKeyDown(OpenTK.Input.Key.Keypad8))
+                    {
+                        Picked.Translate(new Vector3(0, 0, 0.01f));
+                    }
+                    if(kb.IsKeyDown(OpenTK.Input.Key.Keypad2))
+                    {
+                        Picked.Translate(new Vector3(0, 0, -0.01f));
+                    }
+                    if(kb.IsKeyDown(OpenTK.Input.Key.Keypad7))
+                    {
+                        Picked.Translate(new Vector3(0, 0.01f, 0));
+                    }
+                    if(kb.IsKeyDown(OpenTK.Input.Key.Keypad1))
+                    {
+                        Picked.Translate(new Vector3(0, -0.01f, 0));
+                    }
+                }
+                if(kb.IsKeyDown(OpenTK.Input.Key.C) && Picked != null)
+                {
+                    if(kb.IsKeyDown(OpenTK.Input.Key.Keypad8))
+                    {
+                        Picked.Scale(1.01f);
+                    }
+                    if(kb.IsKeyDown(OpenTK.Input.Key.Keypad1))
+                    {
+                        Picked.Scale(0.99f);
                     }
                 }
 
@@ -205,8 +256,8 @@ namespace ShadowsTester
         public static FreeCamera SetUpFreeCamera()
         {
             CameraSavedViews = new Dictionary<int, TransformationManager>();
-            float aspect = GLThread.Resolution.Height > GLThread.Resolution.Width ? GLThread.Resolution.Height / GLThread.Resolution.Width : GLThread.Resolution.Width / GLThread.Resolution.Height;
-            var freeCamera = new FreeCamera((float)GLThread.Resolution.Width / (float)GLThread.Resolution.Height, MathHelper.PiOver3 / 1);
+            float aspect = Game.Resolution.Height > Game.Resolution.Width ? Game.Resolution.Height / Game.Resolution.Width : Game.Resolution.Width / Game.Resolution.Height;
+            var freeCamera = new FreeCamera((float)Game.Resolution.Width / (float)Game.Resolution.Height, MathHelper.PiOver3 / 1);
             FreeCam = freeCamera;
             PickingResult = new ShaderStorageBuffer();
             MousePicker = new ComputeShader("MousePicker.compute.glsl");
@@ -215,7 +266,7 @@ namespace ShadowsTester
 
         public static void SetUpInputBehaviours()
         {
-            GLThread.OnKeyUp += (o, e) =>
+            Game.OnKeyUp += (o, e) =>
             {
                 if(e.Key == OpenTK.Input.Key.F1 && !e.Shift)
                     InterpolateCameraFromSaved(0);
@@ -249,8 +300,8 @@ namespace ShadowsTester
 
                 if(e.Key == OpenTK.Input.Key.Tab)
                 {
-                    GLThread.DisplayAdapter.IsCursorVisible = !GLThread.DisplayAdapter.IsCursorVisible;
-                    FreeCam.Freeze = GLThread.DisplayAdapter.IsCursorVisible;
+                    Game.DisplayAdapter.IsCursorVisible = !Game.DisplayAdapter.IsCursorVisible;
+                    FreeCam.Freeze = Game.DisplayAdapter.IsCursorVisible;
                 }
                 if(e.Key == OpenTK.Input.Key.Comma)
                 {
@@ -349,7 +400,7 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.R)
                 {
-                    GLThread.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode = !GLThread.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode;
+                    Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode = !Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode;
                 }
                 if(e.Key == OpenTK.Input.Key.LBracket)
                 {
@@ -361,8 +412,8 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Number1)
                 {
-                    //redConeLight.SetPosition(freeCamera.Cam.Transformation.GetPosition(), freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection());
-                    RedLight.GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition());
+                //redConeLight.SetPosition(freeCamera.Cam.Transformation.GetPosition(), freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection());
+                RedLight.GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition());
                     RedLight.GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
                     RedLight.camera.Update();
                 }
@@ -371,32 +422,25 @@ namespace ShadowsTester
                     Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
                 }
                 if(e.Key == OpenTK.Input.Key.Number0)
-                    GLThread.GraphicsSettings.UseVDAO = !GLThread.GraphicsSettings.UseVDAO;
+                    Game.GraphicsSettings.UseVDAO = !Game.GraphicsSettings.UseVDAO;
                 if(e.Key == OpenTK.Input.Key.Number9)
-                    GLThread.GraphicsSettings.UseBloom = !GLThread.GraphicsSettings.UseBloom;
+                    Game.GraphicsSettings.UseBloom = !Game.GraphicsSettings.UseBloom;
                 if(e.Key == OpenTK.Input.Key.Number8)
-                    GLThread.GraphicsSettings.UseDeferred = !GLThread.GraphicsSettings.UseDeferred;
+                    Game.GraphicsSettings.UseDeferred = !Game.GraphicsSettings.UseDeferred;
                 if(e.Key == OpenTK.Input.Key.Number7)
-                    GLThread.GraphicsSettings.UseDepth = !GLThread.GraphicsSettings.UseDepth;
+                    Game.GraphicsSettings.UseDepth = !Game.GraphicsSettings.UseDepth;
                 if(e.Key == OpenTK.Input.Key.Number6)
-                    GLThread.GraphicsSettings.UseFog = !GLThread.GraphicsSettings.UseFog;
+                    Game.GraphicsSettings.UseFog = !Game.GraphicsSettings.UseFog;
                 if(e.Key == OpenTK.Input.Key.Number5)
-                    GLThread.GraphicsSettings.UseLightPoints = !GLThread.GraphicsSettings.UseLightPoints;
+                    Game.GraphicsSettings.UseLightPoints = !Game.GraphicsSettings.UseLightPoints;
                 if(e.Key == OpenTK.Input.Key.Number4)
-                    GLThread.GraphicsSettings.UseRSM = !GLThread.GraphicsSettings.UseRSM;
+                    Game.GraphicsSettings.UseRSM = !Game.GraphicsSettings.UseRSM;
                 if(e.Key == OpenTK.Input.Key.Number3)
-                    GLThread.GraphicsSettings.UseSSReflections = !GLThread.GraphicsSettings.UseSSReflections;
+                    Game.GraphicsSettings.UseSSReflections = !Game.GraphicsSettings.UseSSReflections;
                 if(e.Key == OpenTK.Input.Key.Number2)
-                    GLThread.GraphicsSettings.UseHBAO = !GLThread.GraphicsSettings.UseHBAO;
+                    Game.GraphicsSettings.UseHBAO = !Game.GraphicsSettings.UseHBAO;
             };
         }
-
-        private static Dictionary<int, TransformationManager> CameraSavedViews;
-        private static ComputeShader MousePicker;
-        private static Mesh3dInstance Picked;
-        private static Mesh3d PickedMesh;
-        private static ShaderStorageBuffer PickingResult;
-        private static ProjectionLight RedLight;
 
         private static void InterpolateCameraFromSaved(int index)
         {

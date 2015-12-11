@@ -8,6 +8,32 @@ namespace VEngine
 {
     public class RainSystem
     {
+        private List<RainDrop> Drops;
+
+        private ShaderStorageBuffer DropsBuffer;
+
+        private DateTime LastUpdate;
+
+        private float MaxDrops;
+
+        private float MaxRadius;
+
+        private float Speed = 1.0f;
+
+        private float Strength;
+
+        private class RainDrop
+        {
+            public Vector3 Center;
+            public float Radius;
+
+            public RainDrop(Vector3 center)
+            {
+                Center = center;
+                Radius = 0;
+            }
+        }
+
         public RainSystem(float maxRadius, float maxDrops, float speed, float strength)
         {
             Drops = new List<RainDrop>();
@@ -16,7 +42,7 @@ namespace VEngine
             MaxDrops = maxDrops;
             Strength = strength;
             LastUpdate = DateTime.Now;
-            GLThread.OnUpdate += UpdateDrops;
+            Game.OnUpdate += UpdateDrops;
         }
 
         public void AddDrop(Vector3 position)
@@ -44,32 +70,6 @@ namespace VEngine
             shader.SetUniform("DropsCount", Drops.Count);
             shader.SetUniform("DropsMaxRadius", MaxRadius);
             shader.SetUniform("DropsStrength", Strength);
-        }
-
-        private List<RainDrop> Drops;
-
-        private ShaderStorageBuffer DropsBuffer;
-
-        private DateTime LastUpdate;
-
-        private float MaxDrops;
-
-        private float MaxRadius;
-
-        private float Speed = 1.0f;
-
-        private float Strength;
-
-        private class RainDrop
-        {
-            public Vector3 Center;
-            public float Radius;
-
-            public RainDrop(Vector3 center)
-            {
-                Center = center;
-                Radius = 0;
-            }
         }
 
         private void UpdateDrops(object sender, EventArgs e)

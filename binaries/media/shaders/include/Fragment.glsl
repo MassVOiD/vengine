@@ -10,6 +10,8 @@ layout(location = 3) out uvec2 outId;
 #include Lighting.glsl
 #include UsefulIncludes.glsl
 
+#include ParallaxOcclusion.glsl
+
 uniform int MaterialType;
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
@@ -74,6 +76,8 @@ vec3 makeSphereNormals(vec2 uv, float r) {
 	return d;
 }
 
+
+
 void finishFragment(vec4 incolor){
 	if(incolor.a < 0.01) discard;
     discardIfAlphaMasked();
@@ -87,10 +91,16 @@ void finishFragment(vec4 incolor){
         normalize(Input.Tangent),
         cross(Input.Normal, normalize(Input.Tangent)),
         Input.Normal
-    )));    
+    )));   
+	
+	vec2 UV = Input.TexCoord;
+	if(UseBumpMap == 1){  
+		UV = adjustParallaxUV();
+		wpos -= (RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz * (1.0 - texture(bumpMapTex, UV).r) * parallaxScale;
+	} 	
     
     if(MaterialType == MaterialTypeRainsOptimizedSphere){
-        vec2 uvs = Input.TexCoord * 2.0 - 1.0;
+        vec2 uvs = UV * 2.0 - 1.0;
         if(dot(normalNew, CameraPosition -Input.WorldPos) <=0) 
             uvs *= -1;
         float h = makeSphereHeight(uvs);
@@ -101,9 +111,8 @@ void finishFragment(vec4 incolor){
         }
         wpos += normalNew * h;
     }
-
 	if(UseNormalMap == 1){  
-		vec3 map = texture(normalMapTex, Input.TexCoord ).rgb;
+		vec3 map = texture(normalMapTex, UV ).rgb;
 		map = map * 2 - 1;
 		if(InvertNormalMap == 1){
 			map.r = - map.r;
@@ -115,14 +124,14 @@ void finishFragment(vec4 incolor){
 
 #define MaterialTypeParallax 11
 	if(MaterialType == MaterialTypeParallax){
-		float factor = ( 1.0 - texture(bumpMapTex, Input.TexCoord).r);
+		float factor = ( 1.0 - texture(bumpMapTex, UV).r);
 		if(Input.Data.x < 0.99){
 			if(factor > Input.Data.x) discard;
 		}
 	}
 	
-	vec3 rn = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
-	vec3 rt = (InitialRotation * RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
+	vec3 rn = (RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
+	vec3 rt = (RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
 	uint id = InstancedIds[Input.instanceId];
 	
 //	if(dot(rn, CameraPosition - Input.WorldPos) <=0) {
@@ -135,13 +144,13 @@ void finishFragment(vec4 incolor){
     float outMetalness = 0;
     float outSpecular = 0;
     
-	if(UseRoughnessMap == 1) outRoughness = texture(roughnessMapTex, Input.TexCoord).r; 
+	if(UseRoughnessMap == 1) outRoughness = texture(roughnessMapTex, UV).r; 
     else outRoughness = Roughness;
     
-	if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, Input.TexCoord).r; 
+	if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, UV).r; 
     else outMetalness = Metalness;
     
-	if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, Input.TexCoord).r; 
+	if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, UV).r; 
     else outSpecular = SpecularComponent;
     
 	
