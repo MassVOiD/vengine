@@ -26,9 +26,9 @@ namespace ShadowsTester
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
-            //new OldCityScene();
+            new OldCityScene();
 
-            new DragonScene();
+            //new DragonScene();
 
             System.Windows.Forms.Application.Run(new SettingsController());
             //renderThread.Wait();

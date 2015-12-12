@@ -1,6 +1,6 @@
 #version 430 core
 
-layout (binding = 0, rg32ui) readonly uniform uimage2D IDTex;
+layout (binding = 0, r32ui) readonly uniform uimage2D IDTex;
 uniform vec2 Mouse;
 uniform vec2 Resolution;
 

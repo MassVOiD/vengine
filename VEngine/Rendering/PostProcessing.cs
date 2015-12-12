@@ -64,16 +64,15 @@ namespace VEngine
             FogFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
-
-        private uint[] postProcessingPlaneIndices = {
-                0, 1, 2, 3, 2, 1
-            };
+        
 
         private float[] postProcessingPlaneVertices = {
                 -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
                 -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f
             };
 
         private Stopwatch stopwatch = new Stopwatch(), separatestowatch = new Stopwatch();
@@ -171,7 +170,7 @@ namespace VEngine
             BlitShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Blit.fragment.glsl");
             CombinerShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Combiner.fragment.glsl");
 
-            PostProcessingMesh = new Object3dInfo(postProcessingPlaneVertices, postProcessingPlaneIndices);
+            PostProcessingMesh = new Object3dInfo(postProcessingPlaneVertices);
         }
 
         // public static Texture3D FullScene3DTexture;
@@ -262,8 +261,6 @@ namespace VEngine
             //RandomsSSBO.Use(0);
             MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(16);
-            MRT.UseTextureMeshData(17);
-            MRT.UseTextureId(18);
             LastDeferredFramebuffer.UseTexture(20);
             CubeMap.Use(TextureUnit.Texture19);
             Game.World.Scene.MapLightsSSBOToShader(CombinerShader);
@@ -342,7 +339,6 @@ namespace VEngine
             HDRShader.SetUniform("UnbiasedIntegrateRenderMode", UnbiasedIntegrateRenderMode);
             HDRShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
             MRT.UseTextureDepth(1);
-            MRT.UseTextureId(18);
             LastDeferredFramebuffer.UseTexture(20);
             if(Camera.MainDisplayCamera != null)
             {
@@ -363,8 +359,6 @@ namespace VEngine
             MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(16);
-            MRT.UseTextureMeshData(17);
-            MRT.UseTextureId(18);
 
             Combine();
 
@@ -398,8 +392,6 @@ namespace VEngine
             MRT.UseTextureDiffuseColor(14);
             MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(16);
-            MRT.UseTextureMeshData(17);
-            MRT.UseTextureId(18);
 
             if(Game.GraphicsSettings.UseFog)
             {

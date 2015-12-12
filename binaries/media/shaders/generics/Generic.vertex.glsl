@@ -7,8 +7,8 @@ out Data {
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
-    vec3 Tangent;
-    vec3 Data;
+    vec4 Tangent;
+    vec2 Data;
 } Output;
 
 #include Bones.glsl
@@ -37,14 +37,14 @@ void main(){
     //v = vec4(mspace, 1);
     vec3 wpos = (mmat * v).xyz;
     vec3 norm = inorm;
-    vec3 tang = in_tangent;
+    vec4 tang = in_tangent;
     if(MaterialType == MaterialTypeRainsOptimizedSphere){
        // if(int(gl_InstanceID) >= BallsPositionsAndScales.length()) return;
         vec4 a = BallsPositionsAndScales[gl_InstanceID];
         vec3 n = normalize(CameraPosition - a.xyz);
         norm = n;
         vec3 tu = CameraTangentUp;
-        tang = tu;
+        tang = vec4(tu, tang.w);
         vec3 tl = CameraTangentLeft;
         wpos = a.xyz - tl - tu + tl * 2.0 * in_uv.x + tu * 2.0 * in_uv.y;
     }

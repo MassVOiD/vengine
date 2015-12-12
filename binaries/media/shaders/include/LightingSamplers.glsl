@@ -1,18 +1,18 @@
 layout(binding = 0) uniform sampler2D currentTex;
 layout(binding = 1) uniform sampler2D depthTex;
 
-layout(binding = 2) uniform sampler2D lightDepth0;
-layout(binding = 3) uniform sampler2D lightDepth1;
-layout(binding = 4) uniform sampler2D lightDepth2;
-layout(binding = 5) uniform sampler2D lightDepth3;
-layout(binding = 6) uniform sampler2D lightDepth4;
-layout(binding = 7) uniform sampler2D lightDepth5;
+layout(binding = 2) uniform sampler2DShadow lightDepth0;
+layout(binding = 3) uniform sampler2DShadow lightDepth1;
+layout(binding = 4) uniform sampler2DShadow lightDepth2;
+layout(binding = 5) uniform sampler2DShadow lightDepth3;
+layout(binding = 6) uniform sampler2DShadow lightDepth4;
+layout(binding = 7) uniform sampler2DShadow lightDepth5;
 
 
 layout(binding = 14) uniform sampler2D diffuseColorTex;
 layout(binding = 16) uniform sampler2D normalsTex;
-layout(binding = 17) uniform sampler2D meshDataTex;
-layout(binding = 18) uniform usampler2D meshIdTex;
+//layout(binding = 17) uniform sampler2D meshDataTex;
+//layout(binding = 18) uniform usampler2D meshIdTex;
 layout(binding = 19) uniform samplerCube cubeMapTex;
 layout(binding = 20) uniform sampler2D lastIndirectTex;
 //layout(binding = 21) uniform sampler2D lastWorldPosTex;

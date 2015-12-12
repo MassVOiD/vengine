@@ -9,16 +9,16 @@ in Data {
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
-    vec3 Tangent;
-    vec3 Data;
+    vec4 Tangent;
+    vec2 Data;
 } Input[];
 out Data {
     flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
-    vec3 Tangent;
-    vec3 Data;
+    vec4 Tangent;
+    vec2 Data;
 } Output;
 
 uniform int MaterialType;
@@ -46,6 +46,10 @@ vec2 interpolate2D(vec2 v0, vec2 v1, vec2 v2)
 vec3 interpolate3D(vec3 v0, vec3 v1, vec3 v2)
 {
    	return vec3(gl_TessCoord.x) * v0 + vec3(gl_TessCoord.y )* v1 + vec3(gl_TessCoord.z) * v2;
+}
+vec4 interpolate4D(vec4 v0, vec4 v1, vec4 v2)
+{
+   	return vec4(gl_TessCoord.x) * v0 + vec4(gl_TessCoord.y )* v1 + vec4(gl_TessCoord.z) * v2;
 }
 
 float sns(vec2 p, float scale, float tscale){
@@ -82,7 +86,7 @@ void main()
     Output.TexCoord = UV;
    	//barycentric = interpolate3D(Input[0].Barycentric, Input[1].Barycentric, Input[2].Barycentric);
    	vec3 normal = interpolate3D(Input[0].Normal, Input[1].Normal, Input[2].Normal);
-   	Output.Tangent = interpolate3D(Input[0].Tangent, Input[1].Tangent, Input[2].Tangent);
+   	Output.Tangent = interpolate4D(Input[0].Tangent, Input[1].Tangent, Input[2].Tangent);
    	Output.WorldPos = interpolate3D(Input[0].WorldPos, Input[1].WorldPos, Input[2].WorldPos);
 	   	// Displace the vertex along the normal
 	Output.instanceId = Input[0].instanceId;
@@ -91,7 +95,7 @@ void main()
         float factor = abs(getwater(UV * 15));
         vec3 lpos = Output.WorldPos;
         Output.WorldPos += normal * (factor) * 0.11;           
-        vec3 nee = normalize((normal - ((Output.Tangent) *distance(lpos, Output.WorldPos))));
+        vec3 nee = normalize((normal - ((Output.Tangent.xyz) *distance(lpos, Output.WorldPos))));
         nee = dot(nee, normal) < 0 ?  nee = -nee : nee;
         normal = normalize(nee);
     }

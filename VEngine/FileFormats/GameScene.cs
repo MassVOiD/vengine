@@ -91,22 +91,15 @@ namespace VEngine.FileFormats
                     if(saveFiles)
                     {
                         MemoryStream vboStream = new MemoryStream();
-                        MemoryStream indicesStream = new MemoryStream();
 
                         foreach(float v in element.VBO)
                             vboStream.Write(BitConverter.GetBytes(v), 0, 4);
-                        foreach(uint v in element.Indices)
-                            indicesStream.Write(BitConverter.GetBytes(v), 0, 4);
 
                         vboStream.Flush();
-                        indicesStream.Flush();
 
                         if(File.Exists(directory + nameprefix + element.Name + ".vbo.raw"))
                             File.Delete(directory + nameprefix + element.Name + ".vbo.raw");
                         File.WriteAllBytes(directory + nameprefix + element.Name + ".vbo.raw", vboStream.ToArray());
-                        if(File.Exists(directory + nameprefix + element.Name + ".indices.raw"))
-                            File.Delete(directory + nameprefix + element.Name + ".indices.raw");
-                        File.WriteAllBytes(directory + nameprefix + element.Name + ".indices.raw", indicesStream.ToArray());
                     }
                     output.Append("usematerial ");
                     output.Append(nameprefix);
@@ -114,10 +107,7 @@ namespace VEngine.FileFormats
 
                     output.Append("vbo ");
                     output.AppendLine(nameprefix + element.Name + ".vbo.raw");
-
-                    output.Append("ibo ");
-                    output.AppendLine(nameprefix + element.Name + ".indices.raw");
-
+                    
                     output.Append("translate ");
                     output.Append(i0.GetPosition().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     output.Append(" ");

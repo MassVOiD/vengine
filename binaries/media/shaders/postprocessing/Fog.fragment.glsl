@@ -48,8 +48,8 @@ vec3 raymarchFog(vec3 start, vec3 end){
 				continue;
             }
             float badass_depth = toLogDepth(distance(pos, LightsPos[i]));
-            float diff = (badass_depth - lookupDepthFromLight(i, frfuv));
-			if(diff < 0) {
+            float diff = (lookupDepthFromLight(i, frfuv, badass_depth));
+			if(diff > 0) {
 				float culler = 1;//clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float fogNoise = 1.0;
 				fogDensity += idle + 1.0 / 200.0 * culler * fogNoise * fogMultiplier * att * distanceMult;

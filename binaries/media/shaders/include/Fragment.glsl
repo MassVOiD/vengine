@@ -1,8 +1,6 @@
 uniform vec4 input_Color;
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outNormals;
-layout(location = 2) out vec4 outMeshData;
-layout(location = 3) out uvec2 outId;
 
 //layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
 
@@ -78,7 +76,7 @@ vec3 makeSphereNormals(vec2 uv, float r) {
 
 
 
-void finishFragment(vec4 incolor){
+void finishFragment(vec4 incolor, vec2 UV){
 	if(incolor.a < 0.01) discard;
     discardIfAlphaMasked();
 	
@@ -88,14 +86,14 @@ void finishFragment(vec4 incolor){
     vec3 normalNew  = normalize(Input.Normal);
     
     mat3 TBN = inverse(transpose(mat3(
-        normalize(Input.Tangent),
-        cross(Input.Normal, normalize(Input.Tangent)),
-        Input.Normal
+        normalize(Input.Tangent.xyz),
+        normalize(cross(Input.Normal, (Input.Tangent.xyz))) * Input.Tangent.w,
+        normalize(Input.Normal)
     )));   
 	
-	vec2 UV = Input.TexCoord;
+	//vec2 UV = Input.TexCoord;
 	if(UseBumpMap == 1){  
-		UV = adjustParallaxUV();
+		//UV = adjustParallaxUV();
 		wpos -= (RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz * (1.0 - texture(bumpMapTex, UV).r) * parallaxScale;
 	} 	
     
@@ -115,10 +113,12 @@ void finishFragment(vec4 incolor){
 		vec3 map = texture(normalMapTex, UV ).rgb;
 		map = map * 2 - 1;
 		if(InvertNormalMap == 1){
-			map.r = - map.r;
+		//	map.r = - map.g;
 		} else {
-			map.g = - map.g;
+		//	map.g = - map.r;
 		}
+		map.r = - map.r;
+		map.g = - map.g;
 		normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
 	} 
 
@@ -131,13 +131,9 @@ void finishFragment(vec4 incolor){
 	}
 	
 	vec3 rn = (RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz;
-	vec3 rt = (RotationMatrixes[Input.instanceId] * vec4(Input.Tangent, 0)).xyz;
 	uint id = InstancedIds[Input.instanceId];
 	
-//	if(dot(rn, CameraPosition - Input.WorldPos) <=0) {
-	//	rn *= -1;
-//	}
-	uint packpart3 = packSnorm4x8(vec4(rt, 0));
+	
 	if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
 
     float outRoughness = 0;
@@ -150,21 +146,10 @@ void finishFragment(vec4 incolor){
 	if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, UV).r; 
     else outMetalness = Metalness;
     
-	if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, UV).r; 
-    else outSpecular = SpecularComponent;
+	//if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, UV).r; 
+  //  else outSpecular = SpecularComponent;
     
-	
-	/*vec3 albedo = color.xyz;
-    vec3 position = wpos;
-    vec3 normal = rn;
-    float metalness = outMetalness;
-    float roughness = outRoughness;
-    float specular = outSpecular;
-    float IOR =  0.0;*/
-	
-	outColor = vec4((color.xyz), color.a);
-	outNormals = vec4(rn, DiffuseComponent);
-	outMeshData = vec4(0, outSpecular, outMetalness, outRoughness);
-	outId = uvec2(id, packpart3);
+	outColor = vec4((color.xyz), outRoughness);
+	outNormals = vec4(rn, outMetalness);
 	updateDepthFromWorldPos(wpos);
 }

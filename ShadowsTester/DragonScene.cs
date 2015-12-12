@@ -47,8 +47,8 @@ namespace ShadowsTester
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
             Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(20, 20), Vector3.UnitY, 15, (x, y) => 0);
-            //var color2 = GenericMaterial.FromColor(Color.White);
-            var color2 = GenericMaterial.FromMedia("DisplaceIT_Ground_Pebble1_Color.bmp", "DisplaceIT_Ground_Pebble1_NormalBump2.bmp", "DisplaceIT_Ground_Pebble1_Displace.bmp");
+            var color2 = GenericMaterial.FromColor(Color.White);
+           // var color2 = GenericMaterial.FromMedia("mosaic_a.jpg", "mosaic_n.jpg", "mosaic.jpg");
             //  color2.SetRoughnessMapFromMedia("roughnez.png");
             // color2.SetMetalnessMapFromMedia("metal.png");
             //  color2.InvertNormalMap = true;

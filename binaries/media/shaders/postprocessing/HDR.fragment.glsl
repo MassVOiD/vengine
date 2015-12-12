@@ -117,28 +117,7 @@ vec3 funnybloom(vec2 buv){
 	
 }
 #include noise3D.glsl
-vec3 lookupSelected(vec2 buv, float radius){
-    vec3 outc = vec3(0);
-    float counter = 0;
-    float s = texture(meshDataTex, buv ).r;
-    if(s == 1) return vec3(0);
-    for(float g = 0; g < mPI2*2; g+=0.3)
-    { 
-        for(float g2 = 0; g2 < 3.14; g2+=0.3)
-        { 
-            float h = rand(UV+vec2(g, g2));
-            vec2 gauss =buv +  vec2(sin(g + g2)*ratio, cos(g + g2)) * (h * radius);
-            vec3 color = vec3(0.5, 0.6, 1.0) * (log(1.0-h + 1)*2);
-            float selected = texture(meshDataTex, gauss).r;
-            if(selected == 1){
-                counter += 1;
-                outc += color;
-            }
-            //counter++;
-        }
-    }
-    return counter == 0 ? vec3(0) : (outc / counter) * (snoise(vec3(buv.x*400, buv.y*400, Time*55.4))*0.5+0.5);
-}
+
 uniform float InputFocalLength;
 float avgdepth(vec2 buv){
     float outc = float(0);
@@ -193,7 +172,7 @@ void main()
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
-    if(ShowSelected == 1) color1.rgb += lookupSelected(UV, 0.02);
+    //if(ShowSelected == 1) color1.rgb += lookupSelected(UV, 0.02);
     //vec4 color1 = vec4(0,0,0,1);
     float depth = texture(depthTex, UV).r;
     centerDepth = depth;
@@ -239,5 +218,6 @@ void main()
        // if(abs(texture(lastIndirectTex, UV).a - depth) > 0.0003) additiveMix = color1.rgb;
     }
     //additiveMix = texture(diffuseColorTex, UV).rgb;
+	//additiveMix = vec3(1);
     outColor = clamp(vec4(additiveMix, depth), 0.0, 10000.0);
 }

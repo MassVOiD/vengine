@@ -100,7 +100,6 @@ vec3 shade(
     vec4 lightColor, 
     float roughness, 
     float metalness, 
-    float specular,
     bool ignoreAtt
 ){
     vec3 lightRelativeToVPos =normalize( lightPosition - fragmentPosition);
@@ -131,7 +130,7 @@ vec3 shade(
     
     vec3 difcolor = cc * diffuseComponent * att;
     vec3 difcolor2 = lightColor.rgb * albedo * diffuseComponent * att;
-    vec3 specolor = mix(cc * specularComponent, lightColor.rgb * specularComponent, specular);
+    vec3 specolor = lightColor.rgb * specularComponent;
     specolor = makeFresnel(dot(cameraRelativeToVPos, normal), specolor);
     
     return (difcolor2 + makeFresnel(dot(cameraRelativeToVPos, normal), specolor));
@@ -142,9 +141,9 @@ vec3 shadePhoton(vec2 uv, vec3 color){
     return color*albedo;
 }
 vec3 shadePhotonSpecular(vec2 uv, vec3 color){
-    vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    float spec = texture(meshDataTex, uv).b;
-    return mix(color*albedo, color, spec);
+   // vec3 albedo = texture(diffuseColorTex, uv).rgb;
+   // float spec = texture(meshDataTex, uv).b;
+    return color;
 }
 
 vec3 shadeUV(vec2 uv,
@@ -153,12 +152,11 @@ vec3 shadeUV(vec2 uv,
 ){
     vec3 position = FromCameraSpace(reconstructCameraSpace(uv));
     vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    float specular = texture(meshDataTex, uv).b;
     vec3 normal = normalize(texture(normalsTex, uv).rgb);
       
-    float roughness = texture(meshDataTex, uv).a;
-    float metalness =  texture(meshDataTex, uv).z;
-    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, false);
+    float roughness = texture(diffuseColorTex, uv).a;
+    float metalness =  texture(normalsTex, uv).a;
+    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, false);
 }
 
 vec3 shadeUVNoAtt(vec2 uv,
@@ -167,12 +165,11 @@ vec3 shadeUVNoAtt(vec2 uv,
 ){
     vec3 position = FromCameraSpace(reconstructCameraSpace(uv));
     vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    float specular = texture(meshDataTex, uv).b;
     vec3 normal = normalize(texture(normalsTex, uv).rgb);
       
-    float roughness = texture(meshDataTex, uv).a;
-    float metalness =  texture(meshDataTex, uv).z;
-    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, specular, true);
+    float roughness = texture(diffuseColorTex, uv).a;
+    float metalness =  texture(normalsTex, uv).a;
+    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, true);
 }
 
 

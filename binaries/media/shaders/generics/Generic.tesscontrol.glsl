@@ -10,16 +10,16 @@ in Data {
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
-    vec3 Tangent;
-    vec3 Data;
+    vec4 Tangent;
+    vec2 Data;
 } Input[];
 out Data {
     flat int instanceId;
     vec3 WorldPos;
     vec2 TexCoord;
     vec3 Normal;
-    vec3 Tangent;
-    vec3 Data;
+    vec4 Tangent;
+    vec2 Data;
 } Output[];
 
 uniform int MaterialType;

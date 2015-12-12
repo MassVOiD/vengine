@@ -1,13 +1,14 @@
 #include_once LightingSamplers.glsl
 
-float lookupDepthFromLight(uint i, vec2 uv){
+float lookupDepthFromLight(uint i, vec2 uvi, float comparison){
 	float distance1 = 0.0;
-	if(i==0)distance1 = texture(lightDepth0, uv).r;
-	else if(i==1)distance1 = texture(lightDepth1, uv).r;
-	else if(i==2)distance1 = texture(lightDepth2, uv).r;
-	else if(i==3)distance1 = texture(lightDepth3, uv).r;
-	else if(i==4)distance1 = texture(lightDepth4, uv).r;
-	else if(i==5)distance1 = texture(lightDepth5, uv).r;
+	vec3 uv = vec3(uvi, comparison);
+	if(i==0)distance1 = texture(lightDepth0, uv);
+	else if(i==1)distance1 = texture(lightDepth1, uv);
+	else if(i==2)distance1 = texture(lightDepth2, uv);
+	else if(i==3)distance1 = texture(lightDepth3, uv);
+	else if(i==4)distance1 = texture(lightDepth4, uv);
+	else if(i==5)distance1 = texture(lightDepth5, uv);
 	return distance1;
 }
 #define mPI (3.14159265)
@@ -22,7 +23,7 @@ float LightingGetRand(){
     float r = rand2s(vec2(ArandsPointer, ArandsPointer*2.42354));
     ArandsPointer+=0.5432;
     return r;
-}
+}/*
 float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	float distanceCenter = distance2;
 	float AInv = 1.0 / ((ainvd) + 1.0);
@@ -43,7 +44,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
     if(counter == 0) return 0.0;
     float bbb = average/counter;
 	return clamp((distance2 - bbb) *7-0.25, 0, 12);
-}
+}*/
 
 float LastProbeDistance = 0.0;
 float rand2d(vec2 co){
@@ -67,12 +68,13 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     float distance3 = toLogDepth(distance2);
 	//return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
     float pssblur = 1.0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
+	//return lookupDepthFromLight(i, uv, distance3 - 0.001);
     for(float x = 0; x < mPI2; x+=0.8){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
-            fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2s(uv + vec2(x,y)) * pssblur * 0.009;
-            distance1 = lookupDepthFromLight(i, fakeUV);
+            fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2s(uv + vec2(x,y)) * distance2 * 0.002;
+            accum += 1.0 - lookupDepthFromLight(i, fakeUV, distance3 - 0.001);
 
-            if(distance3 -  distance1 > 0.000015) accum += 1.0 ;
+            //if(distance3 -  distance1 > 0.000015) accum += 1.0 ;
             counter+=1;
         }
     }

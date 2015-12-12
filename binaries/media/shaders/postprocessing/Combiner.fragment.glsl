@@ -145,20 +145,17 @@ vec3 Lightning(){
     vec3 albedo = texture(diffuseColorTex, UV).rgb;
     vec3 position = FromCameraSpace(reconstructCameraSpace(UV));
     vec3 normal = normalize(texture(normalsTex, UV).rgb);
-    float metalness =  texture(meshDataTex, UV).z;
-    float roughness =  texture(meshDataTex, UV).a;
-    float specular = texture(meshDataTex, UV).b;
+    float roughness = texture(diffuseColorTex, UV).a;
+    float metalness =  texture(normalsTex, UV).a;
     float IOR =  0.0;
 	
-	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness, metalness, specular);
-	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, metalness, roughness, specular,IOR);
+	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness, metalness);
+	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, metalness, roughness, IOR);
 
 	
     if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
     if(UseHBAO == 1) {
-		uint tangentEncoded = texture(meshIdTex, UV).g;
-		vec3 tangent = unpackSnorm4x8(tangentEncoded).xyz;
-		float ao = AmbientOcclusion(position, normal, tangent, roughness, metalness);
+		float ao = AmbientOcclusion(position, normal, roughness, metalness);
 		if(UseVDAO == 0) envlight = vec3(1);
 		directlight += envlight * ao;
 		

@@ -58,8 +58,7 @@ namespace VEngine.Generators
                 VBO[i + 3] *= uvScale.X;
                 VBO[i + 4] *= uvScale.Y;
             }
-            uint[] indices = new uint[36] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35 };
-            return new Object3dInfo(VBO, indices);
+            return new Object3dInfo(VBO);
         }
 
         public static Object3dInfo CreateGround(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal)
@@ -69,11 +68,10 @@ namespace VEngine.Generators
                 end.X, 0, end.Y, 0, uvScale.Y, normal.X, normal.Y, normal.Z,
                 start.X, 0, start.Y, uvScale.X, 0, normal.X, normal.Y, normal.Z,
                 end.X, 0, start.Y, uvScale.X, uvScale.Y, normal.X, normal.Y, normal.Z,
+                start.X, 0, start.Y, uvScale.X, 0, normal.X, normal.Y, normal.Z,
+                end.X, 0, end.Y, 0, uvScale.Y, normal.X, normal.Y, normal.Z
             };
-            uint[] indices = {
-                0, 1, 2, 3, 2, 1
-            };
-            return new Object3dInfo(VBO, indices);
+            return new Object3dInfo(VBO);
         }
 
         public static Object3dInfo CreatePlane(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector2 uvScale, Vector3 normal)
@@ -83,11 +81,10 @@ namespace VEngine.Generators
                 v2.X, v2.Y, v1.Z, 0, uvScale.Y, normal.X, normal.Y, normal.Z,
                 v3.X, v3.Y, v1.Z, uvScale.X, 0, normal.X, normal.Y, normal.Z,
                 v4.X, v4.Y, v1.Z, uvScale.X, uvScale.Y, normal.X, normal.Y, normal.Z,
+                v3.X, v3.Y, v1.Z, uvScale.X, 0, normal.X, normal.Y, normal.Z,
+                v2.X, v2.Y, v1.Z, 0, uvScale.Y, normal.X, normal.Y, normal.Z,
             };
-            uint[] indices = {
-                0, 1, 2, 3, 2, 1
-            };
-            return new Object3dInfo(VBO, indices);
+            return new Object3dInfo(VBO);
         }
 
         public static Object3dInfo CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<uint, uint, float> heightGenerator)
@@ -138,7 +135,7 @@ namespace VEngine.Generators
 
                 //GC.Collect();
             }
-            GC.Collect();
+            //GC.Collect();
 
             for(int i = 0; i < VBOParts.Count; i++)
             {
@@ -205,14 +202,19 @@ namespace VEngine.Generators
                     }
             }
 
-            for(int i = 0; i < VBOParts.Count; i++)
+            for(int i = 0; i < VBOParts.Count; i+=4)
             {
                 VBO.AddRange(VBOParts[i]);
+                VBO.AddRange(VBOParts[i + 1]);
+                VBO.AddRange(VBOParts[i + 2]);
+                VBO.AddRange(VBOParts[i + 3]);
+                VBO.AddRange(VBOParts[i + 2]);
+                VBO.AddRange(VBOParts[i + 1]);
             }
 
-            var finalObject = new Object3dInfo(VBO, indices);
+            var finalObject = new Object3dInfo(VBO);
 
-            SaveCache(start, end, uvScale, normal, subdivisions, finalObject);
+            //SaveCache(start, end, uvScale, normal, subdivisions, finalObject);
 
             return finalObject;
         }
