@@ -231,7 +231,7 @@ namespace VEngine
             return new Object3dInfo(data.VBO);
         }
 
-        public static Object3dInfo LoadFromRaw(string vboFile, string indicesFile)
+        public static Object3dInfo LoadFromRaw(string vboFile)
         {
             var vboBytes = File.ReadAllBytes(vboFile);
 
@@ -519,11 +519,11 @@ namespace VEngine
             GC.Collect();
         }
 
-        public BvhTriangleMeshShape GetAccurateCollisionShape(float scale = 1.0f)
+        public BvhTriangleMeshShape GetAccurateCollisionShape()
         {
             //if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
             List<Vector3> vectors = GetRawVertexList();
-            var smesh = new TriangleIndexVertexArray(Enumerable.Range(0, IndicesCount).ToArray(), vectors.Select((a) => a * scale).ToArray());
+            var smesh = new TriangleIndexVertexArray(Enumerable.Range(0, IndicesCount).ToArray(), vectors.Select((a) => a).ToArray());
             CachedBvhTriangleMeshShape = new BvhTriangleMeshShape(smesh, false);
             //CachedBvhTriangleMeshShape.LocalScaling = new Vector3(scale);
             return CachedBvhTriangleMeshShape;

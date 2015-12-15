@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
+using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
@@ -34,6 +36,7 @@ namespace VEngine
             MouseUp += VEngineWindowAdapter_MouseUp;
             MouseWheel += VEngineWindowAdapter_MouseWheel;
             Load += VEngineWindowAdapter_Load;
+            Task.Factory.StartNew(() => PhysicsThread());
         }
 
         public bool IsCursorVisible
@@ -57,23 +60,36 @@ namespace VEngine
             Console.WriteLine(s);
         }
 
+        private void PhysicsThread()
+        {
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            while(true)
+            {
+                watch.Stop();
+                double ms = 1000.0 * (double)watch.ElapsedTicks / Stopwatch.Frequency;
+                watch.Reset();
+                watch.Start();
+                Game.World.Physics.UpdateAllModifiedTransformations();
+                Game.World.Physics.SimulationStep((float)(ms * 0.001f));
+            }
+        }
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             Interpolator.StepAll();
-
             TransformationJoint.Resolve();
-            Game.World.Physics.UpdateAllModifiedTransformations();
-            Game.World.Physics.SimulationStep((float)(e.Time));
+
             Game.InvokeQueue();
 
             Game.World.Scene.MapLights();
 
             //LightPool.UseTextures(2);
             // this is here so you can issue draw calls from there if you want
-            Game.InvokeOnBeforeDraw();
+            Game.InvokeOnBeforeDraw(e);
             Pipeline.PostProcessor.RenderToFramebuffer(Framebuffer.Default);
             //DrawAll();
-            Game.InvokeOnAfterDraw();
+            Game.InvokeOnAfterDraw(e);
 
             Game.CheckErrors();
 
@@ -83,7 +99,7 @@ namespace VEngine
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             //if(Camera.Current != null)Camera.Current.LookAt(new Vector3((DateTime.Now - Game.StartTime).Milliseconds / 1000.0f * 10.0f, 0, (DateTime.Now - Game.StartTime).Milliseconds / 1000.0f * 10.0f));
-            Game.InvokeOnUpdate();
+            Game.InvokeOnUpdate(e);
             //Debugger.Send("FrameTime", e.Time);
             //Debugger.Send("FPS", 1.0 / e.Time);
             var keyboard = OpenTK.Input.Keyboard.GetState();

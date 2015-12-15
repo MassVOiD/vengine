@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK;
+using System.Linq;
 using OpenTK.Graphics.OpenGL4;
 using VEngine;
 
@@ -15,20 +16,24 @@ namespace ShadowsTester
 
         private static ComputeShader MousePicker;
 
-        private static Mesh3dInstance Picked;
+        public static Mesh3dInstance Picked;
 
-        private static Mesh3d PickedMesh;
+        public static Mesh3d PickedMesh;
 
         private static ShaderStorageBuffer PickingResult;
 
-        private static ProjectionLight RedLight;
+        private static List<ProjectionLight> RedLight;
 
-        public static ProjectionLight AddControllableLight()
+        private static Random rand = new Random();
+
+        public static List<ProjectionLight> AddControllableLight()
         {
             float fovdegree = 90;
-            ProjectionLight redConeLight = new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 512, 512, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f);
-            RedLight = redConeLight;
-            redConeLight.LightColor = new Vector4(1, 1, 1, 395);
+            RedLight = new List<ProjectionLight>();
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 4096, 4096, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            {
+                LightColor = new Vector4(1, 1, 0.84f, 395)
+            });
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
             Game.OnKeyUp += (o, e) =>
@@ -40,7 +45,7 @@ namespace ShadowsTester
                         fovdegree = 179;
                     Matrix4 a = Matrix4.Zero;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out a);
-                    redConeLight.camera.SetProjectionMatrix(a);
+                    RedLight.ForEach((ax)=>ax.camera.SetProjectionMatrix(a));
                 }
                 if(e.Key == OpenTK.Input.Key.K)
                 {
@@ -49,10 +54,10 @@ namespace ShadowsTester
                         fovdegree = 10;
                     Matrix4 a = Matrix4.Zero;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out a);
-                    redConeLight.camera.SetProjectionMatrix(a);
+                    RedLight.ForEach((ax) => ax.camera.SetProjectionMatrix(a));
                 }
             };
-            Game.World.Scene.Add(redConeLight);
+            RedLight.ForEach((a) => Game.World.Scene.Add(a));
 
             Game.OnMouseMove += (o, e) =>
             {
@@ -199,36 +204,37 @@ namespace ShadowsTester
                     }
                 }
 
+                var rd = new Random();/*
                 if(kb.IsKeyDown(OpenTK.Input.Key.Left))
                 {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
-                    redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitX / 12.0f);
+                    var pos = RedLight[0].camera.Transformation.GetPosition();
+                    RedLight.ForEach((ax) => ax.camera.Transformation.SetPosition(pos + Vector3.UnitX / 12.0f));
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.Right))
                 {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    var pos = RedLight[0].camera.Transformation.GetPosition();
                     redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitX / 12.0f);
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.Up))
                 {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    var pos = RedLight[0].camera.Transformation.GetPosition();
                     redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitZ / 12.0f);
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.Down))
                 {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    var pos = RedLight[0].camera.Transformation.GetPosition();
                     redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitZ / 12.0f);
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.PageUp))
                 {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    var pos = RedLight[0].camera.Transformation.GetPosition();
                     redConeLight.camera.Transformation.SetPosition(pos + Vector3.UnitY / 12.0f);
                 }
                 if(kb.IsKeyDown(OpenTK.Input.Key.PageDown))
                 {
-                    var pos = redConeLight.camera.Transformation.GetPosition();
+                    var pos = RedLight[0].camera.Transformation.GetPosition();
                     redConeLight.camera.Transformation.SetPosition(pos - Vector3.UnitY / 12.0f);
-                }
+                }*/
                 /*if(kb.IsKeyDown(OpenTK.Input.Key.U))
                 {
                     var quat = Quaternion.FromAxisAngle(sun.Orientation.GetTangent(MathExtensions.TangentDirection.Left), -0.01f);
@@ -250,7 +256,7 @@ namespace ShadowsTester
                     sun.Orientation = Quaternion.Multiply(sun.Orientation, quat);
                 }*/
             };
-            return redConeLight;
+            return RedLight;
         }
 
         public static FreeCamera SetUpFreeCamera()
@@ -413,13 +419,13 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Number1)
                 {
                 //redConeLight.SetPosition(freeCamera.Cam.Transformation.GetPosition(), freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection());
-                RedLight.GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition());
-                    RedLight.GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
-                    RedLight.camera.Update();
+                    RedLight.ForEach((a) => a.GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition() + new Vector3((float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1) * 0.1f));
+                    RedLight.ForEach((a) => a.GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation()));
+                    RedLight.ForEach((a) => a.camera.Update());
                 }
                 if(e.Key == OpenTK.Input.Key.Tilde)
                 {
-                    Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
+                   // Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
                 }
                 if(e.Key == OpenTK.Input.Key.Number0)
                     Game.GraphicsSettings.UseVDAO = !Game.GraphicsSettings.UseVDAO;

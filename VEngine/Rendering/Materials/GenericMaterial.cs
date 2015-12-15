@@ -312,13 +312,14 @@ namespace VEngine
             }
             else if(Type == MaterialType.Grass)
             {
+                prg.SetUniform("UseAlphaMask", 0);
                 GL.Disable(EnableCap.CullFace);
             }
             else
             {
                 prg.SetUniform("UseAlphaMask", 0);
-                GL.Disable(EnableCap.CullFace);
-                // GL.Enable(EnableCap.CullFace);
+                //GL.Disable(EnableCap.CullFace);
+                 GL.Enable(EnableCap.CullFace);
             }
 
             if(Tex != null)

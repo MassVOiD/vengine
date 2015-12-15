@@ -126,14 +126,12 @@ vec3 shade(
 
     vec3 cc = lightColor.rgb*albedo;
     
-    float fresnel = fresnelSchlick(dot(cameraRelativeToVPos, normal));
-    
     vec3 difcolor = cc * diffuseComponent * att;
     vec3 difcolor2 = lightColor.rgb * albedo * diffuseComponent * att;
-    vec3 specolor = lightColor.rgb * specularComponent;
+    vec3 specolor = mix(lightColor.rgb * albedo, lightColor.rgb , metalness) * specularComponent;
     specolor = makeFresnel(dot(cameraRelativeToVPos, normal), specolor);
     
-    return (difcolor2 + makeFresnel(dot(cameraRelativeToVPos, normal), specolor));
+    return (difcolor2 + specolor);
 }
 
 vec3 shadePhoton(vec2 uv, vec3 color){
@@ -141,9 +139,9 @@ vec3 shadePhoton(vec2 uv, vec3 color){
     return color*albedo;
 }
 vec3 shadePhotonSpecular(vec2 uv, vec3 color){
-   // vec3 albedo = texture(diffuseColorTex, uv).rgb;
-   // float spec = texture(meshDataTex, uv).b;
-    return color;
+    vec3 albedo = texture(diffuseColorTex, uv).rgb;
+    float metalness =  texture(normalsTex, uv).a;
+    return mix(color * albedo, color, metalness);
 }
 
 vec3 shadeUV(vec2 uv,

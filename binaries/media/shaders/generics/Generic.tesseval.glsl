@@ -128,6 +128,6 @@ void main()
     
 	
 	Output.Normal = normalize(normal);
-   	gl_Position = ProjectionMatrix * ViewMatrix * vec4(Output.WorldPos, 1.0);
+   	gl_Position = VPMatrix * vec4(Output.WorldPos, 1.0);
 }
 /**/

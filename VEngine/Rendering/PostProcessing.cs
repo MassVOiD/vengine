@@ -220,8 +220,9 @@ namespace VEngine
         public void SetUniformsShared()
         {
             var shader = ShaderProgram.Current;
-            shader.SetUniform("ViewMatrix", Camera.Current.GetViewMatrix());
-            shader.SetUniform("ProjectionMatrix", Camera.Current.GetProjectionMatrix());
+            //shader.SetUniform("ViewMatrix", Camera.Current.GetViewMatrix());
+            //shader.SetUniform("ProjectionMatrix", Camera.Current.GetProjectionMatrix());
+            shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
             Camera.Current.SetUniforms();
 
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());

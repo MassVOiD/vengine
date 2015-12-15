@@ -107,7 +107,7 @@ namespace VEngine.FileFormats
 
                     output.Append("vbo ");
                     output.AppendLine(nameprefix + element.Name + ".vbo.raw");
-                    
+
                     output.Append("translate ");
                     output.Append(i0.GetPosition().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     output.Append(" ");
@@ -141,11 +141,11 @@ namespace VEngine.FileFormats
             LoadFromString(File.ReadAllLines(FilePath));
         }
 
-        private void ApplyVboIbo(Mesh3d mesh, string vbo, string ibo)
+        private void ApplyVboIbo(Mesh3d mesh, string vbo)
         {
-            if(vbo.Length == 0 || ibo.Length == 0)
+            if(vbo.Length == 0)
                 return;
-            var obj = Object3dInfo.LoadFromRaw(Media.Get(vbo), Media.Get(ibo));
+            var obj = Object3dInfo.LoadFromRaw(Media.Get(vbo));
             mesh.GetLodLevel(0).Info3d = obj;
         }
 
@@ -193,21 +193,21 @@ namespace VEngine.FileFormats
                 tempMesh = null;
                 tempCamera = null;
             };
-            string vertexbuffer = "", indexbuffer = "";
+            string vertexbuffer = "";
+            PhysicalBody physob = null;
             foreach(var l in lines)
             {
+                if(l.StartsWith("//") || l.Trim().Length == 0)
+                    continue;
                 var regout = regx.Match(l);
                 if(!regout.Success)
                 {
-                    if(l.StartsWith("//") || l.Trim().Length == 0)
-                        continue;
-                    else
-                        throw new Exception("Invalid line in scene string: " + l);
+                        throw new ArgumentException("Invalid line in scene string: " + l);
                 }
                 string command = regout.Groups[1].Value.Trim();
                 string data = regout.Groups[2].Value.Trim();
                 if(command.Length == 0 || data.Length == 0)
-                    throw new Exception("Invalid line in scene string: " + l);
+                    throw new ArgumentException("Invalid line in scene string: " + l);
 
                 switch(command)
                 {
@@ -231,31 +231,58 @@ namespace VEngine.FileFormats
                         string[] literals = data.Split(' ');
                         float x, y;
                         if(!float.TryParse(literals[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMesh.GetLodLevel(0).Info3d.ScaleUV(x, y);
                         break;
                     }
                     case "vbo":
                     {
                         vertexbuffer = data;
-                        ApplyVboIbo(tempMesh, vertexbuffer, indexbuffer);
-                        if(tempMesh.GetLodLevel(0).Info3d != null)
-                        {
-                            vertexbuffer = "";
-                            indexbuffer = "";
-                        }
+                        ApplyVboIbo(tempMesh, vertexbuffer);
+                        vertexbuffer = "";
                         break;
                     }
-                    case "ibo":
+
+                    case "physics":
                     {
-                        indexbuffer = data;
-                        ApplyVboIbo(tempMesh, vertexbuffer, indexbuffer);
-                        if(tempMesh.GetLodLevel(0).Info3d != null)
+                        var datas = data.Split(' ');
+                        if(datas[0] == "convexhull")
                         {
-                            vertexbuffer = "";
-                            indexbuffer = "";
+                            if(tempMesh == null)
+                                throw new ArgumentException("Invalid line in scene string: " + l);
+                            var shape = tempMesh.GetLodLevel(0).Info3d.GetConvexHull();
+                            float mass;
+                            if(!float.TryParse(datas[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out mass))
+                                throw new ArgumentException("Invalid line in scene string: " + l);
+                            physob = Game.World.Physics.CreateBody(mass, tempMesh.GetInstance(0), shape);
+                        }
+                        if(datas[0] == "boundingbox")
+                        {
+                            if(tempMesh == null)
+                                throw new ArgumentException("Invalid line in scene string: " + l);
+                            var shape = Physics.CreateBoundingBoxShape(tempMesh.GetLodLevel(0).Info3d);
+                            float mass;
+                            if(!float.TryParse(datas[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out mass))
+                                throw new ArgumentException("Invalid line in scene string: " + l);
+                            physob = Game.World.Physics.CreateBody(mass, tempMesh.GetInstance(0), shape);
+                        }
+                        if(datas[0] == "accurate")
+                        {
+                            if(tempMesh == null)
+                                throw new ArgumentException("Invalid line in scene string: " + l);
+                            var shape = tempMesh.GetLodLevel(0).Info3d.GetAccurateCollisionShape();
+                            float mass;
+                            if(!float.TryParse(datas[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out mass))
+                                throw new ArgumentException("Invalid line in scene string: " + l);
+                            physob = Game.World.Physics.CreateBody(mass, tempMesh.GetInstance(0), shape);
+                        }
+                        if(datas[0] == "enable")
+                        {
+                            if(physob == null)
+                                throw new ArgumentException("Invalid line in scene string: " + l);
+                            physob.Enable();
                         }
                         break;
                     }
@@ -264,14 +291,14 @@ namespace VEngine.FileFormats
                     {
                         string[] literals = data.Split(' ');
                         if(literals.Length != 3)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         float x, y, z;
                         if(!float.TryParse(literals[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out z))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(tempMesh != null)
                         {
                             tempMesh.GetInstance(0).Transformation.Translate(x, y, z);
@@ -292,17 +319,17 @@ namespace VEngine.FileFormats
                     case "scale":
                     {
                         if(tempMesh == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         string[] literals = data.Split(' ');
                         if(literals.Length != 3)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         float x, y, z;
                         if(!float.TryParse(literals[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out z))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMesh.GetInstance(0).Transformation.Scale(x, y, z);
                         break;
                     }
@@ -310,14 +337,14 @@ namespace VEngine.FileFormats
                     {
                         string[] literals = data.Split(' ');
                         if(literals.Length < 3 || literals.Length > 4)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         float x, y, z;
                         if(!float.TryParse(literals[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out z))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         Quaternion rot = Quaternion.Identity;
                         if(literals.Length == 3)
                         {
@@ -330,7 +357,7 @@ namespace VEngine.FileFormats
                         {
                             float w;
                             if(!float.TryParse(literals[3], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out w))
-                                throw new Exception("Invalid line in scene string: " + l);
+                                throw new ArgumentException("Invalid line in scene string: " + l);
                             rot = new Quaternion(x, y, z, w);
                         }
 
@@ -363,85 +390,95 @@ namespace VEngine.FileFormats
                     case "type":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.Type = (GenericMaterial.MaterialType)Enum.Parse(typeof(GenericMaterial.MaterialType), data, true);
                         break;
                     }
                     case "invertnormalmap":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.InvertNormalMap = data == "true" ? true : false;
                         break;
                     }
                     case "normalmap":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.NormalMap = new Texture(Media.Get(data));
                         break;
                     }
                     case "bumpmap":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.BumpMap = new Texture(Media.Get(data));
                         break;
                     }
                     case "discardmap":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.AlphaMask = new Texture(Media.Get(data));
                         break;
                     }
                     case "roughnessmap":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.RoughnessMap = new Texture(Media.Get(data));
                         break;
                     }
                     case "metalnessmap":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.MetalnessMap = new Texture(Media.Get(data));
                         break;
                     }
                     case "roughness":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         float f;
                         if(!float.TryParse(data, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out f))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.Roughness = f;
+                        break;
+                    }
+                    case "metalness":
+                    {
+                        if(tempMaterial == null)
+                            throw new ArgumentException("Invalid line in scene string: " + l);
+                        float f;
+                        if(!float.TryParse(data, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out f))
+                            throw new ArgumentException("Invalid line in scene string: " + l);
+                        tempMaterial.Metalness = f;
                         break;
                     }
                     case "color":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         string[] literals = data.Split(' ');
                         if(literals.Length != 4)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         float x, y, z, a;
                         if(!float.TryParse(literals[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out z))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[3], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out a))
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.Color = new Vector4(x, y, z, a);
                         break;
                     }
                     case "texture":
                     {
                         if(tempMaterial == null)
-                            throw new Exception("Invalid line in scene string: " + l);
+                            throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.Tex = new Texture(Media.Get(data));
                         tempMaterial.Mode = GenericMaterial.DrawMode.TextureMultipleColor;
                         break;
@@ -449,7 +486,7 @@ namespace VEngine.FileFormats
 
                     // Material end
                     default:
-                    throw new Exception("Invalid line in scene string: " + l);
+                    throw new ArgumentException("Invalid line in scene string: " + l);
                 }
             }
             flush();

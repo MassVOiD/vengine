@@ -1,5 +1,6 @@
-uniform mat4 ViewMatrix;
-uniform mat4 ProjectionMatrix;
+//uniform mat4 ViewMatrix;
+//uniform mat4 ProjectionMatrix;
+uniform mat4 VPMatrix;
 
 const int MAX_LIGHTS = 6;
 uniform int LightsCount;

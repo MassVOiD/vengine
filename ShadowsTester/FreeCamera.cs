@@ -16,7 +16,7 @@ namespace ShadowsTester
             Cam = new Camera(new Vector3(0, 5, 0), new Vector3(0, 0, 1), Vector3.UnitY, aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
             Camera.MainDisplayCamera = Cam;
 
-            Game.OnUpdate += UpdateSterring;
+            Game.OnBeforeDraw += UpdateSterring;
             Game.OnMouseMove += OnMouseMove;
 
             Game.OnKeyUp += (o, e) =>
@@ -64,15 +64,16 @@ namespace ShadowsTester
             Cam.Transformation.ClearModifiedFlag();
         }
 
-        private void UpdateSterring(object o, EventArgs e)
+        private void UpdateSterring(object o, OpenTK.FrameEventArgs e)
         {
+            var time = e.Time;
             var currentPosition = Cam.GetPosition();
             if(Game.DisplayAdapter.IsCursorVisible)
                 return;
             var keyboard = OpenTK.Input.Keyboard.GetState();
             KeyboardHandler.Process();
 
-            float speed = 0.05f;
+            float speed = (float)time;
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))
             {
                 speed *= 7f;

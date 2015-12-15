@@ -26,10 +26,11 @@ vec3 raymarchFog(vec3 start, vec3 end){
 		float fogMultiplier = 1.4;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
 		vec3 lastPos = start - mix(start, end, 0.01);
-        float samples = 1.0 / 0.002;
+		const float stepr = 0.02;
+        float samples = 1.0 / stepr;
         float stepsize = distance(start, end) / samples;
-		for(float m = 0.0; m< 1.0;m+= 0.002){
-			vec3 pos = mix(start, end, m);
+		for(float m = 0.0; m< 1.0;m+= stepr){
+			vec3 pos = mix(start, end, m + rand2s(UV * 3 + m * 5) * stepsize);
             float distanceMult = stepsize;
             //float distanceMult = 5;
             lastPos = pos;

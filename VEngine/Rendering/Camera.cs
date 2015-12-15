@@ -162,12 +162,10 @@ namespace VEngine
             {
                 var tRotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());
                 var tViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
-                try
-                {
-                    var tcone = FrustumCone.Create(Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
-                    cone = tcone;
-                }
-                catch { }
+                
+                var tcone = FrustumCone.Create(Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
+                cone = tcone;
+                
                 RotationMatrix = tRotationMatrix;
                 ViewMatrix = tViewMatrix;
             }

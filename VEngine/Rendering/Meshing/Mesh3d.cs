@@ -12,6 +12,8 @@ namespace VEngine
 
         private List<LodLevel> LodLevels;
 
+        public bool AutoRecalculateMatrixForOver16Instances = false;
+
         private Mesh3d()
         {
             LodLevels = new List<LodLevel>();
@@ -108,7 +110,7 @@ namespace VEngine
 
         public void SetUniforms()
         {
-            if(Instances.Count < 16)
+            if(Instances.Count < 16 || AutoRecalculateMatrixForOver16Instances)
             {
                 if(Instances.Count((a) => a.Transformation.HasBeenModified()) > 0)
                     UpdateMatrix(true);

@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using OpenTK;
 using VEngine;
+using System.Linq;
 using VEngine.Generators;
 using BulletSharp;
 using System.Drawing;
+using OpenTK.Graphics.OpenGL4;
 
 namespace ShadowsTester
 {
@@ -46,9 +48,11 @@ namespace ShadowsTester
               Object3dGenerator.UseCache = false;
               Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-3000, -3000), new Vector2(3000, 3000), new Vector2(1120, 1120), Vector3.UnitY, 800, terrainGen);
               */
-            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(20, 20), Vector3.UnitY, 15, (x, y) => 0);
-            var color2 = GenericMaterial.FromColor(Color.White);
-           // var color2 = GenericMaterial.FromMedia("mosaic_a.jpg", "mosaic_n.jpg", "mosaic.jpg");
+            Object3dInfo groundInfo = Object3dGenerator.CreateTerrain(new Vector2(-12, -12), new Vector2(12, 12), new Vector2(1, 1), Vector3.UnitY, 15, (x, y) => 0);
+            var color2 = GenericMaterial.FromColor(Color.Green);
+            color2.Roughness = 1.0f;
+            color2.Metalness = 0.0f;
+            // var color2 = GenericMaterial.FromMedia("mosaic_a.jpg", "mosaic_n.jpg", "mosaic.jpg");
             //  color2.SetRoughnessMapFromMedia("roughnez.png");
             // color2.SetMetalnessMapFromMedia("metal.png");
             //  color2.InvertNormalMap = true;
@@ -56,15 +60,25 @@ namespace ShadowsTester
             // color2.SetBumpMapFromMedia("dddsdsdsd.png");
             //     color2.Type = GenericMaterial.MaterialType.Grass;
             //var color2 = new GenericMaterial(Color.Green);
-            var o = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
-            o.OriginToCenter();
-            o.Normalize();
-            Mesh3d water3 = Mesh3d.Create(o, color2);
-            scene.Add(water3);
-            var b2 = Game.World.Physics.CreateBody(1.0f, water3.GetInstance(0), new SphereShape(1.0f));
-            b2.Body.Restitution = 1;
-            b2.Enable();
+            /* var o = Object3dInfo.LoadFromObjSingle(Media.Get("lightsphere.obj"));
+             o.OriginToCenter();
+             o.Normalize();
+             Mesh3d water3 = Mesh3d.Create(o, color2);
+             scene.Add(water3);
+             var b2 = Game.World.Physics.CreateBody(1.0f, water3.GetInstance(0), new SphereShape(1.0f));
+             b2.Body.Restitution = 1;
+             b2.Enable();*/
 
+            var grfbo = new Framebuffer(1024, 1024)
+            {
+                ColorPixelFormat = PixelFormat.Red,
+                ColorInternalFormat = PixelInternalFormat.R32f,
+                ColorPixelType = PixelType.Float
+            };
+
+            color2.Type = GenericMaterial.MaterialType.Grass;
+            var w5 = Mesh3d.Create(groundInfo, GenericMaterial.FromColor(Color.Green));
+            scene.Add(w5);
             var w4 = Mesh3d.Create(groundInfo, color2);
             scene.Add(w4);
             var b = Game.World.Physics.CreateBody(0, w4.GetInstance(0), new StaticPlaneShape(Vector3.UnitY, 0));
@@ -82,6 +96,9 @@ namespace ShadowsTester
             var barrelinfo = Object3dInfo.LoadFromObjSingle(Media.Get("barrel.obj"));
             var barrelshape = Physics.CreateConvexCollisionShape(barrelinfo);
             var barrels = Mesh3d.Create(barrelinfo, GenericMaterial.FromColor(Color.White));
+            barrels.AutoRecalculateMatrixForOver16Instances = true;
+            barrels.GetLodLevel(0).Material.Metalness = 0.0f;
+            barrels.GetLodLevel(0).Material.Roughness = 0.0f;
             barrels.ClearInstances();
 
             Game.OnKeyUp += (ox, oe) =>
@@ -95,6 +112,28 @@ namespace ShadowsTester
                 }
             };
             Game.World.Scene.Add(barrels);
+
+            ComputeShader grs = new ComputeShader("GrassHeightWriter.compute.glsl");
+            Game.Invoke(() =>
+            {
+
+                grfbo.Use();
+                grfbo.RevertToDefault();
+                color2.SpecularMap = new Texture(grfbo.TexColor);
+            });
+            Game.OnBeforeDraw += (od, oe) =>
+            {
+                grs.Use();
+                grs.SetUniform("BarrelsCount", barrels.GetInstances().Count);
+                grs.SetUniform("GrassSurfaceMin", new Vector3(-12, 0, -12));
+                grs.SetUniform("GrassSurfaceMax", new Vector3(12, 0, 12));
+                var i = barrels.GetInstances().Select<Mesh3dInstance, Vector3>((a) => a.GetPosition()).ToArray();
+                grs.SetUniformArray("Barrels", i);
+                GL.BindImageTexture(0, grfbo.TexColor, 0, false, 0, TextureAccess.ReadWrite, SizedInternalFormat.R32f);
+                GL.DispatchCompute(1024, 1024, 1);
+                GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
+
+            };
 
 
             /*

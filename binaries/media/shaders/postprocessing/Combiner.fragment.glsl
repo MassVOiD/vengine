@@ -113,7 +113,7 @@ vec3 lightPoints(){
 
 		mat4 lightPV = (LightsPs[i] * LightsVs[i]);
 
-		vec4 clipspace = (ProjectionMatrix * ViewMatrix) * vec4((LightsPos[i]), 1.0);
+		vec4 clipspace = (VPMatrix) * vec4((LightsPos[i]), 1.0);
 		vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
 		if(clipspace.z < 0.0) continue;
 
@@ -150,12 +150,12 @@ vec3 Lightning(){
     float IOR =  0.0;
 	
 	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness, metalness);
-	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, metalness, roughness, IOR);
+	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, fract(metalness), roughness, IOR);
 
 	
     if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
     if(UseHBAO == 1) {
-		float ao = AmbientOcclusion(position, normal, roughness, metalness);
+		float ao = AmbientOcclusion(position, normal, roughness, fract(metalness));
 		if(UseVDAO == 0) envlight = vec3(1);
 		directlight += envlight * ao;
 		

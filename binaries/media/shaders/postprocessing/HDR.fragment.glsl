@@ -91,11 +91,13 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
     float counter = 0;
 	
 
-	outc += textureLod(currentTex, buv, 7).rgb;
+	//outc += textureLod(currentTex, buv, 7).rgb;
 	outc += textureLod(currentTex, buv, 8).rgb;
 	outc += textureLod(currentTex, buv, 9).rgb;
-	outc *= max(0.0, length(outc) - 1.0) * 0.4;
-	return vec3pow(outc * 1.1, 1.7) * 0.15;
+	outc += textureLod(currentTex, buv, 10).rgb;
+	outc += textureLod(currentTex, buv, 11).rgb;
+	//outc *= max(0.0, length(outc) - 1.0) * 0.4;
+	return vec3pow(outc * 1.1, 1.7) * 0.11;
 	
 }
 vec3 funnybloom(vec2 buv){
@@ -200,7 +202,7 @@ void main()
     }
     
     if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
-	//if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
+	if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
 	if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
     color1.a = texture(depthTex, UV).r;
     

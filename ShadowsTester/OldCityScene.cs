@@ -30,7 +30,12 @@ namespace ShadowsTester
                 b = new Vector3(b.X * 0.25f, b.Y * 0.25f, b.Z * 0.25f);
                 o.GetInstance(0).SetPosition(b);
                 o.GetInstance(0).Scale(0.25f);
+               // var bdshape = o.GetLodLevel(0).Info3d.GetConvexHull();
+               // var bd = Game.World.Physics.CreateBody(0, o.GetInstance(0), bdshape);
+               // bd.Enable();
                 Game.World.Scene.Add(o);
+             //   bd.Enable();
+
             }
 
             var testScene = new Scene();
@@ -41,6 +46,8 @@ namespace ShadowsTester
             lucy.GetInstance(0).Scale(0.1f);
             testScene.Add(lucy);
             Game.World.Scene.Add(testScene);
+            Commons.PickedMesh = lucy;
+            Commons.Picked = lucy.GetInstance(0);
 
             PostProcessing pp = new PostProcessing(512, 512);
             CubeMapFramebuffer cubens = new CubeMapFramebuffer(512, 512);
@@ -62,6 +69,25 @@ namespace ShadowsTester
                     tex.Handle = cubens.TexColor;
                 }
             };
+            var barrelinfo = Object3dInfo.LoadFromObjSingle(Media.Get("barrel.obj"));
+            var barrelshape = Physics.CreateConvexCollisionShape(barrelinfo);
+            var barrels = Mesh3d.Create(barrelinfo, GenericMaterial.FromColor(Color.White));
+            barrels.AutoRecalculateMatrixForOver16Instances = true;
+            barrels.GetLodLevel(0).Material.Metalness = 0.0f;
+            barrels.GetLodLevel(0).Material.Roughness = 0.0f;
+            barrels.ClearInstances();
+
+            Game.OnKeyUp += (ox, oe) =>
+            {
+                if(oe.Key == OpenTK.Input.Key.Keypad0)
+                {
+                    var instance = barrels.AddInstance(new TransformationManager(Camera.MainDisplayCamera.GetPosition()));
+                    var phys = Game.World.Physics.CreateBody(0.7f, instance, barrelshape);
+                    phys.Enable();
+                    phys.Body.LinearVelocity += Camera.MainDisplayCamera.GetDirection() * 6;
+                }
+            };
+            Game.World.Scene.Add(barrels);
             /*
             List<Mesh3d> cubes = new List<Mesh3d>();
             for(int i = 0; i < 80; i++)

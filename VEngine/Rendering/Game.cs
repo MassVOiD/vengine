@@ -29,7 +29,9 @@ namespace VEngine
 
         static public event EventHandler<OpenTK.Input.MouseWheelEventArgs> OnMouseWheel;
 
-        static public event EventHandler OnUpdate, OnBeforeDraw, OnAfterDraw, OnLoad;
+        static public event EventHandler<FrameEventArgs> OnUpdate;
+        static public event EventHandler<FrameEventArgs> OnBeforeDraw, OnAfterDraw;
+        static public event EventHandler OnLoad;
 
         static public void Initialize(Size resolution, string mediapath)
         {
@@ -98,16 +100,16 @@ namespace VEngine
             ActionQueue.Enqueue(action);
         }
 
-        static public void InvokeOnAfterDraw()
+        static public void InvokeOnAfterDraw(FrameEventArgs eventargs)
         {
             if(OnAfterDraw != null)
-                OnAfterDraw.Invoke(null, new EventArgs());
+                OnAfterDraw.Invoke(null, eventargs);
         }
 
-        static public void InvokeOnBeforeDraw()
+        static public void InvokeOnBeforeDraw(FrameEventArgs eventargs)
         {
             if(OnBeforeDraw != null)
-                OnBeforeDraw.Invoke(null, new EventArgs());
+                OnBeforeDraw.Invoke(null, eventargs);
         }
 
         static public void InvokeOnKeyDown(OpenTK.Input.KeyboardKeyEventArgs e)
@@ -158,10 +160,10 @@ namespace VEngine
                 OnMouseWheel.Invoke(null, e);
         }
 
-        static public void InvokeOnUpdate()
+        static public void InvokeOnUpdate(FrameEventArgs eventargs)
         {
             if(OnUpdate != null)
-                OnUpdate.Invoke(null, new EventArgs());
+                OnUpdate.Invoke(null, eventargs);
         }
 
         static public void InvokeQueue()

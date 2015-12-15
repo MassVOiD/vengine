@@ -3,15 +3,10 @@
 #include Mesh3dUniforms.glsl
 
 out Data {
-    flat int instanceId;
-    vec3 WorldPos;
-    vec2 TexCoord;
-    vec3 Normal;
-    vec4 Tangent;
-    vec2 Data;
+#include InOutStageLayout.glsl
 } Output;
 
-#include Bones.glsl
+/*#include Bones.glsl
 
 uniform int MaterialType;
 #define MaterialTypeRainsOptimizedSphere 13
@@ -19,7 +14,9 @@ layout (std430, binding = 4) buffer BallsBuff
 {
     vec4 BallsPositionsAndScales[]; 
 }; 
-
+*/
+// not optimized
+/*
 void main(){
 
 	Output.instanceId = int(gl_InstanceID);
@@ -55,4 +52,17 @@ void main(){
 	
 	
     gl_Position = (ProjectionMatrix  * ViewMatrix) * vec4(wpos, 1);
+}*/
+
+//optimized
+
+void main(){
+
+    vec4 v = vec4(in_position,1);
+	Output.instanceId = int(gl_InstanceID);
+	Output.TexCoord = vec2(in_uv.x, in_uv.y);
+    Output.WorldPos = (ModelMatrixes[gl_InstanceID] * v).xyz;
+	Output.Normal = in_normal;
+	Output.Tangent = in_tangent;
+    gl_Position = (VPMatrix) * vec4(Output.WorldPos, 1);
 }

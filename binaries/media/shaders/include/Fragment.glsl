@@ -10,6 +10,8 @@ layout(location = 1) out vec4 outNormals;
 
 #include ParallaxOcclusion.glsl
 
+bool markAsParallax = false;
+
 uniform int MaterialType;
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
@@ -150,6 +152,6 @@ void finishFragment(vec4 incolor, vec2 UV){
   //  else outSpecular = SpecularComponent;
     
 	outColor = vec4((color.xyz), outRoughness);
-	outNormals = vec4(rn, outMetalness);
+	outNormals = vec4(rn, outMetalness + (markAsParallax ? 0.0 : 1.0));
 	updateDepthFromWorldPos(wpos);
 }

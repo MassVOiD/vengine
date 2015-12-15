@@ -45,10 +45,11 @@ namespace VEngine
             dispatcher = new CollisionDispatcher(collisionConf);
 
             broadphase = new DbvtBroadphase();
-            World = new DiscreteDynamicsWorld(dispatcher, broadphase, null, collisionConf);
-            World.SolverInfo.SolverMode = SolverModes.InterleaveContactAndFrictionConstraints;
-            World.SolverInfo.Restitution = 0;
-            World.Gravity = new Vector3(0, -9.81f, 0);
+            var w = new MultiBodyDynamicsWorld(dispatcher, broadphase, new MultiBodyConstraintSolver(), collisionConf);
+            w.SolverInfo.SolverMode = SolverModes.CacheFriendly;
+            w.SolverInfo.Restitution = 0;
+            w.Gravity = new Vector3(0, -9.81f, 0);
+            World = w;
         }
 
         public PhysicalBody CreateBody(float mass, Mesh3dInstance mesh, CollisionShape shape)
@@ -90,6 +91,11 @@ namespace VEngine
 
         public void SimulationStep(float elapsedTime)
         {
+            if(ActiveBodies.Count == 0 || World == null)
+            {
+                System.Threading.Thread.Sleep(100);
+                return;
+            }
             World.StepSimulation(elapsedTime);
             for(int i = 0; i < ActiveBodies.Count; i++)
             {

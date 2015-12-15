@@ -122,7 +122,7 @@
     <Compile Include="UI\AbsUIElement.cs" />
     <Compile Include="UI\UIMLTree.cs" />
     <Compile Include="Utilities\Generators\Object3dGenerator.cs" />
-    <Compile Include="Rendering\GLThread.cs" />
+    <Compile Include="Rendering\Game.cs" />
     <Compile Include="Rendering\Lights\SimplePointLight.cs" />
     <Compile Include="Internals\MathExtensions.cs" />
     <Compile Include="Rendering\TransformationJoint.cs" />

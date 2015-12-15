@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using BulletSharp;
+using OpenTK;
 
 namespace VEngine
 {
@@ -50,7 +51,7 @@ namespace VEngine
 
         public void ReadChanges()
         {
-            Body.WorldTransform = Transformation.GetWorldTransform();
+            Body.WorldTransform = Matrix4.CreateFromQuaternion(Transformation.Orientation) * Matrix4.CreateTranslation(Transformation.Position);
             Shape.LocalScaling = Transformation.GetScale();
         }
     }
