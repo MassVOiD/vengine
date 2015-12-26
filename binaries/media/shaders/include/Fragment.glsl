@@ -47,12 +47,6 @@ vec3 determineWave(vec3 w, vec3 n){
 
 uniform float NormalMapScale;
 
-uniform int UseAlphaMask;
-void discardIfAlphaMasked(){
-	if(UseAlphaMask == 1){
-		if(texture(alphaMaskTex, Input.TexCoord).r < 0.5) discard;
-	}
-}
 
 uniform int UseSpecularMap;
 uniform int UseRoughnessMap;
@@ -76,11 +70,25 @@ vec3 makeSphereNormals(vec2 uv, float r) {
 	return d;
 }
 
+vec2 getTexel(sampler2D t){
+	return 1.0 / vec2(textureSize(t, 0));
+}
 
+vec3 examineBumpMap(){
+	vec2 iuv = Input.TexCoord;
+	float bc = texture(bumpMapTex, iuv, 0).r;
+	vec2 dsp = getTexel(bumpMapTex);
+	float bdx = texture(bumpMapTex, iuv).r - texture(bumpMapTex, iuv+vec2(dsp.x, 0)).r;
+	float bdy = texture(bumpMapTex, iuv).r - texture(bumpMapTex, iuv+vec2(0, dsp.y)).r;
+
+	vec3 tang = normalize(Input.Tangent.xyz)*6;
+	vec3 bitan = normalize(cross(Input.Tangent.xyz, Input.Normal))*6 * Input.Tangent.w;;
+
+	return normalize(vec3(0,0,1) + bdx * tang + bdy * bitan);
+}
 
 void finishFragment(vec4 incolor, vec2 UV){
 	if(incolor.a < 0.01) discard;
-    discardIfAlphaMasked();
 	
     vec4 color = incolor;
     vec3 wpos = Input.WorldPos;
@@ -123,6 +131,9 @@ void finishFragment(vec4 incolor, vec2 UV){
 		map.g = - map.g;
 		normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
 	} 
+	if(UseNormalMap == 0 && UseBumpMap == 1){
+		normalNew = TBN * examineBumpMap();
+	}
 
 #define MaterialTypeParallax 11
 	if(MaterialType == MaterialTypeParallax){
@@ -138,20 +149,19 @@ void finishFragment(vec4 incolor, vec2 UV){
 	
 	if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
 
-    float outRoughness = 0;
+    float outRoughness = clamp(Roughness, 0.005, 0.99);
     float outMetalness = 0;
     float outSpecular = 0;
     
 	if(UseRoughnessMap == 1) outRoughness = texture(roughnessMapTex, UV).r; 
-    else outRoughness = Roughness;
+    else outRoughness = clamp(Roughness, 0.005, 0.99);
     
 	if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, UV).r; 
     else outMetalness = Metalness;
-    
 	//if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, UV).r; 
   //  else outSpecular = SpecularComponent;
     
-	outColor = vec4((color.xyz), outRoughness);
-	outNormals = vec4(rn, outMetalness + (markAsParallax ? 0.0 : 1.0));
+	outColor = vec4((color.xyz), clamp(outRoughness, 0.005, 0.94));
+	outNormals = vec4(rn, outMetalness);
 	updateDepthFromWorldPos(wpos);
 }

@@ -76,6 +76,7 @@
     <Reference Include="BulletSharp, Version=2.83.5.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Dependencies\BulletSharp.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -117,6 +118,7 @@
     <Compile Include="Rendering\Lights\ProjectionLight.cs" />
     <Compile Include="Rendering\Framebuffer.cs" />
     <Compile Include="Rendering\CubeMapTexture.cs" />
+    <Compile Include="Rendering\Object3dManager.cs" />
     <Compile Include="Rendering\PassiveVoxelizer.cs" />
     <Compile Include="Texture3D.cs" />
     <Compile Include="UI\AbsUIElement.cs" />

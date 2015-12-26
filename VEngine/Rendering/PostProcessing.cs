@@ -40,8 +40,8 @@ namespace VEngine
         private static Random Rand = new Random();
 
         private ShaderProgram
-            BloomShader,
             FogShader,
+            AOShader,
             HDRShader,
             BlitShader,
             CombinerShader;
@@ -57,10 +57,8 @@ namespace VEngine
         private Texture NumbersTexture;
 
         private Framebuffer
-            Pass1FrameBuffer,
-            Pass2FrameBuffer,
-           LastDeferredFramebuffer,
-            BloomFrameBuffer,
+            Pass1Framebuffer,
+            AOFramebuffer,
             FogFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
@@ -125,27 +123,12 @@ namespace VEngine
             //   initialWidth *= 4; initialHeight *= 4;
             MRT = new MRTFramebuffer(initialWidth, initialHeight);
 
-            Pass1FrameBuffer = new Framebuffer(initialWidth, initialHeight)
+            Pass1Framebuffer = new Framebuffer(initialWidth, initialHeight)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.HalfFloat
-            };
-            Pass2FrameBuffer = new Framebuffer(initialWidth, initialHeight)
-            {
-                ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rgba16f,
-                ColorPixelFormat = PixelFormat.Rgba,
-                ColorPixelType = PixelType.HalfFloat
-            };
-
-            BloomFrameBuffer = new Framebuffer(initialWidth / 6, initialHeight / 6)
-            {
-                ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rgba,
-                ColorPixelFormat = PixelFormat.Rgba,
-                ColorPixelType = PixelType.UnsignedByte
             };
 
             FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
@@ -155,22 +138,21 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.UnsignedByte
             };
-
-            LastDeferredFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            AOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
             {
                 ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rgba,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
                 ColorPixelFormat = PixelFormat.Rgba,
-                ColorPixelType = PixelType.UnsignedByte
+                ColorPixelType = PixelType.HalfFloat
             };
 
-            BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
+            AOShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "AO.fragment.glsl");
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
             HDRShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "HDR.fragment.glsl");
             BlitShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Blit.fragment.glsl");
             CombinerShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Combiner.fragment.glsl");
 
-            PostProcessingMesh = new Object3dInfo(postProcessingPlaneVertices);
+            PostProcessingMesh = new Object3dInfo(VertexInfo.FromFloatArray(postProcessingPlaneVertices));
         }
 
         // public static Texture3D FullScene3DTexture;
@@ -209,12 +191,8 @@ namespace VEngine
 
             framebuffer.Use(false, false);
             GL.Viewport(0, 0, Width, Height);
-            GL.Disable(EnableCap.DepthTest);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            Pass2FrameBuffer.UseTexture(0);
-            MRT.UseTextureDepth(1);
-            Blit();
-            GL.Enable(EnableCap.DepthTest);
+            HDR();
         }
 
         public void SetUniformsShared()
@@ -248,22 +226,12 @@ namespace VEngine
             BlitShader.Use();
             DrawPPMesh();
         }
-
-        private void Bloom()
-        {
-            BloomShader.Use();
-            DrawPPMesh();
-        }
-
+        
         private void Combine()
         {
             CombinerShader.Use();
             Game.World.Scene.SetLightingUniforms(CombinerShader);
             //RandomsSSBO.Use(0);
-            MRT.UseTextureDepth(1);
-            MRT.UseTextureNormals(16);
-            LastDeferredFramebuffer.UseTexture(20);
-            CubeMap.Use(TextureUnit.Texture19);
             Game.World.Scene.MapLightsSSBOToShader(CombinerShader);
             CombinerShader.SetUniform("RandomsCount", 16 * 16 * 16);
             CombinerShader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
@@ -279,6 +247,12 @@ namespace VEngine
             CombinerShader.SetUniform("VDAOGlobalMultiplier", VDAOGlobalMultiplier);
             CombinerShader.SetUniform("DisablePostEffects", DisablePostEffects);
             // GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+            MRT.UseTextureDiffuseColor(0);
+            MRT.UseTextureDepth(1);
+            MRT.UseTextureNormals(2);
+            CubeMap.Use(TextureUnit.Texture3);
+            AOFramebuffer.UseTexture(4);
+            FogFramebuffer.UseTexture(5);
             LastCombinerTime = DrawPPMesh();
         }
 
@@ -312,24 +286,34 @@ namespace VEngine
             framebuffer.Use(true, false);
             framebuffer.SwitchFace(target);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-            //   framebuffer.Use(true, true);
-            Pass2FrameBuffer.UseTexture(0);
-            MRT.UseTextureDepth(1);
-            Blit();
+            HDR();
             framebuffer.GenerateMipMaps();
         }
 
         private void Fog()
         {
+            SwitchToFB(FogFramebuffer);
             FogShader.Use();
             Game.World.Scene.SetLightingUniforms(FogShader);
             FogShader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
+            MRT.UseTextureDiffuseColor(0);
+            MRT.UseTextureDepth(1);
+            MRT.UseTextureNormals(2);
             LastFogTime = DrawPPMesh();
         }
-
-        private void HDR(long time)
+        private void AO()
         {
-            string lastTimeSTR = time.ToString();
+            AOShader.Use();
+            AOFramebuffer.Use();
+            MRT.UseTextureDiffuseColor(0);
+            MRT.UseTextureDepth(1);
+            MRT.UseTextureNormals(2);
+            DrawPPMesh();
+        }
+
+        private void HDR()
+        {
+            string lastTimeSTR = ((int)Math.Round(Game.CurrentFPS)).ToString();
             //Console.WriteLine(time);
             int[] nums = lastTimeSTR.ToCharArray().Select<char, int>((a) => a - 48).ToArray();
             HDRShader.Use();
@@ -339,8 +323,6 @@ namespace VEngine
             HDRShader.SetUniformArray("Numbers", nums);
             HDRShader.SetUniform("UnbiasedIntegrateRenderMode", UnbiasedIntegrateRenderMode);
             HDRShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
-            MRT.UseTextureDepth(1);
-            LastDeferredFramebuffer.UseTexture(20);
             if(Camera.MainDisplayCamera != null)
             {
                 HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
@@ -355,23 +337,20 @@ namespace VEngine
             MRT.Use();
             Game.World.Draw();
 
-            SwitchToFB(Pass1FrameBuffer);
+            if(Game.GraphicsSettings.UseHBAO)
+            {
+                AO();
+            }
 
-            MRT.UseTextureDiffuseColor(14);
-            MRT.UseTextureDepth(1);
-            MRT.UseTextureNormals(16);
+            SwitchToFB(Pass1Framebuffer);
 
             Combine();
 
-            Pass1FrameBuffer.GenerateMipMaps();
-
-            SwitchToFB(Pass2FrameBuffer);
-
-            Pass1FrameBuffer.UseTexture(0);
+            Pass1Framebuffer.GenerateMipMaps();
+            
+            Pass1Framebuffer.UseTexture(0);
             MRT.UseTextureDepth(1);
-            NumbersTexture.Use(TextureUnit.Texture25);
-
-            HDR(lastTime == 0 ? 0 : 1000000 / lastTime);
+            NumbersTexture.Use(TextureUnit.Texture2);
         }
 
         private void RenderPrepareToBlit()
@@ -390,47 +369,28 @@ namespace VEngine
             LastMRTTime = StopMeasureMS();
             Game.World.Draw();
 
-            MRT.UseTextureDiffuseColor(14);
-            MRT.UseTextureDepth(1);
-            MRT.UseTextureNormals(16);
-
             if(Game.GraphicsSettings.UseFog)
             {
-                SwitchToFB(FogFramebuffer);
                 Fog();
             }
-
-            SwitchToFB(Pass1FrameBuffer);
-
-            FogFramebuffer.UseTexture(24);
-            Combine();
-
-            if(Game.GraphicsSettings.UseBloom)
+            if(Game.GraphicsSettings.UseHBAO)
             {
-                SwitchToFB(BloomFrameBuffer);
-                Pass1FrameBuffer.UseTexture(0);
-                Bloom();
-                BloomFrameBuffer.UseTexture(26);
+                AO();
             }
 
-            Pass1FrameBuffer.GenerateMipMaps();
+            SwitchToFB(Pass1Framebuffer);
+
+            Combine();
+            
+            Pass1Framebuffer.GenerateMipMaps();
             GL.MemoryBarrier(MemoryBarrierFlags.TextureUpdateBarrierBit);
             GL.MemoryBarrier(MemoryBarrierFlags.TextureFetchBarrierBit);
-            SwitchToFB(Pass2FrameBuffer);
 
-            Pass1FrameBuffer.UseTexture(0);
+            Pass1Framebuffer.UseTexture(0);
             MRT.UseTextureDepth(1);
-            NumbersTexture.Use(TextureUnit.Texture25);
+            NumbersTexture.Use(TextureUnit.Texture2);
 
-            HDR(lastTime == 0 ? 0 : 1000000 / lastTime);
-
-            SwitchToFB(LastDeferredFramebuffer);
-            if(UnbiasedIntegrateRenderMode)
-            {
-                Pass2FrameBuffer.UseTexture(0);
-                MRT.UseTextureDepth(1);
-                Blit();
-            }
+            
         }
 
         private void StartMeasureMS()
@@ -439,40 +399,10 @@ namespace VEngine
             separatestowatch.Start();
         }
 
-        private Framebuffer SwitchBetweenFB()
-        {
-            if(LastFrameBuffer == Pass1FrameBuffer)
-                return SwitchToFB2();
-            else
-                return SwitchToFB1();
-        }
-
         private void SwitchToFB(Framebuffer buffer)
         {
             buffer.Use();
-            if((buffer == Pass1FrameBuffer || buffer == Pass2FrameBuffer) && LastFrameBuffer != null)
-            {
-                LastFrameBuffer.UseTexture(0);
-                LastFrameBuffer = buffer;
-            }
         }
-
-        private Framebuffer SwitchToFB1()
-        {
-            Pass1FrameBuffer.Use();
-            if(LastFrameBuffer != null)
-                LastFrameBuffer.UseTexture(0);
-            LastFrameBuffer = Pass1FrameBuffer;
-            return Pass1FrameBuffer;
-        }
-
-        private Framebuffer SwitchToFB2()
-        {
-            Pass2FrameBuffer.Use();
-            if(LastFrameBuffer != null)
-                LastFrameBuffer.UseTexture(0);
-            LastFrameBuffer = Pass2FrameBuffer;
-            return Pass2FrameBuffer;
-        }
+        
     }
 }

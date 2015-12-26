@@ -54,7 +54,7 @@ vec3 lookupFog(vec2 fuv){
     {
         for(float g2 = 0; g2 < 6.0; g2+=1.0)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.01);
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001);
             vec3 color = texture(fogTex, fuv + gauss).rgb;
             float depthThere = texture(fogTex, fuv + gauss).a;
             if(abs(depthThere - depthCenter) < 0.01){
@@ -136,7 +136,28 @@ uniform float VDAOGlobalMultiplier;
 
 #include EnvironmentLight.glsl
 #include Direct.glsl
-#include AmbientOcclusion.glsl
+
+float getAO(vec2 uv, vec3 normal){
+    float outc = 0.0;
+    float counter = 0;
+    float depthCenter = texture(depthTex, uv).r;
+	float pixel = 1.0 / textureSize(aoTex, 0).y;
+    for(float g = 0; g < mPI2 * 2; g+=0.5)
+    {
+        for(float g2 = 0; g2 < 1.0; g2+=0.2)
+        {
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * g2 * 0.001 + pixel);
+            vec3 n = texture(aoTex, uv + gauss).rgb;
+            float ao = texture(aoTex, uv + gauss).a;
+            //if(dot(n, normal) > 0.8){
+			float force = pow(max(0.0, dot(n, normal)), 5);
+			outc += ao * force;
+			counter += force;
+            //}
+        }
+    }
+    return counter == 0 ? texture(aoTex, uv).a : outc / counter;
+}
 
 vec3 Lightning(){
     if(texture(diffuseColorTex, UV).r >= 999){ 
@@ -155,7 +176,7 @@ vec3 Lightning(){
 	
     if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
     if(UseHBAO == 1) {
-		float ao = AmbientOcclusion(position, normal, roughness, fract(metalness));
+		float ao = getAO(UV, normal);
 		if(UseVDAO == 0) envlight = vec3(1);
 		directlight += envlight * ao;
 		

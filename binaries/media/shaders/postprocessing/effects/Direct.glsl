@@ -10,6 +10,8 @@ float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
         vec2 ruv = mix(sspace1, sspace2, i);
         if(ruv.x<0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1) continue;
         vec3 wd = reconstructCameraSpace(ruv);
+		float m = texture(normalsTex, ruv).a;
+		if(m > 1.0) continue;
         float rd3d = length(wd);
         float inter = mix(d3d1, d3d2, i);
         if(rd3d < inter) {
@@ -29,8 +31,8 @@ vec3 DirectLight(
 ){
     vec3 color1 = vec3(0);
 	
-	float parallax = step(1.0, metalness);
-	metalness = fract(metalness);
+	float parallax = step(100.0, metalness);
+	//metalness = fract(metalness);
 	
     for(int i=0;i<LightsCount;i++){
 
@@ -45,9 +47,8 @@ vec3 DirectLight(
 
         }
         vec3 radiance = shade(camera, albedo, normal, position, LightsPos[i], LightsColors[i], roughness, metalness, false);
-		float dx = parallax == 1 ? 1.0 : testVisibility3d(UV, position, position + normalize(LightsPos[i] - position) * 0.06);
-		if(UV.y > 0.5)dx = 1;
-        color1 += (radiance) * percent * dx;
+		//float dx = parallax == 1 ? 1.0 : testVisibility3d(UV, position, position + normalize(LightsPos[i] - position) * 0.06);
+        color1 += (radiance) * percent;
     }
 	
 	return color1;

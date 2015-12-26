@@ -40,7 +40,7 @@ namespace ObjToSceneConverter
         {
             System.Diagnostics.Process.GetCurrentProcess().MaxWorkingSet = new IntPtr(8L * 1024L * 1024L * 1024L);
             Media.SearchPath = "media";
-            var meshes = Object3dInfo.LoadSceneFromObj(textBox1.Text, textBox2.Text);
+            var meshes = Object3dManager.LoadSceneFromObj(textBox1.Text, textBox2.Text);
             var s = GameScene.FromMesh3dList(meshes, textBox3.Text + "/", textBox4.Text, true);
             System.IO.File.WriteAllText(textBox3.Text + "/" + textBox5.Text + ".scene", s);
             button4.Text = "Done";

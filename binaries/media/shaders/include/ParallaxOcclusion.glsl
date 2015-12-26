@@ -10,13 +10,13 @@ vec2 adjustParallaxUV(){
 	vec3 eyevec = ((CameraPosition - Input.WorldPos));
 	vec3 V = normalize(vec3(
 		dot(eyevec, twpos),
-		dot(eyevec, -bwpos),
+		dot(eyevec, bwpos),
 		dot(eyevec, -nwpos)
 	));
 	vec2 T = Input.TexCoord;
    // determine optimal number of layers
-   const float minLayers = 2;
-   const float maxLayersAngle = 4;
+   const float minLayers = 6;
+   const float maxLayersAngle = 11;
    const float maxLayersDistance = 24;
    float numLayers = mix(minLayers, maxLayersAngle, abs(dot(nwpos, V)));
    numLayers = mix(maxLayersDistance, numLayers, clamp(distance(CameraPosition, Input.WorldPos) * 1, 0.0, 1.0)) * ParallaxHeightMultiplier;

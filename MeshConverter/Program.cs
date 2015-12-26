@@ -11,7 +11,7 @@ namespace MeshConverter
             string mode = args[0];
             string infile = args[1];
             string outfile = args[2];
-
+            /*
             if(mode == "separate")
             {
                 Object3dInfo.CompressAndSave(infile, outfile);
@@ -34,7 +34,7 @@ namespace MeshConverter
                 if(File.Exists(outfile + ".vbo.raw"))
                     File.Delete(outfile + ".vbo.raw");
                 File.WriteAllBytes(outfile + ".vbo.raw", vboStream.ToArray());
-            }
+            }*/
             Console.WriteLine("Done");
         }
     }

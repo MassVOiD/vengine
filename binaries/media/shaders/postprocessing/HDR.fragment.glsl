@@ -50,12 +50,12 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     //float centerDepth = texture(texDepth, UV).r;
     float focus = length(reconstructCameraSpace(vec2(0.5)));
     float cc = length(reconstructCameraSpace(UV).rgb);
-    for(float x = 0; x < mPI2; x+=0.5){ 
-        for(float y=0.1;y<1.0;y+= 0.1){  
+    for(float x = 0; x < mPI2; x+=0.1){ 
+        for(float y=0.1;y<1.0;y+= 0.04){  
             
             //ngon
             
-            vec2 crd = vec2(sin(x + y) * ratio, cos(x + y)) * (rand(UV + vec2(x, y) + (UnbiasedIntegrateRenderMode == 1 ? Time : 0)));
+            vec2 crd = vec2(sin(x + y*5) * ratio, cos(x + y*5)) * y;
             //float alpha = texture(alphaMaskTex, crd*1.41421).r;
             //if(length(crd) > 1.0) continue;
             vec2 coord = UV+crd * 0.02 * amount;  
@@ -67,6 +67,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             float dd = length(crd * 0.1 * amount)/0.125;
             w *= dd;
             
+			w += (smoothstep(0.1, 0.0, abs(y - 0.9)));
             weight+=w;
             finalColor += texel * w;
             
@@ -97,7 +98,7 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 	outc += textureLod(currentTex, buv, 10).rgb;
 	outc += textureLod(currentTex, buv, 11).rgb;
 	//outc *= max(0.0, length(outc) - 1.0) * 0.4;
-	return vec3pow(outc * 1.1, 1.7) * 0.11;
+	return vec3pow(outc * 1.1, 1.3) * 0.11;
 	
 }
 vec3 funnybloom(vec2 buv){
@@ -202,8 +203,8 @@ void main()
     }
     
     if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
-	if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
-	if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
+	//if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
+	//if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
     color1.a = texture(depthTex, UV).r;
     
     vec3 last = texture(lastIndirectTex, UV).rgb;

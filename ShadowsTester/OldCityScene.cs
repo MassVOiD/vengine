@@ -34,16 +34,28 @@ namespace ShadowsTester
                // var bd = Game.World.Physics.CreateBody(0, o.GetInstance(0), bdshape);
                // bd.Enable();
                 Game.World.Scene.Add(o);
+                o.GetLodLevel(0).Info3d.Manager = null;
              //   bd.Enable();
 
             }
+            GC.Collect();
+
+
+            // var viperobj = Object3dManager.LoadSceneFromObj(Media.Get("viper.obj"), Media.Get("viper.mtl"), 0.1f);
+            // viperobj.ForEach((a) => a.GetInstance(0).Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegreesToRadians(90))));
+            //  viperobj.ForEach((a) => Game.World.Scene.Add(a));
+
+            var lucy2 = Mesh3d.Create(new Object3dInfo(Object3dManager.LoadFromRaw(Media.Get("lucy.vbo.raw")).Vertices), GenericMaterial.FromColor(Color.Gold));
+            lucy2.GetInstance(0).Scale(0.2f);
+            lucy2.GetLodLevel(0).Material.Roughness = 0.2f;
+            lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
+            Game.World.Scene.Add(lucy2);
 
             var testScene = new Scene();
             //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
-            var lucyobj = Object3dInfo.LoadFromObjSingle(Media.Get("sph1.obj"));
-            lucyobj.ScaleUV(8.0f);
+            var lucyobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("sph1.obj")).Vertices);
             var lucy = Mesh3d.Create(lucyobj, GenericMaterial.FromColor(Color.White));
-            lucy.GetInstance(0).Scale(0.1f);
+            lucy.GetInstance(0).Scale(0.3f);
             testScene.Add(lucy);
             Game.World.Scene.Add(testScene);
             Commons.PickedMesh = lucy;
@@ -69,8 +81,9 @@ namespace ShadowsTester
                     tex.Handle = cubens.TexColor;
                 }
             };
-            var barrelinfo = Object3dInfo.LoadFromObjSingle(Media.Get("barrel.obj"));
-            var barrelshape = Physics.CreateConvexCollisionShape(barrelinfo);
+            var barrelmanager = Object3dManager.LoadFromObjSingle(Media.Get("barrel.obj"));
+            var barrelinfo = new Object3dInfo(barrelmanager.Vertices);
+            var barrelshape = Physics.CreateConvexCollisionShape(barrelmanager);
             var barrels = Mesh3d.Create(barrelinfo, GenericMaterial.FromColor(Color.White));
             barrels.AutoRecalculateMatrixForOver16Instances = true;
             barrels.GetLodLevel(0).Material.Metalness = 0.0f;

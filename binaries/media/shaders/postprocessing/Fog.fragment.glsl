@@ -23,7 +23,7 @@ vec3 raymarchFog(vec3 start, vec3 end){
 		
 		
 		float fogDensity = 0.0;
-		float fogMultiplier = 1.4;
+		float fogMultiplier = 5.4;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
 		vec3 lastPos = start - mix(start, end, 0.01);
 		const float stepr = 0.02;
@@ -38,7 +38,6 @@ vec3 raymarchFog(vec3 start, vec3 end){
 			//att = 1;
 			lightClipSpace = lightPV * vec4(pos, 1.0);
 			
-			//float fogNoise = snoise(vec4(pos * 1 + vec3(0.2, -0.1, 0), Time*0.1)) + 1;
             float fogNoise = 1.0;
 	
             vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;

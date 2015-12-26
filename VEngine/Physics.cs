@@ -107,11 +107,11 @@ namespace VEngine
             }
         }
 
-        public static CollisionShape CreateConvexCollisionShape(Object3dInfo info)
+        public static CollisionShape CreateConvexCollisionShape(Object3dManager info)
         {
             return info.GetConvexHull();
         }
-        public static CollisionShape CreateBoundingBoxShape(Object3dInfo info)
+        public static CollisionShape CreateBoundingBoxShape(Object3dManager info)
         {
             info.UpdateBoundingBox();
             return new BoxShape(info.AABB.Maximum - info.AABB.Minimum);

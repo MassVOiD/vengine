@@ -10,7 +10,7 @@ namespace VEngine.Generators
     {
         public static bool UseCache = true;
 
-        public static Object3dInfo CreateCube(Vector3 dimensions, Vector2 uvScale)
+        public static Object3dManager CreateCube(Vector3 dimensions, Vector2 uvScale)
         {
             float[] VBO = new float[288]{
              -1,  1,  -1,  0.333333f,  0,  -1,  0,  0,
@@ -58,10 +58,10 @@ namespace VEngine.Generators
                 VBO[i + 3] *= uvScale.X;
                 VBO[i + 4] *= uvScale.Y;
             }
-            return new Object3dInfo(VBO);
+            return new Object3dManager(VertexInfo.FromFloatArray(VBO));
         }
 
-        public static Object3dInfo CreateGround(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal)
+        public static Object3dManager CreateGround(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal)
         {
             float[] VBO = {
                 start.X, 0, end.Y, 0, 0, normal.X, normal.Y, normal.Z,
@@ -71,10 +71,10 @@ namespace VEngine.Generators
                 start.X, 0, start.Y, uvScale.X, 0, normal.X, normal.Y, normal.Z,
                 end.X, 0, end.Y, 0, uvScale.Y, normal.X, normal.Y, normal.Z
             };
-            return new Object3dInfo(VBO);
+            return new Object3dManager(VertexInfo.FromFloatArray(VBO));
         }
 
-        public static Object3dInfo CreatePlane(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector2 uvScale, Vector3 normal)
+        public static Object3dManager CreatePlane(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector2 uvScale, Vector3 normal)
         {
             float[] VBO = {
                 v1.X, v1.Y, v1.Z, 0, 0, normal.X, normal.Y, normal.Z,
@@ -84,14 +84,11 @@ namespace VEngine.Generators
                 v3.X, v3.Y, v1.Z, uvScale.X, 0, normal.X, normal.Y, normal.Z,
                 v2.X, v2.Y, v1.Z, 0, uvScale.Y, normal.X, normal.Y, normal.Z,
             };
-            return new Object3dInfo(VBO);
+            return new Object3dManager(VertexInfo.FromFloatArray(VBO));
         }
 
-        public static Object3dInfo CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<uint, uint, float> heightGenerator)
+        public static Object3dManager CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<float, float, float> heightGenerator)
         {
-            var cache = GetCachedOrNull(start, end, uvScale, normal, subdivisions);
-            if(cache != null)
-                return cache;
             var VBO = new List<float>();
             var VBOParts = new List<float[]>();
             var indices = new List<uint>();
@@ -112,10 +109,10 @@ namespace VEngine.Generators
                     partx2 = (float)(xp1) / subdivisions;
                     party2 = (float)(yp1) / subdivisions;
 
-                    vertex1 = GetTerrainVertex(start, end, uvScale, normal, x, y, partx1, party1, heightGenerator);
-                    vertex2 = GetTerrainVertex(start, end, uvScale, normal, xp1, y, partx2, party1, heightGenerator);
-                    vertex3 = GetTerrainVertex(start, end, uvScale, normal, x, yp1, partx1, party2, heightGenerator);
-                    vertex4 = GetTerrainVertex(start, end, uvScale, normal, xp1, yp1, partx2, party2, heightGenerator);
+                    vertex1 = GetTerrainVertex(start, end, uvScale, normal, partx1, party1, heightGenerator);
+                    vertex2 = GetTerrainVertex(start, end, uvScale, normal, partx2, party1, heightGenerator);
+                    vertex3 = GetTerrainVertex(start, end, uvScale, normal, partx1, party2, heightGenerator);
+                    vertex4 = GetTerrainVertex(start, end, uvScale, normal, partx2, party2, heightGenerator);
 
                     normal1 = -Vector3.Cross(GetVector(vertex2) - GetVector(vertex1),
                         GetVector(vertex3) - GetVector(vertex1)).Normalized();
@@ -212,33 +209,13 @@ namespace VEngine.Generators
                 VBO.AddRange(VBOParts[i + 1]);
             }
 
-            var finalObject = new Object3dInfo(VBO);
+            var finalObject = new Object3dManager(VertexInfo.FromFloatArray(VBO.ToArray()));
 
             //SaveCache(start, end, uvScale, normal, subdivisions, finalObject);
 
             return finalObject;
         }
-
-        static private Object3dInfo GetCachedOrNull(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions)
-        {
-            if(!UseCache)
-                return null;
-            string filename = start.X.ToString() + start.Y.ToString() + end.X.ToString() + end.Y.ToString() +
-                uvScale.X.ToString() + uvScale.Y.ToString() + normal.X.ToString() + normal.Y.ToString() + normal.Z.ToString() +
-                subdivisions.ToString();
-            if(!Directory.Exists("terrain_generator_cache"))
-                Directory.CreateDirectory("terrain_generator_cache");
-            if(!File.Exists("terrain_generator_cache/" + filename + ".o3i"))
-                return null;
-            try
-            {
-                return Object3dInfo.LoadFromCompressed("terrain_generator_cache/" + filename + ".o3i");
-            }
-            catch
-            {
-                return null;
-            }
-        }
+        
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector3 GetNormal(float[] VBOPart)
@@ -247,11 +224,15 @@ namespace VEngine.Generators
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static float[] GetTerrainVertex(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, uint x, uint y, float partx, float party, Func<uint, uint, float> heightGenerator)
+        private static float[] GetTerrainVertex(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, float partx, float party, Func<float, float, float> heightGenerator)
         {
+            var h = heightGenerator.Invoke(
+                start.X + ((end.X - start.X) * partx), 
+                start.Y + ((end.Y - start.Y) * party));
+
             return new float[]{
                 start.X + ((end.X - start.X) * partx),
-                heightGenerator.Invoke(x, y),
+                h,
                 start.Y + ((end.Y - start.Y) * party),
                 partx * uvScale.X,
                 party * uvScale.Y
@@ -263,17 +244,6 @@ namespace VEngine.Generators
         {
             return new Vector3(VBOPart[0], VBOPart[1], VBOPart[2]);
         }
-
-        static private void SaveCache(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Object3dInfo info3d)
-        {
-            if(!UseCache)
-                return;
-            string filename = start.X.ToString() + start.Y.ToString() + end.X.ToString() + end.Y.ToString() +
-                uvScale.X.ToString() + uvScale.Y.ToString() + normal.X.ToString() + normal.Y.ToString() + normal.Z.ToString() +
-                subdivisions.ToString();
-            if(!Directory.Exists("terrain_generator_cache"))
-                Directory.CreateDirectory("terrain_generator_cache");
-            Object3dInfo.CompressAndSaveSingle(info3d, "terrain_generator_cache/" + filename);
-        }
+        
     }
 }

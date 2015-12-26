@@ -8,13 +8,11 @@ namespace ShadowsTester
 {
     internal class Program
     {
-        public static FreeCamera FreeCam;
-
         private class Config
         {
-            public static int Width = 3840;
+            public static int Width = 1920;
             public static string MediaPath = "media";
-            public static int Height = 2100;
+            public static int Height = 1050;
         }
 
         [STAThread]

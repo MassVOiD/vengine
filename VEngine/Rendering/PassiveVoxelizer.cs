@@ -33,7 +33,7 @@ namespace VEngine
             };
         }
 
-        public List<Voxel> Voxelize(Object3dInfo objinfo, int gridSize)
+        public List<Voxel> Voxelize(Object3dManager objinfo, int gridSize)
         {
             List<Voxel> voxels = new List<Voxel>();
             List<byte> bytes = new List<byte>();
@@ -68,7 +68,7 @@ namespace VEngine
             // VoxelizerShader.SetUniform("CenterToZero", transFromCenter);
             VoxelizerShader.SetUniform("Grid", gridSize);
             BoxesSSBO.Use(4);
-            copy.Draw();
+            new Object3dInfo(copy.Vertices).Draw();
             GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             var resultBytes = BoxesSSBO.Read(0, bytes.Count);
             int cursor = 0;

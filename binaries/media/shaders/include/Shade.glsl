@@ -47,8 +47,8 @@ vec3 viewDirection,
 vec3 surfacenormal,
 float roughness) {
 
-    float VdotN = max(dot(viewDirection, surfacenormal), 0.001);
-    float LdotN = max(dot(lightDirection, surfacenormal), 0.1);
+    float VdotN = max(dot(viewDirection, surfacenormal), 0.0001);
+    float LdotN = max(dot(lightDirection, surfacenormal), 0.0001);
 
     //Half angle vector
     vec3 H = normalize(lightDirection + viewDirection);
@@ -70,8 +70,16 @@ float roughness) {
 
 float CalculateFallof( float dist){
     //return 1.0 / pow(((dist) + 1.0), 2.0);
-    return dist == 0 ? 1 : (1) / (PI*dist*dist+1);
+    //return dist == 0 ? 1 : (1) / (PI*dist*dist+1);
     
+   float constantAttenuation=1.0;
+
+   float linearAttenuation=1.0;
+
+   float quadraticAttenuation=0.02;
+
+   float att = 1.0/(constantAttenuation + (linearAttenuation * dist) + (quadraticAttenuation * dist * dist));
+   return att;
 }
 
 float fresnelSchlick(float VdotH)
@@ -83,6 +91,42 @@ vec3 makeFresnel(float V2Ncos, vec3 reflected)
 	return reflected + 0.5 * reflected * pow(1.0 - V2Ncos, 5.0);
 }
 
+float G1V(float dotNV, float k)
+{
+	return 1.0f/(dotNV*(1.0f-k)+k);
+}
+
+vec3 LightingFuncGGX_REF(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
+{
+	float alpha = roughness*roughness;
+
+	vec3 H = normalize(V+L);
+
+	float dotNL = max(0, dot(N,L));
+	float dotNV = max(0, dot(N,V));
+	float dotNH = max(0, dot(N,H));
+	float dotLH = max(0, dot(L,H));
+
+	vec3 F;
+	float D, vis;
+
+	// D
+	float alphaSqr = alpha*alpha;
+	float pi = 3.14159f;
+	float denom = dotNH * dotNH *(alphaSqr-1.0) + 1.0f;
+	D = alphaSqr/(pi * denom * denom);
+
+	// F
+	float dotLH5 = pow(1.0f-dotLH,5);
+	F = F0 + (1.0-F0)*(dotLH5);
+
+	// V
+	float k = alpha/2.0f;
+	vis = G1V(dotNL,k)*G1V(dotNV,k);
+
+	vec3 specular = dotNL * D * F * vis;
+	return specular;
+}
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2
@@ -102,36 +146,34 @@ vec3 shade(
     float metalness, 
     bool ignoreAtt
 ){
+	lightColor.rgb *= lightColor.a;
     vec3 lightRelativeToVPos =normalize( lightPosition - fragmentPosition);
     
     vec3 cameraRelativeToVPos = -normalize(fragmentPosition - camera);
     
     float distanceToLight = distance(fragmentPosition, lightPosition);
-    float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight)* lightColor.a);
+    float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight));
    // if(att < 0.002) return vec3(0);
     
-    float specularComponent = cookTorranceSpecular(
+    /*float specularComponent = (1.0 - roughness) * cookTorranceSpecular(
         lightRelativeToVPos,
         cameraRelativeToVPos,
         normal,
-        max(0.022, (roughness) + 0.01)
+        roughness + 0.01
+        );*/
+    vec3 specularComponent = mix(1.0, att, roughness * roughness) * LightingFuncGGX_REF(
+        normal,
+        cameraRelativeToVPos,
+        lightRelativeToVPos,
+        clamp(roughness, 0.005, 0.99),
+		mix(albedo * lightColor.rgb, albedo, metalness)
         );
     
-    float diffuseComponent = (1.0 - metalness) * orenNayarDiffuse(
-        lightRelativeToVPos,
-        cameraRelativeToVPos,
-        normal,
-        max(0.022, (roughness) + 0.01)
-        );   
+    float diffuseComponent = 0*max(0, dot(lightRelativeToVPos, normal));
 
     vec3 cc = lightColor.rgb*albedo;
-    
     vec3 difcolor = cc * diffuseComponent * att;
-    vec3 difcolor2 = lightColor.rgb * albedo * diffuseComponent * att;
-    vec3 specolor = mix(lightColor.rgb * albedo, lightColor.rgb , metalness) * specularComponent;
-    specolor = makeFresnel(dot(cameraRelativeToVPos, normal), specolor);
-    
-    return (difcolor2 + specolor);
+    return mix((specularComponent + difcolor) * 0.5, specularComponent, metalness);
 }
 
 vec3 shadePhoton(vec2 uv, vec3 color){

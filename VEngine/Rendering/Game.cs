@@ -33,6 +33,8 @@ namespace VEngine
         static public event EventHandler<FrameEventArgs> OnBeforeDraw, OnAfterDraw;
         static public event EventHandler OnLoad;
 
+        static public float CurrentFPS = 0;
+
         static public void Initialize(Size resolution, string mediapath)
         {
             StartTime = DateTime.Now;
@@ -81,11 +83,11 @@ namespace VEngine
 
         static public void CheckErrors(string message = "Global")
         {
-            var error = GL.GetError();
-            if(error != ErrorCode.NoError)
-            {
-                Console.WriteLine(message + ":: " + error.ToString());
-            }
+           // var error = GL.GetError();
+           // if(error != ErrorCode.NoError)
+           // {
+           //     Console.WriteLine(message + ":: " + error.ToString());
+           // }
         }
 
         static public System.Timers.Timer CreateTimer(Action func, int interval)

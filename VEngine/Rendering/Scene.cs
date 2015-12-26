@@ -153,7 +153,7 @@ namespace VEngine
                     vmats.Add(l.GetVMatrix());
                     poss.Add(p.GetPosition());
                     colors.Add(p.GetColor());
-                    l.UseTexture(ipointer + 2);
+                    l.UseTexture(ipointer + 6);
                     ipointer++;
                 }
 

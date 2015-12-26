@@ -71,11 +71,6 @@ namespace VEngine.FileFormats
                     output.Append("bumpmap ");
                     output.AppendLine(material.BumpMap.FileName);
                 }
-                if(material.AlphaMask != null)
-                {
-                    output.Append("discardmap ");
-                    output.AppendLine(material.AlphaMask.FileName);
-                }
                 output.AppendLine();
             }
             foreach(var mesh in meshes)
@@ -84,7 +79,7 @@ namespace VEngine.FileFormats
                 var i0 = mesh.GetInstance(0);
                 foreach(var elementC in elements)
                 {
-                    var element = elementC.Info3d;
+                    var element = elementC.Info3d.Manager;
                     output.Append("mesh ");
                     output.Append(nameprefix);
                     output.AppendLine(mesh.GetInstance(0).Name);
@@ -92,8 +87,9 @@ namespace VEngine.FileFormats
                     {
                         MemoryStream vboStream = new MemoryStream();
 
-                        foreach(float v in element.VBO)
-                            vboStream.Write(BitConverter.GetBytes(v), 0, 4);
+                        foreach(var v in element.Vertices)
+                            foreach(var v2 in v.ToFloatList())
+                                vboStream.Write(BitConverter.GetBytes(v2), 0, 4);
 
                         vboStream.Flush();
 
@@ -145,8 +141,9 @@ namespace VEngine.FileFormats
         {
             if(vbo.Length == 0)
                 return;
-            var obj = Object3dInfo.LoadFromRaw(Media.Get(vbo));
-            mesh.GetLodLevel(0).Info3d = obj;
+            var obj = Object3dManager.LoadFromRaw(Media.Get(vbo));
+            mesh.GetLodLevel(0).Info3d = new Object3dInfo(obj.Vertices);
+            mesh.GetLodLevel(0).Info3d.Manager = obj;
         }
 
         private void LoadFromString(string[] lines)
@@ -234,7 +231,10 @@ namespace VEngine.FileFormats
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y))
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMesh.GetLodLevel(0).Info3d.ScaleUV(x, y);
+                        tempMesh.GetLodLevel(0).Info3d.Manager.ScaleUV(x, y);
+                        var obj = tempMesh.GetLodLevel(0).Info3d.Manager;
+                        tempMesh.GetLodLevel(0).Info3d = new Object3dInfo(tempMesh.GetLodLevel(0).Info3d.Manager.Vertices);
+                        tempMesh.GetLodLevel(0).Info3d.Manager = obj;
                         break;
                     }
                     case "vbo":
@@ -252,7 +252,7 @@ namespace VEngine.FileFormats
                         {
                             if(tempMesh == null)
                                 throw new ArgumentException("Invalid line in scene string: " + l);
-                            var shape = tempMesh.GetLodLevel(0).Info3d.GetConvexHull();
+                            var shape = tempMesh.GetLodLevel(0).Info3d.Manager.GetConvexHull();
                             float mass;
                             if(!float.TryParse(datas[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out mass))
                                 throw new ArgumentException("Invalid line in scene string: " + l);
@@ -262,7 +262,7 @@ namespace VEngine.FileFormats
                         {
                             if(tempMesh == null)
                                 throw new ArgumentException("Invalid line in scene string: " + l);
-                            var shape = Physics.CreateBoundingBoxShape(tempMesh.GetLodLevel(0).Info3d);
+                            var shape = Physics.CreateBoundingBoxShape(tempMesh.GetLodLevel(0).Info3d.Manager);
                             float mass;
                             if(!float.TryParse(datas[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out mass))
                                 throw new ArgumentException("Invalid line in scene string: " + l);
@@ -272,7 +272,7 @@ namespace VEngine.FileFormats
                         {
                             if(tempMesh == null)
                                 throw new ArgumentException("Invalid line in scene string: " + l);
-                            var shape = tempMesh.GetLodLevel(0).Info3d.GetAccurateCollisionShape();
+                            var shape = tempMesh.GetLodLevel(0).Info3d.Manager.GetAccurateCollisionShape();
                             float mass;
                             if(!float.TryParse(datas[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out mass))
                                 throw new ArgumentException("Invalid line in scene string: " + l);
@@ -413,13 +413,6 @@ namespace VEngine.FileFormats
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.BumpMap = new Texture(Media.Get(data));
-                        break;
-                    }
-                    case "discardmap":
-                    {
-                        if(tempMaterial == null)
-                            throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.AlphaMask = new Texture(Media.Get(data));
                         break;
                     }
                     case "roughnessmap":

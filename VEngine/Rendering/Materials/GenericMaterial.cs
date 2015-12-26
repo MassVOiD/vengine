@@ -31,13 +31,13 @@ namespace VEngine
 
         public bool InvertNormalMap = true;
 
-        public float Metalness = 0.5f;
+        public float Metalness = 0.0f;
 
         public DrawMode Mode;
 
         public string Name;
 
-        public Texture NormalMap, BumpMap, AlphaMask, RoughnessMap, MetalnessMap, SpecularMap;
+        public Texture NormalMap, BumpMap, RoughnessMap, MetalnessMap;
 
         public float NormalMapScale = 1.0f;
 
@@ -187,12 +187,7 @@ namespace VEngine
             return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
                Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
         }
-
-        public void SetAlphaMaskFromMedia(string key)
-        {
-            AlphaMask = new Texture(Media.Get(key));
-        }
-
+        
         public void SetBumpMapFromMedia(string key)
         {
             BumpMap = new Texture(Media.Get(key));
@@ -230,12 +225,7 @@ namespace VEngine
         {
             RoughnessMap = new Texture(Media.Get(key));
         }
-
-        public void SetSpecularMapFromMedia(string key)
-        {
-            SpecularMap = new Texture(Media.Get(key));
-        }
-
+        
         public void SetTextureFromMedia(string key)
         {
             Tex = new Texture(Media.Get(key));
@@ -264,7 +254,7 @@ namespace VEngine
                 prg.SetUniform("UseNormalMap", 1);
                 prg.SetUniform("InvertNormalMap", InvertNormalMap);
                 prg.SetUniform("NormalMapScale", NormalMapScale);
-                NormalMap.Use(TextureUnit.Texture27);
+                NormalMap.Use(TextureUnit.Texture2);
             }
             else
                 prg.SetUniform("UseNormalMap", 0);
@@ -272,29 +262,23 @@ namespace VEngine
             if(BumpMap != null)
             {
                 prg.SetUniform("UseBumpMap", 1);
-                BumpMap.Use(TextureUnit.Texture29);
+                BumpMap.Use(TextureUnit.Texture4);
             }
             else
                 prg.SetUniform("UseBumpMap", 0);
 
-            if(SpecularMap != null)
-            {
-                prg.SetUniform("UseSpecularMap", 1);
-                SpecularMap.Use(TextureUnit.Texture31 + 1);
-            }
-            else
-                prg.SetUniform("UseSpecularMap", 0);
+           
             if(RoughnessMap != null)
             {
                 prg.SetUniform("UseRoughnessMap", 1);
-                RoughnessMap.Use(TextureUnit.Texture30);
+                RoughnessMap.Use(TextureUnit.Texture1);
             }
             else
                 prg.SetUniform("UseRoughnessMap", 0);
             if(MetalnessMap != null)
             {
                 prg.SetUniform("UseMetalnessMap", 1);
-                MetalnessMap.Use(TextureUnit.Texture31);
+                MetalnessMap.Use(TextureUnit.Texture5);
             }
             else
                 prg.SetUniform("UseMetalnessMap", 0);
@@ -303,23 +287,10 @@ namespace VEngine
             {
                 BallsBuffer.Use(4);
             }
-
-            if(AlphaMask != null)
+            
+            if(Type == MaterialType.Grass)
             {
-                prg.SetUniform("UseAlphaMask", 1);
-                AlphaMask.Use(TextureUnit.Texture28);
                 GL.Disable(EnableCap.CullFace);
-            }
-            else if(Type == MaterialType.Grass)
-            {
-                prg.SetUniform("UseAlphaMask", 0);
-                GL.Disable(EnableCap.CullFace);
-            }
-            else
-            {
-                prg.SetUniform("UseAlphaMask", 0);
-                //GL.Disable(EnableCap.CullFace);
-                 GL.Enable(EnableCap.CullFace);
             }
 
             if(Tex != null)
