@@ -103,6 +103,8 @@ namespace VEngine
             }
         }
 
+        Texture testtex;
+
         public PostProcessing(int initialWidth, int initialHeight)
         {/*
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, 0u);
@@ -114,6 +116,7 @@ namespace VEngine
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 6, 0u);
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 7, 0u);*/
             //FullScene3DTexture = new Texture3D(new Vector3(64, 64, 64));
+            testtex = new Texture(Media.Get("field-meadow-flower-pink.jpg"));
             NumbersTexture = new Texture(Media.Get("numbers.png"));
             CubeMap = new CubeMapTexture(Media.Get("posx.jpg"), Media.Get("posy.jpg"), Media.Get("posz.jpg"),
                 Media.Get("negx.jpg"), Media.Get("negy.jpg"), Media.Get("negz.jpg"));
@@ -251,7 +254,7 @@ namespace VEngine
             MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(2);
             CubeMap.Use(TextureUnit.Texture3);
-            AOFramebuffer.UseTexture(4);
+            testtex.Use(TextureUnit.Texture4);
             FogFramebuffer.UseTexture(5);
             LastCombinerTime = DrawPPMesh();
         }

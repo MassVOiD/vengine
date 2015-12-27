@@ -21,6 +21,56 @@ float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     return max(0, outs);
 }
 
+float closestEdge(vec2 point, vec2 size, vec2 uv)
+{
+	vec2 ledg = point - vec2(size.x, 0);
+	vec2 redg = point + vec2(size.x, 0);
+	vec2 tedg = point - vec2(0, size.y);
+	vec2 bedg = point + vec2(0, size.y);
+	float xmissl = max(0, ledg.x - uv.x);
+	float xmissr = max(0, uv.x - redg.x);
+	float ymissl = max(0, tedg.y - uv.y);
+	float ymissr = max(0, uv.y - bedg.y);
+	float miss = xmissl;
+	miss = max(miss, xmissr);
+	miss = max(miss, ymissl);
+	miss = max(miss, ymissr);
+	return miss;
+}
+#define AERA_ROUGH_LOOKUP 512
+vec3 LODAERA(sampler2D sampler, vec2 uv, float roughness){
+	float levels = float(textureQueryLevels(sampler)) - 1;
+	float mx = log2(roughness*AERA_ROUGH_LOOKUP+1)/log2(AERA_ROUGH_LOOKUP);
+	vec3 result = textureLod(sampler, uv, mx * levels).rgb;
+	return result;
+}
+vec3 areaExperiment(
+	vec3 position, 
+	vec3 normal, 
+	float roughness){
+	
+	vec3 cameraspace = ToCameraSpace(position);
+	
+    vec3 dir = normalize(reflect(cameraspace, normal));
+    vec3 vdir = normalize(cameraspace);
+	
+	vec3 projdir = mix(dir, normal, roughness);
+	float iexp = intersectPlane(Ray(position, projdir), vec3(0, 5, 0), vec3(0, 0, 1));
+	if(iexp < 0) return vec3(0);
+	vec3 p = position + projdir * iexp;
+	float attdiff = CalculateFallof(distance(position, p)) * dot(normalize(p-position), normal);
+	vec2 asize = vec2(3, 3);
+	float miss = closestEdge(vec2(0, 5), asize, p.xy);
+	float irgh = 1.0 - roughness;
+	float co =  (1.0 / (mix(miss * 15.0, 0, 1.0 - (irgh*irgh*irgh)) + 1));
+	float l = smoothstep(0.0, 1.0, co);
+	
+	vec3 ill = LODAERA(aoTex, (vec2(p.x, p.y - 5) / asize) * 0.5 + 0.5, roughness);
+	
+	vec3 col = ill * l * mix(1.0, attdiff, roughness);
+	return col;
+}
+
 vec3 DirectLight(
 	vec3 camera,
 	vec3 albedo, 
@@ -51,5 +101,5 @@ vec3 DirectLight(
         color1 += (radiance) * percent;
     }
 	
-	return color1;
+	return color1 + areaExperiment(position, normal, roughness);
 }

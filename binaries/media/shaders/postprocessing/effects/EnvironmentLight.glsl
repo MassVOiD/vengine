@@ -15,6 +15,15 @@ vec3 MMAL(vec3 normal, vec3 reflected, float roughness){
 	return vec3pow(result * 2.0, 1.7)*0.5;
 }
 
+struct Ray{
+	vec3 origin;
+	vec3 direction;
+};
+
+float intersectPlane(Ray ray,vec3 point,vec3 normal)
+{
+    return dot(point-ray.origin,normal)/dot(ray.direction,normal);
+}
 vec3 EnvironmentLight(
 
 	vec3 albedo,

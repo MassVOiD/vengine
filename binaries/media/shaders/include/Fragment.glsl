@@ -149,19 +149,19 @@ void finishFragment(vec4 incolor, vec2 UV){
 	
 	if(MaterialType == MaterialTypeRainsDropSystem) rn = determineWave(wpos, rn); 
 
-    float outRoughness = clamp(Roughness, 0.005, 0.99);
+    float outRoughness = clamp(Roughness, 0.005, 1.0);
     float outMetalness = 0;
     float outSpecular = 0;
     
 	if(UseRoughnessMap == 1) outRoughness = texture(roughnessMapTex, UV).r; 
-    else outRoughness = clamp(Roughness, 0.005, 0.99);
+    else outRoughness = clamp(Roughness, 0.005, 1.0);
     
 	if(UseMetalnessMap == 1) outMetalness = texture(metalnessMapTex, UV).r; 
     else outMetalness = Metalness;
 	//if(UseSpecularMap == 1) outSpecular = texture(specularMapTex, UV).r; 
   //  else outSpecular = SpecularComponent;
     
-	outColor = vec4((color.xyz), clamp(outRoughness, 0.005, 0.94));
+	outColor = vec4((color.xyz), clamp(outRoughness, 0.005, 1.0));
 	outNormals = vec4(rn, outMetalness);
 	updateDepthFromWorldPos(wpos);
 }

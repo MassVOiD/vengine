@@ -35,7 +35,7 @@ namespace VEngine
 
         static public float CurrentFPS = 0;
 
-        static public void Initialize(Size resolution, string mediapath)
+        static public void Initialize(Size resolution, string mediapath, GameWindowFlags flags = GameWindowFlags.Default)
         {
             StartTime = DateTime.Now;
             World = new World();
@@ -47,7 +47,7 @@ namespace VEngine
             var thread = Task.Factory.StartNew(() =>
             {
                 SetCurrentThreadCores(2);
-                DisplayAdapter = new VEngineWindowAdapter("VEngine App", resolution.Width, resolution.Height, GameWindowFlags.Default);
+                DisplayAdapter = new VEngineWindowAdapter("VEngine App", resolution.Width, resolution.Height, flags);
 
                 GraphicsSettings.UseDeferred = true;
                 GraphicsSettings.UseRSM = false;

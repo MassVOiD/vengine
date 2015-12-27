@@ -28,7 +28,7 @@ float cosmix(float a, float b, float factor){
     return mix(a, b, 1.0 - (cos(factor*3.1415)*0.5+0.5));
 }
 float ncos(float a){
-    return cosmix(0, 1, a);
+    return cosmix(0, 1, clamp(a, 0.0, 1.0));
 }
 uniform vec3 FrustumConeLeftBottom;
 uniform vec3 FrustumConeBottomLeftToBottomRight;

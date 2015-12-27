@@ -12,19 +12,20 @@ namespace ShadowsTester
         {
             public static int Width = 1920;
             public static string MediaPath = "media";
-            public static int Height = 1050;
+            public static int Height = 1020;
         }
 
         [STAThread]
         private static void Main(string[] args)
         {
-            Game.Initialize(new Size(Config.Width, Config.Height), Config.MediaPath);
+            Game.Initialize(new Size(Config.Width, Config.Height), Config.MediaPath, GameWindowFlags.FixedWindow);
 
             var freeCamera = Commons.SetUpFreeCamera();
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
-            new OldCityScene();
+           // new OldCityScene();
+            new LightningTestScene();
 
             //new DragonScene();
 
