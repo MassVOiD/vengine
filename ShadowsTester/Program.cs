@@ -24,8 +24,8 @@ namespace ShadowsTester
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
-           // new OldCityScene();
-            new LightningTestScene();
+            new OldCityScene();
+          //  new LightningTestScene();
 
             //new DragonScene();
 

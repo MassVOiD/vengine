@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="Commons.cs" />
     <Compile Include="DragonScene.cs" />
+    <Compile Include="BigTerrainScene.cs" />
     <Compile Include="LightningTestScene.cs" />
     <Compile Include="OldCityScene.cs" />
     <Compile Include="KeyboardHandler.cs" />

@@ -187,6 +187,7 @@ namespace VEngine
 
         public void RenderToFramebuffer(Framebuffer framebuffer)
         {
+            Game.World.Scene.RecreateSimpleLightsSSBO();
             Width = framebuffer.Width;
             Height = framebuffer.Height;
 
@@ -254,7 +255,7 @@ namespace VEngine
             MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(2);
             CubeMap.Use(TextureUnit.Texture3);
-            testtex.Use(TextureUnit.Texture4);
+            AOFramebuffer.UseTexture(4);
             FogFramebuffer.UseTexture(5);
             LastCombinerTime = DrawPPMesh();
         }

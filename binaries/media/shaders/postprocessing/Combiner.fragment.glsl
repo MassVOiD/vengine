@@ -6,6 +6,7 @@ in vec2 UV;
 #include UsefulIncludes.glsl
 #include FXAA.glsl
 #include Shade.glsl
+#include noise3D.glsl
 
 #define mPI (3.14159265)
 #define mPI2 (2.0*3.14159265)
@@ -22,6 +23,7 @@ uniform int UseDeferred;
 uniform int UseHBAO;
 uniform int UseVDAO;
 uniform int UseRSM;
+uniform int SimpleLightsCount;
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -134,6 +136,8 @@ vec3 lightPoints(){
 
 uniform float VDAOGlobalMultiplier;
 
+float AOValue = 1.0;
+
 #include EnvironmentLight.glsl
 #include Direct.glsl
 
@@ -159,34 +163,98 @@ float getAO(vec2 uv, vec3 normal){
     return counter == 0 ? texture(aoTex, uv).a : outc / counter;
 }
 
-vec3 Lightning(){
-    if(texture(diffuseColorTex, UV).r >= 999){ 
-		return texture(cubeMapTex, normalize(reconstructCameraSpace(UV))).rgb;
-    }
-    vec3 albedo = texture(diffuseColorTex, UV).rgb;
-    vec3 position = FromCameraSpace(reconstructCameraSpace(UV));
-    vec3 normal = normalize(texture(normalsTex, UV).rgb);
-    float roughness = texture(diffuseColorTex, UV).a;
-    float metalness =  texture(normalsTex, UV).a;
-    float IOR =  0.0;
-	
+
+vec3 ApplyLighting(vec2 uv, vec3 albedo, vec3 position, vec3 normal, float roughness, float metalness, float IOR){
+	if(UseHBAO == 1) AOValue = getAO(uv, normal);
 	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness, metalness);
 	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, fract(metalness), roughness, IOR);
 
 	
     if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
-    if(UseHBAO == 1) {
-		float ao = getAO(UV, normal);
-		if(UseVDAO == 0) envlight = vec3(1);
-		directlight += envlight * ao;
-		
-	}
+    if(UseHBAO == 1 && UseVDAO == 1) directlight += envlight * AOValue;
+	return directlight;
+}
 
-    return directlight;
+vec3 ApplyLighting(vec3 albedo, vec3 position, vec3 normal, float roughness, float metalness, float IOR){
+	return ApplyLighting(gl_FragCoord.xy / resolution.xy, albedo, position, normal, roughness, metalness, IOR);
+}
+
+vec2 newUV = UV;
+vec3 Lightning(){
+    if(texture(diffuseColorTex, newUV).r >= 999){ 
+		return texture(cubeMapTex, normalize(reconstructCameraSpace(newUV))).rgb;
+    }
+    vec3 albedo = texture(diffuseColorTex, newUV).rgb;
+    vec3 position = FromCameraSpace(reconstructCameraSpace(newUV));
+    vec3 normal = normalize(texture(normalsTex, newUV).rgb);
+    float roughness = texture(diffuseColorTex, newUV).a;
+    float metalness =  texture(normalsTex, newUV).a;
+    float IOR =  0.0;
+	
+	
+
+    return ApplyLighting(newUV, albedo, position, normal, roughness, metalness, IOR);
 }
 
 uniform int DisablePostEffects;
 
+float sns(vec2 p, float scale, float tscale){
+    return snoise(vec3(p.x*scale, p.y*scale, Time * tscale * 0.5));
+}
+float getwater( vec2 position ) {
+
+    float color = 0.0;
+   // color += sns(position + vec2(Time/3, Time/13), 0.1, 1.2) * 40;
+   // color += sns(position, 0.1, 1.2) * 25;
+    color += sns(position, 0.25, 2.)*3;
+    color += sns(position, 0.38, 3.)*1;
+    color += sns(position, 1., 2.)*0.9;
+    //color += sns(position, 7., 6.)*0.3;
+    color += sns(position, 7., 2.)*0.2;
+    color += sns(position, 33., 2.) * 0.02;
+    return color / 3.0;
+
+}
+vec3 getwatern( vec2 position ) {
+
+    vec3 a = vec3(position, getwater(position));
+	vec2 m = vec2(0.01, 0.0);
+    vec3 a1 = vec3(position - m.xy, getwater(position - m.xy));
+    vec3 a2 = vec3(position - m.yx, getwater(position - m.yx));
+	return normalize(cross(a1 - a, a2 - a)).xzy;
+}
+vec2 refractUV(vec3 pos, vec3 norm){
+	vec3 rdir = normalize(pos - CameraPosition);
+	vec3 crs1 = cross(vec3(0, 1, 0), rdir);
+	vec3 crs2 = cross(crs1, rdir);
+	vec3 rf = refract(rdir, norm, 0.6);
+	return UV - vec2(dot(rf, crs1), dot(rf, crs2)) * 0.1;
+}
+float WaterLightingMult = 0.0;
+vec3 ApplyWater(){
+	vec3 recon = reconstructCameraSpace(UV);
+	float dd = length(recon);
+	vec3 vdir = normalize(recon);
+	float dist = intersectPlane(Ray(CameraPosition, vdir), vec3(0,1,0), vec3(0,(CameraPosition.y < 1 ? -1 : 1),0));
+	vec3 oc = vec3(0);
+	vec3 position = CameraPosition + vdir * dist;
+	float dd2 = distance(CameraPosition, position + vec3(0, 1-getwater(position.xz), 0));
+	if(dist > 0 && dd > dd2){
+		vec3 albedo = vec3(0.8, 0.88, 1.0);
+		vec3 normal = getwatern(position.xz);
+		normal.xz *= 0.1;
+		normal = normalize(normal);
+		float roughness = 0.1;
+		float metalness = 0.1;
+		float IOR = 0.5;
+		newUV = refractUV(position, normal);
+		oc = ApplyLighting(newUV, albedo, position, normal, roughness, metalness, IOR);
+		
+		//float tA = getwater(position.xz + 24.0);
+		//WaterLightingMult = pow(dot(normal, vec3(0,1,0)), 99)*12;
+	}
+	return oc;
+}
 void main()
 {
     Seed(UV + Time);
@@ -194,7 +262,8 @@ void main()
     vec2 nUV = UV;
     vec3 color1 = vec3(0);
     if(UseDeferred == 1) {
-        color1 += Lightning();
+		vec3 water = ApplyWater();
+        color1 += water + Lightning() * (1.0 + WaterLightingMult);
         //color1 += softLuminance(UV);
 		//vec3 rc = FromCameraSpace(reconstructCameraSpace(UV));
 		//color1 += rc * 0.1;

@@ -44,6 +44,14 @@ vec3 LODAERA(sampler2D sampler, vec2 uv, float roughness){
 	vec3 result = textureLod(sampler, uv, mx * levels).rgb;
 	return result;
 }
+
+struct AreaLight
+{
+	vec3 Position;
+	vec3 Normal;
+	vec2 Size;
+};
+
 vec3 areaExperiment(
 	vec3 position, 
 	vec3 normal, 
@@ -54,23 +62,33 @@ vec3 areaExperiment(
     vec3 dir = normalize(reflect(cameraspace, normal));
     vec3 vdir = normalize(cameraspace);
 	
-	vec3 projdir = mix(dir, normal, roughness);
+	vec3 projdir = mix(dir, vec3(0, 0, -1), roughness);
 	float iexp = intersectPlane(Ray(position, projdir), vec3(0, 5, 0), vec3(0, 0, 1));
 	if(iexp < 0) return vec3(0);
 	vec3 p = position + projdir * iexp;
-	float attdiff = CalculateFallof(distance(position, p)) * dot(normalize(p-position), normal);
 	vec2 asize = vec2(3, 3);
 	float miss = closestEdge(vec2(0, 5), asize, p.xy);
+	float attdiff = CalculateFallof(distance(position, p) + miss) * dot(normalize(p-position), normal);
 	float irgh = 1.0 - roughness;
 	float co =  (1.0 / (mix(miss * 15.0, 0, 1.0 - (irgh*irgh*irgh)) + 1));
 	float l = smoothstep(0.0, 1.0, co);
 	
-	vec3 ill = LODAERA(aoTex, (vec2(p.x, p.y - 5) / asize) * 0.5 + 0.5, roughness);
+	vec3 ill = LODAERA(aoTex, clamp((vec2(p.x, p.y - 5) / asize) * 0.5 + 0.5, 0.0, 1.0), roughness);
 	
 	vec3 col = ill * l * mix(1.0, attdiff, roughness);
 	return col;
 }
 
+struct SimpleLight
+{
+    vec4 Position;
+    vec4 Color;
+};
+
+layout (std430, binding = 5) buffer SLBf
+{
+    SimpleLight simpleLights[]; 
+}; 
 vec3 DirectLight(
 	vec3 camera,
 	vec3 albedo, 
@@ -100,6 +118,11 @@ vec3 DirectLight(
 		//float dx = parallax == 1 ? 1.0 : testVisibility3d(UV, position, position + normalize(LightsPos[i] - position) * 0.06);
         color1 += (radiance) * percent;
     }
+    for(int i=0;i<SimpleLightsCount;i++){
+		vec3 pos = simpleLights[i].Position.xyz;
+		vec4 col = simpleLights[i].Color;
+		color1 += shade(camera, albedo, normal, position, pos, col, roughness, metalness, false) * AOValue;
+	}
 	
-	return color1 + areaExperiment(position, normal, roughness);
+	return color1;
 }

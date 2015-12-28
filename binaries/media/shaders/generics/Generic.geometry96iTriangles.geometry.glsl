@@ -1,5 +1,5 @@
 #version 430 core
-layout(invocations = 96) in;
+layout(invocations = 11) in;
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 72) out;
 
@@ -140,7 +140,7 @@ void GenerateGrass(vec3 start, vec3 normal, vec3 direction, vec3 tangent, float 
     }
 }
 
-#define GEO_GRASS_INSTANCES 96
+#define GEO_GRASS_INSTANCES 1
 
 mat4 rotationMatrix(vec3 axis, float angle)
 {
@@ -163,7 +163,7 @@ void GeometryGenerateGrass(){
     vec2 centertx = vec2(gs_in[0].TexCoord + gs_in[1].TexCoord + gs_in[2].TexCoord) / 3.0;
     vec3 startTangent = normalize(gs_in[0].Tangent.xyz);
     vec3 startBitangent = normalize(cross(startNormal, startTangent.xyz)) * gs_in[0].Tangent.a;
-    for(int i=0;i<6;i++){
+    for(int i=0;i<1;i++){
         float rd = ((gl_InvocationID+1)*12.123436 * (i+1));
         vec3 rvec = vec3(rand(gs_in[1].TexCoord+rd), rand(gs_in[0].TexCoord+rd), rand(gs_in[2].TexCoord+rd)) * 2 - 1;
         rd = ((gl_InvocationID+1)*122.343436 * (i+1));

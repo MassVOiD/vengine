@@ -39,7 +39,23 @@ namespace ShadowsTester
 
             }
             GC.Collect();
+            /*
+            var lss = new List<SimplePointLight>();
+            for(int x = 0; x < 100; x++)
+            {
+                SimplePointLight light = new SimplePointLight(new Vector3(-4 + (8 * (x/100.0f)), 1, 0), new Vector4((float)Math.Sin(x * 0.1), (float)Math.Cos(x*0.6), (float)Math.Tan(x * 0.9), 1.0f));
+                Game.World.Scene.Add(light);
+                lss.Add(light);
+            }
 
+            Game.OnBeforeDraw += (oo, ee) =>
+            {
+                float a = (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000;
+                for(int x = 0; x < 100; x++)
+                {
+                    lss[x].SetPosition(new Vector3(-4 + (8 * (x / 100.0f)), 1 + (float)Math.Sin(x * 0.1 + a), (float)Math.Cos(x * 0.6 + a)));
+                }
+            };*/
 
             // var viperobj = Object3dManager.LoadSceneFromObj(Media.Get("viper.obj"), Media.Get("viper.mtl"), 0.1f);
             // viperobj.ForEach((a) => a.GetInstance(0).Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegreesToRadians(90))));

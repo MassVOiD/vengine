@@ -4,7 +4,6 @@ namespace VEngine
 {
     public class SimplePointLight : ITransformable, ILight
     {
-        public float Attenuation = 1.0f;
         public Vector4 Color;
         public TransformationManager Transformation;
 

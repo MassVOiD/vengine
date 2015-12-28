@@ -43,7 +43,7 @@ namespace VEngine
             Media.LoadFileMap();
             Resolution = resolution;
             SetCurrentThreadCores(1);
-
+            
             var thread = Task.Factory.StartNew(() =>
             {
                 SetCurrentThreadCores(2);
@@ -61,6 +61,8 @@ namespace VEngine
                 Invoke(() => Initialized = true);
                 DisplayAdapter.Run(60);
             });
+            while(!Initialized)
+                ;
         }
 
         static public void JoinUntilInitialized()

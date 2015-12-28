@@ -127,6 +127,55 @@ vec3 LightingFuncGGX_REF(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
 	vec3 specular = dotNL * D * F * vis;
 	return specular;
 }
+
+
+vec2 LightingFuncGGX_FV(float dotLH, float roughness)
+{
+	float alpha = roughness*roughness;
+
+	// F
+	float F_a, F_b;
+	float dotLH5 = pow(1.0f-dotLH,5);
+	F_a = 1.0f;
+	F_b = dotLH5;
+
+	// V
+	float vis;
+	float k = alpha/2.0f;
+	float k2 = k*k;
+	float invK2 = 1.0f-k2;
+	vis = rcp(dotLH*dotLH*invK2 + k2);
+
+	return vec2(F_a*vis,F_b*vis);
+}
+
+float LightingFuncGGX_D(float dotNH, float roughness)
+{
+	float alpha = roughness*roughness;
+	float alphaSqr = alpha*alpha;
+	float pi = 3.14159f;
+	float denom = dotNH * dotNH *(alphaSqr-1.0) + 1.0f;
+
+	float D = alphaSqr/(pi * denom * denom);
+	return D;
+}
+
+vec3 LightingFuncGGX_OPT3(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
+{
+	vec3 H = normalize(V+L);
+
+	float dotNL = max(0, dot(N,L));
+	float dotNH = max(0, dot(N,H));
+	float dotLH = max(0, dot(L,H));
+
+	float D = LightingFuncGGX_D(dotNH,roughness);
+	vec2 FV_helper = LightingFuncGGX_FV(dotLH,roughness);
+	vec3 FV = F0*FV_helper.x + (1.0f-F0)*FV_helper.y;
+	vec3 specular = dotNL * D * FV;
+
+	return specular;
+}
+
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2

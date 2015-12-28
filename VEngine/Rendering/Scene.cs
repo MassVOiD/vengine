@@ -107,21 +107,28 @@ namespace VEngine
             Buffer = new List<byte>();
             SimpleLightsCount = 0;
             RecreateSimpleLightsSSBO(Matrix4.Identity);
-            SSBO.MapData(Buffer.ToArray());
+            if(Buffer.Count > 0)SSBO.MapData(Buffer.ToArray());
         }
 
         public void RecreateSimpleLightsSSBO(Matrix4 parentTransformation)
         {
+            bool update = false;
             foreach(var e in Lights)
             {
                 if(e is SimplePointLight)
                 {
+                    if((e as SimplePointLight).Transformation.HasBeenModified())
+                        update = true;
                     Buffer.AddRange(Bytes(e.GetPosition(), e is IShadowMapableLight ? 1 : 0));
                     Buffer.AddRange(Bytes(e.GetColor()));
 
                     SimpleLightsCount++;
                 }
             }
+            if(!update)
+                Buffer = new List<byte>();
+            else if(Buffer.Count == 0)
+                Buffer.Add(0);
         }
 
         public void Remove(ILight e)
