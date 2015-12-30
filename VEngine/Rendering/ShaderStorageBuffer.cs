@@ -9,13 +9,15 @@ namespace VEngine
     {
         public int last = 0;
         public BufferUsageHint Type = BufferUsageHint.DynamicDraw;
+        public BufferTarget Target;
 
         private bool Generated;
 
         private int Handle = -1;
 
-        public ShaderStorageBuffer()
+        public ShaderStorageBuffer(BufferTarget target = BufferTarget.ShaderStorageBuffer)
         {
+            Target = target;
         }
 
         public static byte[] Serialize(dynamic structure)
@@ -59,8 +61,8 @@ namespace VEngine
                 Handle = GL.GenBuffer();
                 Generated = true;
             }
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
-            GL.BufferData(BufferTarget.ShaderStorageBuffer, new IntPtr(buffer.Length), buffer, Type);
+            GL.BindBuffer(Target, Handle);
+            GL.BufferData(Target, new IntPtr(buffer.Length), buffer, Type);
             last = buffer.Length;
         }
 
@@ -105,15 +107,15 @@ namespace VEngine
                 Handle = GL.GenBuffer();
                 Generated = true;
             }
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
-            GL.BufferSubData(BufferTarget.ShaderStorageBuffer, new IntPtr(start), new IntPtr(length), buffer);
+            GL.BindBuffer(Target, Handle);
+            GL.BufferSubData(Target, new IntPtr(start), new IntPtr(length), buffer);
         }
 
         public byte[] Read(int offset, int size)
         {
-            GL.BindBuffer(BufferTarget.ShaderStorageBuffer, Handle);
+            GL.BindBuffer(Target, Handle);
             byte[] data = new byte[size];
-            GL.GetBufferSubData<byte>(BufferTarget.ShaderStorageBuffer, new IntPtr(offset), new IntPtr(size), data);
+            GL.GetBufferSubData<byte>(Target, new IntPtr(offset), new IntPtr(size), data);
             return data;
         }
 

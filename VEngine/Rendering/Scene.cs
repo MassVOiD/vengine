@@ -26,7 +26,7 @@ namespace VEngine
 
         private int SimpleLightsCount = 0;
 
-        private ShaderStorageBuffer SSBO = new ShaderStorageBuffer();
+        private ShaderStorageBuffer SSBO = new ShaderStorageBuffer(OpenTK.Graphics.OpenGL4.BufferTarget.UniformBuffer);
 
         private List<Matrix4> vmats = new List<Matrix4>();
 

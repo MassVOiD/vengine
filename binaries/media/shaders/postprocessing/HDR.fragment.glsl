@@ -41,8 +41,8 @@ float rand(vec2 co){
 vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     vec3 finalColor = vec3(0);  
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
-    //if(amount < 0.02) return texture(currentTex, UV).rgb;
-    //amount -= 0.02;
+    if(amount < 0.05) amount = 0.05;
+    amount -= 0.05;
 	//amount = max(0, amount - 0.1);
 	//return textureLod(currentTex, UV, amount*2).rgb;
     float radius = max_radius;  
@@ -50,8 +50,8 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     //float centerDepth = texture(texDepth, UV).r;
     float focus = length(reconstructCameraSpace(vec2(0.5)));
     float cc = length(reconstructCameraSpace(UV).rgb);
-    for(float x = 0; x < mPI2; x+=0.1){ 
-        for(float y=0.1;y<1.0;y+= 0.04){  
+    for(float x = 0; x < mPI2; x+=0.2){ 
+        for(float y=0.1;y<1.0;y+= 0.08){  
             
             //ngon
             

@@ -85,16 +85,18 @@ namespace VEngine
             }
             else
             {
-                var bitmap = new Bitmap(Image.FromFile(file));
-                Generated = false;
-                if(Handle >= 0)
+                using(var image = Image.FromFile(file))
                 {
-                    GL.DeleteTexture(Handle);
+                    using(var bitmap = new Bitmap(image)){
+                        Generated = false;
+                        if(Handle >= 0)
+                        {
+                            GL.DeleteTexture(Handle);
+                        }
+                        Size = bitmap.Size;
+                        BitmapToByteArray(bitmap);
+                    }
                 }
-                Size = bitmap.Size;
-                Bitmap = BitmapToByteArray(bitmap);
-                bitmap.Dispose();
-                GC.Collect();
             }
         }
 
@@ -106,9 +108,7 @@ namespace VEngine
                 GL.DeleteTexture(Handle);
             }
             Size = bitmap.Size;
-            Bitmap = BitmapToByteArray(bitmap);
-            bitmap.Dispose();
-            GC.Collect();
+            BitmapToByteArray(bitmap);
         }
 
         public void UpdateFromText(string text, string font, float size, Color textColor, Color background)
@@ -128,8 +128,6 @@ namespace VEngine
 
             g.Flush();
             Update(bmp);
-            bmp.Dispose();
-            GC.Collect();
         }
 
         public void Use(TextureUnit unit)
@@ -175,15 +173,16 @@ namespace VEngine
             GL.BindTexture(ImageTextureTarget, Handle);
         }
 
-        private static byte[] BitmapToByteArray(Bitmap bitmap)
+        private void BitmapToByteArray(Bitmap bitmap)
         {
             BitmapData bmpdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
             int numbytes = bmpdata.Stride * bitmap.Height;
             byte[] bytedata = new byte[numbytes];
             IntPtr ptr = bmpdata.Scan0;
             Marshal.Copy(ptr, bytedata, 0, numbytes);
+            Bitmap = bytedata;
             //bitmap.UnlockBits(bmpdata);
-            return bytedata;
+            
         }
 
         private static int nlpo2(int x)

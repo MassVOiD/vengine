@@ -97,6 +97,9 @@ namespace VEngine
             Game.InvokeOnAfterDraw(e);
 
             //Game.CheckErrors();
+
+            GL.Flush();
+            GL.Finish();
             
             SwapBuffers();
         }

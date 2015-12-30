@@ -41,7 +41,7 @@ namespace ShadowsTester
             GC.Collect();
             /*
             var lss = new List<SimplePointLight>();
-            for(int x = 0; x < 100; x++)
+            for(int x = 0; x < 500; x++)
             {
                 SimplePointLight light = new SimplePointLight(new Vector3(-4 + (8 * (x/100.0f)), 1, 0), new Vector4((float)Math.Sin(x * 0.1), (float)Math.Cos(x*0.6), (float)Math.Tan(x * 0.9), 1.0f));
                 Game.World.Scene.Add(light);

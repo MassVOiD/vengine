@@ -141,7 +141,7 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.UnsignedByte
             };
-            AOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
+            AOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -185,6 +185,13 @@ namespace VEngine
             Camera.Current = cam;
         }
 
+        enum BlitMode
+        {
+            Color,
+            Depth,
+            ColorAndDepth
+        }
+
         public void RenderToFramebuffer(Framebuffer framebuffer)
         {
             Game.World.Scene.RecreateSimpleLightsSSBO();
@@ -225,9 +232,10 @@ namespace VEngine
         }
 
         // public static uint RandomIntFrame = 1;
-        private void Blit()
+        private void Blit(BlitMode mode)
         {
             BlitShader.Use();
+            BlitShader.SetUniform("BlitMode", (int)mode);
             DrawPPMesh();
         }
         
