@@ -10,7 +10,7 @@ float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
         vec2 ruv = mix(sspace1, sspace2, i);
         if(ruv.x<0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1) continue;
         vec3 wd = reconstructCameraSpace(ruv);
-		float m = texture(normalsTex, ruv).a;
+		float m = textureMSAA(normalsTex, ruv).a;
 		if(m > 1.0) continue;
         float rd3d = length(wd);
         float inter = mix(d3d1, d3d2, i);

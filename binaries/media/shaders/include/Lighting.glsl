@@ -24,11 +24,6 @@ float lookupDepthFromLight(uint i, vec2 uvi, float comparison){
 	else if(i==18)distance1 = texture(lightDepth18, uv);
 	else if(i==19)distance1 = texture(lightDepth19, uv);
 	else if(i==20)distance1 = texture(lightDepth20, uv);
-	else if(i==21)distance1 = texture(lightDepth21, uv);
-	else if(i==22)distance1 = texture(lightDepth22, uv);
-	else if(i==23)distance1 = texture(lightDepth23, uv);
-	else if(i==24)distance1 = texture(lightDepth24, uv);
-	else if(i==25)distance1 = texture(lightDepth25, uv);
 	return distance1;
 }
 #define mPI (3.14159265)

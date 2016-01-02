@@ -254,7 +254,7 @@ namespace VEngine
                 prg.SetUniform("UseNormalMap", 1);
                 prg.SetUniform("InvertNormalMap", InvertNormalMap);
                 prg.SetUniform("NormalMapScale", NormalMapScale);
-                NormalMap.Use(TextureUnit.Texture2);
+                NormalMap.Use(TextureUnit.Texture29);
             }
             else
                 prg.SetUniform("UseNormalMap", 0);
@@ -271,7 +271,7 @@ namespace VEngine
             if(RoughnessMap != null)
             {
                 prg.SetUniform("UseRoughnessMap", 1);
-                RoughnessMap.Use(TextureUnit.Texture1);
+                RoughnessMap.Use(TextureUnit.Texture28);
             }
             else
                 prg.SetUniform("UseRoughnessMap", 0);

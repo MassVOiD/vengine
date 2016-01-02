@@ -24,8 +24,8 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.M)
                 {
                     fovdegree += 5f;
-                    if(fovdegree >= 180)
-                        fovdegree = 180;
+                    if(fovdegree >= 179)
+                        fovdegree = 179;
                     Matrix4 a = Matrix4.Zero;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out a);
                     Cam.SetProjectionMatrix(a);

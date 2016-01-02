@@ -35,9 +35,27 @@ namespace ShadowsTester
                // bd.Enable();
                 Game.World.Scene.Add(o);
                 o.GetLodLevel(0).Info3d.Manager = null;
-             //   bd.Enable();
+                //   bd.Enable();
 
             }
+            var hbal = Object3dManager.LoadFromRaw(Media.Get("buddha.raw"));
+            int hbalc = hbal.Vertices.Count;
+            for(int i = 0; i < hbalc; i += 3)
+            {
+                var v1 = hbal.Vertices[i].Position;
+                var v2 = hbal.Vertices[i + 1].Position;
+                var v3 = hbal.Vertices[i + 2].Position;
+                var n = Vector3.Cross(v2 - v1, v3 - v1).Normalized();
+                hbal.Vertices[i].Normal = n;
+                hbal.Vertices[i + 1].Normal = n;
+                hbal.Vertices[i + 2].Normal = n;
+            }
+            var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
+            lucy2.GetInstance(0).Scale(2.2f);
+            lucy2.GetInstance(0).Translate(0, 0, 0);
+            lucy2.GetLodLevel(0).Material.Roughness = 1.0f;
+            lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
+            Game.World.Scene.Add(lucy2);
             GC.Collect();
             /*
             var lss = new List<SimplePointLight>();
@@ -61,11 +79,11 @@ namespace ShadowsTester
             // viperobj.ForEach((a) => a.GetInstance(0).Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegreesToRadians(90))));
             //  viperobj.ForEach((a) => Game.World.Scene.Add(a));
 
-            var lucy2 = Mesh3d.Create(new Object3dInfo(Object3dManager.LoadFromRaw(Media.Get("lucy.vbo.raw")).Vertices), GenericMaterial.FromColor(Color.Gold));
+         /*   var lucy2 = Mesh3d.Create(new Object3dInfo(Object3dManager.LoadFromRaw(Media.Get("lucy.vbo.raw")).Vertices), GenericMaterial.FromColor(Color.Gold));
             lucy2.GetInstance(0).Scale(0.2f);
             lucy2.GetLodLevel(0).Material.Roughness = 0.2f;
             lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
-            Game.World.Scene.Add(lucy2);
+            Game.World.Scene.Add(lucy2);*/
 
             var testScene = new Scene();
             //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));

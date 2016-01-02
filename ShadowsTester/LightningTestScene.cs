@@ -12,11 +12,6 @@ namespace ShadowsTester
     {
         public LightningTestScene()
         {
-            var whiteboxInfo = Object3dManager.LoadFromObjSingle(Media.Get("whiteroom.obj"));
-            var whitebox = Mesh3d.Create(new Object3dInfo(whiteboxInfo.Vertices), new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
-            whitebox.GetInstance(0).Scale(3000);
-            whitebox.GetInstance(0).Translate(0, -1500, 0);
-            Game.World.Scene.Add(whitebox);
 
             Object3dInfo groundInfo = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("someterrain.obj")).Vertices);
             var w5 = Mesh3d.Create(groundInfo, GenericMaterial.FromColor(Color.Green));
@@ -24,12 +19,24 @@ namespace ShadowsTester
             w5.GetLodLevel(0).Material.Metalness = 0.0f;
             w5.GetInstance(0).Translate(0, -2, 0);
             w5.GetInstance(0).Scale(100);
-            Game.World.Scene.Add(w5);
+            // Game.World.Scene.Add(w5);
 
-            var lucy2 = Mesh3d.Create(new Object3dInfo(Object3dManager.LoadFromRaw(Media.Get("lucy.vbo.raw")).Vertices), GenericMaterial.FromColor(Color.White));
+            var hbal = Object3dManager.LoadFromRaw(Media.Get("hairball.raw"));
+            int hbalc = hbal.Vertices.Count;
+            for(int i = 0; i < hbalc; i += 3)
+            {
+                var v1 = hbal.Vertices[i].Position;
+                var v2 = hbal.Vertices[i + 1].Position;
+                var v3 = hbal.Vertices[i + 2].Position;
+                var n = Vector3.Cross(v2 - v1, v3 - v1).Normalized();
+                hbal.Vertices[i].Normal = n;
+                hbal.Vertices[i+1].Normal = n;
+                hbal.Vertices[i+2].Normal = n;
+            }
+            var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
             lucy2.GetInstance(0).Scale(0.2f);
-            lucy2.GetInstance(0).Translate(0,0,10);
-            lucy2.GetLodLevel(0).Material.Roughness = 0.2f;
+            lucy2.GetInstance(0).Translate(0, 20, 10);
+            lucy2.GetLodLevel(0).Material.Roughness = 1.0f;
             lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
             Game.World.Scene.Add(lucy2);
 

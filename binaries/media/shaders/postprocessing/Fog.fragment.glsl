@@ -72,5 +72,5 @@ vec3 makeFog(){
 
 void main()
 {
-    outColor = vec4(makeFog(), texture(depthTex, UV).r);
+    outColor = vec4(makeFog(), textureMSAA(depthTex, UV).r);
 }

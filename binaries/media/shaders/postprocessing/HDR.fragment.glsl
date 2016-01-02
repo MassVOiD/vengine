@@ -61,7 +61,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             vec2 coord = UV+crd * 0.02 * amount;  
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            float depth = reverseLog(texture(depthTex, coord).r);
+            float depth = reverseLog(textureMSAA(depthTex, coord).r);
             vec3 texel = texture(currentTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
@@ -93,10 +93,10 @@ vec3 lookupBloomBlurred(vec2 buv, float radius){
 	
 
 	//outc += textureLod(currentTex, buv, 7).rgb;
-	outc += textureLod(currentTex, buv, 8).rgb;
+//	outc += textureLod(currentTex, buv, 6).rgb;
+	//outc += textureLod(currentTex, buv, 7).rgb;
+	//outc += textureLod(currentTex, buv, 8).rgb;
 	outc += textureLod(currentTex, buv, 9).rgb;
-	outc += textureLod(currentTex, buv, 10).rgb;
-	outc += textureLod(currentTex, buv, 11).rgb;
 	//outc *= max(0.0, length(outc) - 1.0) * 0.4;
 	return vec3pow(outc * 1.1, 1.3) * 0.11;
 	
@@ -131,7 +131,7 @@ float avgdepth(vec2 buv){
         for(float g2 = 0; g2 < 1.0; g2+=0.11)
         { 
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
-            float adepth = (reverseLog(texture(depthTex, buv + gauss).r));
+            float adepth = (reverseLog(textureMSAA(depthTex, buv + gauss).r));
 			//if(adepth < fDepth) adepth = fDepth + (fDepth - adepth);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
             float f = InputFocalLength;
@@ -177,7 +177,7 @@ void main()
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
     //if(ShowSelected == 1) color1.rgb += lookupSelected(UV, 0.02);
     //vec4 color1 = vec4(0,0,0,1);
-    float depth = texture(depthTex, UV).r;
+    float depth = textureMSAA(depthTex, UV).r;
     centerDepth = depth;
     if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
@@ -205,7 +205,7 @@ void main()
     if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
 	//if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
 	//if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
-    color1.a = texture(depthTex, UV).r;
+    color1.a = textureMSAA(depthTex, UV).r;
     
     vec3 last = texture(lastIndirectTex, UV).rgb;
     float f1 = length(last) / length(vec3(1));

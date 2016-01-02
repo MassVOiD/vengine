@@ -1,17 +1,19 @@
 layout(binding = 0) uniform sampler2D currentTex;
-layout(binding = 1) uniform sampler2D depthTex;
-layout(binding = 2) uniform sampler2D normalsTex;
+layout(binding = 30) uniform sampler2DMS diffuseColorTex;
+layout(binding = 1) uniform sampler2DMS depthTex;
+layout(binding = 2) uniform sampler2DMS normalsTex;
 layout(binding = 3) uniform samplerCube cubeMapTex;
 layout(binding = 4) uniform sampler2D lastIndirectTex;
 layout(binding = 5) uniform sampler2D fogTex;
 
-#define diffuseColorTex currentTex
-#define numbersTex normalsTex
-#define normalMapTex normalsTex
 #define bumpMapTex lastIndirectTex
 #define aoTex lastIndirectTex
 #define metalnessMapTex fogTex
-#define roughnessMapTex depthTex
+#define edgesTex roughnessMapTex
+
+layout(binding = 27) uniform sampler2D numbersTex;
+layout(binding = 29) uniform sampler2D normalMapTex;
+layout(binding = 28) uniform sampler2D roughnessMapTex;
 
 layout(binding = 6) uniform sampler2DShadow lightDepth0;
 layout(binding = 7) uniform sampler2DShadow lightDepth1;
@@ -34,8 +36,29 @@ layout(binding = 23) uniform sampler2DShadow lightDepth17;
 layout(binding = 24) uniform sampler2DShadow lightDepth18;
 layout(binding = 25) uniform sampler2DShadow lightDepth19;
 layout(binding = 26) uniform sampler2DShadow lightDepth20;
-layout(binding = 27) uniform sampler2DShadow lightDepth21;
-layout(binding = 28) uniform sampler2DShadow lightDepth22;
-layout(binding = 29) uniform sampler2DShadow lightDepth23;
-layout(binding = 30) uniform sampler2DShadow lightDepth24;
-layout(binding = 31) uniform sampler2DShadow lightDepth25;
+
+uniform int MSAASamples;
+int getMSAASamples(vec2 uv){
+	float edge = texture(edgesTex, uv).r;
+	return int(mix(1, MSAASamples, edge));
+}
+
+#define msaasamples MSAASamples
+#define msaasamplesd (1.0/msaasamples)
+vec4 textureMSAA(sampler2DMS tex, vec2 inUV){
+	vec4 color11 = vec4(0.0);
+	int samples = getMSAASamples(inUV);
+	ivec2 texcoord = ivec2(textureSize(tex) * inUV); 
+	for (int i=0;i<samples;i++)
+	{
+		color11 += texelFetch(tex, texcoord, i);  
+	}
+
+	color11/= samples; 
+	return color11;
+}
+vec4 textureMSAA(sampler2DMS tex, vec2 inUV, int samplee){
+	vec4 color11 = vec4(0.0);
+	ivec2 texcoord = ivec2(textureSize(tex) * inUV); 
+	return texelFetch(tex, texcoord, samplee);  
+}

@@ -11,30 +11,12 @@ namespace MeshConverter
             string mode = args[0];
             string infile = args[1];
             string outfile = args[2];
-            /*
-            if(mode == "separate")
+            
+            if(mode == "raw")
             {
-                Object3dInfo.CompressAndSave(infile, outfile);
+                var element = Object3dManager.LoadFromObjSingle(infile);
+                element.SaveRaw(outfile);
             }
-            else if(mode == "single")
-            {
-                Object3dInfo.CompressAndSaveSingle(infile, outfile);
-            }
-            else if(mode == "raw")
-            {
-                var element = Object3dInfo.LoadFromObjSingle(infile);
-
-                MemoryStream vboStream = new MemoryStream();
-
-                foreach(float v in element.VBO)
-                    vboStream.Write(BitConverter.GetBytes(v), 0, 4);
-
-                vboStream.Flush();
-
-                if(File.Exists(outfile + ".vbo.raw"))
-                    File.Delete(outfile + ".vbo.raw");
-                File.WriteAllBytes(outfile + ".vbo.raw", vboStream.ToArray());
-            }*/
             Console.WriteLine("Done");
         }
     }

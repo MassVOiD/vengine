@@ -222,16 +222,16 @@ vec3 shade(
 
     vec3 cc = lightColor.rgb*albedo;
     vec3 difcolor = cc * diffuseComponent * att;
-    return mix((specularComponent + difcolor) * 0.5, specularComponent, metalness);
+    return specularComponent;
 }
 
 vec3 shadePhoton(vec2 uv, vec3 color){
-    vec3 albedo = texture(diffuseColorTex, uv).rgb;
+    vec3 albedo = textureMSAA(diffuseColorTex, uv).rgb;
     return color*albedo;
 }
 vec3 shadePhotonSpecular(vec2 uv, vec3 color){
-    vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    float metalness =  texture(normalsTex, uv).a;
+    vec3 albedo = textureMSAA(diffuseColorTex, uv).rgb;
+    float metalness =  textureMSAA(normalsTex, uv).a;
     return mix(color * albedo, color, metalness);
 }
 
@@ -240,11 +240,11 @@ vec3 shadeUV(vec2 uv,
     vec4 lightColor
 ){
     vec3 position = FromCameraSpace(reconstructCameraSpace(uv));
-    vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    vec3 normal = normalize(texture(normalsTex, uv).rgb);
+    vec3 albedo = textureMSAA(diffuseColorTex, uv).rgb;
+    vec3 normal = normalize(textureMSAA(normalsTex, uv).rgb);
       
-    float roughness = texture(diffuseColorTex, uv).a;
-    float metalness =  texture(normalsTex, uv).a;
+    float roughness = textureMSAA(diffuseColorTex, uv).a;
+    float metalness =  textureMSAA(normalsTex, uv).a;
     return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, false);
 }
 
@@ -253,11 +253,11 @@ vec3 shadeUVNoAtt(vec2 uv,
     vec4 lightColor
 ){
     vec3 position = FromCameraSpace(reconstructCameraSpace(uv));
-    vec3 albedo = texture(diffuseColorTex, uv).rgb;
-    vec3 normal = normalize(texture(normalsTex, uv).rgb);
+    vec3 albedo = textureMSAA(diffuseColorTex, uv).rgb;
+    vec3 normal = normalize(textureMSAA(normalsTex, uv).rgb);
       
-    float roughness = texture(diffuseColorTex, uv).a;
-    float metalness =  texture(normalsTex, uv).a;
+    float roughness = textureMSAA(diffuseColorTex, uv).a;
+    float metalness =  textureMSAA(normalsTex, uv).a;
     return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, true);
 }
 

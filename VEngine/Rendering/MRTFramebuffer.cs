@@ -21,6 +21,8 @@ namespace VEngine
 
         public int TexDiffuse, TexNormals, TexDepth;
 
+        public int MSAASamples = 4;
+
         private int FBO, RBO, Width, Height;
 
         public MRTFramebuffer(int width, int height)
@@ -49,7 +51,7 @@ namespace VEngine
         public void UseTextureDepth(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
+            GL.BindTexture(TextureTarget.Texture2DMultisample, TexDepth);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
@@ -57,7 +59,7 @@ namespace VEngine
         public void UseTextureDiffuseColor(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexDiffuse);
+            GL.BindTexture(TextureTarget.Texture2DMultisample, TexDiffuse);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
@@ -65,7 +67,7 @@ namespace VEngine
         public void UseTextureNormals(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(TextureTarget.Texture2D, TexNormals);
+            GL.BindTexture(TextureTarget.Texture2DMultisample, TexNormals);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
@@ -79,30 +81,30 @@ namespace VEngine
 
             // generating textures
             TexDiffuse = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, TexDiffuse);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, (IntPtr)0);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
+            GL.BindTexture(TextureTarget.Texture2DMultisample, TexDiffuse);
+            GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, MSAASamples, PixelInternalFormat.Rgba16f, Width, Height, false);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
             TexNormals = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, TexNormals);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, (IntPtr)0);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
+            GL.BindTexture(TextureTarget.Texture2DMultisample, TexNormals);
+            GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, MSAASamples, PixelInternalFormat.Rgba16f, Width, Height, false);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             
             TexDepth = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, TexDepth);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32f, Width, Height, 0, PixelFormat.DepthComponent, PixelType.Float, (IntPtr)0);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
+            GL.BindTexture(TextureTarget.Texture2DMultisample, TexDepth);
+            GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, MSAASamples, PixelInternalFormat.DepthComponent32f, Width, Height, false);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
+            GL.TexParameter(TextureTarget.Texture2DMultisample, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
 
           //  RBO = GL.GenRenderbuffer();
            // GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RBO);

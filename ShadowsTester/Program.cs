@@ -21,6 +21,7 @@ namespace ShadowsTester
             Game.Initialize(new Size(Config.Width, Config.Height), Config.MediaPath, GameWindowFlags.FixedWindow);
 
             var freeCamera = Commons.SetUpFreeCamera();
+            System.Threading.Thread.Sleep(1100);
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
