@@ -23,7 +23,6 @@ The software is licensed under MIT license - so do what you want.
 ![A screenshot](http://i.imgur.com/MCFqZqS.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/EVXhJsv.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/QoMxCYo.jpg "Screenshot")
-![A screenshot](http://i.imgur.com/QoMxCYo.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/GE5yr4U.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/RCwtfMk.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/34qTym0.jpg "Screenshot")
