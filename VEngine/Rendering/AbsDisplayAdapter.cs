@@ -55,8 +55,8 @@ namespace VEngine
         protected override void OnLoad(System.EventArgs e)
         {
             VSync = VSyncMode.Off;
-            TargetRenderFrequency = 60;
-            TargetUpdateFrequency = 60;
+            TargetRenderFrequency = 260;
+            TargetUpdateFrequency = 260;
             //this.Context.
 
             var s = GL.GetString(StringName.Version);

@@ -10,9 +10,9 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 1920;
+            public static int Width = 670;
             public static string MediaPath = "media";
-            public static int Height = 1020;
+            public static int Height = 960;
         }
 
         [STAThread]
@@ -26,9 +26,18 @@ namespace ShadowsTester
             Commons.SetUpInputBehaviours();
 
             new OldCityScene();
-          //  new LightningTestScene();
+            //  new LightningTestScene();
 
             //new DragonScene();
+
+            var samples = VEngine.PathTracing.JitterRandomSequenceGenerator.EvenlySampledHemisphere(16, 16);
+            var os = "";
+            foreach(var s in samples)
+            {
+                s.Normalize();
+                os += string.Format("vec3({0}, {1}, {2}),\r\n", s.X.ToString(System.Globalization.CultureInfo.InvariantCulture), s.Y.ToString(System.Globalization.CultureInfo.InvariantCulture), s.Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+            System.IO.File.WriteAllText("dupa.txt", os);
 
             System.Windows.Forms.Application.Run(new SettingsController());
             //renderThread.Wait();

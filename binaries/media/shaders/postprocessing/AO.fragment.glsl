@@ -14,17 +14,18 @@ in vec2 UV;
 out vec4 outColor;
 
 void main()
-{
-    if(textureMSAA(diffuseColorTex, UV).r >= 999){ 
+{/*
+    if(textureMSAA(diffuseColorTex, UV, 0).r >= 999){ 
 		outColor = vec4(vec3(1), 1);
 		return;
-    }
-    vec3 position = FromCameraSpace(reconstructCameraSpace(UV));
-    vec3 normal = normalize(textureMSAA(normalsTex, UV).rgb);
-    float roughness = textureMSAA(diffuseColorTex, UV).a;
-    float metalness =  textureMSAA(normalsTex, UV).a;
+    }*/
+    vec3 position = FromCameraSpace(reconstructCameraSpace(UV, 0));
+    vec3 normal = textureMSAA(normalsTex, UV, 0).rgb;
+	normal += step(0, -length(normal));
+    float roughness = textureMSAA(diffuseColorTex, UV, 0).a;
+    float metalness =  textureMSAA(normalsTex, UV, 0).a;
 
-	float ao = AmbientOcclusion(position, normal, roughness, fract(metalness));
+	float ao = AmbientOcclusion(position, normalize(normal), roughness, metalness);
 
     outColor = vec4(normal, ao);
 }

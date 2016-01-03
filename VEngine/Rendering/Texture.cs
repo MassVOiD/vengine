@@ -181,7 +181,7 @@ namespace VEngine
             IntPtr ptr = bmpdata.Scan0;
             Marshal.Copy(ptr, bytedata, 0, numbytes);
             Bitmap = bytedata;
-            //bitmap.UnlockBits(bmpdata);
+            bitmap.UnlockBits(bmpdata);
             
         }
 

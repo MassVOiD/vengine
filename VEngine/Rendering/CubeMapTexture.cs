@@ -38,12 +38,14 @@ namespace VEngine
 
         public void FreeCPU()
         {
-            BitmapPosX = new byte[0];
-            BitmapPosY = new byte[0];
-            BitmapPosZ = new byte[0];
-            BitmapNegX = new byte[0];
-            BitmapNegY = new byte[0];
-            BitmapNegZ = new byte[0];
+            BitmapPosX = null;
+            BitmapPosY = null;
+            BitmapPosZ = null;
+            BitmapNegX = null;
+            BitmapNegY = null;
+            BitmapNegZ = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         public void FreeGPU()
@@ -53,16 +55,19 @@ namespace VEngine
 
         public void Update(ref byte[] Bitmap, string file)
         {
-            var bitmap = new Bitmap(Image.FromFile(file));
-            Generated = false;
-            if(Handle >= 0)
+            using(var img = Image.FromFile(file))
             {
-                GL.DeleteTexture(Handle);
+                using(var bitmap = new Bitmap(img))
+                {
+                    Generated = false;
+                    if(Handle >= 0)
+                    {
+                        GL.DeleteTexture(Handle);
+                    }
+                    Size = bitmap.Size;
+                    Bitmap = BitmapToByteArray(bitmap);
+                }
             }
-            Size = bitmap.Size;
-            Bitmap = BitmapToByteArray(bitmap);
-            bitmap.Dispose();
-            GC.Collect();
         }
 
         public void Use(TextureUnit unit)
@@ -98,7 +103,8 @@ namespace VEngine
             byte[] bytedata = new byte[numbytes];
             IntPtr ptr = bmpdata.Scan0;
             Marshal.Copy(ptr, bytedata, 0, numbytes);
-            //bitmap.UnlockBits(bmpdata);
+            bitmap.UnlockBits(bmpdata);
+            bitmap.Dispose();
             return bytedata;
         }
     }

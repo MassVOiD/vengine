@@ -59,7 +59,7 @@ namespace VEngine
                 DisplayAdapter.CursorVisible = false;
 
                 Invoke(() => Initialized = true);
-                DisplayAdapter.Run(60);
+                DisplayAdapter.Run();
             });
             while(!Initialized)
                 ;
