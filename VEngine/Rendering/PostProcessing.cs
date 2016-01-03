@@ -152,7 +152,7 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.UnsignedByte
             };
-            AOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            AOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,

@@ -10,9 +10,9 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 670;
+            public static int Width = 1920;
             public static string MediaPath = "media";
-            public static int Height = 960;
+            public static int Height = 1020;
         }
 
         [STAThread]
@@ -30,7 +30,7 @@ namespace ShadowsTester
 
             //new DragonScene();
 
-            var samples = VEngine.PathTracing.JitterRandomSequenceGenerator.EvenlySampledHemisphere(16, 16);
+            var samples = VEngine.PathTracing.JitterRandomSequenceGenerator.EvenlySampledHemisphere(6, 6);
             var os = "";
             foreach(var s in samples)
             {

@@ -146,17 +146,19 @@ float getAO(vec2 uv, vec3 normal){
 //return texture(aoTex, uv).a;
     float outc = 0.0;
     float counter = 0;
-    float depthCenter = textureMSAA(depthTex, uv).r;
+    float depthCenter = reverseLog(textureMSAA(depthTex, uv, 0).r);
 	float pixel = 1.0 / textureSize(aoTex, 0).y;
-    for(float g = 0; g < mPI2 * 2; g+=0.412123)
+    for(float g = 0; g < mPI2; g+=0.412123)
     {
-        for(float g2 = 0; g2 < 1.0; g2+=0.125)
+        for(float g2 = 0; g2 < 1.0; g2+=0.25)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * g2 * 0.01 + pixel);
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * g2 * 0.005 + pixel);
             vec3 n = texture(aoTex, uv + gauss).rgb;
             float ao = texture(aoTex, uv + gauss).a;
             //if(dot(n, normal) > 0.8){
-			float force = pow(max(0.0, dot(n, normal)), 11);
+			float dp = reverseLog(textureMSAA(depthTex, uv + gauss, 0).r);
+			// 
+			float force = pow(max(0.0, dot(n, normal)), 16) * max(0.0, 0.01 - abs(dp - depthCenter));
 			outc += ao * force;
 			counter += force;
             //}
