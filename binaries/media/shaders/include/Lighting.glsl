@@ -38,7 +38,7 @@ float LightingGetRand(){
     float r = rand2s(vec2(ArandsPointer, ArandsPointer*2.42354));
     ArandsPointer+=0.5432;
     return r;
-}
+}/*
 float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
 	float AInv = 1.0 / ((ainvd) + 1.0);
 	float average = 0.0;
@@ -58,7 +58,7 @@ float getBlurAmount(vec2 uv, uint i, float ainvd, float distance2){
     float bbb = average/counter;
 	return clamp(bbb, 0, 12);
 }
-
+*/
 float LastProbeDistance = 0.0;
 float rand2d(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -70,22 +70,25 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	float distance2 = distance(pos, LightsPos[i]);
     
 	mat4 lightPV = (LightsPs[i] * LightsVs[i]);
-	vec4 lightClipSpace = lightPV * vec4(pos, 1.0);
-    vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;   
+	mat4 bias = mat4( 0.5, 0.0, 0.0, 0.0,
+		 0.0, 0.5, 0.0, 0.0,
+		 0.0, 0.0, 0.5, 0.0,
+		 0.5, 0.5, 0.5, 1.0);
+	vec4 lightClipSpace = (lightPV) * vec4(pos, 1.0);
+    vec3 lightScreenSpace = lightClipSpace.xyz / lightClipSpace.w;
 
 	float distance1 = 0.0;
 	vec2 fakeUV = vec2(0.0);
 	
 	float counter = 0;
-	
-    float distance3 = toLogDepth(distance2);
+    float distance3 = (lightScreenSpace.z * 0.5 + 0.5);
 	//return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
-    float pssblur = max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
+    float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
 	//return lookupDepthFromLight(i, uv, distance3 - 0.001);
     for(float x = 0; x < mPI2; x+=0.8){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
             fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2s(uv + vec2(x,y)) * distance2 * 0.002;
-            accum += 1.0 - lookupDepthFromLight(i, fakeUV, distance3 - 0.001);
+            accum += 1.0 - lookupDepthFromLight(i, fakeUV, distance3 - 0.0001);
 
             //if(distance3 -  distance1 > 0.000015) accum += 1.0 ;
             counter+=1;

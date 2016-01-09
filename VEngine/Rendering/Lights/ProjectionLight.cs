@@ -5,7 +5,7 @@ namespace VEngine
 {
     public class ProjectionLight : ILight, IShadowMapableLight, ITransformable
     {
-        public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack("ConeLight.fragment.glsl");
+        public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack();
 
         public Camera camera;
 
@@ -17,7 +17,7 @@ namespace VEngine
 
         public bool IsStatic = false;
 
-        public Vector4 LightColor = new Vector4(1, 1, 1, 1);
+        public Vector3 LightColor = new Vector3(1, 1, 1);
 
         public bool NeedsRefreshing = true;
 
@@ -41,7 +41,7 @@ namespace VEngine
             camera.SetProjectionMatrix(Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, near, far));
         }
 
-        public Vector4 GetColor()
+        public Vector3 GetColor()
         {
             return LightColor;
         }

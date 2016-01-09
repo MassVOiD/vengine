@@ -44,6 +44,16 @@ namespace VEngine
                 return f;
             }
 
+            public static void Update(FrustumCone f, Vector3 origin, Matrix4 view, Matrix4 proj)
+            {
+                f.Origin = origin;
+                var inVP = Matrix4.Mult(view, proj).Inverted();
+                f.LeftBottom = GetDir(origin, new Vector2(-1, -1), inVP);
+                f.RightBottom = GetDir(origin, new Vector2(1, -1), inVP);
+                f.LeftTop = GetDir(origin, new Vector2(-1, 1), inVP);
+                f.RightTop = GetDir(origin, new Vector2(1, 1), inVP);
+            }
+
             private static Vector3 GetDir(Vector3 origin, Vector2 uv, Matrix4 inv)
             {
                 var clip = Vector4.Transform(new Vector4(uv.X, uv.Y, 0.01f, 1), inv);
@@ -162,10 +172,13 @@ namespace VEngine
             {
                 var tRotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation().Inverted());
                 var tViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
-                
-                var tcone = FrustumCone.Create(Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
-                cone = tcone;
-                
+
+                if(cone == null)
+                {
+                    var tcone = FrustumCone.Create(Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
+                    cone = tcone;
+                } else FrustumCone.Update(cone, Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
+
                 RotationMatrix = tRotationMatrix;
                 ViewMatrix = tViewMatrix;
             }
@@ -178,12 +191,14 @@ namespace VEngine
             Transformation.SetOrientation(Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted()));
             RotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
             ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
-            try
+
+            if(cone == null)
             {
                 var tcone = FrustumCone.Create(Transformation.GetPosition(), ViewMatrix, ProjectionMatrix);
                 cone = tcone;
             }
-            catch { }
+            else
+                FrustumCone.Update(cone, Transformation.GetPosition(), ViewMatrix, ProjectionMatrix);
         }
 
         public void UpdateInverse()

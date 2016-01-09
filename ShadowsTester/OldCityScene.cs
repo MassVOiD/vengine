@@ -38,25 +38,35 @@ namespace ShadowsTester
                 //   bd.Enable();
 
             }
-            var hbal = Object3dManager.LoadFromRaw(Media.Get("buddha.raw"));
-            int hbalc = hbal.Vertices.Count;
+            var hbal = Object3dManager.LoadFromRaw(Media.Get("statue2.raw"));
+            /*int hbalc = hbal.Vertices.Count;
             for(int i = 0; i < hbalc; i += 3)
             {
-                var v1 = hbal.Vertices[i].Position;
+                var v1 = hbal.Vertices[i].Position; 
                 var v2 = hbal.Vertices[i + 1].Position;
                 var v3 = hbal.Vertices[i + 2].Position;
                 var n = Vector3.Cross(v2 - v1, v3 - v1).Normalized();
                 hbal.Vertices[i].Normal = n;
                 hbal.Vertices[i + 1].Normal = n;
                 hbal.Vertices[i + 2].Normal = n;
-            }
+            }*/
             var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
-            lucy2.GetInstance(0).Scale(2.2f);
+            lucy2.GetInstance(0).Scale(0.5f);
             lucy2.GetInstance(0).Translate(0, 0, 0);
             lucy2.GetLodLevel(0).Material.Roughness = 1.0f;
             lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
             Game.World.Scene.Add(lucy2);
             GC.Collect();
+
+            SimplePointLight spl = new SimplePointLight(new Vector3(0, 2, 0), new Vector3(12, 12, 12));
+            spl.Angle = 90;
+            spl.SetOrientation(new Vector3(1, -1, 0).ToQuaternion(Vector3.UnitY));
+            float t = 0;
+            Game.OnUpdate += (z, xx) =>{
+                spl.SetPosition((float)Math.Sin(t), 2, 0);
+                    t += (float)0.01;
+            };
+            Game.World.Scene.Add(spl);
             /*
             var lss = new List<SimplePointLight>();
             for(int x = 0; x < 500; x++)

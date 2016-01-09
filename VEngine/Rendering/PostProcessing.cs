@@ -32,9 +32,7 @@ namespace VEngine
         public bool ShowSelected = false;
 
         public bool UnbiasedIntegrateRenderMode = false;
-
-        private const int MSAASamples = 4;
-
+        
         public float VDAOGlobalMultiplier = 1.0f, RSMGlobalMultiplier = 1.0f, AOGlobalModifier = 1.0f;
 
         public int Width, Height;
@@ -50,11 +48,7 @@ namespace VEngine
             CombinerShader;
 
         private bool DisablePostEffects = false;
-
-        private Framebuffer LastFrameBuffer;
-
-        private long lastTime = 0;
-
+        
         private Matrix4 LastVP = Matrix4.Identity;
 
         private Texture NumbersTexture;
@@ -106,9 +100,7 @@ namespace VEngine
                 Maximum = max;
             }
         }
-
-        Texture testtex;
-
+        
         public PostProcessing(int initialWidth, int initialHeight)
         {/*
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, 0u);
@@ -120,7 +112,6 @@ namespace VEngine
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 6, 0u);
             GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 7, 0u);*/
             //FullScene3DTexture = new Texture3D(new Vector3(64, 64, 64));
-            testtex = new Texture(Media.Get("field-meadow-flower-pink.jpg"));
             NumbersTexture = new Texture(Media.Get("numbers.png"));
             CubeMap = new CubeMapTexture(Media.Get("posx.jpg"), Media.Get("posy.jpg"), Media.Get("posz.jpg"),
                 Media.Get("negx.jpg"), Media.Get("negy.jpg"), Media.Get("negz.jpg"));
@@ -140,9 +131,9 @@ namespace VEngine
             MSAAEdgeDetectFramebuffer = new Framebuffer(initialWidth, initialHeight)
             {
                 ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.R16f,
+                ColorInternalFormat = PixelInternalFormat.R8,
                 ColorPixelFormat = PixelFormat.Red,
-                ColorPixelType = PixelType.HalfFloat
+                ColorPixelType = PixelType.UnsignedByte
             };
 
             FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
@@ -152,7 +143,7 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.UnsignedByte
             };
-            AOFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
+            AOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 3)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -234,7 +225,7 @@ namespace VEngine
             shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
             shader.SetUniform("resolution", new Vector2(Width, Height));
             shader.SetUniform("DisablePostEffects", DisablePostEffects);
-            shader.SetUniform("MSAASamples", MSAASamples);
+            shader.SetUniform("MSAASamples", Game.MSAASamples);
             shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
         }
 
@@ -254,14 +245,17 @@ namespace VEngine
             DrawPPMesh();
         }
 
+        int cnt = 1;
         private void EdgeDetect()
         {
             MSAAEdgeDetectFramebuffer.Use();
             EdgeDetectShader.Use();
             MRT.UseTextureDiffuseColor(30);
-            MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(2);
-            DrawPPMesh();
+            if(cnt == 0)
+                DrawPPMesh();
+            else
+                cnt = 0;
         }
 
         private void Combine()
@@ -285,7 +279,6 @@ namespace VEngine
             CombinerShader.SetUniform("DisablePostEffects", DisablePostEffects);
             // GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
             MRT.UseTextureDiffuseColor(30);
-            MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(2);
             CubeMap.Use(TextureUnit.Texture3);
             AOFramebuffer.UseTexture(4);
@@ -335,7 +328,6 @@ namespace VEngine
             Game.World.Scene.SetLightingUniforms(FogShader);
             FogShader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
             MRT.UseTextureDiffuseColor(30);
-            MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(2);
             MSAAEdgeDetectFramebuffer.UseTexture(28);
             LastFogTime = DrawPPMesh();
@@ -345,7 +337,6 @@ namespace VEngine
             AOShader.Use();
             AOFramebuffer.Use();
             MRT.UseTextureDiffuseColor(30);
-            MRT.UseTextureDepth(1);
             MRT.UseTextureNormals(2);
             MSAAEdgeDetectFramebuffer.UseTexture(28);
             DrawPPMesh();
@@ -353,7 +344,7 @@ namespace VEngine
 
         private void HDR()
         {
-            string lastTimeSTR = ((int)Math.Round(Game.CurrentFPS)).ToString();
+            string lastTimeSTR = ((int)Math.Round(Game.CurrentFrameTime)).ToString();
             //Console.WriteLine(time);
             int[] nums = lastTimeSTR.ToCharArray().Select<char, int>((a) => a - 48).ToArray();
             HDRShader.Use();
@@ -368,7 +359,6 @@ namespace VEngine
                 HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
                 HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
-            MRT.UseTextureDepth(1);
             MSAAEdgeDetectFramebuffer.UseTexture(28);
             LastHDRTime = DrawPPMesh();
         }
@@ -377,7 +367,7 @@ namespace VEngine
         {
             MRT.Use();
             Game.World.Draw();
-
+                        
             if(Game.GraphicsSettings.UseFog)
             {
                 Fog();
@@ -387,16 +377,16 @@ namespace VEngine
                 AO();
             }
             
+            EdgeDetect();
+
             SwitchToFB(Pass1Framebuffer);
 
             Combine();
 
             Pass1Framebuffer.GenerateMipMaps();
 
-            EdgeDetect();
 
             Pass1Framebuffer.UseTexture(0);
-            MRT.UseTextureDepth(1);
             NumbersTexture.Use(TextureUnit.Texture27);
 
 

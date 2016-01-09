@@ -173,9 +173,9 @@ namespace VEngine
             FireOnUpdate();
         }
 
-        public delegate void DelegaetOnUpdate();
+        public delegate void DelegateOnUpdate();
 
-        public event DelegaetOnUpdate OnUpdate;
+        public event DelegateOnUpdate OnUpdate;
 
         public ValuePointer<Quaternion> Orientation
         {

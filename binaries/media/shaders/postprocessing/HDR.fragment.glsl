@@ -48,8 +48,8 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float radius = max_radius;  
     float centerDepthDistance = abs((centerDepth) - (depthfocus));
     //float centerDepth = texture(texDepth, UV).r;
-    float focus = length(reconstructCameraSpace(vec2(0.5)));
-    float cc = length(reconstructCameraSpace(UV).rgb);
+    float focus = length(reconstructCameraSpace(vec2(0.5), 0));
+    float cc = length(reconstructCameraSpace(UV, 0).rgb);
     for(float x = 0; x < mPI2; x+=0.2){ 
         for(float y=0.1;y<1.0;y+= 0.08){  
             
@@ -59,10 +59,11 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             //float alpha = texture(alphaMaskTex, crd*1.41421).r;
             //if(length(crd) > 1.0) continue;
             vec2 coord = UV+crd * 0.02 * amount;  
+            coord = clamp(coord, 0.0, 1.0);
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            float depth = reverseLog(textureMSAA(depthTex, coord).r);
-            vec3 texel = texture(currentTex, coord).rgb;
+            float depth = textureMSAA(normalsTex, coord, 0).a;
+            vec3 texel = texture(currentTex, coord, 0).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
             w *= dd;
@@ -125,13 +126,14 @@ uniform float InputFocalLength;
 float avgdepth(vec2 buv){
     float outc = float(0);
     float counter = 0;
-    float fDepth = length(reconstructCameraSpace(vec2(0.5, 0.5)).rgb);
+    float fDepth = length(reconstructCameraSpace(vec2(0.5, 0.5), 0).rgb);
     for(float g = 0; g < mPI2; g+=0.4)
     { 
         for(float g2 = 0; g2 < 1.0; g2+=0.11)
         { 
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
-            float adepth = (reverseLog(textureMSAA(depthTex, buv + gauss).r));
+            vec2 gauss = buv + vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
+            gauss = clamp(gauss, 0.0, 0.90);
+            float adepth = textureMSAA(normalsTex, gauss, 0).a;
 			//if(adepth < fDepth) adepth = fDepth + (fDepth - adepth);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
             float f = InputFocalLength;
@@ -177,11 +179,9 @@ void main()
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
     //if(ShowSelected == 1) color1.rgb += lookupSelected(UV, 0.02);
     //vec4 color1 = vec4(0,0,0,1);
-    float depth = textureMSAA(depthTex, UV).r;
-    centerDepth = depth;
     if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
-        float adepth = length(reconstructCameraSpace(vec2(0.5)).xyz);
+        float adepth = textureMSAA(normalsTex, vec2(0.5), 0).a;
         //float fDepth = reverseLog(CameraCurrentDepth);
 
         color1.xyz = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
@@ -205,22 +205,11 @@ void main()
     if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
 	//if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
 	//if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
-    color1.a = textureMSAA(depthTex, UV).r;
-    
-    vec3 last = texture(lastIndirectTex, UV).rgb;
-    float f1 = length(last) / length(vec3(1));
-    float f2 = length(color1.rgb);
     
 	vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
 	color1.rgb = vec3(pow(color1.r, gamma.r),
 	pow(color1.g, gamma.g),
 	pow(color1.b, gamma.b));
-    vec3 additiveMix = mix(last, color1.rgb, UnbiasedIntegrateRenderMode == 1 ? 0.04538 : 1.0);
-    if(UnbiasedIntegrateRenderMode == 1){
-        //additiveMix *= texture(HBAOTex, UV).a;
-       // if(abs(texture(lastIndirectTex, UV).a - depth) > 0.0003) additiveMix = color1.rgb;
-    }
-    //additiveMix = texture(diffuseColorTex, UV).rgb;
-	//additiveMix = vec3(1);
-    outColor = clamp(vec4(additiveMix, depth), 0.0, 10000.0);
+
+    outColor = clamp(vec4(color1.rgb, 1), 0.0, 10000.0);
 }

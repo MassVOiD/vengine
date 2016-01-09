@@ -24,6 +24,7 @@ namespace VEngine
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
             GL.Enable(EnableCap.Dither);
+            GL.Enable(EnableCap.Multisample);
             GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
                 Console.WriteLine("{0} {1} {2} {3} {4} {5}", source, type, id, severity, length, message);
@@ -37,7 +38,7 @@ namespace VEngine
             MouseUp += VEngineWindowAdapter_MouseUp;
             MouseWheel += VEngineWindowAdapter_MouseWheel;
             Load += VEngineWindowAdapter_Load;
-            //Task.Factory.StartNew(() => PhysicsThread());
+            Task.Factory.StartNew(() => PhysicsThread());
         }
 
         public bool IsCursorVisible
@@ -83,7 +84,7 @@ namespace VEngine
             Interpolator.StepAll();
             TransformationJoint.Resolve();
 
-            Game.CurrentFPS = (float)( 1.0 / e.Time );
+            Game.CurrentFrameTime = (float)( e.Time * 1000.0 );
 
             Game.InvokeQueue();
 

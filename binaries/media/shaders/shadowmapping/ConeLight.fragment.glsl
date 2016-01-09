@@ -35,12 +35,12 @@ uniform int UseMetalnessMap;
 
 void main()
 {
-    vec3 wpos = Input.WorldPos;	
+    //vec3 wpos = Input.WorldPos;	
 	//if(UseBumpMap == 1){
 	//	vec2 UV = adjustParallaxUV();
 	//	wpos -= (RotationMatrixes[Input.instanceId] * vec4(normalize(Input.Normal), 0)).xyz * (1.0 - texture(bumpMapTex, UV).r) * parallaxScale;
 	//}
-	//if(DrawMode == MODE_TEXTURE_ONLY && texture(currentTex, Input.TexCoord).a < 0.01) discard;
-	float depth = distance(wpos, LightPosition);
-	gl_FragDepth = toLogDepth(depth);
+	//if(DrawMode == MODE_TEXTURE_ONLY && texture(currentTex, Input.TexCoord).a < 0.999) discard;
+	//float depth = distance(wpos, LightPosition);
+	//gl_FragDepth = gl_FragCoord.z;
 }

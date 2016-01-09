@@ -94,7 +94,7 @@ namespace VEngine
                             GL.DeleteTexture(Handle);
                         }
                         Size = bitmap.Size;
-                        BitmapToByteArray(bitmap);
+                        BitmapToByteArray(bitmap, ref Bitmap);
                     }
                 }
             }
@@ -108,7 +108,7 @@ namespace VEngine
                 GL.DeleteTexture(Handle);
             }
             Size = bitmap.Size;
-            BitmapToByteArray(bitmap);
+            BitmapToByteArray(bitmap, ref Bitmap);
         }
 
         public void UpdateFromText(string text, string font, float size, Color textColor, Color background)
@@ -167,22 +167,20 @@ namespace VEngine
                 GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
                 GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
                 Generated = true;
-                Bitmap = new byte[0];
+                Bitmap = null;
             }
             GL.ActiveTexture(unit);
             GL.BindTexture(ImageTextureTarget, Handle);
         }
-
-        private void BitmapToByteArray(Bitmap bitmap)
+        private static void BitmapToByteArray(Bitmap bitmap, ref byte[] bytedata)
         {
             BitmapData bmpdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
             int numbytes = bmpdata.Stride * bitmap.Height;
-            byte[] bytedata = new byte[numbytes];
+            bytedata = new byte[numbytes];
             IntPtr ptr = bmpdata.Scan0;
             Marshal.Copy(ptr, bytedata, 0, numbytes);
-            Bitmap = bytedata;
             bitmap.UnlockBits(bmpdata);
-            
+            bitmap.Dispose();
         }
 
         private static int nlpo2(int x)

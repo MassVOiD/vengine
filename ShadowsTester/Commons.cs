@@ -32,7 +32,7 @@ namespace ShadowsTester
             RedLight = new List<ProjectionLight>();
             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1024, 1024, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
             {
-                LightColor = new Vector4(1, 1, 0.84f, 3)
+                LightColor = new Vector3(1, 1, 0.84f)
             });
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
@@ -98,8 +98,15 @@ namespace ShadowsTester
             {
                 Camera.Current.LensBlurAmount -= e.Delta / 2.0f;
             };
-            Game.OnUpdate += (o, e) =>
+            Game.OnBeforeDraw += (o, e) =>
             {
+                //.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                float fps = (float)Math.Round(1.0 / e.Time, 2);
+                float ft = (float)Math.Round(e.Time * 1000.0, 2);
+                var mem = (double)GC.GetTotalMemory(false) / 1024.0 / 1024.0;
+                float MBmemory = (float)Math.Round(mem, 2);
+                string newTitle = string.Format("VEngine App | FPS: {0} | FrameTime: {1} ms | Memory: {2} megabytes", fps.ToString(System.Globalization.CultureInfo.InvariantCulture), ft.ToString(System.Globalization.CultureInfo.InvariantCulture), MBmemory.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                Game.DisplayAdapter.Title = newTitle;
                 //SettingsController.Instance.UpdatePerformance();
                 /*var jpad = OpenTK.Input.GamePad.GetState(0);
                 float deadzone = 0.15f;

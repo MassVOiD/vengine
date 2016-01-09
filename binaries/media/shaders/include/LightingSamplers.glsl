@@ -1,6 +1,5 @@
 layout(binding = 0) uniform sampler2D currentTex;
 layout(binding = 30) uniform sampler2DMS diffuseColorTex;
-layout(binding = 1) uniform sampler2DMS depthTex;
 layout(binding = 2) uniform sampler2DMS normalsTex;
 layout(binding = 3) uniform samplerCube cubeMapTex;
 layout(binding = 4) uniform sampler2D lastIndirectTex;
@@ -40,15 +39,16 @@ layout(binding = 26) uniform sampler2DShadow lightDepth20;
 uniform int MSAASamples;
 int getMSAASamples(vec2 uv){
 	float edge = texture(edgesTex, uv).r;
-	return int(mix(1, MSAASamples, edge));
+	return MSAASamples;//int(mix(1, MSAASamples, edge));
 }
 
 #define msaasamples MSAASamples
 #define msaasamplesd (1.0/msaasamples)
-vec4 textureMSAA(sampler2DMS tex, vec2 inUV){
+ivec2 txsize = textureSize(normalsTex);
+vec4 textureMSAAFull(sampler2DMS tex, vec2 inUV){
 	vec4 color11 = vec4(0.0);
 	int samples = getMSAASamples(inUV);
-	ivec2 texcoord = ivec2(textureSize(tex) * inUV); 
+	ivec2 texcoord = ivec2(vec2(txsize) * inUV); 
 	for (int i=0;i<samples;i++)
 	{
 		color11 += texelFetch(tex, texcoord, i);  
@@ -58,7 +58,6 @@ vec4 textureMSAA(sampler2DMS tex, vec2 inUV){
 	return color11;
 }
 vec4 textureMSAA(sampler2DMS tex, vec2 inUV, int samplee){
-	vec4 color11 = vec4(0.0);
-	ivec2 texcoord = ivec2(textureSize(tex) * inUV); 
+	ivec2 texcoord = ivec2(vec2(txsize) * inUV);
 	return texelFetch(tex, texcoord, samplee);  
 }

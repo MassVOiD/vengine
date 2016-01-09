@@ -12,17 +12,17 @@ namespace ShadowsTester
     {
         public LightningTestScene()
         {
-
+            /*
             Object3dInfo groundInfo = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("someterrain.obj")).Vertices);
             var w5 = Mesh3d.Create(groundInfo, GenericMaterial.FromColor(Color.Green));
             w5.GetLodLevel(0).Material.Roughness = 0.9f;
             w5.GetLodLevel(0).Material.Metalness = 0.0f;
             w5.GetInstance(0).Translate(0, -2, 0);
-            w5.GetInstance(0).Scale(100);
+            w5.GetInstance(0).Scale(100);*/
             // Game.World.Scene.Add(w5);
 
-            var hbal = Object3dManager.LoadFromRaw(Media.Get("hairball.raw"));
-            int hbalc = hbal.Vertices.Count;
+            var hbal = Object3dManager.LoadFromRaw(Media.Get("statue2.raw"));
+            /*int hbalc = hbal.Vertices.Count;
             for(int i = 0; i < hbalc; i += 3)
             {
                 var v1 = hbal.Vertices[i].Position;
@@ -32,14 +32,14 @@ namespace ShadowsTester
                 hbal.Vertices[i].Normal = n;
                 hbal.Vertices[i+1].Normal = n;
                 hbal.Vertices[i+2].Normal = n;
-            }
+            }*/
             var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
-            lucy2.GetInstance(0).Scale(0.2f);
-            lucy2.GetInstance(0).Translate(0, 20, 10);
+            lucy2.GetInstance(0).Scale(1.0f);
+            lucy2.GetInstance(0).Translate(0, 0, 0);
             lucy2.GetLodLevel(0).Material.Roughness = 1.0f;
             lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
             Game.World.Scene.Add(lucy2);
-
+            /*
             var testScene = new Scene();
             //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
             var lucyobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("sph1.obj")).Vertices);
@@ -69,7 +69,7 @@ namespace ShadowsTester
                     Game.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
                     tex.Handle = cubens.TexColor;
                 }
-            };
+            };*/
         }
     }
 }

@@ -1,5 +1,5 @@
 #version 430 core
-layout(invocations = 11) in;
+layout(invocations = 96) in;
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 72) out;
 
@@ -140,7 +140,7 @@ void GenerateGrass(vec3 start, vec3 normal, vec3 direction, vec3 tangent, float 
     }
 }
 
-#define GEO_GRASS_INSTANCES 1
+#define GEO_GRASS_INSTANCES 96
 
 mat4 rotationMatrix(vec3 axis, float angle)
 {

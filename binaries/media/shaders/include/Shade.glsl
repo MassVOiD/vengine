@@ -1,73 +1,6 @@
 
 #define PI 3.14159265
 
-
-
-float orenNayarDiffuse(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfacenormal,
-float roughness) {
-
-   // return max(0.0, dot(lightDirection, surfacenormal));
-    float LdotV = dot(lightDirection, viewDirection);
-    float NdotL = dot(lightDirection, surfacenormal);
-    float NdotV = dot(surfacenormal, viewDirection);
-
-    float s = LdotV - NdotL * NdotV;
-    float t = mix(1.0, max(0.02, max(NdotL, NdotV)), step(0.0, s));
-
-    float sigma2 = roughness * roughness;
-    float A = 1.0 + sigma2 * (1.0 / (sigma2 + 0.13) + 0.5 / (sigma2 + 0.33));
-    float B = 0.45 * sigma2 / (sigma2 + 0.09);
-
-    return max(0.0, NdotL) * (A + B * s / t) / PI;
-}
-
-float beckmannDistribution(float x, float roughness) {
-    float NdotH = max(x, 0.001);
-    float cos2Alpha = NdotH * NdotH;
-    float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
-    float roughness2 = roughness * roughness;
-    float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
-    return exp(tan2Alpha / roughness2) / denom;
-}
-
-float beckmannSpecular(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfacenormal,
-float roughness) {
-    return beckmannDistribution(dot(surfacenormal, normalize(lightDirection + viewDirection)), roughness);
-}
-
-float cookTorranceSpecular(
-vec3 lightDirection,
-vec3 viewDirection,
-vec3 surfacenormal,
-float roughness) {
-
-    float VdotN = max(dot(viewDirection, surfacenormal), 0.0001);
-    float LdotN = max(dot(lightDirection, surfacenormal), 0.0001);
-
-    //Half angle vector
-    vec3 H = normalize(lightDirection + viewDirection);
-
-    //Geometric term
-    float NdotH = max(abs(dot(surfacenormal, H)), 0.0001);
-    float VdotH = max(abs(dot(viewDirection, H)), 0.0001);
-    float LdotH = max(abs(dot(lightDirection, H)), 0.0001);
-    float G1 = (2.0 * NdotH * VdotN) / VdotH;
-    float G2 = (2.0 * NdotH * LdotN) / LdotH;
-    float G = min(1.0, min(G1, G2));
-
-    //Distribution term
-    float D = beckmannDistribution(NdotH, roughness);
-
-    //Multiply terms and done
-    return  G * D / max(3.14159265 * VdotN, 0.001);
-}
-
 float CalculateFallof( float dist){
     //return 1.0 / pow(((dist) + 1.0), 2.0);
     //return dist == 0 ? 1 : (1) / (PI*dist*dist+1);
@@ -190,12 +123,10 @@ vec3 shade(
     vec3 normal,
     vec3 fragmentPosition, 
     vec3 lightPosition, 
-    vec4 lightColor, 
+    vec3 lightColor, 
     float roughness, 
-    float metalness, 
     bool ignoreAtt
 ){
-	lightColor.rgb *= lightColor.a;
     vec3 lightRelativeToVPos =normalize( lightPosition - fragmentPosition);
     
     vec3 cameraRelativeToVPos = -normalize(fragmentPosition - camera);
@@ -215,50 +146,48 @@ vec3 shade(
         cameraRelativeToVPos,
         lightRelativeToVPos,
         clamp(roughness, 0.005, 0.99),
-		mix(albedo * lightColor.rgb, albedo, metalness)
+		mix(albedo * lightColor, albedo, roughness)
         );
     
     float diffuseComponent = 0*max(0, dot(lightRelativeToVPos, normal));
 
-    vec3 cc = lightColor.rgb*albedo;
+    vec3 cc = lightColor*albedo;
     vec3 difcolor = cc * diffuseComponent * att;
     return specularComponent;
 }
 
 vec3 shadePhoton(vec2 uv, vec3 color){
-    vec3 albedo = textureMSAA(diffuseColorTex, uv).rgb;
+    vec3 albedo = textureMSAA(diffuseColorTex, uv, 0).rgb;
     return color*albedo;
 }
 vec3 shadePhotonSpecular(vec2 uv, vec3 color){
-    vec3 albedo = textureMSAA(diffuseColorTex, uv).rgb;
-    float metalness =  textureMSAA(normalsTex, uv).a;
-    return mix(color * albedo, color, metalness);
+    vec3 albedo = textureMSAA(diffuseColorTex, uv, 0).rgb;
+    float roughness =  textureMSAA(diffuseColorTex, uv, 0).a;
+    return mix(color * albedo, color, 1.0 - roughness);
 }
 
 vec3 shadeUV(vec2 uv,
     vec3 lightPosition, 
-    vec4 lightColor
+    vec3 lightColor
 ){
-    vec3 position = FromCameraSpace(reconstructCameraSpace(uv));
-    vec3 albedo = textureMSAA(diffuseColorTex, uv).rgb;
-    vec3 normal = normalize(textureMSAA(normalsTex, uv).rgb);
+    vec3 position = FromCameraSpace(reconstructCameraSpace(uv, 0));
+    vec3 albedo = textureMSAA(diffuseColorTex, uv, 0).rgb;
+    vec3 normal = normalize(textureMSAA(normalsTex, uv, 0).rgb);
       
-    float roughness = textureMSAA(diffuseColorTex, uv).a;
-    float metalness =  textureMSAA(normalsTex, uv).a;
-    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, false);
+    float roughness = textureMSAA(diffuseColorTex, uv, 0).a;
+    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, false);
 }
 
 vec3 shadeUVNoAtt(vec2 uv,
     vec3 lightPosition, 
-    vec4 lightColor
+    vec3 lightColor
 ){
-    vec3 position = FromCameraSpace(reconstructCameraSpace(uv));
-    vec3 albedo = textureMSAA(diffuseColorTex, uv).rgb;
-    vec3 normal = normalize(textureMSAA(normalsTex, uv).rgb);
+    vec3 position = FromCameraSpace(reconstructCameraSpace(uv, 0));
+    vec3 albedo = textureMSAA(diffuseColorTex, uv, 0).rgb;
+    vec3 normal = normalize(textureMSAA(normalsTex, uv, 0).rgb);
       
-    float roughness = textureMSAA(diffuseColorTex, uv).a;
-    float metalness =  textureMSAA(normalsTex, uv).a;
-    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, metalness, true);
+    float roughness = textureMSAA(diffuseColorTex, uv, 0).a;
+    return shade(CameraPosition, albedo, normal, position, lightPosition, lightColor, roughness, true);
 }
 
 

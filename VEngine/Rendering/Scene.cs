@@ -8,7 +8,7 @@ namespace VEngine
     {
         private List<byte> Buffer;
 
-        private List<Vector4> colors = new List<Vector4>();
+        private List<Vector3> colors = new List<Vector3>();
 
         private List<float> fplanes = new List<float>();
 
@@ -26,7 +26,7 @@ namespace VEngine
 
         private int SimpleLightsCount = 0;
 
-        private ShaderStorageBuffer SSBO = new ShaderStorageBuffer(OpenTK.Graphics.OpenGL4.BufferTarget.UniformBuffer);
+        private ShaderStorageBuffer SSBO = new ShaderStorageBuffer();
 
         private List<Matrix4> vmats = new List<Matrix4>();
 
@@ -36,6 +36,7 @@ namespace VEngine
 
         public Scene()
         {
+            SSBO.Type = OpenTK.Graphics.OpenGL4.BufferUsageHint.DynamicDraw;
         }
 
         public void Add(Scene e)
@@ -98,7 +99,7 @@ namespace VEngine
 
         public void MapLightsSSBOToShader(ShaderProgram sp)
         {
-            SSBO.Use(5);
+            SSBO.Use(6);
             ShaderProgram.Current.SetUniform("SimpleLightsCount", SimpleLightsCount);
         }
 
@@ -106,12 +107,6 @@ namespace VEngine
         {
             Buffer = new List<byte>();
             SimpleLightsCount = 0;
-            RecreateSimpleLightsSSBO(Matrix4.Identity);
-            if(Buffer.Count > 0)SSBO.MapData(Buffer.ToArray());
-        }
-
-        public void RecreateSimpleLightsSSBO(Matrix4 parentTransformation)
-        {
             bool update = false;
             foreach(var e in Lights)
             {
@@ -119,18 +114,21 @@ namespace VEngine
                 {
                     if((e as SimplePointLight).Transformation.HasBeenModified())
                         update = true;
-                    Buffer.AddRange(Bytes(e.GetPosition(), e is IShadowMapableLight ? 1 : 0));
-                    Buffer.AddRange(Bytes(e.GetColor()));
+                    Buffer.AddRange(Bytes((e as SimplePointLight).Transformation.GetPosition()));
+                    Buffer.AddRange(Bytes((e as SimplePointLight).Transformation.GetOrientation().ToDirection()));
+                    Buffer.AddRange(Bytes(e.GetColor(), (e as SimplePointLight).Angle));
+                    Buffer.AddRange(Bytes(e.GetColor(), (e as SimplePointLight).Angle));
 
                     SimpleLightsCount++;
                 }
             }
-            if(!update)
-                Buffer = new List<byte>();
-            else if(Buffer.Count == 0)
-                Buffer.Add(0);
+            // if(!update)
+            //      Buffer = new List<byte>();
+            //  else if(Buffer.Count == 0)
+            //       Buffer.Add(0);
+            SSBO.MapData(Buffer.ToArray());
         }
-
+        
         public void Remove(ILight e)
         {
             Lights.Remove(e);
@@ -147,7 +145,7 @@ namespace VEngine
             vmats = new List<Matrix4>();
             poss = new List<Vector3>();
             fplanes = new List<float>();
-            colors = new List<Vector4>();
+            colors = new List<Vector3>();
             mmodes = new List<int>();
             ipointer = 0;
 
@@ -174,7 +172,7 @@ namespace VEngine
             vmats = new List<Matrix4>();
             poss = new List<Vector3>();
             fplanes = new List<float>();
-            colors = new List<Vector4>();
+            colors = new List<Vector3>();
             mmodes = new List<int>();
         }
 
@@ -195,6 +193,32 @@ namespace VEngine
             b.AddRange(BitConverter.GetBytes(vec.Y));
             b.AddRange(BitConverter.GetBytes(vec.Z));
             b.AddRange(BitConverter.GetBytes(additional));
+            return b;
+        }
+
+        private static List<byte> Bytes(Matrix4 v)
+        {
+            var b = new List<byte>();
+            b.AddRange(BitConverter.GetBytes(v.Row0.X));
+            b.AddRange(BitConverter.GetBytes(v.Row0.Y));
+            b.AddRange(BitConverter.GetBytes(v.Row0.Z));
+            b.AddRange(BitConverter.GetBytes(v.Row0.W));
+
+            b.AddRange(BitConverter.GetBytes(v.Row1.X));
+            b.AddRange(BitConverter.GetBytes(v.Row1.Y));
+            b.AddRange(BitConverter.GetBytes(v.Row1.Z));
+            b.AddRange(BitConverter.GetBytes(v.Row1.W));
+
+            b.AddRange(BitConverter.GetBytes(v.Row2.X));
+            b.AddRange(BitConverter.GetBytes(v.Row2.Y));
+            b.AddRange(BitConverter.GetBytes(v.Row2.Z));
+            b.AddRange(BitConverter.GetBytes(v.Row2.W));
+
+            b.AddRange(BitConverter.GetBytes(v.Row3.X));
+            b.AddRange(BitConverter.GetBytes(v.Row3.Y));
+            b.AddRange(BitConverter.GetBytes(v.Row3.Z));
+            b.AddRange(BitConverter.GetBytes(v.Row3.W));
+
             return b;
         }
 

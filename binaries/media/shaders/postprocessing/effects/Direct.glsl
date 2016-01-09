@@ -9,8 +9,8 @@ float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) {
     for(float i=0;i<1.0;i+= 0.012) { 
         vec2 ruv = mix(sspace1, sspace2, i);
         if(ruv.x<0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1) continue;
-        vec3 wd = reconstructCameraSpace(ruv);
-		float m = textureMSAA(normalsTex, ruv).a;
+        vec3 wd = reconstructCameraSpace(ruv, 0);
+		float m = textureMSAA(normalsTex, ruv, 0).a;
 		if(m > 1.0) continue;
         float rd3d = length(wd);
         float inter = mix(d3d1, d3d2, i);
@@ -82,10 +82,12 @@ vec3 areaExperiment(
 struct SimpleLight
 {
     vec4 Position;
+    vec4 Direction;
     vec4 Color;
+    vec4 alignment;
 };
 
-layout (std430, binding = 5) buffer SLBf
+layout (std430, binding = 6) buffer SLBf
 {
     SimpleLight simpleLights[]; 
 }; 
@@ -94,12 +96,11 @@ vec3 DirectLight(
 	vec3 albedo, 
 	vec3 normal,
 	vec3 position, 
-	float roughness, 
-	float metalness
+	float roughness
 ){
     vec3 color1 = vec3(0);
 	
-	float parallax = step(100.0, metalness);
+	//float parallax = step(100.0, metalness);
 	//metalness = fract(metalness);
 	
     for(int i=0;i<LightsCount;i++){
@@ -114,15 +115,20 @@ vec3 DirectLight(
             percent = getShadowPercent(lightScreenSpace, position, i);
 
         }
-        vec3 radiance = shade(camera, albedo, normal, position, LightsPos[i], LightsColors[i], roughness, metalness, false);
+        vec3 radiance = shade(camera, albedo, normal, position, LightsPos[i], LightsColors[i].rgb, roughness, false);
 		//float dx = parallax == 1 ? 1.0 : testVisibility3d(UV, position, position + normalize(LightsPos[i] - position) * 0.06);
         color1 += (radiance) * percent;
-    }
+    }/*
     for(int i=0;i<SimpleLightsCount;i++){
 		vec3 pos = simpleLights[i].Position.xyz;
-		vec4 col = simpleLights[i].Color;
-		color1 += shade(camera, albedo, normal, position, pos, col, roughness, metalness, false) * AOValue;
-	}
+		vec3 n = simpleLights[i].Direction.xyz;
+		float angle = cos(simpleLights[i].Color.a);
+		float dt = dot(normalize(position - pos), n);
+		float factor = smoothstep(angle, 1.0, dt);
+		//float cosangle = 
+		vec3 col = simpleLights[i].Color.rgb;
+		color1 += shade(camera, albedo, normal, position, pos, col, roughness, false) * AOValue;
+	}*/
 	
 	return color1;
 }

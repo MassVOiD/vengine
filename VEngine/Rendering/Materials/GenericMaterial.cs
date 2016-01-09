@@ -74,8 +74,8 @@ namespace VEngine
                 Geometry96iTriangles;
 
             public List<ShaderProgram> ProgramsList;
-
-            public ShaderPack(string fs)
+             
+            public ShaderPack(string fs = null)
             {
                 ProgramsList = new List<ShaderProgram>();
                 if(Program == null)

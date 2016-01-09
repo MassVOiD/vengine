@@ -49,9 +49,10 @@ float getRand(){
 }
 
 vec3 lookupFog(vec2 fuv){
+	return texture(fogTex, fuv).rgb;/*
     vec3 outc = vec3(0);
     int counter = 0;
-    float depthCenter = textureMSAA(depthTex, fuv).r;
+    float depthCenter = textureMSAA(normalsTex, fuv, 0).a;
     for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO)
     {
         for(float g2 = 0; g2 < 6.0; g2+=1.0)
@@ -65,7 +66,7 @@ vec3 lookupFog(vec2 fuv){
             }
         }
     }
-    return counter == 0 ? texture(fogTex, fuv).rgb : outc / counter;
+    return counter == 0 ? texture(fogTex, fuv).rgb : outc / counter;*/
 }
 vec3 random3dSample(){
     return normalize(vec3(
@@ -121,7 +122,7 @@ vec3 lightPoints(){
 		if(clipspace.z < 0.0) continue;
 
         float badass_depth = distance(LightsPos[i], CameraPosition);
-        float logg = length(reconstructCameraSpace(sspace1));
+        float logg = length(reconstructCameraSpace(sspace1, 0));
         float mixv = 1.0 - smoothstep(0.1, 2.5, distance(sspace1*resolution.xy * 0.01, UV*resolution.xy * 0.009));
 
         if(logg > badass_depth) {
@@ -146,20 +147,19 @@ float getAO(vec2 uv, vec3 normal){
 //return texture(aoTex, uv).a;
     float outc = 0.0;
     float counter = 0;
-    float depthCenter = reverseLog(textureMSAA(depthTex, uv, 0).r);
 	float pixel = 1.0 / textureSize(aoTex, 0).y;
     for(float g = 0; g < mPI2; g+=0.412123)
     {
         for(float g2 = 0; g2 < 1.0; g2+=0.25)
         {
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * g2 * 0.005 + pixel);
-            vec3 n = texture(aoTex, uv + gauss).rgb;
-            float ao = texture(aoTex, uv + gauss).a;
+            vec4 aon = texture(aoTex, uv + gauss).rgba;
+           // float ao = texture(aoTex, uv + gauss).a;
             //if(dot(n, normal) > 0.8){
-			float dp = reverseLog(textureMSAA(depthTex, uv + gauss, 0).r);
+			//float dp = reverseLog(texture(depthTex, uv + gauss, 0).r);
 			// 
-			float force = pow(max(0.0, dot(n, normal)), 16) * max(0.0, 0.01 - abs(dp - depthCenter));
-			outc += ao * force;
+			float force = pow(max(0.0, dot(aon.rgb, normal)), 16);
+			outc += aon.a * force;
 			counter += force;
             //}
         }
@@ -168,10 +168,10 @@ float getAO(vec2 uv, vec3 normal){
 }
 
 
-vec3 ApplyLighting(vec2 uv, vec3 albedo, vec3 position, vec3 normal, float roughness, float metalness, float IOR){
-	if(UseHBAO == 1) AOValue = pow(getAO(uv, normal), 5);
-	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness, metalness);
-	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, fract(metalness), roughness, IOR);
+vec3 ApplyLighting(vec2 uv, vec3 albedo, vec3 position, vec3 normal, float roughness, float IOR){
+	if(UseHBAO == 1) AOValue = pow(getAO(uv, normal), 1);
+	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness);
+	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, roughness, IOR);
 
 	
     if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
@@ -180,8 +180,8 @@ vec3 ApplyLighting(vec2 uv, vec3 albedo, vec3 position, vec3 normal, float rough
 	return directlight;
 }
 
-vec3 ApplyLighting(vec3 albedo, vec3 position, vec3 normal, float roughness, float metalness, float IOR){
-	return ApplyLighting(gl_FragCoord.xy / resolution.xy, albedo, position, normal, roughness, metalness, IOR);
+vec3 ApplyLighting(vec3 albedo, vec3 position, vec3 normal, float roughness, float IOR){
+	return ApplyLighting(gl_FragCoord.xy / resolution.xy, albedo, position, normal, roughness, IOR);
 }
 
 mat2 m = mat2( 0.90,  0.110, -0.70,  1.00 );
@@ -255,9 +255,9 @@ vec3 clouds(vec2 position){
 vec2 newUV = UV;
 bool skipwater = false;
 vec3 Lightning(){
-    vec3 normal = normalize(textureMSAA(normalsTex, newUV).rgb);
+    vec3 normal = normalize(textureMSAA(normalsTex, newUV, 0).rgb);
     if(length(normal) < 0.01){ 
-		vec3 cdir = normalize(reconstructCameraSpace(newUV));
+		vec3 cdir = normalize(reconstructCameraSpace(newUV, 0));
 		float dst = intersectPlane(Ray(CameraPosition, cdir), vec3(0, 100, 0), vec3(0, -1, 0));
 		if(cdir.y < -0.001) return vec3(0);
 		vec3 np = CameraPosition + cdir * dst;
@@ -270,9 +270,8 @@ vec3 Lightning(){
 		vec3 albedo = textureMSAA(diffuseColorTex, newUV, i).rgb;
 		vec3 position = FromCameraSpace(reconstructCameraSpace(newUV, i));
 		float roughness = textureMSAA(diffuseColorTex, newUV, i).a;
-		float metalness =  textureMSAA(normalsTex, newUV, i).a;
 		float IOR =  0.0;
-		accum += ApplyLighting(newUV, albedo, position, normal, roughness, metalness, IOR);
+		accum += ApplyLighting(newUV, albedo, position, normal, roughness, IOR);
 	}
 	return accum / samples;
 }
@@ -312,7 +311,7 @@ vec2 distortUV(vec2 uv, vec2 displ){
 float WaterLightingMult = 0.0;
 vec3 ApplyWater(){
 	if(skipwater)return vec3(0);
-	vec3 recon = reconstructCameraSpace(UV);
+	vec3 recon = reconstructCameraSpace(UV, 0);
 	float dd = length(recon);
 	vec3 vdir = normalize(recon);
 	float waterheight = -10;
@@ -327,10 +326,9 @@ vec3 ApplyWater(){
 		normal.xz *= 0.1;
 		normal = normalize(normal);
 		float roughness = 0.1;
-		float metalness = 0.3;
 		float IOR = 0.5;
 		//newUV = refractUV(UV, position, normal);
-		oc = ApplyLighting(newUV, albedo, position, normal, roughness, metalness, IOR);
+		oc = ApplyLighting(newUV, albedo, position, normal, roughness, IOR);
 		oc =  mix(vec3(0.8, 0.8, 0.84), oc, dot(vdir, -normal));
 		
 	}
@@ -338,7 +336,7 @@ vec3 ApplyWater(){
 	float tA = getwater(FromCameraSpace(recon).xz) + 1.0;
 	if(CameraPosition.y < waterheight) 
 		newUV = distortUV(newUV, vec2(snoise(vec3(UV*7,Time)), snoise(vec3(UV*7,-Time))));
-    vec3 normal = normalize(textureMSAA(normalsTex, newUV).rgb);
+    vec3 normal = normalize(textureMSAA(normalsTex, newUV, 0).rgb);
 	WaterLightingMult = max(0, sign(waterheight - FromCameraSpace(recon).y)) * pow(tA, 5) * max(0,dot(normal, vec3(0,1,0)));
 	return oc;
 }
@@ -351,6 +349,7 @@ void main()
     if(UseDeferred == 1) {
 		//color1 += texture(edgesTex, newUV).rrr;
 		vec3 l = Lightning();
+		
 		vec3 water = ApplyWater();
         color1 += water + l * (1.0 + WaterLightingMult);
 		
@@ -361,22 +360,22 @@ void main()
 		//color1 += rc * 0.1;
         //color1 += UseHBAO == 1 ? (softLuminance(nUV) * texture(HBAOTex, nUV).a) : (softLuminance(nUV));
     } else {
-		color1 = textureMSAA(diffuseColorTex, UV).rgb;
+		color1 = textureMSAA(diffuseColorTex, UV, 0).rgb;
 	}
     
     //color1 += texture(HBAOTex, nUV).rrr;
-    color1 += lightPoints();
+    //color1 += lightPoints();
     if(UseFog == 1) color1 += lookupFog(nUV);
 
     if(UseDepth == 1) color1 += emulateSkyWithDepth(nUV);
 
-    centerDepth = textureMSAA(depthTex, UV).r;
+   // centerDepth = texture(depthTex, UV, 0).r;
 
-    gl_FragDepth = centerDepth;
+   // gl_FragDepth = centerDepth;
 
-	if(DisablePostEffects == 0){
-		color1 *= Brightness;
-	}
+	//if(DisablePostEffects == 0){
+	//	color1 *= Brightness;
+	//}
     //float Y = dot(vec3(0.30, 0.59, 0.11), color1);
     //float YD = Brightness * (Brightness + 1.0) / (Brightness + 1.0);
     //color1 *= YD * Y;

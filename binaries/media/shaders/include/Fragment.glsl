@@ -88,7 +88,7 @@ vec3 examineBumpMap(){
 }
 
 void finishFragment(vec4 incolor, vec2 UV){
-	if(incolor.a < 0.01) discard;
+	if(incolor.a < 0.9999) discard;
 	
     vec4 color = incolor;
     vec3 wpos = Input.WorldPos;
@@ -162,6 +162,6 @@ void finishFragment(vec4 incolor, vec2 UV){
   //  else outSpecular = SpecularComponent;
     
 	outColor = vec4((color.xyz), clamp(outRoughness, 0.0, 1.0));
-	outNormals = vec4(rn, outMetalness);
-	updateDepthFromWorldPos(wpos);
+	outNormals = vec4(rn, distance(wpos, CameraPosition));
+	//updateDepthFromWorldPos(wpos);
 }

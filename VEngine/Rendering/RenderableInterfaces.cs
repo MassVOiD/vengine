@@ -25,7 +25,7 @@ namespace VEngine
 
     public interface ILight
     {
-        Vector4 GetColor();
+        Vector3 GetColor();
 
         Vector3 GetPosition();
     }

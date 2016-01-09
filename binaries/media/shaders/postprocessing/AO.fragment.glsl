@@ -19,13 +19,13 @@ void main()
 		outColor = vec4(vec3(1), 1);
 		return;
     }*/
+    float len = textureMSAA(normalsTex, UV, 0).a;
     vec3 position = FromCameraSpace(reconstructCameraSpace(UV, 0));
     vec3 normal = textureMSAA(normalsTex, UV, 0).rgb;
-	normal += step(0, -length(normal));
+	//normal += step(0, -length(normal));
     float roughness = textureMSAA(diffuseColorTex, UV, 0).a;
-    float metalness =  textureMSAA(normalsTex, UV, 0).a;
 
-	float ao = AmbientOcclusion(position, normalize(normal), roughness, metalness);
+	float ao = AmbientOcclusion(position, normalize(normal), roughness);
 
     outColor = vec4(normal, ao);
 }

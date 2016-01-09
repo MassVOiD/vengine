@@ -260,8 +260,8 @@ vec3(0.02812528, -0.296092, 0.9547452),
 vec3(0.186646, -0.2315703, 0.9547452),
 vec3(0.245812, -0.1674455, 0.9547452),
 vec3(0.2905201, -0.06371486, 0.9547452)
-);*/
-
+);
+*/
 vec3 samplesarray[36] = vec3[36](
 vec3(0.954709, 0.2502625, 0.1609335),
 vec3(-0.3194602, 0.9338338, 0.1609334),
@@ -307,10 +307,10 @@ float AmbientOcclusionSingle(
     float roughness,
     float hemisphereSize
 ){
-	//normal = normalize(cross(
-	//	dFdx(position),
-	//	dFdy(position)
-	//));
+    //normal = normalize(cross(
+    //  dFdx(position),
+    //  dFdy(position)
+    //));
     vec3 posc = ToCameraSpace(position);
     vec3 tangent = normalize(cross(normal, vec3(0,1,1)));
     
@@ -323,37 +323,42 @@ float AmbientOcclusionSingle(
     float buf = 0.0;
     vec3 dir = normalize(reflect(posc, normal));
     float ringsize = min(length(posc), hemisphereSize);
-    float iringsize = 1.0/min(length(posc), hemisphereSize);
+	
+	//float dpc = texture(depthTex, UV).r;
+	
     roughness = 1.0 - roughness;
-	float trrough = (roughness * roughness) * 0.7 + 0.3;
+    float trrough = (roughness * roughness) * 0.7;
     float rot = rand2s(UV) * PI * 2;
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
-	const float[] rings = float[](0.25, 0.50, 0.75, 1.0);
-    for(int g = 0; g < 36; ++g)
+    const float[] rings = float[](0.05, 0.15, 0.25, 0.33, 0.5, 1.0);
+    for(int g = 0; g < samplesarray.length(); ++g)
     {
         vec3 smpl = samplesarray[g];
         smpl.xy = RM * smpl.xy;
         vec3 displace = normalize(mix(TBN * smpl, dir, trrough)) * ringsize;
         
         vec2 gauss = HBAO_projectOnScreen(position + displace);
-		// values 0.0, 0.25, 0.50, 0.75, 1.0
-		for(int m = 0;m < rings.length(); ++m){
-			vec3 pos = reconstructCameraSpace(mix(UV, gauss, rings[m]), 0);
+        // values 0.0, 0.25, 0.50, 0.75, 1.0
+		float mangl = 0;
+        for(int m = 0;m < rings.length(); ++m){
+            vec3 pos = reconstructCameraSpace(mix(UV, gauss, rings[m]), 0);
 			
-			float dt = max(0, dot(normal, normalize(pos - posc)));
-			buf += dt * ((ringsize - min(length(pos - posc), ringsize))*iringsize);
-		}
+            float dt = max(0, dot(normal, normalize(pos - posc)));
+			float rg = ringsize * rings[m] * 3;
+			float fact = smoothstep(1.0, 0.0, max(0, distance(pos, posc) / rg - 0.5));
+            mangl = max(dt, mangl) * fact;
+        }
+		buf += mangl;
     }
-    return pow(clamp(1.0 - (buf/(36 * rings.length())), 0.0, 1.0), 2.2);
+    return clamp(1.0 - (buf/(samplesarray.length())), 0.0, 1.0);
 }
 
 float AmbientOcclusion(
-	vec3 position,
-	vec3 normal,
-	float roughness,
-	float metalness
+    vec3 position,
+    vec3 normal,
+    float roughness
 ){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AmbientOcclusionSingle(position, normal, roughness, 0.4);
+    ao = AmbientOcclusionSingle(position, normal, roughness, 0.2);
     return ao;
 }

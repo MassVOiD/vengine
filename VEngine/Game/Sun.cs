@@ -6,12 +6,12 @@ namespace VEngine
     public class Sun
     {
         public static Sun Current;
-        public Vector4 LightColor;
+        public Vector3 LightColor;
         public Quaternion Orientation;
 
         private Dictionary<float, ProjectionLight> Cascades;
 
-        public Sun(Quaternion orientation, Vector4 color, params float[] levels)
+        public Sun(Quaternion orientation, Vector3 color, params float[] levels)
         {
             Current = this;
             LightColor = color;
@@ -49,12 +49,12 @@ namespace VEngine
                 if(heightPrcentage >= 0)
                 {
                     var color = Vector3.Lerp(new Vector3(0.988f, 0.924f, 0.63f), new Vector3(1, 1, 1), heightPrcentage);
-                    c.Value.LightColor = new Vector4(color, LightColor.W);
+                    c.Value.LightColor = new Vector3(color);
                 }
                 else
                 {
                     // moon
-                    c.Value.LightColor = new Vector4(0.86f, 0.86f, 1, LightColor.W / 5);
+                    c.Value.LightColor = new Vector3(0.86f, 0.86f, 1);
                     dir.Xz = dir.Zx;
                     newlocationAbstract = Camera.MainDisplayCamera.GetPosition() + dir * 1300;
                     newlocationCamera = Camera.MainDisplayCamera.GetPosition();

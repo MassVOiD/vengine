@@ -37,9 +37,9 @@ namespace VEngine
 
         private string VertexFile;
 
-        private string VertexSource, FragmentSource, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
+        private string VertexSource, FragmentSource = null, GeometrySource = null, TessControlSource = null, TessEvaluationSource = null;
 
-        private ShaderProgram(string vertexFile, string fragmentFile, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
+        private ShaderProgram(string vertexFile, string fragmentFile = null, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
         {
             ValuesMap = new Dictionary<string, object>();
             VertexFile = vertexFile;
@@ -59,9 +59,9 @@ namespace VEngine
             Locked
         }
 
-        public static ShaderProgram Compile(string vertex, string fragment, string geometry = null, string tesscontrol = null, string tesseval = null)
+        public static ShaderProgram Compile(string vertex, string fragment = null, string geometry = null, string tesscontrol = null, string tesseval = null)
         {
-            string concatedNames = vertex + fragment + geometry + (tesscontrol != null ? tesscontrol : "notess") + (tesseval != null ? tesseval : "notessev");
+            string concatedNames = vertex + (fragment != null ? fragment : "nofrag") + (geometry != null ? geometry : "nogeo") + (tesscontrol != null ? tesscontrol : "notess") + (tesseval != null ? tesseval : "notessev");
 
             var cached = ShaderCache.GetShaderProgramOrNull(concatedNames);
             if(cached != null)
@@ -86,7 +86,10 @@ namespace VEngine
             UniformLocationsCache = new Dictionary<string, int>();
 
             VertexSource = ShaderPreparser.Preparse(VertexFile, Media.ReadAllText(VertexFile));
-            FragmentSource = ShaderPreparser.Preparse(FragmentFile, Media.ReadAllText(FragmentFile));
+            if(FragmentFile != null)
+            {
+                FragmentSource = ShaderPreparser.Preparse(FragmentFile, Media.ReadAllText(FragmentFile));
+            }
             if(GeometryFile != null)
             {
                 GeometrySource = ShaderPreparser.Preparse(GeometryFile, Media.ReadAllText(GeometryFile));
@@ -367,9 +370,12 @@ namespace VEngine
             int vertexShaderHandle = CompileSingleShader(ShaderType.VertexShader, VertexSource);
             GL.AttachShader(Handle, vertexShaderHandle);
 
-            Console.WriteLine("Compiling fragment shader {0}", FragmentFile);
-            int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, FragmentSource);
-            GL.AttachShader(Handle, fragmentShaderHandle);
+            if(FragmentSource != null)
+            {
+                Console.WriteLine("Compiling fragment shader {0}", FragmentFile);
+                int fragmentShaderHandle = CompileSingleShader(ShaderType.FragmentShader, FragmentSource);
+                GL.AttachShader(Handle, fragmentShaderHandle);
+            }
 
             if(TessControlSource != null && TessEvaluationSource != null)
             {

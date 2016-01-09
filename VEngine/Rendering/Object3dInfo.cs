@@ -179,8 +179,8 @@ namespace VEngine
             var varray = VBO.ToArray();
             
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(sizeof(float) * VBO.Length), varray, BufferUsageHint.StaticDraw);
-            varray = null;
-            VBO = null;
+           // varray = null;
+           // VBO = null;
 
             GL.EnableVertexAttribArray(0);
             GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 4 * 12, 0);
@@ -193,12 +193,15 @@ namespace VEngine
             
             GL.EnableVertexAttribArray(3);
             GL.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, 4 * 12, 4 * 8);
+
+            GL.Finish();
             
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             
             AreBuffersGenerated = true;
+            Draw();
         }
         
     }

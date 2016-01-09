@@ -29,7 +29,6 @@ vec3 EnvironmentLight(
 	vec3 albedo,
 	vec3 position, 
 	vec3 normal, 
-	float metalness, 
 	float roughness, 
 	float IOR)
 
@@ -41,18 +40,17 @@ vec3 EnvironmentLight(
 	 
     //vec3 reflected = textureLod(cubeMapTex, normal, 6).rgb;
     vec3 reflected = MMAL(normal, dir, roughness);
-	reflected = mix(albedo * reflected, reflected, metalness);
+	reflected = mix(albedo * reflected, reflected, 1.0 - roughness);
 	
-    if(metalness < 1.0){
-        vec3 diffused = MMAL(normal, dir, 1.0) * albedo;
-        reflected = mix((reflected + diffused)*0.5, reflected, metalness);
-    }
+	vec3 diffused = MMAL(normal, dir, 1.0) * albedo;
+	reflected = mix((reflected + diffused)*0.5, reflected, 1.0 - roughness);
+    
 	//IOR = 1.0;
 	vec3 refracted = vec3(0);
     if(IOR > 0){
 		vec3 dir2 = normalize(refract(cameraspace, normal, 0.1));
         refracted = MMAL(-normal, dir2, roughness) * IOR;
-		refracted = mix(refracted*albedo, refracted, metalness);
+		refracted = mix(refracted*albedo, refracted, 1.0 - roughness);
     }
 	
     return makeFresnel(1.0 - max(0, dot(normal, vdir)), (reflected + refracted) * VDAOGlobalMultiplier);

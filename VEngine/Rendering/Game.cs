@@ -33,11 +33,14 @@ namespace VEngine
         static public event EventHandler<FrameEventArgs> OnBeforeDraw, OnAfterDraw;
         static public event EventHandler OnLoad;
 
-        static public float CurrentFPS = 0;
+        static public int MSAASamples = 2;
 
-        static public void Initialize(Size resolution, string mediapath, GameWindowFlags flags = GameWindowFlags.Default)
+        static public float CurrentFrameTime = 0;
+
+        static public void Initialize(Size resolution, int msaasamples, string mediapath, GameWindowFlags flags = GameWindowFlags.Default)
         {
             StartTime = DateTime.Now;
+            MSAASamples = msaasamples;
             World = new World();
             Media.SearchPath = mediapath;
             Media.LoadFileMap();
@@ -85,11 +88,11 @@ namespace VEngine
 
         static public void CheckErrors(string message = "Global")
         {
-           // var error = GL.GetError();
-           // if(error != ErrorCode.NoError)
-           // {
-           //     Console.WriteLine(message + ":: " + error.ToString());
-           // }
+           var error = GL.GetError();
+           if(error != ErrorCode.NoError)
+           {
+               Console.WriteLine(message + ":: " + error.ToString());
+           }
         }
 
         static public System.Timers.Timer CreateTimer(Action func, int interval)

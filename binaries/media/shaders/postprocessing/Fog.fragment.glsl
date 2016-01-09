@@ -41,14 +41,14 @@ vec3 raymarchFog(vec3 start, vec3 end){
             float fogNoise = 1.0;
 	
             vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
+            float frfuvz = (lightClipSpace.xyz / lightClipSpace.w).z;
 			//float idle = 1.0 / 1000.0 * fogNoise * fogMultiplier * distanceMult;
 			float idle = 0.0;
 			if(lightClipSpace.z < 0.0 || frfuv.x < 0.0 || frfuv.x > 1.0 || frfuv.y < 0.0 || frfuv.y > 1.0){ 
 				fogDensity += idle;
 				continue;
             }
-            float badass_depth = toLogDepth(distance(pos, LightsPos[i]));
-            float diff = (lookupDepthFromLight(i, frfuv, badass_depth));
+            float diff = (lookupDepthFromLight(i, frfuv, frfuvz));
 			if(diff > 0) {
 				float culler = 1;//clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float fogNoise = 1.0;
@@ -64,7 +64,7 @@ vec3 raymarchFog(vec3 start, vec3 end){
 }
 
 vec3 makeFog(){
-	vec3 cspaceEnd = reconstructCameraSpace(UV);
+	vec3 cspaceEnd = reconstructCameraSpace(UV, 0);
     if(length(cspaceEnd) > 80) cspaceEnd = normalize(cspaceEnd) * 80;
 	vec3 fragmentPosWorld3d = FromCameraSpace(cspaceEnd);
     return vec3(raymarchFog(CameraPosition, fragmentPosWorld3d));
@@ -72,5 +72,5 @@ vec3 makeFog(){
 
 void main()
 {
-    outColor = vec4(makeFog(), textureMSAA(depthTex, UV).r);
+    outColor = vec4(makeFog(), 1);
 }
