@@ -19,17 +19,17 @@ namespace ShadowsTester
         [STAThread]
         private static void Main(string[] args)
         {
-            Game.Initialize(new Size(Config.Width, Config.Height), 4, Config.MediaPath, GameWindowFlags.FixedWindow);
+            Game.Initialize(new Size(Config.Width, Config.Height), 1, Config.MediaPath, GameWindowFlags.FixedWindow);
 
             var freeCamera = Commons.SetUpFreeCamera();
             //System.Threading.Thread.Sleep(1100);
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
-           // new OldCityScene();
+            new OldCityScene();
             //new LightningTestScene();
 
-            new DragonScene();
+            //new DragonScene();
             /*
             var samples = VEngine.PathTracing.JitterRandomSequenceGenerator.EvenlySampledHemisphere(6, 6);
             var os = "";

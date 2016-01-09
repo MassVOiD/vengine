@@ -34,14 +34,14 @@ vec3 raymarchFog(vec3 start, vec3 end){
             float distanceMult = stepsize;
             //float distanceMult = 5;
             lastPos = pos;
-			float att = CalculateFallof(distance(pos, LightsPos[i])) * LightsColors[i].a;
+			float att = CalculateFallof(distance(pos, LightsPos[i]));
 			//att = 1;
 			lightClipSpace = lightPV * vec4(pos, 1.0);
 			
             float fogNoise = 1.0;
 	
             vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
-            float frfuvz = (lightClipSpace.xyz / lightClipSpace.w).z;
+            float frfuvz = (lightClipSpace.z / lightClipSpace.w) * 0.5 + 0.5;
 			//float idle = 1.0 / 1000.0 * fogNoise * fogMultiplier * distanceMult;
 			float idle = 0.0;
 			if(lightClipSpace.z < 0.0 || frfuv.x < 0.0 || frfuv.x > 1.0 || frfuv.y < 0.0 || frfuv.y > 1.0){ 
@@ -52,7 +52,7 @@ vec3 raymarchFog(vec3 start, vec3 end){
 			if(diff > 0) {
 				float culler = 1;//clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
 				//float fogNoise = 1.0;
-				fogDensity += idle + 1.0 / 200.0 * culler * fogNoise * fogMultiplier * att * distanceMult;
+				fogDensity += idle + 1.0 / 20.0 * culler * fogNoise * fogMultiplier * att * distanceMult;
 			} else {
 				fogDensity += idle;
 			}
@@ -72,5 +72,5 @@ vec3 makeFog(){
 
 void main()
 {
-    outColor = vec4(makeFog(), 1);
+    outColor = vec4(makeFog(), textureMSAA(normalsTex, UV, 0).a);
 }

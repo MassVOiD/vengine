@@ -8,7 +8,7 @@ namespace VEngine
     {
         private List<byte> Buffer;
 
-        private List<Vector3> colors = new List<Vector3>();
+        private List<Vector4> colors = new List<Vector4>();
 
         private List<float> fplanes = new List<float>();
 
@@ -145,7 +145,7 @@ namespace VEngine
             vmats = new List<Matrix4>();
             poss = new List<Vector3>();
             fplanes = new List<float>();
-            colors = new List<Vector3>();
+            colors = new List<Vector4>();
             mmodes = new List<int>();
             ipointer = 0;
 
@@ -157,7 +157,7 @@ namespace VEngine
                     pmats.Add(l.GetPMatrix());
                     vmats.Add(l.GetVMatrix());
                     poss.Add(p.GetPosition());
-                    colors.Add(p.GetColor());
+                    colors.Add(new Vector4(p.GetColor()));
                     l.UseTexture(ipointer + 6);
                     ipointer++;
                 }
@@ -172,7 +172,7 @@ namespace VEngine
             vmats = new List<Matrix4>();
             poss = new List<Vector3>();
             fplanes = new List<float>();
-            colors = new List<Vector3>();
+            colors = new List<Vector4>();
             mmodes = new List<int>();
         }
 

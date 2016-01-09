@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using OpenTK.Graphics.OpenGL4;
 using VEngine;
@@ -55,7 +56,14 @@ namespace GLSLLint
                     type = ShaderType.GeometryShader;
                 int shader = GL.CreateShader(type);
                 string src = ShaderPreparser.Preparse(file, System.IO.File.ReadAllText(file));
-                GL.ShaderSource(shader, src);
+                StringBuilder globalsString = new StringBuilder();
+                globalsString.AppendLine("#define MSAA_SAMPLES " + Game.MSAASamples);
+                if(Game.MSAASamples > 1)
+                    globalsString.AppendLine("#define USE_MSAA");
+
+
+                string fullsrc = Regex.Replace(src, @"\#version (.+)\r\n", "#version $1\r\n" + globalsString);
+                GL.ShaderSource(shader, fullsrc);
 
                 GL.CompileShader(shader);
 

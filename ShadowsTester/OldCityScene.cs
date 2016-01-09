@@ -53,7 +53,7 @@ namespace ShadowsTester
             var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
             lucy2.GetInstance(0).Scale(0.5f);
             lucy2.GetInstance(0).Translate(0, 0, 0);
-            lucy2.GetLodLevel(0).Material.Roughness = 1.0f;
+            lucy2.GetLodLevel(0).Material.Roughness = 0.1f;
             lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
             Game.World.Scene.Add(lucy2);
             GC.Collect();

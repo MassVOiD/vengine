@@ -424,6 +424,9 @@ namespace VEngine
             {
                 globalsString.AppendLine("#define " + g.Key + " " + g.Value);
             }
+            globalsString.AppendLine("#define MSAA_SAMPLES " + Game.MSAASamples);
+            if(Game.MSAASamples > 1) globalsString.AppendLine("#define USE_MSAA");
+
 
             string fullsrc = Regex.Replace(source, @"\#version (.+)\r\n", "#version $1\r\n" + globalsString);
 

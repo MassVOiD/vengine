@@ -104,7 +104,7 @@ void finishFragment(vec4 incolor, vec2 UV){
 	//vec2 UV = Input.TexCoord;
 	if(UseBumpMap == 1){  
 		//UV = adjustParallaxUV();
-		wpos -= (RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz * (1.0 - texture(bumpMapTex, UV).r) * parallaxScale;
+		//wpos -= (RotationMatrixes[Input.instanceId] * vec4(normalNew, 0)).xyz * (1.0 - texture(bumpMapTex, UV).r) * parallaxScale;
 	} 	
     
     if(MaterialType == MaterialTypeRainsOptimizedSphere){
@@ -129,10 +129,10 @@ void finishFragment(vec4 incolor, vec2 UV){
 		}
 		map.r = - map.r;
 		map.g = - map.g;
-		normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
+		//normalNew = TBN * mix(vec3(0, 0, 1), map, 1); 
 	} 
 	if(UseNormalMap == 0 && UseBumpMap == 1){
-		normalNew = TBN * examineBumpMap();
+		//normalNew = TBN * examineBumpMap();
 	}
 
 #define MaterialTypeParallax 11

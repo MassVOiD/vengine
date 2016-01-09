@@ -327,10 +327,10 @@ float AmbientOcclusionSingle(
 	//float dpc = texture(depthTex, UV).r;
 	
     roughness = 1.0 - roughness;
-    float trrough = (roughness * roughness) * 0.7;
+    float trrough = (roughness * roughness);
     float rot = rand2s(UV) * PI * 2;
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
-    const float[] rings = float[](0.05, 0.15, 0.25, 0.33, 0.5, 1.0);
+    const float[] rings = float[](0.25, 0.5, 1.0);
     for(int g = 0; g < samplesarray.length(); ++g)
     {
         vec3 smpl = samplesarray[g];
@@ -341,9 +341,11 @@ float AmbientOcclusionSingle(
         // values 0.0, 0.25, 0.50, 0.75, 1.0
 		float mangl = 0;
         for(int m = 0;m < rings.length(); ++m){
-            vec3 pos = reconstructCameraSpace(mix(UV, gauss, rings[m]), 0);
+			vec2 mx = mix(UV, gauss, rings[m]);
+			if(mx.x < 0 || mx.x > 1 || mx.y < 0 || mx.y > 1) break;
+            vec3 pos = reconstructCameraSpace(mx, 0);
 			
-            float dt = max(0, dot(normal, normalize(pos - posc)));
+            float dt = max(0, dot(normal, normalize(pos - posc)) - 0.2);
 			float rg = ringsize * rings[m] * 3;
 			float fact = smoothstep(1.0, 0.0, max(0, distance(pos, posc) / rg - 0.5));
             mangl = max(dt, mangl) * fact;
@@ -359,6 +361,6 @@ float AmbientOcclusion(
     float roughness
 ){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AmbientOcclusionSingle(position, normal, roughness, 0.2);
-    return ao;
+    ao = AmbientOcclusionSingle(position, normal, roughness, 0.3);
+    return pow(ao, 2.0);
 }

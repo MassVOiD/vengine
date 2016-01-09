@@ -49,7 +49,7 @@ float getRand(){
 }
 
 vec3 lookupFog(vec2 fuv){
-	return texture(fogTex, fuv).rgb;/*
+	//return texture(fogTex, fuv).rgb;
     vec3 outc = vec3(0);
     int counter = 0;
     float depthCenter = textureMSAA(normalsTex, fuv, 0).a;
@@ -57,16 +57,16 @@ vec3 lookupFog(vec2 fuv){
     {
         for(float g2 = 0; g2 < 6.0; g2+=1.0)
         {
-            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.001);
+            vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.01);
             vec3 color = texture(fogTex, fuv + gauss).rgb;
             float depthThere = texture(fogTex, fuv + gauss).a;
-            if(abs(depthThere - depthCenter) < 0.01){
+            if(abs(depthThere - depthCenter) < 1.01){
                 outc += color;
                 counter++;
             }
         }
     }
-    return counter == 0 ? texture(fogTex, fuv).rgb : outc / counter;*/
+    return counter == 0 ? texture(fogTex, fuv).rgb : outc / counter;
 }
 vec3 random3dSample(){
     return normalize(vec3(
@@ -126,7 +126,7 @@ vec3 lightPoints(){
         float mixv = 1.0 - smoothstep(0.1, 2.5, distance(sspace1*resolution.xy * 0.01, UV*resolution.xy * 0.009));
 
         if(logg > badass_depth) {
-            color += ball(vec3(LightsColors[i].rgb*1.0),LightPointSize / ( badass_depth) * 0.1, sspace1.x, sspace1.y);
+            color += ball(vec3(LightsColors[i].rgb*1.0), 1.0 / ( badass_depth) * 0.1, sspace1.x, sspace1.y);
             //color += ball(vec3(LightsColors[i]*2.0 * overall),12.0 / dist, sspace1.x, sspace1.y) * 0.03f;
         }
 
@@ -150,7 +150,7 @@ float getAO(vec2 uv, vec3 normal){
 	float pixel = 1.0 / textureSize(aoTex, 0).y;
     for(float g = 0; g < mPI2; g+=0.412123)
     {
-        for(float g2 = 0; g2 < 1.0; g2+=0.25)
+        for(float g2 = 0; g2 < 2.0; g2+=0.11)
         {
             vec2 gauss = vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * g2 * 0.005 + pixel);
             vec4 aon = texture(aoTex, uv + gauss).rgba;
@@ -169,7 +169,7 @@ float getAO(vec2 uv, vec3 normal){
 
 
 vec3 ApplyLighting(vec2 uv, vec3 albedo, vec3 position, vec3 normal, float roughness, float IOR){
-	if(UseHBAO == 1) AOValue = pow(getAO(uv, normal), 1);
+	if(UseHBAO == 1) AOValue = pow(getAO(uv, normal), 2);
 	vec3 directlight = DirectLight(CameraPosition, albedo, normal, position, roughness);
 	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(albedo, position, normal, roughness, IOR);
 

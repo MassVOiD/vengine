@@ -68,6 +68,10 @@ float GetFrequencyRed(sampler2DMS sampler){
 
 void main()
 {
+	#ifdef USE_MSAA
 	float h = GetFrequency(normalsTex)*1.1;// + GetFrequencyRed(depthTex);
+	#else
+	float h = 0;
+	#endif
     outColor = vec4(clamp(h*0.1, 0.0, 1.0));
 }

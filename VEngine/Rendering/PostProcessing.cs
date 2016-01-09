@@ -139,9 +139,9 @@ namespace VEngine
             FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
             {
                 ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rgba,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
                 ColorPixelFormat = PixelFormat.Rgba,
-                ColorPixelType = PixelType.UnsignedByte
+                ColorPixelType = PixelType.HalfFloat
             };
             AOFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 3)
             {
