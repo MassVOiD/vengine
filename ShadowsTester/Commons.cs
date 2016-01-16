@@ -138,7 +138,7 @@ namespace ShadowsTester
                 {
                     if(!kb.IsKeyDown(OpenTK.Input.Key.LControl))
                     {
-                        Game.DisplayAdapter.Pipeline.PostProcessor.ShowSelected = false;
+                        //Game.DisplayAdapter.Pipeline.PostProcessor.ShowSelected = false;
                     }
                     else
                     {
@@ -413,7 +413,7 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.R)
                 {
-                    Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode = !Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode;
+                   // Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode = !Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode;
                 }
                 if(e.Key == OpenTK.Input.Key.LBracket)
                 {

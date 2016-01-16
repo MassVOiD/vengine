@@ -40,16 +40,16 @@ layout(binding = 29) uniform sampler2D bumpMap;
 
 vec2 interpolate2D(vec2 v0, vec2 v1, vec2 v2)
 {
-   	return vec2(gl_TessCoord.x) * v0 + vec2(gl_TessCoord.y) * v1 + vec2(gl_TessCoord.z) * v2;
+       return vec2(gl_TessCoord.x) * v0 + vec2(gl_TessCoord.y) * v1 + vec2(gl_TessCoord.z) * v2;
 }
 
 vec3 interpolate3D(vec3 v0, vec3 v1, vec3 v2)
 {
-   	return vec3(gl_TessCoord.x) * v0 + vec3(gl_TessCoord.y )* v1 + vec3(gl_TessCoord.z) * v2;
+       return vec3(gl_TessCoord.x) * v0 + vec3(gl_TessCoord.y )* v1 + vec3(gl_TessCoord.z) * v2;
 }
 vec4 interpolate4D(vec4 v0, vec4 v1, vec4 v2)
 {
-   	return vec4(gl_TessCoord.x) * v0 + vec4(gl_TessCoord.y )* v1 + vec4(gl_TessCoord.z) * v2;
+       return vec4(gl_TessCoord.x) * v0 + vec4(gl_TessCoord.y )* v1 + vec4(gl_TessCoord.z) * v2;
 }
 
 float sns(vec2 p, float scale, float tscale){
@@ -81,15 +81,15 @@ float getPlanetSurface(){
 
 void main()
 {
-   	// Interpolate the attributes of the output vertex using the barycentric coordinates
-   	vec2 UV = interpolate2D(Input[0].TexCoord, Input[1].TexCoord, Input[2].TexCoord);
+       // Interpolate the attributes of the output vertex using the barycentric coordinates
+       vec2 UV = interpolate2D(Input[0].TexCoord, Input[1].TexCoord, Input[2].TexCoord);
     Output.TexCoord = UV;
-   	//barycentric = interpolate3D(Input[0].Barycentric, Input[1].Barycentric, Input[2].Barycentric);
-   	vec3 normal = interpolate3D(Input[0].Normal, Input[1].Normal, Input[2].Normal);
-   	Output.Tangent = interpolate4D(Input[0].Tangent, Input[1].Tangent, Input[2].Tangent);
-   	Output.WorldPos = interpolate3D(Input[0].WorldPos, Input[1].WorldPos, Input[2].WorldPos);
-	   	// Displace the vertex along the normal
-	Output.instanceId = Input[0].instanceId;
+       //barycentric = interpolate3D(Input[0].Barycentric, Input[1].Barycentric, Input[2].Barycentric);
+       vec3 normal = interpolate3D(Input[0].Normal, Input[1].Normal, Input[2].Normal);
+       Output.Tangent = interpolate4D(Input[0].Tangent, Input[1].Tangent, Input[2].Tangent);
+       Output.WorldPos = interpolate3D(Input[0].WorldPos, Input[1].WorldPos, Input[2].WorldPos);
+           // Displace the vertex along the normal
+    Output.instanceId = Input[0].instanceId;
     
     if(MaterialType == MaterialTypeWater){
         float factor = abs(getwater(UV * 15));
@@ -126,8 +126,8 @@ void main()
         }
     
     
-	
-	Output.Normal = normalize(normal);
-   	gl_Position = VPMatrix * vec4(Output.WorldPos, 1.0);
+    
+    Output.Normal = normalize(normal);
+       gl_Position = VPMatrix * vec4(Output.WorldPos, 1.0);
 }
 /**/

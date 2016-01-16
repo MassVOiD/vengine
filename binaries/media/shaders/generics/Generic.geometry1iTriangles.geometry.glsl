@@ -36,12 +36,12 @@ uniform int MaterialType;
 // output 3 to 32 vertices
 vec2 interpolate2D(vec3 interpolator, vec2 v0, vec2 v1, vec2 v2)
 {
-   	return vec2(interpolator.x) * v0 + vec2(interpolator.y) * v1 + vec2(interpolator.z) * v2;
+       return vec2(interpolator.x) * v0 + vec2(interpolator.y) * v1 + vec2(interpolator.z) * v2;
 }
 
 vec3 interpolate3D(vec3 interpolator, vec3 v0, vec3 v1, vec3 v2)
 {
-   	return vec3(interpolator.x) * v0 + vec3(interpolator.y )* v1 + vec3(interpolator.z) * v2;
+       return vec3(interpolator.x) * v0 + vec3(interpolator.y )* v1 + vec3(interpolator.z) * v2;
 }
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);

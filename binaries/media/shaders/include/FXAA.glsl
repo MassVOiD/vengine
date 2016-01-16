@@ -18,12 +18,12 @@ vec2 v_rgbSE;
 vec2 v_rgbM;
 
 void texcoords(vec2 fragCoord) {
-	vec2 inverseVP = 1.0 / resolution.xy;
-	v_rgbNW = (fragCoord + vec2(-1.0, -1.0)) * inverseVP;
-	v_rgbNE = (fragCoord + vec2(1.0, -1.0)) * inverseVP;
-	v_rgbSW = (fragCoord + vec2(-1.0, 1.0)) * inverseVP;
-	v_rgbSE = (fragCoord + vec2(1.0, 1.0)) * inverseVP;
-	v_rgbM = vec2(fragCoord * inverseVP);
+    vec2 inverseVP = 1.0 / resolution.xy;
+    v_rgbNW = (fragCoord + vec2(-1.0, -1.0)) * inverseVP;
+    v_rgbNE = (fragCoord + vec2(1.0, -1.0)) * inverseVP;
+    v_rgbSW = (fragCoord + vec2(-1.0, 1.0)) * inverseVP;
+    v_rgbSE = (fragCoord + vec2(1.0, 1.0)) * inverseVP;
+    v_rgbM = vec2(fragCoord * inverseVP);
 }
 
 vec4 fxaa(sampler2D tex, vec2 fragCoordF) {

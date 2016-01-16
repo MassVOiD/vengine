@@ -43,8 +43,8 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
     if(amount < 0.05) amount = 0.05;
     amount -= 0.05;
-	//amount = max(0, amount - 0.1);
-	//return textureLod(currentTex, UV, amount*2).rgb;
+    //amount = max(0, amount - 0.1);
+    //return textureLod(currentTex, UV, amount*2).rgb;
     float radius = max_radius;  
     float centerDepthDistance = abs((centerDepth) - (depthfocus));
     //float centerDepth = texture(texDepth, UV).r;
@@ -68,7 +68,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             float dd = length(crd * 0.1 * amount)/0.125;
             w *= dd;
             
-			w += (smoothstep(0.1, 0.0, abs(y - 0.9)));
+            w += (smoothstep(0.1, 0.0, abs(y - 0.9)));
             weight+=w;
             finalColor += texel * w;
             
@@ -91,34 +91,34 @@ uniform int UseBloom;
 vec3 lookupBloomBlurred(vec2 buv, float radius){
     vec3 outc = vec3(0);
     float counter = 0;
-	
+    
 
-	//outc += textureLod(currentTex, buv, 7).rgb;
-//	outc += textureLod(currentTex, buv, 6).rgb;
-	//outc += textureLod(currentTex, buv, 7).rgb;
-	//outc += textureLod(currentTex, buv, 8).rgb;
-	outc += textureLod(currentTex, buv, 9).rgb;
-	//outc *= max(0.0, length(outc) - 1.0) * 0.4;
-	return vec3pow(outc * 1.1, 1.3) * 0.11;
-	
+    //outc += textureLod(currentTex, buv, 7).rgb;
+//    outc += textureLod(currentTex, buv, 6).rgb;
+    //outc += textureLod(currentTex, buv, 7).rgb;
+    //outc += textureLod(currentTex, buv, 8).rgb;
+    outc += textureLod(currentTex, buv, 9).rgb;
+    //outc *= max(0.0, length(outc) - 1.0) * 0.4;
+    return vec3pow(outc * 1.1, 1.3) * 0.11;
+    
 }
 vec3 funnybloom(vec2 buv){
     vec3 outc = vec3(0);
 
-	outc += textureLod(currentTex, buv, 0).rgb;
-	outc += textureLod(currentTex, buv, 1).rgb;
-	outc += textureLod(currentTex, buv, 2).rgb;
-	outc += textureLod(currentTex, buv, 3).rgb;
-	outc += textureLod(currentTex, buv, 4).rgb;
-	outc += textureLod(currentTex, buv, 5).rgb;
-	outc += textureLod(currentTex, buv, 6).rgb;
-	outc += textureLod(currentTex, buv, 7).rgb;
-	outc += textureLod(currentTex, buv, 8).rgb;
-	outc += textureLod(currentTex, buv, 9).rgb;
-	outc += textureLod(currentTex, buv, 10).rgb;
-	outc += textureLod(currentTex, buv, 11).rgb;
-	return outc / 12.0;
-	
+    outc += textureLod(currentTex, buv, 0).rgb;
+    outc += textureLod(currentTex, buv, 1).rgb;
+    outc += textureLod(currentTex, buv, 2).rgb;
+    outc += textureLod(currentTex, buv, 3).rgb;
+    outc += textureLod(currentTex, buv, 4).rgb;
+    outc += textureLod(currentTex, buv, 5).rgb;
+    outc += textureLod(currentTex, buv, 6).rgb;
+    outc += textureLod(currentTex, buv, 7).rgb;
+    outc += textureLod(currentTex, buv, 8).rgb;
+    outc += textureLod(currentTex, buv, 9).rgb;
+    outc += textureLod(currentTex, buv, 10).rgb;
+    outc += textureLod(currentTex, buv, 11).rgb;
+    return outc / 12.0;
+    
 }
 #include noise3D.glsl
 
@@ -134,8 +134,8 @@ float avgdepth(vec2 buv){
             vec2 gauss = buv + vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
             gauss = clamp(gauss, 0.0, 0.90);
             float adepth = textureMSAA(normalsTex, gauss, 0).a;
-			//if(adepth < fDepth) adepth = fDepth + (fDepth - adepth);
-            //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);		
+            //if(adepth < fDepth) adepth = fDepth + (fDepth - adepth);
+            //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);        
             float f = InputFocalLength;
             //float f = 715.0; //focal length in mm
             float d = fDepth*1000.0; //focal plane in mm
@@ -159,21 +159,22 @@ float avgdepth(vec2 buv){
 
 vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 
-	return vec3pow(color.rgb, 1.9);
+    return vec3pow(color.rgb, 1.9);
 }
 
 vec3 hdr(vec3 color, vec2 uv){
-	float levels = float(textureQueryLevels(currentTex)) - 1;
-	vec3 refbright = textureLod(currentTex, uv,levels).rgb;
-	float reflen = length(refbright);
-	float mult = reflen > mPI2 ? 0 : cos(reflen);
-	return color * max(0.5, mult) * 2.0;
+    float levels = float(textureQueryLevels(currentTex)) - 1;
+    vec3 refbright = textureLod(currentTex, uv,levels).rgb;
+    float reflen = length(refbright);
+    float mult = reflen > mPI2 ? 0 : cos(reflen);
+    return color * max(0.5, mult) * 2.0;
 }
 
 void main()
 {
-    vec4 color1 = texture(currentTex, UV);
-	//color1.rgb = funnybloom(UV);
+    vec4 color1 = textureMSAAFull(diffuseColorTex, UV);
+    if(length(textureMSAAFull(normalsTex, UV).rgb) < 0.01)color1.rgb =vec3(1.0);
+    /*//color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
@@ -203,13 +204,13 @@ void main()
     }
     
     if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
-	//if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
-	//if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
-    
-	vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
-	color1.rgb = vec3(pow(color1.r, gamma.r),
-	pow(color1.g, gamma.g),
-	pow(color1.b, gamma.b));
+    //if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
+    //if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
+        */
+    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
+    color1.rgb = vec3(pow(color1.r, gamma.r),
+    pow(color1.g, gamma.g),
+    pow(color1.b, gamma.b));
 
     outColor = clamp(vec4(color1.rgb, 1), 0.0, 10000.0);
 }

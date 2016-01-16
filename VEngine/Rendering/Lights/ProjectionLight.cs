@@ -5,8 +5,6 @@ namespace VEngine
 {
     public class ProjectionLight : ILight, IShadowMapableLight, ITransformable
     {
-        public static GenericMaterial.ShaderPack MainShaderPack = new GenericMaterial.ShaderPack();
-
         public Camera camera;
 
         public float CullerMultiplier = 1.0f;
@@ -80,7 +78,7 @@ namespace VEngine
             Camera.Current = camera;
             FBO.Use();
 
-            MainShaderPack.ProgramsList.ForEach((shader) =>
+            Game.ShaderPool.DepthOnly.ProgramsList.ForEach((shader) =>
             {
                 if(!shader.Compiled)
                     return;
@@ -89,12 +87,11 @@ namespace VEngine
                 ShaderProgram.Current.SetUniform("LightColor", LightColor);
             });
 
-            GenericMaterial.OverrideShaderPack = MainShaderPack;
+            GenericMaterial.OverrideShaderPack = Game.ShaderPool.DepthOnly;
             Game.World.Draw(false, true);
             GenericMaterial.OverrideShaderPack = null;
             //if(Skybox.Current != null)
             //    Skybox.Current.Draw();
-            ShaderProgram.Lock = false;
             //ParticleSystem.DrawAll(true);
             Camera.Current = last;
             NeedsRefreshing = false;

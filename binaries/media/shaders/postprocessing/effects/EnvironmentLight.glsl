@@ -47,11 +47,11 @@ vec3 EnvironmentLight(
     
     //IOR = 1.0;
     vec3 refracted = vec3(0);
-    if(IOR > 0){
+    /*if(IOR > 0){
         vec3 dir2 = normalize(refract(cameraspace, normal, 0.1));
         refracted = MMAL(-normal, dir2, roughness) * IOR;
         refracted = mix(refracted*albedo, refracted, 1.0 - roughness);
-    }
+    }*/
     
-    return makeFresnel(1.0 - max(0, dot(normal, vdir)), (reflected + refracted) * VDAOGlobalMultiplier);
+    return makeFresnel(1.0 - max(0, dot(normal, vdir)), (reflected + refracted));
 }

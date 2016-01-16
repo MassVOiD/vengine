@@ -2,7 +2,7 @@ vec2 HBAO_projectOnScreen(vec3 worldcoord){
     vec4 clipspace = (VPMatrix) * vec4(worldcoord, 1.0);
     vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy )* 0.5 + 0.5;
     return sspace1;
-}/*
+}
 vec3 samplesarray[256] = vec3[256](
 vec3(0.959245, 0.2812116, 0.02773467),
 vec3(0.8362429, 0.5476577, 0.02773467),
@@ -261,7 +261,7 @@ vec3(0.186646, -0.2315703, 0.9547452),
 vec3(0.245812, -0.1674455, 0.9547452),
 vec3(0.2905201, -0.06371486, 0.9547452)
 );
-*/
+/*
 vec3 samplesarray[36] = vec3[36](
 vec3(0.954709, 0.2502625, 0.1609335),
 vec3(-0.3194602, 0.9338338, 0.1609334),
@@ -300,7 +300,7 @@ vec3(-0.158748, -0.2741832, 0.9484844),
 vec3(-0.0274747, -0.3156303, 0.9484844),
 vec3(0.227144, -0.2208685, 0.9484844)
 );
-
+*/
 float AmbientOcclusionSingle(
     vec3 position,
     vec3 normal,
@@ -323,9 +323,9 @@ float AmbientOcclusionSingle(
     float buf = 0.0;
     vec3 dir = normalize(reflect(posc, normal));
     float ringsize = min(length(posc), hemisphereSize);
-	
-	//float dpc = texture(depthTex, UV).r;
-	
+    
+    //float dpc = texture(depthTex, UV).r;
+    
     roughness = 1.0 - roughness;
     float trrough = (roughness * roughness);
     float rot = rand2s(UV) * PI * 2;
@@ -339,21 +339,393 @@ float AmbientOcclusionSingle(
         
         vec2 gauss = HBAO_projectOnScreen(position + displace);
         // values 0.0, 0.25, 0.50, 0.75, 1.0
-		float mangl = 0;
+        float mangl = 0;
         for(int m = 0;m < rings.length(); ++m){
-			vec2 mx = mix(UV, gauss, rings[m]);
-			if(mx.x < 0 || mx.x > 1 || mx.y < 0 || mx.y > 1) break;
+            vec2 mx = mix(UV, gauss, rings[m]);
+            if(mx.x < 0 || mx.x > 1 || mx.y < 0 || mx.y > 1) break;
             vec3 pos = reconstructCameraSpace(mx, 0);
-			
+            
             float dt = max(0, dot(normal, normalize(pos - posc)) - 0.2);
-			float rg = ringsize * rings[m] * 3;
-			float fact = smoothstep(1.0, 0.0, max(0, distance(pos, posc) / rg - 0.5));
+            float rg = ringsize * rings[m] * 3;
+            float fact = smoothstep(1.0, 0.0, max(0, distance(pos, posc) / rg - 0.5));
             mangl = max(dt, mangl) * fact;
         }
-		buf += mangl;
+        buf += mangl;
     }
     return clamp(1.0 - (buf/(samplesarray.length())), 0.0, 1.0);
 }
+
+
+float AmbientOcclusionSingleNoProject(
+    vec3 position,
+    vec3 normal,
+    float roughness,
+    float hemisphereSize
+){
+    vec3 posc = ToCameraSpace(position);
+    vec3 tangent = normalize(cross(normal, vec3(0,1,1)));
+    
+    mat3 TBN = mat3(
+        tangent,
+        cross(normal, tangent),
+        normal
+    );
+    
+    float buf = 0.0;
+    vec3 dir = normalize(reflect(posc, normal));
+    float ringsize = 1.0 / length(posc);
+    
+    float dpc = length(posc);
+    
+    roughness = 1.0 - roughness;
+    float trrough = (roughness * roughness);
+    float rot = rand2s(UV) * PI * 2;
+    mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
+    const float[] rings = float[](0.11, 1.0);
+    vec2 normproj = normalize(HBAO_projectOnScreen(position + normal*0.01) - UV);
+    for(int g = 0; g < samplesarray.length(); ++g)
+    {
+        vec3 smpl = samplesarray[g];
+        smpl.xy = RM * smpl.xy;
+        vec3 displace = normalize(mix(TBN * smpl, dir, trrough)) * ringsize;
+        smpl.xy *= sign(dot(smpl.xy, normproj));
+        //smpl.xy = mix(smpl.xy, normproj, trrough);
+        vec2 gauss = UV + smpl.xy * ringsize * 0.09;
+        // values 0.0, 0.25, 0.50, 0.75, 1.0
+        float mangl = 0;
+        for(int m = 0;m < rings.length(); ++m){
+            vec2 mx = mix(UV, gauss, rings[m]);
+            if(mx.x < 0 || mx.x > 1 || mx.y < 0 || mx.y > 1) break;
+            float lent = textureMSAA(normalsTex, mx, 0).a;
+            float d = max(0, dpc - lent);
+            float distdim = 1.0 - smoothstep(0.0, 0.5, d);
+            buf += min(d, 0.6) * distdim;
+        }
+    }
+    float val = clamp(1.0 - (buf/(samplesarray.length() * rings.length())), 0.0, 1.0);
+    return pow(val, 12.0);
+}
+vec2 projdir(vec3 start, vec3 end)
+{
+    vec4 clipspace = (VPMatrix) * vec4((start), 1.0);
+    vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+    clipspace = (VPMatrix) * vec4((end), 1.0);
+    vec2 sspace2 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
+    return (sspace2 - sspace1);
+}
+float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) 
+{
+    float d3d1 = distance(CameraPosition, w1);
+    float d3d2 = distance(CameraPosition, w2);
+    vec2 sdir = projdir((w1), (w2));
+    float minang = 1;
+    for(float ix=0;ix<1.0;ix+= 0.33) 
+    { 
+        float i = ix*ix*ix;
+        vec2 ruv = mix(cuv, cuv + sdir, i);
+        if(ruv.x < 0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1) return minang;
+        float rd3d = textureMSAA(normalsTex, ruv, 0).a + 0.001;
+        if(rd3d < mix(d3d1, d3d2, i) && rd3d > mix(d3d1, d3d2, i) - 1.01 ) 
+        {
+            minang = 0;
+        }
+    }
+    return minang;
+}
+
+vec3 random3d(float seed){
+    return vec3(
+        rand2s(UV + seed),
+        rand2s(UV - seed),
+        rand2s(UV + seed + 12.0)
+    ) * 2 - 1;
+}
+vec2 xsamples[] = vec2[](
+vec2(0.009011431, 0.09457164),
+vec2(0.03588319, 0.1865808),
+vec2(0.08012987, 0.2735036),
+vec2(0.1409498, 0.3528925),
+vec2(0.2172358, 0.422414),
+vec2(0.3075902, 0.4798836),
+vec2(0.4103443, 0.5232996),
+vec2(0.5235803, 0.5508754),
+vec2(0.6451581, 0.5610668),
+vec2(0.7727448, 0.5525989),
+vec2(0.03761707, 0.08723506),
+vec2(0.09144463, 0.1665469),
+vec2(0.1602457, 0.2356826),
+vec2(0.2425058, 0.2925593),
+vec2(0.3364545, 0.3352959),
+vec2(0.4400912, 0.3622426),
+vec2(0.5512127, 0.3720074),
+vec2(0.6674456, 0.3634782),
+vec2(0.7862788, 0.3358431),
+vec2(0.9051006, 0.2886051),
+vec2(0.06258768, 0.07146875),
+vec2(0.1381696, 0.1304192),
+vec2(0.2248766, 0.1750872),
+vec2(0.3206278, 0.2039553),
+vec2(0.4231609, 0.2157773),
+vec2(0.5300651, 0.2095973),
+vec2(0.6388161, 0.1847671),
+vec2(0.7468139, 0.1409573),
+vec2(0.8514194, 0.07816622),
+vec2(0.9499944, -0.00327723),
+vec2(0.08151028, 0.04879625),
+vec2(0.1715428, 0.08168877),
+vec2(0.2677771, 0.09757254),
+vec2(0.3677669, 0.09564264),
+vec2(0.4689762, 0.07540761),
+vec2(0.5688174, 0.03669818),
+vec2(0.6646892, -0.0203276),
+vec2(0.7540158, -0.09518456),
+vec2(0.8342854, -0.1870641),
+vec2(0.9030879, -0.2948429),
+vec2(0.09255636, 0.02140844),
+vec2(0.1883395, 0.02506454),
+vec2(0.2848017, 0.01062928),
+vec2(0.3793677, -0.02191219),
+vec2(0.4694732, -0.07224894),
+vec2(0.5526036, -0.1397472),
+vec2(0.6263317, -0.2234581),
+vec2(0.6883554, -0.3221287),
+vec2(0.7365322, -0.4342181),
+vec2(0.7689138, -0.5579172),
+vec2(0.09465848, -0.008048125),
+vec2(0.1869365, -0.03398174),
+vec2(0.2743052, -0.07734115),
+vec2(0.3543093, -0.1373496),
+vec2(0.4246039, -0.2129238),
+vec2(0.4829903, -0.3026886),
+vec2(0.5274503, -0.4049953),
+vec2(0.5561774, -0.5179446),
+vec2(0.5676062, -0.6394124),
+vec2(0.5604377, -0.7670786),
+vec2(0.08761352, -0.03672697),
+vec2(0.1674693, -0.08974428),
+vec2(0.2373019, -0.1578379),
+vec2(0.2950131, -0.2395146),
+vec2(0.338704, -0.3330234),
+vec2(0.3667045, -0.4363804),
+vec2(0.3776, -0.5473967),
+vec2(0.3702547, -0.6637104),
+vec2(0.3438309, -0.7828189),
+vec2(0.297805, -0.9021155),
+vec2(0.07210226, -0.06185681),
+vec2(0.1318191, -0.1368346),
+vec2(0.1773675, -0.2230824),
+vec2(0.207209, -0.3185348),
+vec2(0.2200743, -0.4209421),
+vec2(0.2149831, -0.5279036),
+vec2(0.1912613, -0.6369019),
+vec2(0.1485533, -0.7453401),
+vec2(0.08683044, -0.8505795),
+vec2(0.006394804, -0.9499785),
+vec2(0.04962357, -0.08100927),
+vec2(0.08343099, -0.1707023),
+vec2(0.1002937, -0.2667699),
+vec2(0.09938195, -0.3667741),
+vec2(0.08017833, -0.4681842),
+vec2(0.04248739, -0.5684143),
+vec2(-0.01355944, -0.6648617),
+vec2(-0.08750311, -0.7549458),
+vec2(-0.1785607, -0.8361466),
+vec2(-0.2856334, -0.9060429),
+vec2(0.02234963, -0.0923336),
+vec2(0.02698069, -0.1880746),
+vec2(0.01352821, -0.2846787),
+vec2(-0.01804882, -0.3795711),
+vec2(-0.06746549, -0.4701844),
+vec2(-0.134114, -0.5539976),
+vec2(-0.2170699, -0.6285743),
+vec2(-0.3151039, -0.6915992),
+vec2(-0.426697, -0.7409148),
+vec2(-0.5500601, -0.7745541),
+vec2(-0.007084003, -0.0947355),
+vec2(-0.03207681, -0.1872727),
+vec2(-0.07454451, -0.2750784),
+vec2(-0.1337353, -0.3556893),
+vec2(-0.20859, -0.4267496),
+vec2(-0.2977556, -0.4860469),
+vec2(-0.3996044, -0.5315461),
+vec2(-0.5122554, -0.5614217),
+vec2(-0.6336006, -0.5740865),
+vec2(-0.7613332, -0.5682181),
+vec2(-0.03583309, -0.08798289),
+vec2(-0.08803466, -0.1683743),
+vec2(-0.1554138, -0.2388965),
+vec2(-0.2364988, -0.2974362),
+vec2(-0.3295579, -0.3420769),
+vec2(-0.4326245, -0.3711281),
+vec2(-0.5435241, -0.3831534),
+vec2(-0.6599066, -0.3769925),
+vec2(-0.7792777, -0.3517829),
+vec2(-0.8990367, -0.3069741),
+vec2(-0.06111954, -0.07272827),
+vec2(-0.1354855, -0.1332054),
+vec2(-0.2212651, -0.1796295),
+vec2(-0.3164087, -0.2104413),
+vec2(-0.4186798, -0.2243484),
+vec2(-0.5256876, -0.2203465),
+vec2(-0.6349217, -0.1977355),
+vec2(-0.7437891, -0.1561338),
+vec2(-0.8496514, -0.09548577),
+vec2(-0.9498642, -0.01606606),
+vec2(-0.08049984, -0.05044575),
+vec2(-0.169844, -0.08516456),
+vec2(-0.265735, -0.1030045),
+vec2(-0.3657433, -0.1031108),
+vec2(-0.4673436, -0.08494069),
+vec2(-0.5679523, -0.04827199),
+vec2(-0.6649653, 0.006789881),
+vec2(-0.7557976, 0.0798124),
+vec2(-0.8379211, 0.1700387),
+vec2(-0.9089038, 0.2763945),
+vec2(-0.09210127, -0.02328855),
+vec2(-0.1877901, -0.0288941),
+vec2(-0.2845263, -0.01642592),
+vec2(-0.3797352, 0.01418343),
+vec2(-0.4708469, 0.06267501),
+vec2(-0.5553344, 0.1284669),
+vec2(-0.6307517, 0.2106591),
+vec2(-0.6947714, 0.3080465),
+vec2(-0.7452206, 0.4191316),
+vec2(-0.7801142, 0.5421457),
+vec2(-0.09480272, 0.006119081),
+vec2(-0.1875896, 0.03016846),
+vec2(-0.2758231, 0.07173992),
+vec2(-0.3570324, 0.1301071),
+vec2(-0.4288512, 0.2042343),
+vec2(-0.4890532, 0.2927917),
+vec2(-0.5355871, 0.3941718),
+vec2(-0.5666082, 0.5065128),
+vec2(-0.5805076, 0.6277228),
+vec2(-0.5759399, 0.7555087),
+vec2(-0.08834317, 0.03493541),
+vec2(-0.1692619, 0.08631578),
+vec2(-0.2404665, 0.1529734),
+vec2(-0.2998287, 0.2334582),
+vec2(-0.3454146, 0.3260579),
+vec2(-0.3755136, 0.4288234),
+vec2(-0.3886675, 0.5395948),
+vec2(-0.3836918, 0.656034),
+vec2(-0.3596989, 0.7756557),
+vec2(-0.3161118, 0.8958646),
+vec2(-0.07334682, 0.06037585),
+vec2(-0.134578, 0.1341222),
+vec2(-0.1818731, 0.2194246),
+vec2(-0.2136519, 0.3142497),
+vec2(-0.2285998, 0.4163738),
+vec2(-0.2256874, 0.5234168),
+vec2(-0.20419, 0.6328755),
+vec2(-0.163699, 0.7421607),
+vec2(-0.1041316, 0.8486352),
+vec2(-0.02573633, 0.9496514),
+vec2(-0.05126279, 0.07998203),
+vec2(-0.08688951, 0.1689681),
+vec2(-0.1057049, 0.2646724),
+vec2(-0.1068294, 0.3646744),
+vec2(-0.0896948, 0.4664545),
+vec2(-0.0540524, 0.5674313),
+vec2(1.882498E-05, 0.665),
+vec2(0.07211307, 0.756571),
+vec2(0.1614982, 0.839609),
+vec2(0.2671252, 0.9116711),
+vec2(-0.02422512, 0.09185936),
+vec2(-0.03080469, 0.1874862),
+vec2(-0.01932213, 0.2843443),
+vec2(0.01031622, 0.3798599),
+vec2(0.05787758, 0.4714607),
+vec2(0.1228058, 0.5566136),
+vec2(0.2042258, 0.6328639),
+vec2(0.300956, 0.6978721),
+vec2(0.411522, 0.7494496),
+vec2(0.5341747, 0.7855937),
+vec2(0.005153478, 0.09486011),
+vec2(0.02825686, 0.1878871),
+vec2(0.06892776, 0.2765393),
+vec2(0.126465, 0.3583387),
+vec2(0.1998571, 0.4309085),
+vec2(0.2877969, 0.492009),
+vec2(0.388698, 0.5395728),
+vec2(0.5007175, 0.5717359),
+vec2(0.6217795, 0.5868691),
+vec2(0.749605, 0.583603)
+);
+float GetAveragedDistance(vec2 uv){
+    float outc = 0.0;
+    float counter = 0.001;
+    float xaon =distance(CameraPosition, Input.WorldPos);
+    float factor = 1.0 / xaon;
+    vec2 multiplier = vec2(ratio, 1) * 0.1 * factor;
+    for(int g=0;g < xsamples.length();g+=2){
+        float aon = texture(aoTex, uv + xsamples[g] * multiplier).r;
+        float weight = 1.0 - smoothstep(0.0, 0.4, (xaon - aon));
+        outc += aon * weight;
+        counter += 1.0 * weight;
+        
+        aon = texture(aoTex, uv + xsamples[g] * multiplier * 0.3).r;
+        weight = 1.0 - smoothstep(0.0, 0.4, (xaon - aon));
+        outc += aon * weight;
+        counter += 1.0 * weight;
+    
+    }
+    return 1.0 - max(0, xaon - (outc / counter));
+}
+
+float someVeryWierdSSAO(
+    vec3 position,
+    vec3 normal,
+    float roughness,
+    float hemisphereSize
+){
+    float a;
+    a += GetAveragedDistance(UV);
+    return pow(a, 18);
+}
+
+float VDAO(
+    vec3 position,
+    vec3 normal,
+    float roughness,
+    float hemisphereSize
+){
+    vec3 posc = ToCameraSpace(position);
+    vec3 tangent = normalize(cross(normal, vec3(0,1,0)));
+    
+    mat3 TBN = mat3(
+        tangent,
+        cross(normal, tangent),
+        normal
+    );
+    
+    float buf = 0.0;
+    vec3 dir = normalize(reflect(posc, normal));
+    float ringsize = min(length(posc), hemisphereSize);
+    
+    //float dpc = texture(depthTex, UV).r;
+    
+    roughness = 1.0 - roughness;
+    float trrough = (roughness * roughness);
+    float rot = rand2s(UV) * PI * 2;
+    mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
+    const float[] rings = float[](0.25, 0.5, 1.0);
+    float weight = 0;
+    for(int g = 0; g < 42; ++g)
+    {
+        vec3 smpl = TBN * random3d(float(g));
+        smpl *= sign(dot(smpl, normal));
+        vec3 displace = mix(dir, normalize(smpl), 1) * ringsize;
+        float dotdiffuse = max(0, dot(normalize(displace),  (normal)));
+        // concept of sample importance:
+        // 
+        
+        buf += testVisibility3d(UV, position, position + displace) * dotdiffuse;
+        weight += dotdiffuse;
+    }
+    return (0.8) * clamp(buf/weight, 0.0, 1.0);
+}
+
 
 float AmbientOcclusion(
     vec3 position,
@@ -361,6 +733,6 @@ float AmbientOcclusion(
     float roughness
 ){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AmbientOcclusionSingle(position, normal, roughness, 0.3);
-    return pow(ao, 2.0);
+    ao = someVeryWierdSSAO(position, normal, roughness, 0.7);
+    return ao;
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
@@ -19,7 +20,7 @@ namespace VEngine
 
         public bool Generated;
 
-        public int TexDiffuse, TexNormals, DepthRenderBuffer;
+        public int TexNormals, TexForward, DepthRenderBuffer;
 
         private int FBO, Width, Height;
 
@@ -35,6 +36,21 @@ namespace VEngine
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
 
+        public Vector4h[] GetImageForward()
+        {
+            GL.BindTexture(TextureTarget.Texture2D, TexForward);
+            var pixels = new OpenTK.Vector4h[Width * Height];
+            GL.GetTexImage<Vector4h>(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.HalfFloat, pixels);
+            return pixels;
+        }
+        public Vector4[] GetImageNormalsDistance()
+        {
+            GL.BindTexture(TextureTarget.Texture2D, TexNormals);
+            var pixels = new OpenTK.Vector4[Width * Height];
+            GL.GetTexImage<Vector4>(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.HalfFloat, pixels);
+            return pixels;
+        }
+
         public void Use(bool setViewport = true, bool clearViewport = true)
         {
             if(!Generated)
@@ -46,10 +62,10 @@ namespace VEngine
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-        public void UseTextureDiffuseColor(int startIndex)
+        public void UseTextureForwardColor(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(Game.MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexDiffuse);
+            GL.BindTexture(Game.MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexForward);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
@@ -69,12 +85,12 @@ namespace VEngine
 
             // generating textures
             var ttarget = Game.MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
-            TexDiffuse = GL.GenTexture();
-            GL.BindTexture(ttarget, TexDiffuse);
+            TexForward = GL.GenTexture();
+            GL.BindTexture(ttarget, TexForward);
             if(Game.MSAASamples > 1)
                 GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Game.MSAASamples, PixelInternalFormat.Rgba8, Width, Height, true);
             else
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
             GL.TexParameter(ttarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
             GL.TexParameter(ttarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
             GL.TexParameter(ttarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
@@ -100,7 +116,7 @@ namespace VEngine
                 GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent32f, Width, Height);
 
             // attaching
-            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexDiffuse, 0);
+            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexForward, 0);
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TexNormals, 0);
             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, DepthRenderBuffer);
 

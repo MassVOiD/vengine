@@ -17,7 +17,7 @@ namespace VEngine
 
         public void Draw(bool ignoreMeshWithDisabledDepthTest = false, bool ignoreDisableDepthWriteFlag = false)
         {
-            var sp = GenericMaterial.OverrideShaderPack != null ? GenericMaterial.OverrideShaderPack : GenericMaterial.MainShaderPack;
+            var sp = GenericMaterial.OverrideShaderPack != null ? GenericMaterial.OverrideShaderPack : Game.ShaderPool.GenericMaterial;
             sp.ProgramsList.ForEach((shader) =>
             {
                 if(!shader.Compiled)
@@ -34,7 +34,13 @@ namespace VEngine
                 shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
                 shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
                 shader.SetUniform("resolution", new Vector2(Game.Resolution.Width, Game.Resolution.Height));
+                shader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
+                shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
+                shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
                 shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
+                Game.World.Scene.SetLightingUniforms(shader);
+                //RandomsSSBO.Use(0);
+                Game.World.Scene.MapLightsSSBOToShader(shader);
             });
             Scene.Draw();
         }

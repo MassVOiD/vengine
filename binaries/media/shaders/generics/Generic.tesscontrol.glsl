@@ -26,17 +26,17 @@ uniform int UseBumpMap;
 
 float GetTessLevel(float Distance0, float Distance1)
 {
-	float rd = ((Distance0 +Distance1)/2);
+    float rd = ((Distance0 +Distance1)/2);
     if(rd < 150.0) 
         return 33.0;
-	else if(rd < 280.0) 
+    else if(rd < 280.0) 
         return 8.0;
     return 4.0;
 }
 float GetTessLevelAlternative(float Distance0, float Distance1, float surfaceSize)
 {
     float x = surfaceSize;
-	float rd = ((Distance0 +Distance1)/2);
+    float rd = ((Distance0 +Distance1)/2);
    // if(rd > 100) return 2;
     return 21.0;// / pow(1.2, (((Distance0 +Distance1)*0.02)+1));
 }
@@ -52,9 +52,9 @@ void main()
    // Output[gl_InvocationID].Barycentric = Barycentric_CS_in[gl_InvocationID];
     Output[gl_InvocationID].Tangent = Input[gl_InvocationID].Tangent;
     Output[gl_InvocationID].instanceId = Input[gl_InvocationID].instanceId;
-   	//Barycentric_ES_in = Output[0].Barycentric;
-	
-	// Calculate the distance from the camera to the three control points
+       //Barycentric_ES_in = Output[0].Barycentric;
+    
+    // Calculate the distance from the camera to the three control points
     float EyeToVertexDistance0 = distance(CameraPosition, Input[0].WorldPos);
     float EyeToVertexDistance1 = distance(CameraPosition, Input[1].WorldPos);
     float EyeToVertexDistance2 = distance(CameraPosition, Input[2].WorldPos);

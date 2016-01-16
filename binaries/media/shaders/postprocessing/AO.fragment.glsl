@@ -16,16 +16,17 @@ out vec4 outColor;
 void main()
 {/*
     if(textureMSAA(diffuseColorTex, UV, 0).r >= 999){ 
-		outColor = vec4(vec3(1), 1);
-		return;
+        outColor = vec4(vec3(1), 1);
+        return;
     }*/
     float len = textureMSAA(normalsTex, UV, 0).a;
     vec3 position = FromCameraSpace(reconstructCameraSpace(UV, 0));
     vec3 normal = textureMSAA(normalsTex, UV, 0).rgb;
-	//normal += step(0, -length(normal));
+    //normal += step(0, -length(normal));
     float roughness = textureMSAA(diffuseColorTex, UV, 0).a;
-
-	float ao = AmbientOcclusion(position, normalize(normal), roughness);
+    float ao = 1;
+    if(length(normal) < 0.01) ao = 1;
+    else  ao = AmbientOcclusion(position, normalize(normal), roughness);
 
     outColor = vec4(normal, ao);
 }

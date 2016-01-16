@@ -50,14 +50,14 @@ namespace ShadowsTester
                 hbal.Vertices[i + 1].Normal = n;
                 hbal.Vertices[i + 2].Normal = n;
             }*/
-            var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
+            var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(new Vector4(1,0,0,0.5f)));
             lucy2.GetInstance(0).Scale(0.5f);
             lucy2.GetInstance(0).Translate(0, 0, 0);
-            lucy2.GetLodLevel(0).Material.Roughness = 0.1f;
+            lucy2.GetLodLevel(0).Material.Roughness = 1f;
             lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
             Game.World.Scene.Add(lucy2);
             GC.Collect();
-
+            /*
             SimplePointLight spl = new SimplePointLight(new Vector3(0, 2, 0), new Vector3(12, 12, 12));
             spl.Angle = 90;
             spl.SetOrientation(new Vector3(1, -1, 0).ToQuaternion(Vector3.UnitY));
@@ -66,7 +66,7 @@ namespace ShadowsTester
                 spl.SetPosition((float)Math.Sin(t), 2, 0);
                     t += (float)0.01;
             };
-            Game.World.Scene.Add(spl);
+            Game.World.Scene.Add(spl);*/
             /*
             var lss = new List<SimplePointLight>();
             for(int x = 0; x < 500; x++)
@@ -104,11 +104,11 @@ namespace ShadowsTester
             Game.World.Scene.Add(testScene);
             Commons.PickedMesh = lucy;
             Commons.Picked = lucy.GetInstance(0);
-
-            PostProcessing pp = new PostProcessing(512, 512);
+            
+            Renderer pp = new Renderer(512, 512);
             CubeMapFramebuffer cubens = new CubeMapFramebuffer(512, 512);
             var tex = new CubeMapTexture(cubens.TexColor);
-            Game.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
+            Game.DisplayAdapter.MainRenderer.CubeMap = tex;
             cubens.SetPosition(new Vector3(0, 1, 0));
             Game.OnKeyPress += (o, e) =>
             {
@@ -121,7 +121,7 @@ namespace ShadowsTester
                 {
                     cubens.SetPosition(lucy.GetInstance(0).GetPosition());
                     pp.RenderToCubeMapFramebuffer(cubens);
-                    Game.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
+                    Game.DisplayAdapter.MainRenderer.CubeMap = tex;
                     tex.Handle = cubens.TexColor;
                 }
             };

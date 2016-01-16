@@ -45,7 +45,7 @@ vec4 grad4(float j, vec4 ip)
 
   return p;
   }
-						
+                        
 // (sqrt(5) - 1)/4 = F4, used once below
 #define F4 0.309016994374947451
 

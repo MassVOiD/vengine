@@ -38,12 +38,12 @@ uniform int MaterialType;
 // output 3 to 32 vertices
 vec2 interpolate2D(vec3 interpolator, vec2 v0, vec2 v1, vec2 v2)
 {
-   	return vec2(interpolator.x) * v0 + vec2(interpolator.y) * v1 + vec2(interpolator.z) * v2;
+       return vec2(interpolator.x) * v0 + vec2(interpolator.y) * v1 + vec2(interpolator.z) * v2;
 }
 
 vec3 interpolate3D(vec3 interpolator, vec3 v0, vec3 v1, vec3 v2)
 {
-   	return vec3(interpolator.x) * v0 + vec3(interpolator.y )* v1 + vec3(interpolator.z) * v2;
+       return vec3(interpolator.x) * v0 + vec3(interpolator.y )* v1 + vec3(interpolator.z) * v2;
 }
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -144,10 +144,10 @@ void GenerateGrass(vec3 start, vec3 normal, vec3 direction, vec3 tangent, float 
 
 mat4 rotationMatrix(vec3 axis, float angle)
 {
-	float s = sin(angle);
-	float c = cos(angle);
-	float oc = 1.0 - c;
-	return mat4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0, oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s,  0.0, oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c, 0.0, 0.0, 0.0, 0.0, 1.0);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    return mat4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0, oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c, oc * axis.y * axis.z - axis.x * s,  0.0, oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c, 0.0, 0.0, 0.0, 0.0, 1.0);
 }
 void GeometryGenerateGrass(){
     if(gl_InvocationID > GEO_GRASS_INSTANCES) return;
@@ -171,7 +171,7 @@ void GeometryGenerateGrass(){
         vec3 startPoint = center + interpolate3D(rvec, gs_in[0].WorldPos - center, gs_in[1].WorldPos - center, gs_in[2].WorldPos - center);
         vec2 startPointTx = centertx + interpolate2D(rvec, gs_in[0].TexCoord - centertx, gs_in[1].TexCoord - centertx, gs_in[2].TexCoord - centertx);
         float height = 1.8;
-		rvec.y = 1.0 - texture(specularMapTex, startPointTx).r;
+        rvec.y = 1.0 - texture(specularMapTex, startPointTx).r;
         //if(height <= 0) continue;
         //float height = 1.9;
         float width = rand(gs_in[2].TexCoord.yx-rd)*0.0127 + 0.0111; 
@@ -189,14 +189,14 @@ void GeometryGenerateGrassBillboards(){
     vec2 centertx = vec2(gs_in[0].TexCoord + gs_in[1].TexCoord + gs_in[2].TexCoord) / 3.0;
     vec3 startTangent = normalize(gs_in[0].Tangent.xyz);
     vec3 startBitangent = normalize(cross(startNormal, startTangent)) * gs_in[0].Tangent.a;
-	float rd = ((gl_InvocationID+1)*12.123436);
-	vec3 rvec = vec3(rand(gs_in[1].TexCoord+rd), rand(gs_in[0].TexCoord+rd), rand(gs_in[2].TexCoord+rd)) * 2 - 1;
-	rd = ((gl_InvocationID+1)*122.343436);
-	vec3 rvec2 = (vec3(rand(gs_in[2].TexCoord+rd), rand(gs_in[1].TexCoord+rd), rand(gs_in[0].TexCoord+rd)) * 2 - 1) * 0.5;
-	vec3 startPoint = center + interpolate3D(rvec, gs_in[0].WorldPos - center, gs_in[1].WorldPos - center, gs_in[2].WorldPos - center);
-	if(dist < 50.0){
-		// hi res 
-	}
+    float rd = ((gl_InvocationID+1)*12.123436);
+    vec3 rvec = vec3(rand(gs_in[1].TexCoord+rd), rand(gs_in[0].TexCoord+rd), rand(gs_in[2].TexCoord+rd)) * 2 - 1;
+    rd = ((gl_InvocationID+1)*122.343436);
+    vec3 rvec2 = (vec3(rand(gs_in[2].TexCoord+rd), rand(gs_in[1].TexCoord+rd), rand(gs_in[0].TexCoord+rd)) * 2 - 1) * 0.5;
+    vec3 startPoint = center + interpolate3D(rvec, gs_in[0].WorldPos - center, gs_in[1].WorldPos - center, gs_in[2].WorldPos - center);
+    if(dist < 50.0){
+        // hi res 
+    }
 }
 
 #define GEO_FLAG_XDIVISION 95
@@ -311,7 +311,7 @@ void GeometryProcessParallaxDraw(){
         }
         inter += midstep;
     }   
-	EndPrimitive();
+    EndPrimitive();
 }
 
 void main(){

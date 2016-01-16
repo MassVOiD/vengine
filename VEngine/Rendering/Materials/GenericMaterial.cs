@@ -8,9 +8,7 @@ namespace VEngine
 {
     public class GenericMaterial
     {
-        public static ShaderPack MainShaderPack = new ShaderPack("Generic.fragment.glsl");
-
-        public static ShaderPack OverrideShaderPack = null;
+        public static ShaderPool.ShaderPack OverrideShaderPack = null;
 
         public float
             AORange = 0.5f,
@@ -65,39 +63,6 @@ namespace VEngine
 
         private RainSystem RainsDropSystem = null;
 
-        public class ShaderPack
-        {
-            public ShaderProgram
-                Program,
-                TesselatedProgram,
-                Geometry1iTriangles,
-                Geometry96iTriangles;
-
-            public List<ShaderProgram> ProgramsList;
-             
-            public ShaderPack(string fs = null)
-            {
-                ProgramsList = new List<ShaderProgram>();
-                if(Program == null)
-                    Program = ShaderProgram.Compile("Generic.vertex.glsl",
-                       fs);
-                if(TesselatedProgram == null)
-                    TesselatedProgram = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, null, "Generic.tesscontrol.glsl", "Generic.tesseval.glsl");
-                if(Geometry1iTriangles == null)
-                    Geometry1iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry1iTriangles.geometry.glsl");
-                if(Geometry96iTriangles == null)
-                    Geometry96iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
-                        fs, "Generic.geometry96iTriangles.geometry.glsl");
-                ProgramsList.AddRange(new ShaderProgram[] {
-                    Program,
-                    TesselatedProgram,
-                    Geometry1iTriangles,
-                    Geometry96iTriangles,
-                });
-            }
-        }
 
         public GenericMaterial(Texture tex, Texture normalMap = null, Texture bumpMap = null)
         {
@@ -160,6 +125,11 @@ namespace VEngine
             return new GenericMaterial(color);
         }
 
+        public static GenericMaterial FromColor(Vector4 color)
+        {
+            return new GenericMaterial(color);
+        }
+
         public static GenericMaterial FromMedia(string key)
         {
             return new GenericMaterial(new Texture(Media.Get(key)));
@@ -177,7 +147,7 @@ namespace VEngine
 
         public ShaderProgram GetShaderProgram()
         {
-            ShaderPack pack = OverrideShaderPack != null ? OverrideShaderPack : MainShaderPack;
+            var pack = OverrideShaderPack != null ? OverrideShaderPack : Game.ShaderPool.GenericMaterial;
             if(Type == MaterialType.Grass || Type == MaterialType.Flag)
                 return pack.Geometry96iTriangles;
             if(Type == MaterialType.TessellatedTerrain)
@@ -312,6 +282,11 @@ namespace VEngine
             prg.SetUniform("IgnoreLighting", IgnoreLighting);
             prg.SetUniform("ParallaxHeightMultiplier", ParallaxHeightMultiplier);
             prg.SetUniform("ParallaxInstances", ParallaxInstances);
+
+        //    if(Color.W < 1.0f)
+         //       GL.DepthMask(false);
+         //   else
+        //        GL.DepthMask(true);
 
             // prg.SetUniform("AORange", AORange);
             // prg.SetUniform("AOStrength", AOStrength);

@@ -51,7 +51,7 @@ namespace VEngine
         {
             DrawPrepare();
             Game.CheckErrors();
-            GL.DrawArrays(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : PrimitiveType.Triangles, 0, IndicesCount);
+            GL.DrawArrays(ShaderProgram.Current.UsingTessellation ? PrimitiveType.Patches : (DrawGridInsteadOfTriangles == false ? PrimitiveType.Triangles : PrimitiveType.Lines), 0, IndicesCount);
             //Game.CheckErrors();
         }
 
@@ -60,7 +60,7 @@ namespace VEngine
             if(count == 0)
                 return;
             DrawPrepare();
-            GL.DrawArraysInstanced(ShaderProgram.Current.UsingTesselation ? PrimitiveType.Patches : (DrawGridInsteadOfTriangles == false ? PrimitiveType.Triangles : PrimitiveType.Lines), 0, IndicesCount,
+            GL.DrawArraysInstanced(ShaderProgram.Current.UsingTessellation ? PrimitiveType.Patches : (DrawGridInsteadOfTriangles == false ? PrimitiveType.Triangles : PrimitiveType.Lines), 0, IndicesCount,
                      count);
             //Game.CheckErrors();
         }

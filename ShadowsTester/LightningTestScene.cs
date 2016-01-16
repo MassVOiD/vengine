@@ -21,7 +21,7 @@ namespace ShadowsTester
             w5.GetInstance(0).Scale(100);*/
             // Game.World.Scene.Add(w5);
 
-            var hbal = Object3dManager.LoadFromRaw(Media.Get("statue2.raw"));
+            var hbal = Object3dManager.LoadFromObjSingle(Media.Get("bedroom_blender.obj"));
             /*int hbalc = hbal.Vertices.Count;
             for(int i = 0; i < hbalc; i += 3)
             {

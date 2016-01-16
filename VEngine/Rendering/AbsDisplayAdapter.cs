@@ -10,7 +10,7 @@ namespace VEngine
 {
     public abstract class AbsDisplayAdapter : GameWindow
     {
-        public DeferredPipeline Pipeline;
+        public Renderer MainRenderer;
 
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
@@ -25,9 +25,20 @@ namespace VEngine
             GL.Enable(EnableCap.DebugOutputSynchronous);
             GL.Enable(EnableCap.Dither);
             GL.Enable(EnableCap.Multisample);
+
+            GL.Enable(EnableCap.DepthTest);
+            GL.DepthFunc(DepthFunction.Lequal);
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+            GL.ClearColor(0, 0, 0, 0);
+            GL.ClearDepth(1);
+
+            GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
+
+            GL.Disable(EnableCap.Blend);
             GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
             {
-                Console.WriteLine("{0} {1} {2} {3} {4} {5}", source, type, id, severity, length, message);
+                Console.WriteLine("{0} {1} {2} {3} {4} {5} {6}", source, type, id, severity, length, message, userParam);
             }, (IntPtr)0);
 
             MouseMove += Mouse_Move;
@@ -93,7 +104,7 @@ namespace VEngine
             //LightPool.UseTextures(2);
             // this is here so you can issue draw calls from there if you want
             Game.InvokeOnBeforeDraw(e);
-            Pipeline.PostProcessor.RenderToFramebuffer(Framebuffer.Default);
+            MainRenderer.RenderToFramebuffer(Framebuffer.Default);
             //DrawAll();
             Game.InvokeOnAfterDraw(e);
 

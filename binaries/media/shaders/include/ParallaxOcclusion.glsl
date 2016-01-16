@@ -2,18 +2,18 @@
 float newParallaxHeight = 0;
 float parallaxScale = 0.02 * ParallaxHeightMultiplier;
 vec2 adjustParallaxUV(){
-	
-	vec3 twpos =  (RotationMatrixes[Input.instanceId] * vec4(normalize(Input.Tangent.xyz), 0)).xyz;
-	vec3 nwpos =  (RotationMatrixes[Input.instanceId] * vec4(normalize(Input.Normal), 0)).xyz;
-	vec3 bwpos =  normalize(cross(twpos, nwpos)) * Input.Tangent.w;
-	 
-	vec3 eyevec = ((CameraPosition - Input.WorldPos));
-	vec3 V = normalize(vec3(
-		dot(eyevec, twpos),
-		dot(eyevec, bwpos),
-		dot(eyevec, -nwpos)
-	));
-	vec2 T = Input.TexCoord;
+    
+    vec3 twpos =  (RotationMatrixes[Input.instanceId] * vec4(normalize(Input.Tangent.xyz), 0)).xyz;
+    vec3 nwpos =  (RotationMatrixes[Input.instanceId] * vec4(normalize(Input.Normal), 0)).xyz;
+    vec3 bwpos =  normalize(cross(twpos, nwpos)) * Input.Tangent.w;
+     
+    vec3 eyevec = ((CameraPosition - Input.WorldPos));
+    vec3 V = normalize(vec3(
+        dot(eyevec, twpos),
+        dot(eyevec, bwpos),
+        dot(eyevec, -nwpos)
+    ));
+    vec2 T = Input.TexCoord;
    // determine optimal number of layers
    const float minLayers = 6;
    const float maxLayersAngle = 11;
@@ -52,8 +52,8 @@ vec2 adjustParallaxUV(){
    vec2 prevTCoords = currentTextureCoords + dtex;
 
    // heights for linear interpolation
-   float nextH	= heightFromTexture - curLayerHeight;
-   float prevH	= 1.0 - texture(bumpMapTex, prevTCoords).r
+   float nextH    = heightFromTexture - curLayerHeight;
+   float prevH    = 1.0 - texture(bumpMapTex, prevTCoords).r
                            - curLayerHeight + layerHeight;
 
    // proportions for linear interpolation

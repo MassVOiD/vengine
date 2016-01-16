@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
+using OpenTK;
 using OpenTK.Graphics.OpenGL4;
 using OldGL = OpenTK.Graphics.OpenGL;
 
@@ -76,7 +77,7 @@ namespace VEngine
         {
             GL.DeleteTexture(Handle);
         }
-
+        
         public void Update(string file)
         {
             if(IsDDS)

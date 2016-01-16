@@ -33,6 +33,8 @@ namespace VEngine
         static public event EventHandler<FrameEventArgs> OnBeforeDraw, OnAfterDraw;
         static public event EventHandler OnLoad;
 
+        static public ShaderPool ShaderPool;
+
         static public int MSAASamples = 2;
 
         static public float CurrentFrameTime = 0;
@@ -46,7 +48,9 @@ namespace VEngine
             Media.LoadFileMap();
             Resolution = resolution;
             SetCurrentThreadCores(1);
-            
+
+            ShaderPool = new ShaderPool();
+
             var thread = Task.Factory.StartNew(() =>
             {
                 SetCurrentThreadCores(2);

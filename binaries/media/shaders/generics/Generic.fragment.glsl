@@ -8,14 +8,14 @@ uniform int DrawMode;
 
 void main()
 {
-	vec2 a = Input.TexCoord;
-	if(UseBumpMap == 1) {
-		//a = adjustParallaxUV();
-		//markAsParallax = true;
-	}
+    vec2 a = Input.TexCoord;
+    if(UseBumpMap == 1) {
+        a = adjustParallaxUV();
+        //markAsParallax = true;
+    }
     if(DrawMode == MODE_TEXTURE_ONLY) finishFragment(texture(currentTex, a), a);
-	else if(DrawMode == MODE_COLOR_ONLY) finishFragment(input_Color, a);
-	else if(DrawMode == MODE_TEXTURE_MULT_COLOR) finishFragment(texture(currentTex, a) * input_Color, a);
-	else if(DrawMode == MODE_ONE_MINUS_COLOR_OVER_TEXTURE) 
+    else if(DrawMode == MODE_COLOR_ONLY) finishFragment(input_Color, a);
+    else if(DrawMode == MODE_TEXTURE_MULT_COLOR) finishFragment(texture(currentTex, a) * input_Color, a);
+    else if(DrawMode == MODE_ONE_MINUS_COLOR_OVER_TEXTURE) 
         finishFragment(vec4(1) - (input_Color / (texture(currentTex, Input.TexCoord) + vec4(1, 1, 1, 0))), a);
 }

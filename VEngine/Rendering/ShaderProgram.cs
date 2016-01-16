@@ -12,10 +12,13 @@ namespace VEngine
     public class ShaderProgram
     {
         public static ShaderProgram Current = null;
-        static public bool Lock = false;
-        public bool Compiled;
+
+        public bool Compiled
+        {
+            get; protected set;
+        }
         public int Handle = -1;
-        public bool UsingTesselation = false;
+        public bool UsingTessellation = false;
 
         private static List<ShaderProgram> AllPrograms = new List<ShaderProgram>();
 
@@ -24,8 +27,6 @@ namespace VEngine
         private string GeometryFile;
 
         private Dictionary<string, string> Globals = new Dictionary<string, string>();
-
-        private string lastCombinedSourcesHash;
 
         private string TessControlFile;
 
@@ -47,7 +48,6 @@ namespace VEngine
             GeometryFile = geometryFile;
             TessControlFile = tesscontrolFile;
             TessEvalFile = tessevalFile;
-            lastCombinedSourcesHash = "";
             Recompile();
             AllPrograms.Add(this);
         }
@@ -98,7 +98,7 @@ namespace VEngine
             {
                 TessControlSource = ShaderPreparser.Preparse(TessControlFile, Media.ReadAllText(TessControlFile));
                 TessEvaluationSource = ShaderPreparser.Preparse(TessEvalFile, Media.ReadAllText(TessEvalFile));
-                UsingTesselation = true;
+                UsingTessellation = true;
             }
             var sb = new StringBuilder();
             sb.AppendLine(VertexSource);
@@ -106,12 +106,7 @@ namespace VEngine
             sb.AppendLine(GeometrySource);
             sb.AppendLine(TessControlSource);
             sb.AppendLine(TessEvaluationSource);
-            string hash = Hash(sb.ToString());
-            if(lastCombinedSourcesHash != hash)
-            {
-                Compiled = false;
-                lastCombinedSourcesHash = hash;
-            }
+            Compiled = false;
         }
 
         public void RemoveGlobal(string key)
@@ -301,17 +296,13 @@ namespace VEngine
 
         public SwitchResult Use()
         {
-            if(!Lock)
-            {
-                if(!Compiled)
-                    Compile();
-                if(Current == this)
-                    return SwitchResult.AlreadyInUse;
-                GL.UseProgram(Handle);
-                Current = this;
-                return SwitchResult.Switched;
-            }
-            return SwitchResult.Locked;
+            if(!Compiled)
+                Compile();
+            if(Current == this)
+                return SwitchResult.AlreadyInUse;
+            GL.UseProgram(Handle);
+            Current = this;
+            return SwitchResult.Switched;
         }
 
         private static int GetUniformLocation(string name)
@@ -329,22 +320,6 @@ namespace VEngine
             return location;
         }
 
-        private static string Hash(string input)
-        {
-            using(SHA1Managed sha1 = new SHA1Managed())
-            {
-                var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
-                var sb = new StringBuilder(hash.Length * 2);
-
-                foreach(byte b in hash)
-                {
-                    // can be "x2" if you want lowercase
-                    sb.Append(b.ToString("X2"));
-                }
-
-                return sb.ToString();
-            }
-        }
 
         private bool CheckCache(string key, object value)
         {
@@ -425,7 +400,8 @@ namespace VEngine
                 globalsString.AppendLine("#define " + g.Key + " " + g.Value);
             }
             globalsString.AppendLine("#define MSAA_SAMPLES " + Game.MSAASamples);
-            if(Game.MSAASamples > 1) globalsString.AppendLine("#define USE_MSAA");
+            if(Game.MSAASamples > 1)
+                globalsString.AppendLine("#define USE_MSAA");
 
 
             string fullsrc = Regex.Replace(source, @"\#version (.+)\r\n", "#version $1\r\n" + globalsString);
