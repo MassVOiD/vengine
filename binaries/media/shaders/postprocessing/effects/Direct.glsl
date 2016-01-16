@@ -1,26 +1,4 @@
 
-float testVisibility3ddirect(vec2 cuv, vec3 w1, vec3 w2) {
-    vec2 sspace1 = cuv;
-    vec4 clipspace2 = (VPMatrix) * vec4((w2), 1.0);
-    vec2 sspace2 = (clipspace2.xyz / clipspace2.w).xy * 0.5 + 0.5;
-    float d3d1 = length(ToCameraSpace(w1));
-    float d3d2 = length(ToCameraSpace(w2));
-    float outs = 1.0;
-    for(float i=0;i<1.0;i+= 0.012) { 
-        vec2 ruv = mix(sspace1, sspace2, i);
-        if(ruv.x<0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1) continue;
-        vec3 wd = reconstructCameraSpace(ruv, 0);
-        float m = textureMSAA(normalsTex, ruv, 0).a;
-        if(m > 1.0) continue;
-        float rd3d = length(wd);
-        float inter = mix(d3d1, d3d2, i);
-        if(rd3d < inter) {
-            outs -= 0.07 * (1.0-i);
-        }
-    }
-    return max(0, outs);
-}
-
 float closestEdge(vec2 point, vec2 size, vec2 uv)
 {
     vec2 ledg = point - vec2(size.x, 0);

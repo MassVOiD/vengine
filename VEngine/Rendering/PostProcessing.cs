@@ -17,7 +17,6 @@ namespace VEngine
         
         private ShaderProgram
             FogShader,
-            AOShader,
             HDRShader,
             BlitShader;
 
@@ -57,15 +56,14 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.HalfFloat
             };
-            DistanceFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
+            DistanceFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
             {
                 ColorOnly = false,
                 ColorInternalFormat = PixelInternalFormat.R32f,
                 ColorPixelFormat = PixelFormat.Red,
                 ColorPixelType = PixelType.Float
             };
-
-            AOShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "AO.fragment.glsl");
+            
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
             HDRShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "HDR.fragment.glsl");
             BlitShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Blit.fragment.glsl");
@@ -184,7 +182,6 @@ namespace VEngine
             Game.World.Scene.SetLightingUniforms(FogShader);
             FogShader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
            // MRT.UseTextureForwardColor(30);
-            MRT.UseTextureNormals(2);
             DrawPPMesh();
         }
 
@@ -200,7 +197,6 @@ namespace VEngine
             }
             //MSAAEdgeDetectFramebuffer.UseTexture(28);
             MRT.UseTextureForwardColor(30);
-            MRT.UseTextureNormals(2);
             DrawPPMesh();
         }
         

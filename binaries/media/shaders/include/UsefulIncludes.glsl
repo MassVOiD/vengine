@@ -25,7 +25,7 @@ uniform vec3 FrustumConeBottomLeftToTopLeft;
 //mat4 imvp =inverse(ProjectionMatrix * ViewMatrix);
 vec3 reconstructCameraSpaceFull(vec2 uv){
     vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
-    return dir * textureMSAAFull(normalsTex, uv).a;
+    return dir * texture(distanceTex, uv).r;
 }
 vec2 samplesoff[8] = vec2[8](
     vec2(0),
@@ -40,7 +40,7 @@ vec2 samplesoff[8] = vec2[8](
 vec3 reconstructCameraSpace(vec2 uv, int samplee){
     //uv += samplesoff[samplee] * (1.0/textureSize(normalsTex));
     vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
-    return dir * textureMSAA(normalsTex, uv, samplee).a;
+    return dir * texture(distanceTex, uv).r;
 }
 vec3 getTangentPlane(vec3 inp){
     return normalize(cross(inp.xzy,inp));    

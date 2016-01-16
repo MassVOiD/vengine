@@ -1,10 +1,8 @@
 layout(binding = 0) uniform sampler2D currentTex;
 #ifdef USE_MSAA
 layout(binding = 30) uniform sampler2DMS diffuseColorTex;
-layout(binding = 2) uniform sampler2DMS normalsTex;
 #else
 layout(binding = 30) uniform sampler2D diffuseColorTex;
-layout(binding = 2) uniform sampler2D normalsTex;
 #endif
 layout(binding = 3) uniform samplerCube cubeMapTex;
 layout(binding = 4) uniform sampler2D lastIndirectTex;
@@ -16,6 +14,7 @@ layout(binding = 5) uniform sampler2D fogTex;
 
 layout(binding = 27) uniform sampler2D numbersTex;
 #define aoTex numbersTex
+#define distanceTex aoTex
 layout(binding = 29) uniform sampler2D normalMapTex;
 layout(binding = 28) uniform sampler2D roughnessMapTex;
 
@@ -46,7 +45,7 @@ int getMSAASamples(vec2 uv){
     return MSAA_SAMPLES;//int(mix(1, MSAASamples, edge));
 }
 
-ivec2 txsize = textureSize(normalsTex);
+ivec2 txsize = textureSize(diffuseColorTex);
 vec4 textureMSAAFull(sampler2DMS tex, vec2 inUV){
     vec4 color11 = vec4(0.0);
     int samples = getMSAASamples(inUV);

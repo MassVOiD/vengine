@@ -20,7 +20,7 @@ namespace VEngine
 
         public bool Generated;
 
-        public int TexNormals, TexForward, DepthRenderBuffer;
+        public int TexForward, DepthRenderBuffer;
 
         private int FBO, Width, Height;
 
@@ -43,13 +43,6 @@ namespace VEngine
             GL.GetTexImage<Vector4h>(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.HalfFloat, pixels);
             return pixels;
         }
-        public Vector4[] GetImageNormalsDistance()
-        {
-            GL.BindTexture(TextureTarget.Texture2D, TexNormals);
-            var pixels = new OpenTK.Vector4[Width * Height];
-            GL.GetTexImage<Vector4>(TextureTarget.Texture2D, 0, PixelFormat.Rgba, PixelType.HalfFloat, pixels);
-            return pixels;
-        }
 
         public void Use(bool setViewport = true, bool clearViewport = true)
         {
@@ -70,14 +63,6 @@ namespace VEngine
             GL.ActiveTexture(TextureUnit.Texture0);
         }
         
-        public void UseTextureNormals(int startIndex)
-        {
-            GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(Game.MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexNormals);
-
-            GL.ActiveTexture(TextureUnit.Texture0);
-        }
-
         private void Generate()
         {
             FBO = GL.GenFramebuffer();
@@ -90,18 +75,7 @@ namespace VEngine
             if(Game.MSAASamples > 1)
                 GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Game.MSAASamples, PixelInternalFormat.Rgba8, Width, Height, true);
             else
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
-            GL.TexParameter(ttarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
-            GL.TexParameter(ttarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
-            GL.TexParameter(ttarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            GL.TexParameter(ttarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-
-            TexNormals = GL.GenTexture();
-            GL.BindTexture(ttarget, TexNormals);
-            if(Game.MSAASamples > 1)
-                GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Game.MSAASamples, PixelInternalFormat.Rgba32f, Width, Height, true);
-            else
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba32f, Width, Height, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
             GL.TexParameter(ttarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
             GL.TexParameter(ttarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
             GL.TexParameter(ttarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
@@ -111,16 +85,15 @@ namespace VEngine
             DepthRenderBuffer = GL.GenRenderbuffer();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, DepthRenderBuffer);
             if(Game.MSAASamples > 1)
-                GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, Game.MSAASamples, RenderbufferStorage.DepthComponent32f, Width, Height);
+                GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, Game.MSAASamples, RenderbufferStorage.DepthComponent24, Width, Height);
             else
-                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent32f, Width, Height);
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent24, Width, Height);
 
             // attaching
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexForward, 0);
-            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TexNormals, 0);
             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, DepthRenderBuffer);
 
-            GL.DrawBuffers(2, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1 });
+            GL.DrawBuffers(2, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0 });
 
             // check for fuckups
             var err = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);

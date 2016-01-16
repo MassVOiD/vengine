@@ -62,7 +62,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             coord = clamp(coord, 0.0, 1.0);
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            float depth = textureMSAAFull(normalsTex, coord).a;
+            float depth = texture(distanceTex, coord).r;
             vec3 texel = textureMSAAFull(diffuseColorTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
@@ -133,7 +133,7 @@ float avgdepth(vec2 buv){
         { 
             vec2 gauss = buv + vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
             gauss = clamp(gauss, 0.0, 0.90);
-            float adepth = textureMSAA(normalsTex, gauss, 0).a;
+            float adepth = texture(distanceTex, gauss).r;
             //if(adepth < fDepth) adepth = fDepth + (fDepth - adepth);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);        
             float f = InputFocalLength;
@@ -175,7 +175,7 @@ vec3 hdr(vec3 color, vec2 uv){
 void main()
 {
     vec4 color1 = textureMSAAFull(diffuseColorTex, UV);
-    if(length(textureMSAAFull(normalsTex, UV).rgb) < 0.01)color1.rgb =vec3(1.0);
+    //if(length(texture(distanceTex, UV).r) < 0.01)color1.rgb =vec3(1.0);
     //color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
@@ -184,7 +184,7 @@ void main()
     //vec4 color1 = vec4(0,0,0,1);
     if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
-        float adepth = textureMSAA(normalsTex, vec2(0.5), 0).a;
+        float adepth = texture(distanceTex, vec2(0.5)).r;
         //float fDepth = reverseLog(CameraCurrentDepth);
 
         color1.xyz = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
