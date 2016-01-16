@@ -15,7 +15,7 @@ namespace VEngine
             Physics = new Physics();
         }
 
-        public void Draw(bool ignoreMeshWithDisabledDepthTest = false, bool ignoreDisableDepthWriteFlag = false)
+        public void Draw()
         {
             var sp = GenericMaterial.OverrideShaderPack != null ? GenericMaterial.OverrideShaderPack : Game.ShaderPool.GenericMaterial;
             sp.ProgramsList.ForEach((shader) =>

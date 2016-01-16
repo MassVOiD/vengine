@@ -62,8 +62,8 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             coord = clamp(coord, 0.0, 1.0);
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            float depth = textureMSAA(normalsTex, coord, 0).a;
-            vec3 texel = texture(currentTex, coord, 0).rgb;
+            float depth = textureMSAAFull(normalsTex, coord).a;
+            vec3 texel = textureMSAAFull(diffuseColorTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
             w *= dd;
@@ -158,8 +158,9 @@ float avgdepth(vec2 buv){
 
 
 vec3 ExecutePostProcessing(vec3 color, vec2 uv){
-
-    return vec3pow(color.rgb, 1.9);
+	float vignette = distance(vec2(0), vec2(0.5)) - distance(uv, vec2(0.5));
+	vignette = 0.1 + 0.9*smoothstep(0.0, 0.3, vignette);
+    return vec3pow(color.rgb, 1.0) * vignette;
 }
 
 vec3 hdr(vec3 color, vec2 uv){
@@ -170,11 +171,12 @@ vec3 hdr(vec3 color, vec2 uv){
     return color * max(0.5, mult) * 2.0;
 }
 
+
 void main()
 {
     vec4 color1 = textureMSAAFull(diffuseColorTex, UV);
     if(length(textureMSAAFull(normalsTex, UV).rgb) < 0.01)color1.rgb =vec3(1.0);
-    /*//color1.rgb = funnybloom(UV);
+    //color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
     //vec4 color1 = vec4(edgeDetect(UV), 1.0);
@@ -205,8 +207,9 @@ void main()
     
     if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
     //if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
-    //if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
-        */
+    if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
+        
+	//color1.rgb += SSIL();
     vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
     color1.rgb = vec3(pow(color1.r, gamma.r),
     pow(color1.g, gamma.g),

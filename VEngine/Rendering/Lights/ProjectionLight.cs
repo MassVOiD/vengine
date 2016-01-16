@@ -88,7 +88,9 @@ namespace VEngine
             });
 
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.DepthOnly;
-            Game.World.Draw(false, true);
+            InternalRenderingState.PassState = InternalRenderingState.State.ShadowMapPass;
+            Game.World.Draw();
+            InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
             //if(Skybox.Current != null)
             //    Skybox.Current.Draw();

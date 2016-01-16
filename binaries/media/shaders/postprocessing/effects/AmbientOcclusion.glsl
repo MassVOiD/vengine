@@ -657,15 +657,10 @@ float GetAveragedDistance(vec2 uv){
     float counter = 0.001;
     float xaon =distance(CameraPosition, Input.WorldPos);
     float factor = 1.0 / xaon;
-    vec2 multiplier = vec2(ratio, 1) * 0.1 * factor;
-    for(int g=0;g < xsamples.length();g+=2){
+    vec2 multiplier = vec2(ratio, 1) * 0.5 * factor;
+    for(int g=0;g < xsamples.length();g++){
         float aon = texture(aoTex, uv + xsamples[g] * multiplier).r;
-        float weight = 1.0 - smoothstep(0.0, 0.4, (xaon - aon));
-        outc += aon * weight;
-        counter += 1.0 * weight;
-        
-        aon = texture(aoTex, uv + xsamples[g] * multiplier * 0.3).r;
-        weight = 1.0 - smoothstep(0.0, 0.4, (xaon - aon));
+        float weight = 1.0 - smoothstep(0.0, 0.9, (xaon - aon));
         outc += aon * weight;
         counter += 1.0 * weight;
     
@@ -682,6 +677,49 @@ float someVeryWierdSSAO(
     float a;
     a += GetAveragedDistance(UV);
     return pow(a, 18);
+}
+
+float testVisibility2d(vec2 uv1, vec2 uv2, float dist1, float dist2) 
+{
+    float minang = 1;
+    for(float ix=0;ix<1.0;ix+= 0.33) 
+    { 
+        float i = ix;
+        vec2 ruv = mix(uv1, uv2, i);
+        float rd3d = texture(aoTex, ruv).r + 0.01;
+        if(rd3d < mix(dist1, dist2, i) && rd3d > mix(dist1, dist2, i) - 1.01 ) 
+        {
+            minang -= 0.33;
+        }
+    }
+    return minang;
+}
+
+float weirdness(
+    vec3 position,
+    vec3 normal,
+    float roughness,
+    float hemisphereSize
+){
+    float outc = 0.0;
+    float counter = 0.001;
+    float xaon =distance(CameraPosition, Input.WorldPos);
+    float factor = 1.0 / xaon;
+    vec2 multiplier = vec2(ratio, 1) * 0.2 * factor;
+	vec3 posc = ToCameraSpace(position);
+    for(int g=0;g < xsamples.length();g+=2){
+		vec2 asdf = xsamples[g] * multiplier;
+		vec2 nuv = UV + asdf;
+        float aon = texture(aoTex, nuv).r;
+		vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * nuv.x + FrustumConeBottomLeftToTopLeft * nuv.y));
+		vec3 dupa = dir * aon;
+        float dt = max(0, dot(normal, normalize(dupa - posc)) - 0.1);
+		float fact = smoothstep(1.0, 0.0, max(0, distance(dupa, posc) - 0.3));
+		outc += dt * fact;
+		counter += 1.0;
+    
+    }
+    return pow(1.0 - max(0, (outc / counter)), 6);
 }
 
 float VDAO(
@@ -733,6 +771,6 @@ float AmbientOcclusion(
     float roughness
 ){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = someVeryWierdSSAO(position, normal, roughness, 0.7);
+    ao = weirdness(position, normal, roughness, 0.7);
     return ao;
 }

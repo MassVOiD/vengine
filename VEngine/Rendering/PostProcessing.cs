@@ -209,20 +209,26 @@ namespace VEngine
             DistanceFramebuffer.Use();
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.DistanceOnly;
             GL.ColorMask(true, false, false, false);
+            InternalRenderingState.PassState = InternalRenderingState.State.DistancePass;
             Game.World.Draw();
+            InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GL.ColorMask(true, true, true, true);
             MRT.Use();
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.DepthOnly;
             GL.ColorMask(false, false, false, false);
+            InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
             Game.World.Draw();
+            InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
             CubeMap.Use(TextureUnit.Texture3);
             DistanceFramebuffer.UseTexture(27);
             //EnableBlending();
             GL.ColorMask(true, true, true, true);
+            InternalRenderingState.PassState = InternalRenderingState.State.ForwardPass;
             Game.World.Draw();
-           // DisableBlending();
-                        
+            InternalRenderingState.PassState = InternalRenderingState.State.Idle;
+            // DisableBlending();
+
             if(Game.GraphicsSettings.UseFog)
             {
                 Fog();
