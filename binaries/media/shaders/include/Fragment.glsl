@@ -89,12 +89,13 @@ vec3 examineBumpMap(){
 
 uniform int UseVDAO;
 uniform int UseHBAO;
+uniform int UseFog;
 uniform float VDAOGlobalMultiplier;
+vec2 UV = gl_FragCoord.xy / resolution;
 float AOValue;
 #include Shade.glsl
 #include EnvironmentLight.glsl
 #include Direct.glsl
-vec2 UV = gl_FragCoord.xy / resolution;
 #include AmbientOcclusion.glsl
 
 vec3 ApplyLighting(vec3 albedo, vec3 position, vec3 normal, float roughness, float IOR){

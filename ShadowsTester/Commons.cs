@@ -30,9 +30,25 @@ namespace ShadowsTester
         {
             float fovdegree = 90;
             RedLight = new List<ProjectionLight>();
-            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1024, 1024, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
             {
-                LightColor = new Vector3(1, 1, 0.84f)
+                LightColor = new Vector3(1, 1, 0.84f),
+                IsStatic = true
+            });
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            {
+                LightColor = new Vector3(1, 1, 0),
+                IsStatic = true
+            });
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            {
+                LightColor = new Vector3(0, 1, 1),
+                IsStatic = true
+            });
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            {
+                LightColor = new Vector3(1, 0, 1),
+                IsStatic = true
             });
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
@@ -423,12 +439,33 @@ namespace ShadowsTester
                 {
                     FreeCam.Cam.Brightness += 0.1f;
                 }
-                if(e.Key == OpenTK.Input.Key.Number1)
+                if(e.Key == OpenTK.Input.Key.F1)
                 {
-                //redConeLight.SetPosition(freeCamera.Cam.Transformation.GetPosition(), freeCamera.Cam.Transformation.GetPosition() + freeCamera.Cam.Transformation.GetOrientation().ToDirection());
-                    RedLight.ForEach((a) => a.GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition() + new Vector3((float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1) * 0.1f));
-                    RedLight.ForEach((a) => a.GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation()));
-                    RedLight.ForEach((a) => a.camera.Update());
+                    RedLight[0].GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition() + new Vector3((float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1) * 0.1f);
+                    RedLight[0].GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
+                    RedLight[0].camera.Update();
+                    RedLight[0].NeedsRefreshing = true;
+                }
+                if(e.Key == OpenTK.Input.Key.F2)
+                {
+                    RedLight[1].GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition() + new Vector3((float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1) * 0.1f);
+                    RedLight[1].GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
+                    RedLight[1].camera.Update();
+                    RedLight[1].NeedsRefreshing = true;
+                }
+                if(e.Key == OpenTK.Input.Key.F3)
+                {
+                    RedLight[2].GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition() + new Vector3((float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1) * 0.1f);
+                    RedLight[2].GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
+                    RedLight[2].camera.Update();
+                    RedLight[2].NeedsRefreshing = true;
+                }
+                if(e.Key == OpenTK.Input.Key.F4)
+                {
+                    RedLight[3].GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition() + new Vector3((float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1) * 0.1f);
+                    RedLight[3].GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
+                    RedLight[3].camera.Update();
+                    RedLight[3].NeedsRefreshing = true;
                 }
                 if(e.Key == OpenTK.Input.Key.Tilde)
                 {

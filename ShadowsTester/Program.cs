@@ -12,9 +12,9 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 1920;
+            public static int Width = 1280;
             public static string MediaPath = "media";
-            public static int Height = 1020;
+            public static int Height = 768;
         }
 
         [STAThread]

@@ -146,7 +146,7 @@ vec3 shade(
         cameraRelativeToVPos,
         lightRelativeToVPos,
         clamp(roughness, 0.005, 0.99),
-        mix(albedo * lightColor, albedo, roughness)
+        mix(lightColor, albedo * lightColor, roughness)
         );
     
     float diffuseComponent = 0*max(0, dot(lightRelativeToVPos, normal));

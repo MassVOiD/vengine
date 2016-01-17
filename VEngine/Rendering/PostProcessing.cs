@@ -16,15 +16,13 @@ namespace VEngine
         public int Width, Height;
         
         private ShaderProgram
-            FogShader,
             HDRShader,
             BlitShader;
 
         private bool DisablePostEffects = false;
-        
+
         private Framebuffer
-            DistanceFramebuffer,
-            FogFramebuffer;
+            DistanceFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
         
@@ -49,13 +47,6 @@ namespace VEngine
             //   initialWidth *= 4; initialHeight *= 4;
             MRT = new MRTFramebuffer(initialWidth, initialHeight);
             
-            FogFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
-            {
-                ColorOnly = true,
-                ColorInternalFormat = PixelInternalFormat.Rgba16f,
-                ColorPixelFormat = PixelFormat.Rgba,
-                ColorPixelType = PixelType.HalfFloat
-            };
             DistanceFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
             {
                 ColorOnly = false,
@@ -64,7 +55,6 @@ namespace VEngine
                 ColorPixelType = PixelType.Float
             };
             
-            FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
             HDRShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "HDR.fragment.glsl");
             BlitShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Blit.fragment.glsl");
             
@@ -157,8 +147,8 @@ namespace VEngine
         private void EnableBlending()
         {
             GL.Disable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.BlendEquation(BlendEquationMode.FuncAdd);
+            GL.BlendFunc(BlendingFactorSrc.Zero, BlendingFactorDest.SrcColor);
+            //GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
 
         private void FaceRender(CubeMapFramebuffer framebuffer, TextureTarget target)
@@ -174,17 +164,7 @@ namespace VEngine
             HDR();
             framebuffer.GenerateMipMaps();
         }
-
-        private void Fog()
-        {
-            SwitchToFB(FogFramebuffer);
-            FogShader.Use();
-            Game.World.Scene.SetLightingUniforms(FogShader);
-            FogShader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
-           // MRT.UseTextureForwardColor(30);
-            DrawPPMesh();
-        }
-
+        
         private void HDR()
         {
             HDRShader.Use();
@@ -220,15 +200,16 @@ namespace VEngine
             DistanceFramebuffer.UseTexture(27);
             //EnableBlending();
             GL.ColorMask(true, true, true, true);
-            InternalRenderingState.PassState = InternalRenderingState.State.ForwardPass;
+            InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;
+            DisableBlending();
             Game.World.Draw();
+            InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
+            EnableBlending();
+            Game.World.Draw();
+            DisableBlending();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             // DisableBlending();
-
-            if(Game.GraphicsSettings.UseFog)
-            {
-                Fog();
-            }
+            
         }
         
         private void SwitchToFB(Framebuffer buffer)

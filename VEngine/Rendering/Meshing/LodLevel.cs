@@ -47,6 +47,16 @@ namespace VEngine
             ModelMatricesBuffer.Use(0);
             RotationMatricesBuffer.Use(1);
             Ids.Use(2);
+
+            // now the blending thingy
+            if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardOpaquePass)
+            {
+             //   GL.DepthMask(true);
+            }
+            if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardOpaquePass)
+            {
+             //   GL.DepthMask(false);
+            }
             Info3d.DrawInstanced(InstancesFiltered);
         }
 

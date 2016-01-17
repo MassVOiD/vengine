@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using OpenTK;
 
 namespace VEngine
@@ -19,6 +20,7 @@ namespace VEngine
         private List<int> mmodes = new List<int>();
 
         private List<Matrix4> pmats = new List<Matrix4>();
+        private List<int> shadowmaplayers = new List<int>();
 
         private List<Vector3> poss = new List<Vector3>();
 
@@ -48,6 +50,12 @@ namespace VEngine
         public void Add(ILight e)
         {
             Lights.Add(e);
+            if(e is ProjectionLight)
+                Game.Invoke(() =>
+                    Game.ShadowMaps.UpdateFromLightsList(
+                        Lights
+                        .Where((a) => a is ProjectionLight)
+                        .Cast<ProjectionLight>().ToList()));
         }
 
         public void Add(IRenderable e)
@@ -84,7 +92,7 @@ namespace VEngine
             });
             return o;
         }
-        
+
         public void MapLights()
         {
             for(int i = 0; i < Lights.Count; i++)
@@ -128,7 +136,7 @@ namespace VEngine
             //       Buffer.Add(0);
             SSBO.MapData(Buffer.ToArray());
         }
-        
+
         public void Remove(ILight e)
         {
             Lights.Remove(e);
@@ -141,7 +149,9 @@ namespace VEngine
 
         public void SetLightingUniforms(ShaderProgram shader)
         {
+            // MEMORY LEAK
             pmats = new List<Matrix4>();
+            shadowmaplayers = new List<int>();
             vmats = new List<Matrix4>();
             poss = new List<Vector3>();
             fplanes = new List<float>();
@@ -156,14 +166,15 @@ namespace VEngine
                     var p = e as ILight;
                     pmats.Add(l.GetPMatrix());
                     vmats.Add(l.GetVMatrix());
+                    shadowmaplayers.Add((l as ProjectionLight).ShadowMapArrayIndex);
                     poss.Add(p.GetPosition());
                     colors.Add(new Vector4(p.GetColor()));
-                    l.UseTexture(ipointer + 6);
                     ipointer++;
                 }
-
+            Game.ShadowMaps.Bind(6);
             shader.SetUniformArray("LightsPs", pmats.ToArray());
             shader.SetUniformArray("LightsVs", vmats.ToArray());
+            shader.SetUniformArray("LightsShadowMapsLayer", shadowmaplayers.ToArray());
             shader.SetUniformArray("LightsPos", poss.ToArray());
             shader.SetUniformArray("LightsFarPlane", fplanes.ToArray());
             shader.SetUniformArray("LightsColors", colors.ToArray());

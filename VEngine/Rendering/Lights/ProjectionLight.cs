@@ -12,6 +12,7 @@ namespace VEngine
         public Vector3 FakePosition = Vector3.Zero;
 
         public Framebuffer FBO;
+        public int ShadowMapArrayIndex = 0;
 
         public bool IsStatic = false;
 
@@ -121,10 +122,6 @@ namespace VEngine
         {
             camera.UpdateInverse();
         }
-
-        public void UseTexture(int index)
-        {
-            FBO.UseTexture(index);
-        }
+        
     }
 }

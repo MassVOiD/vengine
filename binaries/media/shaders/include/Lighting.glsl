@@ -2,28 +2,8 @@
 
 float lookupDepthFromLight(uint i, vec2 uvi, float comparison){
     float distance1 = 0.0;
-    vec3 uv = vec3(uvi, comparison);
-    if(i==0)distance1 = texture(lightDepth0, uv);
-    else if(i==1)distance1 = texture(lightDepth1, uv);
-    else if(i==2)distance1 = texture(lightDepth2, uv);
-    else if(i==3)distance1 = texture(lightDepth3, uv);
-    else if(i==4)distance1 = texture(lightDepth4, uv);
-    else if(i==5)distance1 = texture(lightDepth5, uv);
-    else if(i==6)distance1 = texture(lightDepth6, uv);
-    else if(i==7)distance1 = texture(lightDepth7, uv);
-    else if(i==8)distance1 = texture(lightDepth8, uv);
-    else if(i==9)distance1 = texture(lightDepth9, uv);
-    else if(i==10)distance1 = texture(lightDepth10, uv);
-    else if(i==11)distance1 = texture(lightDepth11, uv);
-    else if(i==12)distance1 = texture(lightDepth12, uv);
-    else if(i==13)distance1 = texture(lightDepth13, uv);
-    else if(i==14)distance1 = texture(lightDepth14, uv);
-    else if(i==15)distance1 = texture(lightDepth15, uv);
-    else if(i==16)distance1 = texture(lightDepth16, uv);
-    else if(i==17)distance1 = texture(lightDepth17, uv);
-    else if(i==18)distance1 = texture(lightDepth18, uv);
-    else if(i==19)distance1 = texture(lightDepth19, uv);
-    else if(i==20)distance1 = texture(lightDepth20, uv);
+    vec4 uv = vec4(uvi, float(i), comparison);
+    distance1 = texture(shadowMapsArray, uv);
     return distance1;
 }
 #define mPI (3.14159265)
@@ -84,7 +64,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     float distance3 = (lightScreenSpace.z * 0.5 + 0.5);
     //return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
     float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
-    //return lookupDepthFromLight(i, uv, distance3 - 0.0001);
+    return lookupDepthFromLight(i, uv, distance3 - 0.0001);
     for(float x = 0; x < mPI2; x+=0.8){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
             fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2s(uv + vec2(x,y)) * distance2 * 0.0005;

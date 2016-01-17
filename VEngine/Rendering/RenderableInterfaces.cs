@@ -49,8 +49,6 @@ namespace VEngine
         Matrix4 GetVMatrix();
 
         void Map();
-
-        void UseTexture(int index);
     }
 
     public interface ITransformable

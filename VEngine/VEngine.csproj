@@ -121,6 +121,7 @@
     <Compile Include="Rendering\CubeMapTexture.cs" />
     <Compile Include="Rendering\Object3dManager.cs" />
     <Compile Include="Rendering\PassiveVoxelizer.cs" />
+    <Compile Include="Rendering\ShadowMapsArrayTexture.cs" />
     <Compile Include="ShaderPool.cs" />
     <Compile Include="Texture3D.cs" />
     <Compile Include="UI\AbsUIElement.cs" />

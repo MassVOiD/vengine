@@ -34,6 +34,7 @@ namespace VEngine
         static public event EventHandler OnLoad;
 
         static public ShaderPool ShaderPool;
+        static public ShadowMapsArrayTexture ShadowMaps;
 
         static public int MSAASamples = 2;
 
@@ -46,6 +47,7 @@ namespace VEngine
             World = new World();
             Media.SearchPath = mediapath;
             Media.LoadFileMap();
+            ShadowMaps = new ShadowMapsArrayTexture(512, 512);
             Resolution = resolution;
             SetCurrentThreadCores(1);
 

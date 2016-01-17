@@ -36,6 +36,7 @@ namespace VEngine
                 shader.SetUniform("resolution", new Vector2(Game.Resolution.Width, Game.Resolution.Height));
                 shader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
                 shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
+                shader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
                 shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
                 shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
                 Game.World.Scene.SetLightingUniforms(shader);

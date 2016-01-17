@@ -6,6 +6,7 @@ const int MAX_LIGHTS = 6;
 uniform int LightsCount;
 uniform mat4 LightsPs[MAX_LIGHTS];
 uniform mat4 LightsVs[MAX_LIGHTS];
+uniform int LightsShadowMapsLayer[MAX_LIGHTS];
 uniform vec3 LightsPos[MAX_LIGHTS];
 uniform float LightsFarPlane[MAX_LIGHTS];
 uniform vec4 LightsColors[MAX_LIGHTS];
