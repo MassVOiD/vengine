@@ -30,22 +30,22 @@ namespace ShadowsTester
         {
             float fovdegree = 90;
             RedLight = new List<ProjectionLight>();
-            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10.0f)
             {
                 LightColor = new Vector3(1, 1, 0.84f),
                 IsStatic = true
             });
-            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10.0f)
             {
                 LightColor = new Vector3(1, 1, 0),
                 IsStatic = true
             });
-            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10.0f)
             {
                 LightColor = new Vector3(0, 1, 1),
                 IsStatic = true
             });
-            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
+            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10.0f)
             {
                 LightColor = new Vector3(1, 0, 1),
                 IsStatic = true
@@ -117,12 +117,7 @@ namespace ShadowsTester
             Game.OnBeforeDraw += (o, e) =>
             {
                 //.ToString(System.Globalization.CultureInfo.InvariantCulture)
-                float fps = (float)Math.Round(1.0 / e.Time, 2);
-                float ft = (float)Math.Round(e.Time * 1000.0, 2);
-                var mem = (double)GC.GetTotalMemory(false) / 1024.0 / 1024.0;
-                float MBmemory = (float)Math.Round(mem, 2);
-                string newTitle = string.Format("VEngine App | FPS: {0} | FrameTime: {1} ms | Memory: {2} megabytes", fps.ToString(System.Globalization.CultureInfo.InvariantCulture), ft.ToString(System.Globalization.CultureInfo.InvariantCulture), MBmemory.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                Game.DisplayAdapter.Title = newTitle;
+                
                 //SettingsController.Instance.UpdatePerformance();
                 /*var jpad = OpenTK.Input.GamePad.GetState(0);
                 float deadzone = 0.15f;
@@ -350,42 +345,7 @@ namespace ShadowsTester
                             PickedMesh.GetLodLevel(0).Material.Roughness = 1;
                     }
                 }
-                if(e.Key == OpenTK.Input.Key.G)
-                {
-                    if(PickedMesh.GetLodLevel(0) != null)
-                    {
-                        PickedMesh.GetLodLevel(0).Material.SpecularComponent -= 0.05f;
-                        if(PickedMesh.GetLodLevel(0).Material.SpecularComponent < 0)
-                            PickedMesh.GetLodLevel(0).Material.SpecularComponent = 0;
-                    }
-                }
-                if(e.Key == OpenTK.Input.Key.H)
-                {
-                    if(PickedMesh.GetLodLevel(0) != null)
-                    {
-                        PickedMesh.GetLodLevel(0).Material.SpecularComponent += 0.05f;
-                        if(PickedMesh.GetLodLevel(0).Material.SpecularComponent > 1)
-                            PickedMesh.GetLodLevel(0).Material.SpecularComponent = 1;
-                    }
-                }
-                if(e.Key == OpenTK.Input.Key.Semicolon)
-                {
-                    if(PickedMesh.GetLodLevel(0) != null)
-                    {
-                        PickedMesh.GetLodLevel(0).Material.Metalness -= 0.05f;
-                        if(PickedMesh.GetLodLevel(0).Material.Metalness < 0)
-                            PickedMesh.GetLodLevel(0).Material.Metalness = 0;
-                    }
-                }
-                if(e.Key == OpenTK.Input.Key.Quote)
-                {
-                    if(PickedMesh.GetLodLevel(0) != null)
-                    {
-                        PickedMesh.GetLodLevel(0).Material.Metalness += 0.05f;
-                        if(PickedMesh.GetLodLevel(0).Material.Metalness > 1)
-                            PickedMesh.GetLodLevel(0).Material.Metalness = 1;
-                    }
-                }
+                                
                 if(e.Key == OpenTK.Input.Key.T)
                 {
                     if(PickedMesh.GetLodLevel(0) != null)

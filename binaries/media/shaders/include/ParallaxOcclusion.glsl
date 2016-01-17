@@ -33,7 +33,7 @@ vec2 adjustParallaxUV(){
    vec2 currentTextureCoords = T;
 
    // depth from heightmap
-   float heightFromTexture = 1.0 - texture(bumpMapTex, currentTextureCoords).r;
+   float heightFromTexture = 1.0 - texture(bumpTex, currentTextureCoords).r;
 
    // while point is above the surface
    while(heightFromTexture > curLayerHeight) 
@@ -43,7 +43,7 @@ vec2 adjustParallaxUV(){
       // shift of texture coordinates
       currentTextureCoords -= dtex;
       // new depth from heightmap
-      heightFromTexture = 1.0 - texture(bumpMapTex, currentTextureCoords).r;
+      heightFromTexture = 1.0 - texture(bumpTex, currentTextureCoords).r;
    }
 
    ///////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ vec2 adjustParallaxUV(){
 
    // heights for linear interpolation
    float nextH    = heightFromTexture - curLayerHeight;
-   float prevH    = 1.0 - texture(bumpMapTex, prevTCoords).r
+   float prevH    = 1.0 - texture(bumpTex, prevTCoords).r
                            - curLayerHeight + layerHeight;
 
    // proportions for linear interpolation

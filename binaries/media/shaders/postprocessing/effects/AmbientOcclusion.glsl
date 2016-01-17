@@ -1,39 +1,3 @@
-
-vec2 projdir(vec3 start, vec3 end)
-{
-    vec4 clipspace = (VPMatrix) * vec4((start), 1.0);
-    vec2 sspace1 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
-    clipspace = (VPMatrix) * vec4((end), 1.0);
-    vec2 sspace2 = ((clipspace.xyz / clipspace.w).xy + 1.0) / 2.0;
-    return (sspace2 - sspace1);
-}
-float testVisibility3d(vec2 cuv, vec3 w1, vec3 w2) 
-{
-    float d3d1 = distance(CameraPosition, w1);
-    float d3d2 = distance(CameraPosition, w2);
-    vec2 sdir = projdir((w1), (w2));
-    float minang = 1;
-    for(float ix=0;ix<1.0;ix+= 0.33) 
-    { 
-        float i = ix*ix*ix;
-        vec2 ruv = mix(cuv, cuv + sdir, i);
-        if(ruv.x < 0 || ruv.x > 1 || ruv.y < 0 || ruv.y > 1) return minang;
-        float rd3d = texture(distanceTex, ruv).r + 0.001;
-        if(rd3d < mix(d3d1, d3d2, i) && rd3d > mix(d3d1, d3d2, i) - 1.01 ) 
-        {
-            minang = 0;
-        }
-    }
-    return minang;
-}
-
-vec3 random3d(float seed){
-    return vec3(
-        rand2s(UV + seed),
-        rand2s(UV - seed),
-        rand2s(UV + seed + 12.0)
-    ) * 2 - 1;
-}
 vec2 xsamples[] = vec2[](
 vec2(0.009011431, 0.09457164),
 vec2(0.03588319, 0.1865808),
@@ -246,50 +210,8 @@ vec2(0.5007175, 0.5717359),
 vec2(0.6217795, 0.5868691),
 vec2(0.749605, 0.583603)
 );
-float GetAveragedDistance(vec2 uv){
-    float outc = 0.0;
-    float counter = 0.001;
-    float xaon =distance(CameraPosition, Input.WorldPos);
-    float factor = 1.0 / xaon;
-    vec2 multiplier = vec2(ratio, 1) * 0.5 * factor;
-    for(int g=0;g < xsamples.length();g++){
-        float aon = texture(aoTex, uv + xsamples[g] * multiplier).r;
-        float weight = 1.0 - smoothstep(0.0, 0.9, (xaon - aon));
-        outc += aon * weight;
-        counter += 1.0 * weight;
-    
-    }
-    return 1.0 - max(0, xaon - (outc / counter));
-}
 
-float someVeryWierdSSAO(
-    vec3 position,
-    vec3 normal,
-    float roughness,
-    float hemisphereSize
-){
-    float a;
-    a += GetAveragedDistance(UV);
-    return pow(a, 18);
-}
-
-float testVisibility2d(vec2 uv1, vec2 uv2, float dist1, float dist2) 
-{
-    float minang = 1;
-    for(float ix=0;ix<1.0;ix+= 0.33) 
-    { 
-        float i = ix;
-        vec2 ruv = mix(uv1, uv2, i);
-        float rd3d = texture(aoTex, ruv).r + 0.01;
-        if(rd3d < mix(dist1, dist2, i) && rd3d > mix(dist1, dist2, i) - 1.01 ) 
-        {
-            minang -= 0.33;
-        }
-    }
-    return minang;
-}
-
-float weirdness(
+float AO(
     vec3 position,
     vec3 normal,
     float roughness,
@@ -303,10 +225,9 @@ float weirdness(
 	vec3 posc = ToCameraSpace(position);
     float rot = rand2s(UV) * PI * 2;
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
-    for(int g=0;g < xsamples.length();g+=3){
-		vec2 asdf =  (xsamples[g] * multiplier);
-		vec2 nuv = UV + asdf;
-        float aon = texture(aoTex, nuv).r;
+    for(int g=0;g < xsamples.length();g+=7){
+		vec2 nuv = UV + (xsamples[g] * multiplier);
+        float aon = texture(distanceTex, nuv).r;
 		vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * nuv.x + FrustumConeBottomLeftToTopLeft * nuv.y));
 		vec3 dupa = dir * aon;
         float dt = max(0, dot(normal, normalize(dupa - posc)) - 0.1);
@@ -318,55 +239,8 @@ float weirdness(
     return pow(1.0 - max(0, (outc / counter)), 3);
 }
 
-float VDAO(
-    vec3 position,
-    vec3 normal,
-    float roughness,
-    float hemisphereSize
-){
-    vec3 posc = ToCameraSpace(position);
-    vec3 tangent = normalize(cross(normal, vec3(0,1,0)));
-    
-    mat3 TBN = mat3(
-        tangent,
-        cross(normal, tangent),
-        normal
-    );
-    
-    float buf = 0.0;
-    vec3 dir = normalize(reflect(posc, normal));
-    float ringsize = min(length(posc), hemisphereSize);
-    
-    //float dpc = texture(depthTex, UV).r;
-    
-    roughness = 1.0 - roughness;
-    float trrough = (roughness * roughness);
-    float rot = rand2s(UV) * PI * 2;
-    mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
-    const float[] rings = float[](0.25, 0.5, 1.0);
-    float weight = 0;
-    for(int g = 0; g < 42; ++g)
-    {
-        vec3 smpl = TBN * random3d(float(g));
-        smpl *= sign(dot(smpl, normal));
-        vec3 displace = mix(dir, normalize(smpl), 1) * ringsize;
-        float dotdiffuse = max(0, dot(normalize(displace),  (normal)));
-        // concept of sample importance:
-        // 
-        
-        buf += testVisibility3d(UV, position, position + displace) * dotdiffuse;
-        weight += dotdiffuse;
-    }
-    return (0.8) * clamp(buf/weight, 0.0, 1.0);
-}
-
-
-float AmbientOcclusion(
-    vec3 position,
-    vec3 normal,
-    float roughness
-){
+float AmbientOcclusion(FragmentData data){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = weirdness(position, normal, roughness, 0.7);
+    ao = AO(data.worldPos, data.normal, data.roughness, 0.7);
     return ao;
 }

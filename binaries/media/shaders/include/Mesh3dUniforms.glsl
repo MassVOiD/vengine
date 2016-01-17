@@ -29,15 +29,22 @@ layout (std430, binding = 2) buffer IDMBuffer
 }; 
 uniform vec3 CameraPosition;
 uniform vec3 CameraDirection;
-uniform vec3 CameraTangentUp;
-uniform vec3 CameraTangentLeft;
 uniform float Time;
 uniform int FrameINT;
 
-uniform float DiffuseComponent;
-uniform float SpecularComponent;
+uniform vec3 SpecularColor;
+uniform vec3 DiffuseColor;
+uniform float Alpha;
+
+uniform int UseNormalsTex;
+uniform int UseBumpTex;
+uniform int UseAlphaTex;
+uniform int UseRoughnessTex;
+uniform int UseDiffuseTex;
+uniform int UseSpecularTex;
+
 uniform float Roughness;
-uniform float Metalness;
+//uniform float Metalness;
 uniform float ReflectionStrength;
 uniform float RefractionStrength;
 uniform float LodDistanceStart;

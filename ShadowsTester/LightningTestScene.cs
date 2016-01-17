@@ -21,7 +21,7 @@ namespace ShadowsTester
             w5.GetInstance(0).Scale(100);*/
             // Game.World.Scene.Add(w5);
 
-            var hbal = Object3dManager.LoadFromObjSingle(Media.Get("bedroom_blender.obj"));
+            //var hbal = Object3dManager.LoadFromObjSingle(Media.Get("bedroom_blender.obj"));
             /*int hbalc = hbal.Vertices.Count;
             for(int i = 0; i < hbalc; i += 3)
             {
@@ -33,12 +33,11 @@ namespace ShadowsTester
                 hbal.Vertices[i+1].Normal = n;
                 hbal.Vertices[i+2].Normal = n;
             }*/
-            var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
-            lucy2.GetInstance(0).Scale(1.0f);
-            lucy2.GetInstance(0).Translate(0, 0, 0);
-            lucy2.GetLodLevel(0).Material.Roughness = 1.0f;
-            lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
-            Game.World.Scene.Add(lucy2);
+          //  var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
+         //   lucy2.GetInstance(0).Scale(1.0f);
+          //  lucy2.GetInstance(0).Translate(0, 0, 0);
+          //  lucy2.GetLodLevel(0).Material.Roughness = 1.0f;
+          //  Game.World.Scene.Add(lucy2);
             /*
             var testScene = new Scene();
             //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));

@@ -50,13 +50,17 @@ namespace ShadowsTester
                 hbal.Vertices[i + 1].Normal = n;
                 hbal.Vertices[i + 2].Normal = n;
             }*/
-            var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(new Vector4(1,0,0,0.5f)));
-            lucy2.GetInstance(0).Scale(0.5f);
-            lucy2.GetInstance(0).Translate(0, 0, 0);
-            lucy2.GetLodLevel(0).Material.Roughness = 1f;
-            lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
-            Game.World.Scene.Add(lucy2);
-            GC.Collect();
+              var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), new GenericMaterial());
+              lucy2.GetInstance(0).Scale(0.5f);
+              lucy2.GetInstance(0).Translate(0, 0, 0);
+              lucy2.GetLodLevel(0).Material.Roughness = 0.06f;
+              lucy2.GetLodLevel(0).Material.DiffuseColor = new Vector3(0, 0, 0);
+              lucy2.GetLodLevel(0).Material.SpecularColor = new Vector3(1, 1, 1);
+              Game.World.Scene.Add(lucy2);
+              GC.Collect();
+
+         //   var sss = Object3dManager.LoadSceneFromObj("sintel.obj", "sintel.mtl");
+          //  sss.ForEach((a) => Game.World.Scene.Add(a));
             /*
             SimplePointLight spl = new SimplePointLight(new Vector3(0, 2, 0), new Vector3(12, 12, 12));
             spl.Angle = 90;
@@ -89,16 +93,19 @@ namespace ShadowsTester
             // viperobj.ForEach((a) => a.GetInstance(0).Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegreesToRadians(90))));
             //  viperobj.ForEach((a) => Game.World.Scene.Add(a));
 
-         /*   var lucy2 = Mesh3d.Create(new Object3dInfo(Object3dManager.LoadFromRaw(Media.Get("lucy.vbo.raw")).Vertices), GenericMaterial.FromColor(Color.Gold));
-            lucy2.GetInstance(0).Scale(0.2f);
-            lucy2.GetLodLevel(0).Material.Roughness = 0.2f;
-            lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
-            Game.World.Scene.Add(lucy2);*/
+            /*   var lucy2 = Mesh3d.Create(new Object3dInfo(Object3dManager.LoadFromRaw(Media.Get("lucy.vbo.raw")).Vertices), GenericMaterial.FromColor(Color.Gold));
+               lucy2.GetInstance(0).Scale(0.2f);
+               lucy2.GetLodLevel(0).Material.Roughness = 0.2f;
+               lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
+               Game.World.Scene.Add(lucy2);*/
 
             var testScene = new Scene();
             //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
             var lucyobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("sph1.obj")).Vertices);
-            var lucy = Mesh3d.Create(lucyobj, GenericMaterial.FromColor(Color.White));
+
+            var bbmaterial = new GenericMaterial();
+
+            var lucy = Mesh3d.Create(lucyobj, bbmaterial);
             lucy.GetInstance(0).Scale(0.3f);
             testScene.Add(lucy);
             Game.World.Scene.Add(testScene);
@@ -128,9 +135,8 @@ namespace ShadowsTester
             var barrelmanager = Object3dManager.LoadFromObjSingle(Media.Get("barrel.obj"));
             var barrelinfo = new Object3dInfo(barrelmanager.Vertices);
             var barrelshape = Physics.CreateConvexCollisionShape(barrelmanager);
-            var barrels = Mesh3d.Create(barrelinfo, GenericMaterial.FromColor(Color.White));
+            var barrels = Mesh3d.Create(barrelinfo, new GenericMaterial());
             barrels.AutoRecalculateMatrixForOver16Instances = true;
-            barrels.GetLodLevel(0).Material.Metalness = 0.0f;
             barrels.GetLodLevel(0).Material.Roughness = 0.0f;
             barrels.ClearInstances();
 

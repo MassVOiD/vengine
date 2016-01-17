@@ -73,9 +73,9 @@ namespace VEngine
             TexForward = GL.GenTexture();
             GL.BindTexture(ttarget, TexForward);
             if(Game.MSAASamples > 1)
-                GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Game.MSAASamples, PixelInternalFormat.Rgba8, Width, Height, true);
+                GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Game.MSAASamples, PixelInternalFormat.Rgb16f, Width, Height, true);
             else
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
             GL.TexParameter(ttarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
             GL.TexParameter(ttarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
             GL.TexParameter(ttarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);

@@ -253,9 +253,9 @@ namespace VEngine
         
         public static List<Mesh3d> LoadSceneFromObj(string objfile, string mtlfile, float scale = 1.0f)
         {
-            string[] lines = File.ReadAllLines(objfile);
+            string[] lines = File.ReadAllLines(Media.Get(objfile));
             var objs = ParseOBJString(lines);
-            var mtllib = LoadMaterialsFromMtl(mtlfile);
+            var mtllib = LoadMaterialsFromMtl(Media.Get(mtlfile));
             List<Mesh3d> meshes = new List<Mesh3d>();
             Dictionary<string, GenericMaterial> texCache = new Dictionary<string, GenericMaterial>();
             Dictionary<Color, GenericMaterial> colorCache = new Dictionary<Color, GenericMaterial>();
@@ -278,7 +278,9 @@ namespace VEngine
                     }
                     else
                     {
-                        var m = GenericMaterial.FromMedia(Path.GetFileName(mat.TextureName));
+                        var m = new GenericMaterial();
+                        m.SetDiffuseTexture(Path.GetFileName(mat.TextureName));
+                        m.SpecularTexture = m.DiffuseTexture;
                         m.NormalMapScale = 10;
                         material = m;
 
@@ -343,7 +345,7 @@ namespace VEngine
                 if(!mInfos.ContainsKey(kva))
                     kva = mInfos.Keys.First();
                 if(mInfos[kva].BumpMapName.Length > 1)
-                    ((GenericMaterial)kv.Key).SetBumpMapFromMedia(mInfos[kv.Key].BumpMapName);
+                    ((GenericMaterial)kv.Key).SetBumpTexture(mInfos[kv.Key].BumpMapName);
                 // mesh.SpecularComponent = kv.Key.SpecularStrength;
               //  mesh.GetInstance(0).Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(),

@@ -63,7 +63,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
             float depth = texture(distanceTex, coord).r;
-            vec3 texel = textureMSAAFull(diffuseColorTex, coord).rgb;
+            vec3 texel = textureMSAAFull(forwardOutputTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
             w *= dd;
@@ -86,40 +86,6 @@ vec3 vec3pow(vec3 inputx, float po){
     );
 }
 
-
-uniform int UseBloom;
-vec3 lookupBloomBlurred(vec2 buv, float radius){
-    vec3 outc = vec3(0);
-    float counter = 0;
-    
-
-    //outc += textureLod(currentTex, buv, 7).rgb;
-//    outc += textureLod(currentTex, buv, 6).rgb;
-    //outc += textureLod(currentTex, buv, 7).rgb;
-    //outc += textureLod(currentTex, buv, 8).rgb;
-    outc += textureLod(currentTex, buv, 9).rgb;
-    //outc *= max(0.0, length(outc) - 1.0) * 0.4;
-    return vec3pow(outc * 1.1, 1.3) * 0.11;
-    
-}
-vec3 funnybloom(vec2 buv){
-    vec3 outc = vec3(0);
-
-    outc += textureLod(currentTex, buv, 0).rgb;
-    outc += textureLod(currentTex, buv, 1).rgb;
-    outc += textureLod(currentTex, buv, 2).rgb;
-    outc += textureLod(currentTex, buv, 3).rgb;
-    outc += textureLod(currentTex, buv, 4).rgb;
-    outc += textureLod(currentTex, buv, 5).rgb;
-    outc += textureLod(currentTex, buv, 6).rgb;
-    outc += textureLod(currentTex, buv, 7).rgb;
-    outc += textureLod(currentTex, buv, 8).rgb;
-    outc += textureLod(currentTex, buv, 9).rgb;
-    outc += textureLod(currentTex, buv, 10).rgb;
-    outc += textureLod(currentTex, buv, 11).rgb;
-    return outc / 12.0;
-    
-}
 #include noise3D.glsl
 
 uniform float InputFocalLength;
@@ -163,18 +129,11 @@ vec3 ExecutePostProcessing(vec3 color, vec2 uv){
     return vec3pow(color.rgb, 1.0) * vignette;
 }
 
-vec3 hdr(vec3 color, vec2 uv){
-    float levels = float(textureQueryLevels(currentTex)) - 1;
-    vec3 refbright = textureLod(currentTex, uv,levels).rgb;
-    float reflen = length(refbright);
-    float mult = reflen > mPI2 ? 0 : cos(reflen);
-    return color * max(0.5, mult) * 2.0;
-}
-
 
 void main()
 {
-    vec4 color1 = textureMSAAFull(diffuseColorTex, UV);
+    vec4 color1 = textureMSAAFull(forwardOutputTex, UV);
+	//color1.rgb = texture(distanceTex, UV).rrr;
     //if(length(texture(distanceTex, UV).r) < 0.01)color1.rgb =vec3(1.0);
     //color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
@@ -189,23 +148,9 @@ void main()
 
         color1.xyz = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
     }
-    float letterpixels = 10;
-    float maxx = NumbersCount * (1.0 / letterpixels);
-    if(DisablePostEffects == 0 && UV.x < maxx && UV.y < 0.05){
-        vec2 nuv = vec2(UV.x / maxx, UV.y / 0.05);
-        float letterx = 1.0 / letterpixels;
-        vec2 nuv2 = vec2(mod(UV.x / maxx, letterx), 1.0 - UV.y / 0.05);
-        for(int i=0;i<NumbersCount;i++){
-            vec2 numbUVOffset = vec2(i*letterx, 0);
-            if(nuv.x > numbUVOffset.x && nuv.x < numbUVOffset.x + letterx){
-                vec2 numbUV = vec2(Numbers[i]*letterx, 0) + nuv2;
-                float data = texture(numbersTex, numbUV).a;
-                color1 += data;
-            }
-        }
-    }
+	
     
-    if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
+    //if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
     //if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
     if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
         

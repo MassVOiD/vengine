@@ -14,10 +14,9 @@ namespace VEngine
         public MRTFramebuffer MRT;
         
         public int Width, Height;
-        
+
         private ShaderProgram
-            HDRShader,
-            BlitShader;
+            HDRShader;
 
         private bool DisablePostEffects = false;
 
@@ -54,9 +53,8 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Red,
                 ColorPixelType = PixelType.Float
             };
-            
+
             HDRShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "HDR.fragment.glsl");
-            BlitShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Blit.fragment.glsl");
             
             PostProcessingMesh = new Object3dInfo(VertexInfo.FromFloatArray(postProcessingPlaneVertices));
         }
@@ -123,19 +121,12 @@ namespace VEngine
             shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
         }
         
-
-        // public static uint RandomIntFrame = 1;
-        private void Blit(BlitMode mode)
-        {
-            BlitShader.Use();
-            BlitShader.SetUniform("BlitMode", (int)mode);
-            DrawPPMesh();
-        }
         
         private void DisableBlending()
         {
             GL.Disable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.Zero);
+            GL.DepthMask(true);
         }
 
         private void DrawPPMesh()
@@ -146,8 +137,9 @@ namespace VEngine
 
         private void EnableBlending()
         {
-            GL.Disable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.Zero, BlendingFactorDest.SrcColor);
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.DepthMask(false);
             //GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
 
@@ -176,7 +168,7 @@ namespace VEngine
                 HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
             //MSAAEdgeDetectFramebuffer.UseTexture(28);
-            MRT.UseTextureForwardColor(30);
+            MRT.UseTextureForwardColor(1);
             DrawPPMesh();
         }
         
@@ -196,8 +188,8 @@ namespace VEngine
             Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
-            CubeMap.Use(TextureUnit.Texture3);
-            DistanceFramebuffer.UseTexture(27);
+            CubeMap.Use(TextureUnit.Texture8);
+            DistanceFramebuffer.UseTexture(9);
             //EnableBlending();
             GL.ColorMask(true, true, true, true);
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;

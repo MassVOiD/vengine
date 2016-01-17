@@ -63,10 +63,16 @@ namespace ShadowsTester
             Cam.UpdateFromRollPitch();
             Cam.Transformation.ClearModifiedFlag();
         }
-
+        
         private void UpdateSterring(object o, OpenTK.FrameEventArgs e)
         {
             var time = e.Time;
+            float fps = (float)Math.Round(1.0 / e.Time, 2);
+            float ft = (float)Math.Round(e.Time * 1000.0, 2);
+            var mem = (double)GC.GetTotalMemory(false) / 1024.0 / 1024.0;
+            float MBmemory = (float)Math.Round(mem, 2);
+            string newTitle = string.Format("VEngine App | FPS: {0} | FrameTime: {1} ms | Memory: {2} megabytes", fps.ToString(System.Globalization.CultureInfo.InvariantCulture), ft.ToString(System.Globalization.CultureInfo.InvariantCulture), MBmemory.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            Game.DisplayAdapter.Title = newTitle;
             var currentPosition = Cam.GetPosition();
             if(Game.DisplayAdapter.IsCursorVisible)
                 return;

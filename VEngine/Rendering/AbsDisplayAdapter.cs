@@ -11,6 +11,7 @@ namespace VEngine
     public abstract class AbsDisplayAdapter : GameWindow
     {
         public Renderer MainRenderer;
+        private volatile bool PhysicsNeedsUpdate = false;
 
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
@@ -67,8 +68,8 @@ namespace VEngine
         protected override void OnLoad(System.EventArgs e)
         {
             VSync = VSyncMode.Off;
-            TargetRenderFrequency = 260;
-            TargetUpdateFrequency = 260;
+            TargetRenderFrequency = 3000;
+            TargetUpdateFrequency = 3000;
             //this.Context.
 
             var s = GL.GetString(StringName.Version);
@@ -81,12 +82,15 @@ namespace VEngine
             watch.Start();
             while(true)
             {
+                if(!PhysicsNeedsUpdate)
+                    continue;
                 watch.Stop();
                 double ms = 1000.0 * (double)watch.ElapsedTicks / Stopwatch.Frequency;
                 watch.Reset();
                 watch.Start();
                 Game.World.Physics.UpdateAllModifiedTransformations();
                 Game.World.Physics.SimulationStep((float)(ms * 0.001f));
+                PhysicsNeedsUpdate = false;
             }
         }
 
@@ -109,10 +113,8 @@ namespace VEngine
             Game.InvokeOnAfterDraw(e);
 
             //Game.CheckErrors();
+            PhysicsNeedsUpdate = true;
 
-            GL.Flush();
-            GL.Finish();
-            
             SwapBuffers();
         }
 

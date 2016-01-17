@@ -48,28 +48,26 @@ namespace VEngine.FileFormats
                 output.AppendLine(material.Roughness.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
                 output.Append("color ");
-                output.Append(material.Color.X.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                output.Append(material.DiffuseColor.X.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 output.Append(" ");
-                output.Append(material.Color.Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                output.Append(material.DiffuseColor.Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 output.Append(" ");
-                output.Append(material.Color.Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                output.Append(" ");
-                output.AppendLine(material.Color.W.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                output.Append(material.DiffuseColor.Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
-                if(material.Tex != null)
+                if(material.DiffuseTexture != null)
                 {
                     output.Append("texture ");
-                    output.AppendLine(material.Tex.FileName);
+                    output.AppendLine(material.DiffuseTexture.FileName);
                 }
-                if(material.NormalMap != null)
+                if(material.NormalsTexture != null)
                 {
                     output.Append("normalmap ");
-                    output.AppendLine(material.NormalMap.FileName);
+                    output.AppendLine(material.NormalsTexture.FileName);
                 }
-                if(material.BumpMap != null)
+                if(material.BumpTexture != null)
                 {
                     output.Append("bumpmap ");
-                    output.AppendLine(material.BumpMap.FileName);
+                    output.AppendLine(material.BumpTexture.FileName);
                 }
                 output.AppendLine();
             }
@@ -153,7 +151,7 @@ namespace VEngine.FileFormats
             Lights = new List<ILight>();
             Cameras = new List<Camera>();
             var regx = new Regex("(.+?)[ ]+(.+)");
-            var currentMaterial = new GenericMaterial(Vector4.One);
+            var currentMaterial = new GenericMaterial(Vector3.One);
             ILight tempLight = null;
             GenericMaterial tempMaterial = null;
             Mesh3d tempMesh = null;
@@ -383,7 +381,7 @@ namespace VEngine.FileFormats
                     case "material":
                     {
                         flush();
-                        tempMaterial = new GenericMaterial(Vector4.One);
+                        tempMaterial = new GenericMaterial(Vector3.One);
                         tempMaterial.Name = data;
                         break;
                     }
@@ -401,32 +399,39 @@ namespace VEngine.FileFormats
                         tempMaterial.InvertNormalMap = data == "true" ? true : false;
                         break;
                     }
+                    case "transparency":
+                    {
+                        if(tempMaterial == null)
+                            throw new ArgumentException("Invalid line in scene string: " + l);
+                        tempMaterial.SupportTransparency = data == "true" ? true : false;
+                        break;
+                    }
                     case "normalmap":
                     {
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.NormalMap = new Texture(Media.Get(data));
+                        tempMaterial.NormalsTexture = new Texture(Media.Get(data));
                         break;
                     }
                     case "bumpmap":
                     {
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.BumpMap = new Texture(Media.Get(data));
+                        tempMaterial.BumpTexture = new Texture(Media.Get(data));
                         break;
                     }
                     case "roughnessmap":
                     {
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.RoughnessMap = new Texture(Media.Get(data));
+                        tempMaterial.RoughnessTexture = new Texture(Media.Get(data));
                         break;
                     }
                     case "metalnessmap":
                     {
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.MetalnessMap = new Texture(Media.Get(data));
+                       // tempMaterial.MetalnessMap = new Texture(Media.Get(data));
                         break;
                     }
                     case "roughness":
@@ -446,7 +451,7 @@ namespace VEngine.FileFormats
                         float f;
                         if(!float.TryParse(data, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out f))
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.Metalness = f;
+                        //tempMaterial.Metalness = f;
                         break;
                     }
                     case "color":
@@ -465,14 +470,15 @@ namespace VEngine.FileFormats
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[3], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out a))
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.Color = new Vector4(x, y, z, a);
+                        tempMaterial.DiffuseColor = new Vector3(x, y, z);
                         break;
                     }
                     case "texture":
                     {
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.Tex = new Texture(Media.Get(data));
+                        tempMaterial.DiffuseTexture = new Texture(Media.Get(data));
+                        tempMaterial.SpecularTexture = tempMaterial.DiffuseTexture;
                         tempMaterial.Mode = GenericMaterial.DrawMode.TextureMultipleColor;
                         break;
                     }

@@ -1,51 +1,42 @@
-layout(binding = 0) uniform sampler2D currentTex;
+// let get it done well this time
+layout(binding = 0) uniform sampler2DArrayShadow shadowMapsArray;
 #ifdef USE_MSAA
-layout(binding = 30) uniform sampler2DMS diffuseColorTex;
+layout(binding = 1) uniform sampler2DMS forwardOutputTex;
 #else
-layout(binding = 30) uniform sampler2D diffuseColorTex;
+layout(binding = 1) uniform sampler2D forwardOutputTex;
 #endif
-layout(binding = 3) uniform samplerCube cubeMapTex;
-layout(binding = 4) uniform sampler2D lastIndirectTex;
-layout(binding = 5) uniform sampler2D fogTex;
+layout(binding = 2) uniform sampler2D normalsTex;
+layout(binding = 3) uniform sampler2D bumpTex;
+layout(binding = 4) uniform sampler2D alphaTex;
+layout(binding = 5) uniform sampler2D diffuseTex;
+layout(binding = 6) uniform sampler2D specularTex;
+layout(binding = 7) uniform sampler2D roughnessTex;
 
-#define bumpMapTex lastIndirectTex
-#define metalnessMapTex fogTex
-#define edgesTex roughnessMapTex
+layout(binding = 8) uniform samplerCube cubeMapTex;
 
-layout(binding = 27) uniform sampler2D numbersTex;
-#define aoTex numbersTex
-#define distanceTex aoTex
-layout(binding = 29) uniform sampler2D normalMapTex;
-layout(binding = 28) uniform sampler2D roughnessMapTex;
+layout(binding = 9) uniform sampler2D distanceTex;
 
-layout(binding = 6) uniform sampler2DArrayShadow shadowMapsArray;
 #ifdef USE_MSAA
-int getMSAASamples(vec2 uv){
-    float edge = texture(edgesTex, uv).r;
-    return MSAA_SAMPLES;//int(mix(1, MSAASamples, edge));
-}
 
-ivec2 txsize = textureSize(diffuseColorTex);
+ivec2 txsize = textureSize(forwardOutputTex);
 vec4 textureMSAAFull(sampler2DMS tex, vec2 inUV){
     vec4 color11 = vec4(0.0);
-    int samples = getMSAASamples(inUV);
     ivec2 texcoord = ivec2(vec2(txsize) * inUV); 
-    for (int i=0;i<samples;i++)
+    for (int i=0;i<MSAA_SAMPLES;i++)
     {
         color11 += texelFetch(tex, texcoord, i);  
     }
 
-    color11/= samples; 
+    color11/= MSAA_SAMPLES; 
     return color11;
 }
 vec4 textureMSAA(sampler2DMS tex, vec2 inUV, int samplee){
     ivec2 texcoord = ivec2(vec2(txsize) * inUV);
     return texelFetch(tex, texcoord, samplee);  
 }
+
 #else
-int getMSAASamples(vec2 uv){
-    return 1;
-}
+
 vec4 textureMSAAFull(sampler2D tex, vec2 inUV){
     return texture(tex, inUV);
 }

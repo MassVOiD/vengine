@@ -10,52 +10,37 @@ namespace VEngine
     {
         public static ShaderPool.ShaderPack OverrideShaderPack = null;
 
-        public float
-            AORange = 0.5f,
-            AOStrength = 0.5f,
-            AOAngleCutoff = 0.0f,
-            VDAOMultiplier = 0.5f,
-            VDAOSamplingMultiplier = 0.5f,
-            VDAORefreactionMultiplier = 0.0f,
-            SubsurfaceScatteringMultiplier = 0.0f;
-
-        public ShaderStorageBuffer BallsBuffer;
-
         public bool CastShadows = true;
 
-        public Vector4 Color;
+        public bool SupportTransparency = false;
 
         public bool IgnoreLighting = false;
 
         public bool InvertNormalMap = true;
-
-        public float Metalness = 0.0f;
-
+        
         public DrawMode Mode;
 
         public string Name;
 
-        public Texture NormalMap, BumpMap, RoughnessMap, MetalnessMap;
+        public Texture DiffuseTexture, SpecularTexture, NormalsTexture, BumpTexture, RoughnessTexture, AlphaTexture;
 
         public float NormalMapScale = 1.0f;
 
         public float ParallaxHeightMultiplier = 1.0f;
 
         public int ParallaxInstances = 12;
-
-        public bool ReceiveShadows = true;
-
+        
         public float ReflectionStrength = 0;
 
         public float RefractionStrength = 0;
 
         public float Roughness = 0.5f;
 
-        public float SpecularComponent = 0.0f, DiffuseComponent = 1.0f;
+        public Vector3 SpecularColor = Vector3.One, DiffuseColor = Vector3.Zero;
+
+        public float Alpha = 1.0f;
 
         public float TesselationMultiplier = 1.0f;
-
-        public Texture Tex;
 
         public MaterialType Type;
 
@@ -63,31 +48,19 @@ namespace VEngine
 
         private RainSystem RainsDropSystem = null;
 
-
-        public GenericMaterial(Texture tex, Texture normalMap = null, Texture bumpMap = null)
+        public GenericMaterial()
         {
-            Tex = tex;
-            BallsBuffer = new ShaderStorageBuffer();
-            BallsBuffer.Type = BufferUsageHint.DynamicDraw;
-            NormalMap = normalMap;
-            BumpMap = bumpMap;
-            Color = Vector4.One;
-            Mode = GenericMaterial.DrawMode.TextureOnly;
         }
 
-        public GenericMaterial(Vector4 color)
+        public GenericMaterial(Vector3 color)
         {
-            Color = color;
-            BallsBuffer = new ShaderStorageBuffer();
-            BallsBuffer.Type = BufferUsageHint.DynamicDraw;
+            DiffuseColor = color;
             Mode = GenericMaterial.DrawMode.ColorOnly;
         }
 
         public GenericMaterial(Color color)
         {
-            Color = new Vector4(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f, color.A / 255.0f);
-            BallsBuffer = new ShaderStorageBuffer();
-            BallsBuffer.Type = BufferUsageHint.DynamicDraw;
+            DiffuseColor = new Vector3(color.R / 255.0f, color.G / 255.0f, color.B / 255.0f);
             Mode = GenericMaterial.DrawMode.ColorOnly;
         }
 
@@ -119,32 +92,7 @@ namespace VEngine
             DropsSystem,
             OptimizedSpheres
         }
-
-        public static GenericMaterial FromColor(Color color)
-        {
-            return new GenericMaterial(color);
-        }
-
-        public static GenericMaterial FromColor(Vector4 color)
-        {
-            return new GenericMaterial(color);
-        }
-
-        public static GenericMaterial FromMedia(string key)
-        {
-            return new GenericMaterial(new Texture(Media.Get(key)));
-        }
-
-        public static GenericMaterial FromMedia(string key, string normalmap_key)
-        {
-            return new GenericMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)));
-        }
-
-        public static GenericMaterial FromMedia(string key, string normalmap_key, string bump_map)
-        {
-            return new GenericMaterial(new Texture(Media.Get(key)), new Texture(Media.Get(normalmap_key)), new Texture(Media.Get(bump_map)));
-        }
-
+        
         public ShaderProgram GetShaderProgram()
         {
             var pack = OverrideShaderPack != null ? OverrideShaderPack : Game.ShaderPool.GenericMaterial;
@@ -157,51 +105,42 @@ namespace VEngine
             return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
                Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
         }
-        
-        public void SetBumpMapFromMedia(string key)
+
+        public void SetBumpTexture(string key)
         {
-            BumpMap = new Texture(Media.Get(key));
+            BumpTexture = new Texture(Media.Get(key));
         }
 
-        public void SetMetalnessMapFromMedia(string key)
+        public void SetNormalsTexture(string key)
         {
-            MetalnessMap = new Texture(Media.Get(key));
+            NormalsTexture = new Texture(Media.Get(key));
         }
 
-        public void SetNormalMapFromMedia(string key)
+        public void SetDiffuseTexture(string key)
         {
-            NormalMap = new Texture(Media.Get(key));
+            DiffuseTexture = new Texture(Media.Get(key));
         }
 
-        public void SetOptimizedBalls(List<Vector4> PositionsAndScales)
+        public void SetSpecularTexture(string key)
         {
-            var bytes = new List<byte>();
-            foreach(var p in PositionsAndScales)
-            {
-                bytes.AddRange(BitConverter.GetBytes(p.X));
-                bytes.AddRange(BitConverter.GetBytes(p.Y));
-                bytes.AddRange(BitConverter.GetBytes(p.Z));
-                bytes.AddRange(BitConverter.GetBytes(p.W));
-            }
-            Game.Invoke(() => BallsBuffer.MapData(bytes.ToArray()));
+            SpecularTexture = new Texture(Media.Get(key));
+        }
+
+        public void SetAlphaTexture(string key)
+        {
+            AlphaTexture = new Texture(Media.Get(key));
+        }
+
+        public void SetRoughnessTexture(string key)
+        {
+            RoughnessTexture = new Texture(Media.Get(key));
         }
 
         public void SetRainSystem(RainSystem rs)
         {
             RainsDropSystem = rs;
         }
-
-        public void SetRoughnessMapFromMedia(string key)
-        {
-            RoughnessMap = new Texture(Media.Get(key));
-        }
         
-        public void SetTextureFromMedia(string key)
-        {
-            Tex = new Texture(Media.Get(key));
-            Mode = GenericMaterial.DrawMode.TextureOnly;
-        }
-
         public bool Use()
         {
             var prg = GetShaderProgram();
@@ -219,64 +158,76 @@ namespace VEngine
             //      return true;
             //lastUserProgram = ShaderProgram.Current;
             prg.SetUniform("TesselationMultiplier", TesselationMultiplier);
-            if(NormalMap != null)
+            if(NormalsTexture != null)
             {
-                prg.SetUniform("UseNormalMap", 1);
+                prg.SetUniform("UseNormalsTex", 1);
                 prg.SetUniform("InvertNormalMap", InvertNormalMap);
                 prg.SetUniform("NormalMapScale", NormalMapScale);
-                NormalMap.Use(TextureUnit.Texture29);
+                NormalsTexture.Use(TextureUnit.Texture2);
             }
             else
-                prg.SetUniform("UseNormalMap", 0);
+                prg.SetUniform("UseNormalsTex", 0);
 
-            if(BumpMap != null)
+            if(BumpTexture != null)
             {
-                prg.SetUniform("UseBumpMap", 1);
-                BumpMap.Use(TextureUnit.Texture4);
+                prg.SetUniform("UseBumpTex", 1);
+                BumpTexture.Use(TextureUnit.Texture3);
             }
             else
-                prg.SetUniform("UseBumpMap", 0);
-
-           
-            if(RoughnessMap != null)
-            {
-                prg.SetUniform("UseRoughnessMap", 1);
-                RoughnessMap.Use(TextureUnit.Texture28);
-            }
-            else
-                prg.SetUniform("UseRoughnessMap", 0);
-            if(MetalnessMap != null)
-            {
-                prg.SetUniform("UseMetalnessMap", 1);
-                MetalnessMap.Use(TextureUnit.Texture5);
-            }
-            else
-                prg.SetUniform("UseMetalnessMap", 0);
-
-            if(Type == MaterialType.OptimizedSpheres)
-            {
-                BallsBuffer.Use(4);
-            }
+                prg.SetUniform("UseBumpTex", 0);
             
+            if(RoughnessTexture != null)
+            {
+                prg.SetUniform("UseRoughnessTex", 1);
+                RoughnessTexture.Use(TextureUnit.Texture7);
+            }
+            else
+                prg.SetUniform("UseRoughnessTex", 0);
+
+            if(AlphaTexture != null)
+            {
+                prg.SetUniform("UseAlphaTex", 1);
+                AlphaTexture.Use(TextureUnit.Texture4);
+            }
+            else
+                prg.SetUniform("UseAlphaTex", 0);
+
+            if(DiffuseTexture != null)
+            {
+                prg.SetUniform("UseDiffuseTex", 1);
+                DiffuseTexture.Use(TextureUnit.Texture5);
+            }
+            else
+                prg.SetUniform("UseDiffuseTex", 0);
+
+            if(SpecularTexture != null)
+            {
+                prg.SetUniform("UseSpecularTex", 1);
+                SpecularTexture.Use(TextureUnit.Texture6);
+            }
+            else
+                prg.SetUniform("UseSpecularTex", 0);
+
             if(Type == MaterialType.Grass)
             {
                 GL.Disable(EnableCap.CullFace);
             }
-
-            if(Tex != null)
-                Tex.Use(TextureUnit.Texture0);
-
-            prg.SetUniform("input_Color", Color);
+            
+            //prg.SetUniform("input_Color", DiffuseColor);
             prg.SetUniform("DrawMode", (int)Mode);
             prg.SetUniform("MaterialType", (int)Type);
 
             if(Type == MaterialType.DropsSystem && RainsDropSystem != null)
                 RainsDropSystem.MapToCurrentShader();
 
-            prg.SetUniform("SpecularComponent", SpecularComponent);
-            prg.SetUniform("DiffuseComponent", DiffuseComponent);
+
+            // pbr stuff
+            prg.SetUniform("SpecularColor", SpecularColor);
+            prg.SetUniform("DiffuseColor", DiffuseColor);
+            prg.SetUniform("Alpha", Alpha);
+
+
             prg.SetUniform("Roughness", Roughness);
-            prg.SetUniform("Metalness", Metalness);
             prg.SetUniform("ReflectionStrength", ReflectionStrength);
             prg.SetUniform("RefractionStrength", RefractionStrength);
             prg.SetUniform("IgnoreLighting", IgnoreLighting);

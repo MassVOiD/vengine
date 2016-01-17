@@ -133,25 +133,19 @@ vec3 shade(
     
     float distanceToLight = distance(fragmentPosition, lightPosition);
     float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight));
-   // if(att < 0.002) return vec3(0);
-    
-    /*float specularComponent = (1.0 - roughness) * cookTorranceSpecular(
-        lightRelativeToVPos,
-        cameraRelativeToVPos,
-        normal,
-        roughness + 0.01
-        );*/
+	att = mix(1.0, att, roughness);
+  
     vec3 specularComponent = mix(1.0, att, roughness * roughness) * LightingFuncGGX_REF(
         normal,
         cameraRelativeToVPos,
         lightRelativeToVPos,
         clamp(roughness, 0.005, 0.99),
-        mix(lightColor, albedo * lightColor, roughness)
+        lightColor
         );
     
     float diffuseComponent = 0*max(0, dot(lightRelativeToVPos, normal));
 
     vec3 cc = lightColor*albedo;
     vec3 difcolor = cc * diffuseComponent * att;
-    return specularComponent;
+    return specularComponent * albedo;
 }

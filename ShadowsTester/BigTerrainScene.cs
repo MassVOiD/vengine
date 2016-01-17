@@ -30,7 +30,7 @@ namespace ShadowsTester
         public BigTerrainScene()
         {
             var whiteboxInfo = Object3dManager.LoadFromObjSingle(Media.Get("whiteroom.obj"));
-            var whitebox = Mesh3d.Create(new Object3dInfo(whiteboxInfo.Vertices), new GenericMaterial(new Vector4(1000, 1000, 1000, 1000)));
+            var whitebox = Mesh3d.Create(new Object3dInfo(whiteboxInfo.Vertices), new GenericMaterial(new Vector3(1000, 1000, 1000)));
             whitebox.GetInstance(0).Scale(3000);
             whitebox.GetInstance(0).Translate(0, -1500, 0);
             Game.World.Scene.Add(whitebox);

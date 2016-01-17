@@ -81,7 +81,7 @@ namespace VEngine
             for(int i = 0; i < ActiveBodies.Count; i++)
             {
                 var b = ActiveBodies[i];
-                if(b.Transformation.HasBeenModified())
+                if(b != null && b.Transformation != null && b.Transformation.HasBeenModified())
                 {
                     b.ReadChanges();
                     b.Body.Activate();
@@ -100,7 +100,7 @@ namespace VEngine
             for(int i = 0; i < ActiveBodies.Count; i++)
             {
                 var b = ActiveBodies[i];
-                if(b.Body.ActivationState != ActivationState.IslandSleeping)
+                if(b != null && b.Body != null && b.Body.ActivationState != ActivationState.IslandSleeping)
                 {
                     b.ApplyChanges();
                 }

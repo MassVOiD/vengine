@@ -171,7 +171,7 @@ namespace VEngine
                     colors.Add(new Vector4(p.GetColor()));
                     ipointer++;
                 }
-            Game.ShadowMaps.Bind(6);
+            Game.ShadowMaps.Bind(0);
             shader.SetUniformArray("LightsPs", pmats.ToArray());
             shader.SetUniformArray("LightsVs", vmats.ToArray());
             shader.SetUniformArray("LightsShadowMapsLayer", shadowmaplayers.ToArray());

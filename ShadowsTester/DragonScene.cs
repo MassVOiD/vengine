@@ -31,17 +31,7 @@ namespace ShadowsTester
         public DragonScene()
         {
             var scene = Game.World.Scene;
-
-            Object3dInfo groundInfo = new Object3dInfo(Object3dGenerator.CreateTerrain(new Vector2(-112, -112), new Vector2(112, 112), new Vector2(1, 1), Vector3.UnitY, 32, (x, y) => 0).Vertices);
-            var color2 = GenericMaterial.FromColor(Color.Green);
-            color2.Roughness = 1.0f;
-            color2.Metalness = 0.0f;
-            color2.Type = GenericMaterial.MaterialType.Grass;
-            var w5 = Mesh3d.Create(groundInfo, color2);
-            scene.Add(w5);
-            Mesh3d water4 = Mesh3d.Create(groundInfo, new GenericMaterial(Color.White));
-            water4.GetInstance(0).Scale(1);
-            scene.Add(water4);
+            
             
         }
     }
