@@ -61,7 +61,7 @@ vec3 LightingFuncGGX_REF(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
     return specular;
 }
 
-
+/*
 vec2 LightingFuncGGX_FV(float dotLH, float roughness)
 {
     float alpha = roughness*roughness;
@@ -107,7 +107,7 @@ vec3 LightingFuncGGX_OPT3(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
     vec3 specular = dotNL * D * FV;
 
     return specular;
-}
+}*/
 
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
