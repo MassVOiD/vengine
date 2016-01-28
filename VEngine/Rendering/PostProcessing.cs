@@ -16,11 +16,13 @@ namespace VEngine
         public int Width, Height;
 
         private ShaderProgram
+         //   BloomShader,
             HDRShader;
 
-        private bool DisablePostEffects = false;
+        public static bool DisablePostEffects = false;
 
         private Framebuffer
+          //  BloomXPass, BloomYPass,
             DistanceFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
@@ -45,17 +47,32 @@ namespace VEngine
             Height = initialHeight;
             //   initialWidth *= 4; initialHeight *= 4;
             MRT = new MRTFramebuffer(initialWidth, initialHeight);
-            
+
             DistanceFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
             {
-                ColorOnly = false,
+                ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.R32f,
                 ColorPixelFormat = PixelFormat.Red,
                 ColorPixelType = PixelType.Float
             };
+            /*BloomXPass = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+            BloomYPass = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };*/
 
             HDRShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "HDR.fragment.glsl");
-            
+           // BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
+
             PostProcessingMesh = new Object3dInfo(VertexInfo.FromFloatArray(postProcessingPlaneVertices));
         }
         
@@ -156,7 +173,7 @@ namespace VEngine
             HDR();
             framebuffer.GenerateMipMaps();
         }
-        
+
         private void HDR()
         {
             HDRShader.Use();
@@ -169,9 +186,22 @@ namespace VEngine
             }
             //MSAAEdgeDetectFramebuffer.UseTexture(28);
             MRT.UseTextureForwardColor(1);
+          //  BloomYPass.UseTexture(2);
             DrawPPMesh();
         }
-        
+        private void Bloom()
+        {
+        /*    BloomXPass.Use();
+            BloomShader.Use();
+            BloomShader.SetUniform("Pass", 0);
+            MRT.UseTextureForwardColor(1);
+            DrawPPMesh();
+            BloomYPass.Use();
+            BloomShader.SetUniform("Pass", 1);
+            BloomXPass.UseTexture(2);
+            DrawPPMesh();*/
+        }
+
         private void RenderPrepareToBlit()
         {
             DistanceFramebuffer.Use();
@@ -182,10 +212,10 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GL.ColorMask(true, true, true, true);
             MRT.Use();
-            GenericMaterial.OverrideShaderPack = Game.ShaderPool.DepthOnly;
-            GL.ColorMask(false, false, false, false);
-            InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
-            Game.World.Draw();
+          //  GenericMaterial.OverrideShaderPack = Game.ShaderPool.DepthOnly;
+          //  GL.ColorMask(false, false, false, false);
+           // InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
+           // Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
             CubeMap.Use(TextureUnit.Texture8);
@@ -195,12 +225,14 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;
             DisableBlending();
             Game.World.Draw();
-            InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
-            EnableBlending();
-            Game.World.Draw();
-            DisableBlending();
+            //InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
+            //EnableBlending();
+            //Game.World.Draw();
+            //DisableBlending();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             // DisableBlending();
+
+            Bloom();
             
         }
         

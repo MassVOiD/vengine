@@ -133,9 +133,9 @@ vec3 shade(
     
     float distanceToLight = distance(fragmentPosition, lightPosition);
     float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight));
-	att = mix(1.0, att, roughness);
+	//att = mix(1.0, att, roughness);
   
-    vec3 specularComponent = mix(1.0, att, roughness * roughness) * LightingFuncGGX_REF(
+    vec3 specularComponent = mix(1.0, att, roughness) * LightingFuncGGX_REF(
         normal,
         cameraRelativeToVPos,
         lightRelativeToVPos,
@@ -147,5 +147,26 @@ vec3 shade(
 
     vec3 cc = lightColor*albedo;
     vec3 difcolor = cc * diffuseComponent * att;
+	
     return specularComponent * albedo;
+}vec3 shadeDiffuse(
+    vec3 camera,
+    vec3 albedo, 
+    vec3 normal,
+    vec3 fragmentPosition, 
+    vec3 lightPosition, 
+    vec3 lightColor, 
+    float roughness, 
+    bool ignoreAtt
+){
+    vec3 lightRelativeToVPos =normalize( lightPosition - fragmentPosition);
+
+    float distanceToLight = distance(fragmentPosition, lightPosition);
+    float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight));
+    float diffuseComponent = max(0, dot(lightRelativeToVPos, normal));
+
+    vec3 cc = lightColor*albedo;
+    vec3 difcolor = cc * att;
+	
+    return difcolor;
 }

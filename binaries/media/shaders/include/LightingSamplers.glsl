@@ -6,6 +6,7 @@ layout(binding = 1) uniform sampler2DMS forwardOutputTex;
 layout(binding = 1) uniform sampler2D forwardOutputTex;
 #endif
 layout(binding = 2) uniform sampler2D normalsTex;
+#define bloomMidPassTex normalsTex
 layout(binding = 3) uniform sampler2D bumpTex;
 layout(binding = 4) uniform sampler2D alphaTex;
 layout(binding = 5) uniform sampler2D diffuseTex;
@@ -37,6 +38,7 @@ vec4 textureMSAA(sampler2DMS tex, vec2 inUV, int samplee){
 
 #else
 
+ivec2 txsize = textureSize(forwardOutputTex, 0);
 vec4 textureMSAAFull(sampler2D tex, vec2 inUV){
     return texture(tex, inUV);
 }

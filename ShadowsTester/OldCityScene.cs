@@ -38,7 +38,7 @@ namespace ShadowsTester
                 //   bd.Enable();
 
             }
-            var hbal = Object3dManager.LoadFromRaw(Media.Get("statue2.raw"));
+           // var hbal = Object3dManager.LoadFromRaw(Media.Get("statue2.raw"));
             /*int hbalc = hbal.Vertices.Count;
             for(int i = 0; i < hbalc; i += 3)
             {
@@ -50,14 +50,14 @@ namespace ShadowsTester
                 hbal.Vertices[i + 1].Normal = n;
                 hbal.Vertices[i + 2].Normal = n;
             }*/
-              var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), new GenericMaterial());
+         /*     var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), new GenericMaterial());
               lucy2.GetInstance(0).Scale(0.5f);
               lucy2.GetInstance(0).Translate(0, 0, 0);
-              lucy2.GetLodLevel(0).Material.Roughness = 0.06f;
-              lucy2.GetLodLevel(0).Material.DiffuseColor = new Vector3(0, 0, 0);
-              lucy2.GetLodLevel(0).Material.SpecularColor = new Vector3(1, 1, 1);
-              Game.World.Scene.Add(lucy2);
-              GC.Collect();
+              lucy2.GetLodLevel(0).Material.Roughness = 0.26f;
+              lucy2.GetLodLevel(0).Material.DiffuseColor = new Vector3(0, 1, 1);
+              lucy2.GetLodLevel(0).Material.SpecularColor = new Vector3(0.3f, 0.3f, 0.3f);
+            Game.World.Scene.Add(lucy2);
+              GC.Collect();*/
 
          //   var sss = Object3dManager.LoadSceneFromObj("sintel.obj", "sintel.mtl");
           //  sss.ForEach((a) => Game.World.Scene.Add(a));
@@ -98,7 +98,7 @@ namespace ShadowsTester
                lucy2.GetLodLevel(0).Material.Roughness = 0.2f;
                lucy2.GetLodLevel(0).Material.Metalness = 0.01f;
                Game.World.Scene.Add(lucy2);*/
-
+               
             var testScene = new Scene();
             //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
             var lucyobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("sph1.obj")).Vertices);
@@ -131,7 +131,7 @@ namespace ShadowsTester
                     Game.DisplayAdapter.MainRenderer.CubeMap = tex;
                     tex.Handle = cubens.TexColor;
                 }
-            };
+            };/*
             var barrelmanager = Object3dManager.LoadFromObjSingle(Media.Get("barrel.obj"));
             var barrelinfo = new Object3dInfo(barrelmanager.Vertices);
             var barrelshape = Physics.CreateConvexCollisionShape(barrelmanager);
@@ -150,7 +150,7 @@ namespace ShadowsTester
                     phys.Body.LinearVelocity += Camera.MainDisplayCamera.GetDirection() * 6;
                 }
             };
-            Game.World.Scene.Add(barrels);
+            Game.World.Scene.Add(barrels);*/
             /*
             List<Mesh3d> cubes = new List<Mesh3d>();
             for(int i = 0; i < 80; i++)

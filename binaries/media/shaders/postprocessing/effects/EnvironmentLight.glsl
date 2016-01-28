@@ -10,7 +10,8 @@ vec3 MMAL(vec3 normal, vec3 reflected, float roughness){
     float levels = float(textureQueryLevels(cubeMapTex)) - 1;
     float mx = log2(roughness*MMAL_LOD_REGULATOR+1)/log2(MMAL_LOD_REGULATOR);
     vec3 result = textureLod(cubeMapTex, mix(reflected, normal, roughness), mx * levels).rgb;
-    return vec3pow(result * 2.0, 1.7)*0.5;
+    //return vec3pow(result * 2.0, 1.7)*0.5;
+    return result;
 }
 
 vec3 EnvironmentLight(FragmentData data)

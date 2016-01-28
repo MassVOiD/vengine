@@ -88,7 +88,7 @@ namespace VEngine
                 double ms = 1000.0 * (double)watch.ElapsedTicks / Stopwatch.Frequency;
                 watch.Reset();
                 watch.Start();
-                Game.World.Physics.UpdateAllModifiedTransformations();
+                //Game.World.Physics.UpdateAllModifiedTransformations();
                 Game.World.Physics.SimulationStep((float)(ms * 0.001f));
                 PhysicsNeedsUpdate = false;
             }

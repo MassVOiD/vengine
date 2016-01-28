@@ -71,8 +71,9 @@ FragmentData currentFragment;
 uniform int UseVDAO;
 uniform int UseHBAO;
 uniform int UseFog;
+uniform int DisablePostEffects;
 uniform float VDAOGlobalMultiplier;
-vec2 UV = gl_FragCoord.xy / resolution;
+vec2 UV = gl_FragCoord.xy / textureSize(distanceTex, 0);
 float AOValue;
 #include Shade.glsl
 #include EnvironmentLight.glsl
@@ -80,9 +81,9 @@ float AOValue;
 #include AmbientOcclusion.glsl
 
 vec3 ApplyLighting(FragmentData data){
-	if(UseHBAO == 1) AOValue = AmbientOcclusion(data);
+	if(UseHBAO == 1 && DisablePostEffects == 0) AOValue = AmbientOcclusion(data);
 	vec3 directlight = DirectLight(data);
-	vec3 envlight = VDAOGlobalMultiplier * EnvironmentLight(data);
+	vec3 envlight = DisablePostEffects == 0 ? VDAOGlobalMultiplier * EnvironmentLight(data) : vec3(0, 0, 0);
 
 	
 	if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
@@ -121,16 +122,17 @@ void main(){
 	)));   
 	
 	if(UseNormalsTex == 1){  
-		vec3 map = texture(normalsTex, UV ).rgb;
+		vec3 map = texture(normalsTex, UV * NormalMapScale ).rgb;
 		map = map * 2 - 1;
 		if(InvertNormalMap == 1){
-			//    map.r = - map.g;
+			    map.r = - map.r;
+			    map.g = - map.g;
 		} else {
 			//    map.g = - map.r;
 		}
 		map.r = - map.r;
 		map.g = - map.g;
-		currentFragment.normal = TBN * mix(vec3(0, 0, 1), map, 1); 
+		currentFragment.normal = TBN * map;
 	} 
 	if(UseNormalsTex == 0 && UseBumpTex == 1){
 		currentFragment.normal = TBN * examineBumpMap();

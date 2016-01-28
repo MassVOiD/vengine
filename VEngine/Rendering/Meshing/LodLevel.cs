@@ -112,12 +112,12 @@ namespace VEngine
             {
                 Game.Invoke(() =>
                 {
-                    GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
+                    //GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
                     ModelMatricesBuffer.MapData(Matrix);
                     RotationMatricesBuffer.MapData(RotationMatrix);
                     Ids.MapData(MeshColoredID);
-                    GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
-                    GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
+                    //GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
+                    //GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
                     InstancesFiltered = instancesFiltered;
                 });
             }

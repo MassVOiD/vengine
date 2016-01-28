@@ -225,7 +225,8 @@ float AO(
 	vec3 posc = ToCameraSpace(position);
     float rot = rand2s(UV) * PI * 2;
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
-    for(int g=0;g < xsamples.length();g+=7){
+	int adder = int(mix(2, 10, xaon * 0.1));
+    for(int g=0;g < xsamples.length();g+=3){
 		vec2 nuv = UV + (xsamples[g] * multiplier);
         float aon = texture(distanceTex, nuv).r;
 		vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * nuv.x + FrustumConeBottomLeftToTopLeft * nuv.y));

@@ -14,9 +14,11 @@ namespace VEngine
 
         public bool SupportTransparency = false;
 
+        public bool InvertUVYAxis = false;
+
         public bool IgnoreLighting = false;
 
-        public bool InvertNormalMap = true;
+        public bool InvertNormalMap = false;
         
         public DrawMode Mode;
 
@@ -158,6 +160,7 @@ namespace VEngine
             //      return true;
             //lastUserProgram = ShaderProgram.Current;
             prg.SetUniform("TesselationMultiplier", TesselationMultiplier);
+            prg.SetUniform("InvertUVy", InvertUVYAxis);
             if(NormalsTexture != null)
             {
                 prg.SetUniform("UseNormalsTex", 1);

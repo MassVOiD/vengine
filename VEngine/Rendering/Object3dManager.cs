@@ -120,6 +120,96 @@ namespace VEngine
             Vertices = vertices;
         }
 
+        public enum NormalRecalculationType
+        {
+            Flat,
+            Smooth
+        }
+        public void RecalulateNormals(NormalRecalculationType mode, float smoothThreshold = 0)
+        {
+            if(mode == NormalRecalculationType.Flat)
+                RecalculateNormalsFlat();
+            if(mode == NormalRecalculationType.Smooth)
+                RecalculateNormalsSmooth(smoothThreshold);
+
+        }
+
+        private void RecalculateNormalsFlat()
+        {
+            int vcount = Vertices.Count;
+            for(int i = 0; i < vcount; i += 3)
+            {
+                var v1 = Vertices[i];
+                var v2 = Vertices[i + 1];
+                var v3 = Vertices[i + 2];
+                var normal = Vector3.Cross(v2.Position - v1.Position, v3.Position - v1.Position).Normalized();
+                v1.Normal = normal;
+                v2.Normal = normal;
+                v3.Normal = normal;
+            }
+        }
+
+        private void RecalculateNormalsSmooth(float threshold)
+        {
+            var posmap = new Dictionary<Vector3, List<VertexInfo>>();
+            var normmap = new Dictionary<VertexInfo, Vector3>();
+            var dividemap = new Dictionary<VertexInfo, float>();
+            int vcount = Vertices.Count;
+            for(int i = 0; i < vcount; i++)
+            {
+                if(!posmap.ContainsKey(Vertices[i].Position))
+                    posmap.Add(Vertices[i].Position, new List<VertexInfo>());
+                posmap[Vertices[i].Position].Add(Vertices[i]);
+
+                normmap[Vertices[i]] = (Vertices[i].Normal);
+                dividemap[Vertices[i]] = 0;
+
+                Vertices[i].Normal = Vector3.Zero;
+            }
+            for(int i = 0; i < vcount; i += 3)
+            {
+                var v1 = Vertices[i];
+                var v2 = Vertices[i + 1];
+                var v3 = Vertices[i + 2];
+                var normal = Vector3.Cross(v2.Position - v1.Position, v3.Position - v1.Position).Normalized();
+                posmap[v1.Position].ForEach((a) =>
+                {
+                    var n = normmap[a];
+                    if(Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
+                    {
+                        dividemap[v1] += 1.0f;
+                        a.Normal += normal;
+                    }
+                });
+                posmap[v2.Position].ForEach((a) =>
+                {
+                    var n = normmap[a];
+                    if(Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
+                    {
+                        dividemap[v2] += 1.0f;
+                        a.Normal += normal;
+                    }
+                });
+                posmap[v3.Position].ForEach((a) =>
+                {
+                    var n = normmap[a];
+                    if(Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
+                    {
+                        dividemap[v3] += 1.0f;
+                        a.Normal += normal;
+                    }
+                });
+            }
+            for(int i = 0; i < vcount; i++)
+            {
+                if(Vertices[i].Normal.Length < 0.001f)
+                    Vertices[i].Normal = normmap[Vertices[i]];
+                else
+                    Vertices[i].Normal /= dividemap[Vertices[i]];
+                Vertices[i].Normal.Normalize();
+            }
+        }
+
         public static Object3dManager[] LoadFromObj(string infile)
         {
             string[] lines = File.ReadAllLines(infile);
@@ -250,7 +340,7 @@ namespace VEngine
                 materials.Add(currentName, currentMaterial);
             return materials;
         }
-        
+
         public static List<Mesh3d> LoadSceneFromObj(string objfile, string mtlfile, float scale = 1.0f)
         {
             string[] lines = File.ReadAllLines(Media.Get(objfile));
@@ -311,7 +401,7 @@ namespace VEngine
                     mInfos[material] = mat;
                 }
 
-                for(int i = 0; i < obj.VBO.Count; i ++)
+                for(int i = 0; i < obj.VBO.Count; i++)
                 {
                     obj.VBO[i].Position *= scale;
                 }
@@ -330,8 +420,8 @@ namespace VEngine
                     foreach(var e in kv.Value.Skip(1))
                         o3di.Append(e);
                 }
-               // var trans = o3di.GetAverageTranslationFromZero();
-               // o3di.OriginToCenter();
+                // var trans = o3di.GetAverageTranslationFromZero();
+                // o3di.OriginToCenter();
                 //o3di.CorrectFacesByNormals();
                 // o3di.CorrectFacesByNormals();
                 var oi = new Object3dInfo(o3di.Vertices);
@@ -347,7 +437,7 @@ namespace VEngine
                 if(mInfos[kva].BumpMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetBumpTexture(mInfos[kv.Key].BumpMapName);
                 // mesh.SpecularComponent = kv.Key.SpecularStrength;
-              //  mesh.GetInstance(0).Translate(trans);
+                //  mesh.GetInstance(0).Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(),
                 // 1.0f, 1.0f));
                 meshes.Add(mesh);
@@ -369,7 +459,7 @@ namespace VEngine
         {
             return new Object3dManager(Vertices.ToArray());
         }
-        
+
         public void FlipFaces()
         {
             for(int i = 0; i < Vertices.Count; i += 3)
@@ -379,7 +469,7 @@ namespace VEngine
                 Vertices[i + 2] = tmp;
             }
         }
-        
+
         public BvhTriangleMeshShape GetAccurateCollisionShape()
         {
             //if (CachedBvhTriangleMeshShape != null) return CachedBvhTriangleMeshShape;
@@ -393,7 +483,7 @@ namespace VEngine
         public Vector3 GetAverageTranslationFromZero()
         {
             float averagex = 0, averagey = 0, averagez = 0;
-            for(int i = 0; i < Vertices.Count; i ++)
+            for(int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
                 averagex += vertex.X;
@@ -445,7 +535,7 @@ namespace VEngine
             }
             return maxval;
         }
-        
+
         public float GetNormalizeDivisor()
         {
             List<Vector3> vectors = new List<Vector3>();
@@ -459,7 +549,7 @@ namespace VEngine
             return maxval;
         }
 
-        
+
 
         public List<Vector3> GetRawVertexList()
         {
@@ -532,7 +622,7 @@ namespace VEngine
 
         public void Transform(Matrix4 ModelMatrix, Matrix4 RotationMatrix)
         {
-            for(int i = 0; i < Vertices.Count; i ++)
+            for(int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].Position = Vector3.Transform(Vertices[i].Position, ModelMatrix);
                 Vertices[i].Normal = Vector3.Transform(Vertices[i].Normal, RotationMatrix);
@@ -555,7 +645,7 @@ namespace VEngine
                 Maximum = b
             };
         }
-        
+
         private static float Max(float a, float b)
         {
             return a > b ? a : b;

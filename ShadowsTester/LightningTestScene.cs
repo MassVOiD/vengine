@@ -12,63 +12,102 @@ namespace ShadowsTester
     {
         public LightningTestScene()
         {
-            /*
-            Object3dInfo groundInfo = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("someterrain.obj")).Vertices);
-            var w5 = Mesh3d.Create(groundInfo, GenericMaterial.FromColor(Color.Green));
-            w5.GetLodLevel(0).Material.Roughness = 0.9f;
-            w5.GetLodLevel(0).Material.Metalness = 0.0f;
-            w5.GetInstance(0).Translate(0, -2, 0);
-            w5.GetInstance(0).Scale(100);*/
-            // Game.World.Scene.Add(w5);
+            var scene = Game.World.Scene;
 
-            //var hbal = Object3dManager.LoadFromObjSingle(Media.Get("bedroom_blender.obj"));
-            /*int hbalc = hbal.Vertices.Count;
-            for(int i = 0; i < hbalc; i += 3)
-            {
-                var v1 = hbal.Vertices[i].Position;
-                var v2 = hbal.Vertices[i + 1].Position;
-                var v3 = hbal.Vertices[i + 2].Position;
-                var n = Vector3.Cross(v2 - v1, v3 - v1).Normalized();
-                hbal.Vertices[i].Normal = n;
-                hbal.Vertices[i+1].Normal = n;
-                hbal.Vertices[i+2].Normal = n;
-            }*/
-          //  var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), GenericMaterial.FromColor(Color.White));
-         //   lucy2.GetInstance(0).Scale(1.0f);
-          //  lucy2.GetInstance(0).Translate(0, 0, 0);
-          //  lucy2.GetLodLevel(0).Material.Roughness = 1.0f;
-          //  Game.World.Scene.Add(lucy2);
-            /*
-            var testScene = new Scene();
-            //var lucyobj = Object3dInfo.LoadFromRaw(Media.Get("lucy.vbo.raw"), Media.Get("lucy.indices.raw"));
-            var lucyobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("sph1.obj")).Vertices);
-            var lucy = Mesh3d.Create(lucyobj, GenericMaterial.FromColor(Color.White));
-            lucy.GetInstance(0).Scale(0.3f);
-            testScene.Add(lucy);
-            Game.World.Scene.Add(testScene);
-            Commons.PickedMesh = lucy;
-            Commons.Picked = lucy.GetInstance(0);
+            var terrain3dManager = Object3dGenerator.CreateGround(new Vector2(-200), new Vector2(200), new Vector2(200), Vector3.UnitY);
+            var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
+            var terrainMaterial = new GenericMaterial();
+            terrainMaterial.SetDiffuseTexture("DisplaceIT_Ground_Pebble1_Color.bmp");
+            terrainMaterial.SpecularTexture = terrainMaterial.DiffuseTexture;
+            terrainMaterial.SetNormalsTexture("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");
+            terrainMaterial.SetBumpTexture("DisplaceIT_Ground_Pebble1_Displace.bmp");
+            terrainMaterial.SetRoughnessTexture("DisplaceIT_Ground_Pebble1_Roughness.bmp");
+            terrainMaterial.InvertNormalMap = true;
+            var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
+            var terrainShape = new BulletSharp.StaticPlaneShape(Vector3.UnitY, terrainMesh.GetInstance(0).GetPosition().Y);
+            var terrainBody = Game.World.Physics.CreateBody(0.0f, terrainMesh.GetInstance(0), terrainShape);
+            scene.Add(terrainMesh);
+            terrainBody.Enable();
 
-            PostProcessing pp = new PostProcessing(512, 512);
-            CubeMapFramebuffer cubens = new CubeMapFramebuffer(512, 512);
-            var tex = new CubeMapTexture(cubens.TexColor);
-            Game.Invoke(() => Game.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex);
-            cubens.SetPosition(new Vector3(0, 1, 0));
-            Game.OnKeyPress += (o, e) =>
+            var invisibleBoundingBoxShape = new BulletSharp.BoxShape(25, 1111, 25);
+            var invisibleBoundingBoxBody = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(0, 400, 0)), invisibleBoundingBoxShape);
+          //  invisibleBoundingBoxBody.Enable();
+            
+            var invisibleBoundingBoxBody2 = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(50, 0, 0)), invisibleBoundingBoxShape);
+            invisibleBoundingBoxBody2.Enable();
+            
+            var invisibleBoundingBoxBody3 = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(-50, 0, 0)), invisibleBoundingBoxShape);
+            invisibleBoundingBoxBody3.Enable();
+            
+            var invisibleBoundingBoxBody4 = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(0, 0, 50)), invisibleBoundingBoxShape);
+            invisibleBoundingBoxBody4.Enable();
+            
+            var invisibleBoundingBoxBody5 = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(0, 0, -50)), invisibleBoundingBoxShape);
+            invisibleBoundingBoxBody5.Enable();
+
+
+            var box3dManager = Object3dManager.LoadFromObjSingle(Media.Get("icosphere.obj"));
+            var box3dInfo = new Object3dInfo(box3dManager.Vertices);
+            var boxMaterial = new GenericMaterial();
+            boxMaterial.Roughness = 0.5f;
+            boxMaterial.DiffuseColor = new Vector3(0.1f, 0.5f, 0.9f);
+            boxMaterial.SpecularColor = new Vector3(0.5f);
+            var boxMesh = Mesh3d.Create(box3dInfo, boxMaterial);
+            boxMesh.AutoRecalculateMatrixForOver16Instances = true;
+            boxMesh.ClearInstances();
+            var boxShape = new BulletSharp.SphereShape(1.0f);
+            scene.Add(boxMesh);
+
+            Game.OnUpdate += (ox, oe) =>
             {
-                if(e.KeyChar == 'z')
-                    cubens.SetPosition(Camera.MainDisplayCamera.GetPosition());
-            };
-            Game.OnBeforeDraw += (od, dsd) =>
-            {
-                if((lucy.GetInstance(0).GetPosition() - cubens.GetPosition()).Length > 0.01f)
+                var state = OpenTK.Input.Keyboard.GetState();
+                if(state.IsKeyDown(OpenTK.Input.Key.Keypad0))
                 {
-                    cubens.SetPosition(lucy.GetInstance(0).GetPosition());
-                    pp.RenderToCubeMapFramebuffer(cubens);
-                    Game.DisplayAdapter.Pipeline.PostProcessor.CubeMap = tex;
-                    tex.Handle = cubens.TexColor;
+                    var instance = boxMesh.AddInstance(new TransformationManager(Camera.MainDisplayCamera.GetPosition()));
+                    var phys = Game.World.Physics.CreateBody(0.7f, instance, boxShape);
+                    phys.Enable();
+                    phys.Body.LinearVelocity += Camera.MainDisplayCamera.GetDirection() * 36;
                 }
+                if(state.IsKeyDown(OpenTK.Input.Key.Keypad1))
+                {
+                    var instance = boxMesh.AddInstance(new TransformationManager(Camera.MainDisplayCamera.GetPosition()));
+                    var phys = Game.World.Physics.CreateBody(0.7f, instance, boxShape);
+                    phys.Enable();
+                    phys.Body.LinearVelocity += Camera.MainDisplayCamera.GetDirection() * 1;
+                }
+            };
+            /*Game.OnKeyUp += (ox, oe) =>
+            {
+                
             };*/
+
+
+
+            
+            var buildings3dManager = Object3dManager.LoadFromObjSingle(Media.Get("osiedle.obj"));
+            var buildings3dInfo = new Object3dInfo(buildings3dManager.Vertices);
+            var buildingsMaterial = new GenericMaterial();
+            buildingsMaterial.DiffuseColor = new Vector3(0.8f, 0.2f, 0.2f);
+            buildingsMaterial.SpecularColor = new Vector3(0.8f);
+            buildingsMaterial.Roughness = 0.2f;
+            var buildingsMesh = Mesh3d.Create(buildings3dInfo, buildingsMaterial);
+            scene.Add(buildingsMesh);
+
+            
+            var jesus3dManager = Object3dManager.LoadFromObjSingle(Media.Get("test1.obj"));
+            jesus3dManager.RecalulateNormals(Object3dManager.NormalRecalculationType.Smooth, 0.5f);
+            var jesus3dInfo = new Object3dInfo(jesus3dManager.Vertices);
+            var jesusMaterial = new GenericMaterial();
+            //  jesusMaterial.SetDiffuseTexture("jesus_statue_diffuse.bmp");
+            //  jesusMaterial.SetSpecularTexture("jesus_statue_specular.bmp");
+            //  jesusMaterial.SetNormalsTexture("jesus_statue_normal.bmp");
+            //  jesusMaterial.SetRoughnessTexture("jesus_statue_roughness.bmp");
+            jesusMaterial.Roughness = 0.01f;
+            jesusMaterial.InvertNormalMap = true;
+            //jesusMaterial.InvertUVYAxis = true;
+            var jesusMesh = Mesh3d.Create(jesus3dInfo, jesusMaterial);
+            jesusMesh.GetInstance(0).Scale(2.0f);
+            scene.Add(jesusMesh);
         }
     }
 }

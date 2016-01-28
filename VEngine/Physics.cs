@@ -20,11 +20,12 @@ namespace VEngine
         public delegate void MeshCollideDelegate(Mesh3d meshA, Mesh3d meshB, Vector3 collisionPoint, Vector3 normalA);
 
         public event MeshCollideDelegate MeshCollide;
-
-
+        
         private DiscreteDynamicsWorld World;
 
         private List<PhysicalBody> ActiveBodies;
+
+        private List<PhysicalBody> AddBodyQueue, RemoveBodyQueue;
 
         public Vector3 Gravity
         {
@@ -41,6 +42,8 @@ namespace VEngine
         public Physics()
         {
             ActiveBodies = new List<PhysicalBody>();
+            AddBodyQueue = new List<PhysicalBody>();
+            RemoveBodyQueue = new List<PhysicalBody>();
             collisionConf = new DefaultCollisionConfiguration();
             dispatcher = new CollisionDispatcher(collisionConf);
 
@@ -66,13 +69,15 @@ namespace VEngine
 
         public void AddBody(PhysicalBody body)
         {
-            World.AddRigidBody(body.Body);
+            //World.AddRigidBody(body.Body);
+            AddBodyQueue.Add(body);
             ActiveBodies.Add(body);
         }
 
         public void RemoveBody(PhysicalBody body)
         {
-            World.RemoveRigidBody(body.Body);
+            //World.RemoveRigidBody(body.Body);
+            RemoveBodyQueue.Add(body);
             ActiveBodies.Remove(body);
         }
 
@@ -94,7 +99,22 @@ namespace VEngine
             if(ActiveBodies.Count == 0 || World == null)
             {
                 System.Threading.Thread.Sleep(100);
+                Console.Write("lal");
                 return;
+            }
+            if(AddBodyQueue.Count > 0)
+            {
+                var lst = AddBodyQueue.ToArray();
+                AddBodyQueue = new List<PhysicalBody>();
+                foreach(var b in lst)
+                    World.AddRigidBody(b.Body);
+            }
+            if(RemoveBodyQueue.Count > 0)
+            {
+                var lst = RemoveBodyQueue.ToArray();
+                RemoveBodyQueue = new List<PhysicalBody>();
+                foreach(var b in lst)
+                    World.RemoveRigidBody(b.Body);
             }
             World.StepSimulation(elapsedTime);
             for(int i = 0; i < ActiveBodies.Count; i++)

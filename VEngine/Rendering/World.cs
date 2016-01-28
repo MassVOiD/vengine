@@ -38,6 +38,7 @@ namespace VEngine
                 shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
                 shader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
                 shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
+                shader.SetUniform("DisablePostEffects",  Renderer.DisablePostEffects);
                 shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
                 Game.World.Scene.SetLightingUniforms(shader);
                 //RandomsSSBO.Use(0);

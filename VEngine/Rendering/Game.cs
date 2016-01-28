@@ -47,7 +47,7 @@ namespace VEngine
             World = new World();
             Media.SearchPath = mediapath;
             Media.LoadFileMap();
-            ShadowMaps = new ShadowMapsArrayTexture(512, 512);
+            ShadowMaps = new ShadowMapsArrayTexture(4096, 4096);
             Resolution = resolution;
             SetCurrentThreadCores(1);
 
