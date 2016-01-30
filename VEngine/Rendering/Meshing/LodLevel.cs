@@ -49,13 +49,13 @@ namespace VEngine
             }
             if(InternalRenderingState.PassState == InternalRenderingState.State.EarlyZPass)
             {
-                if(Material.SupportTransparency)
-                    return;
+            //    if(Material.SupportTransparency)
+            //        return;
             }
             if(InternalRenderingState.PassState == InternalRenderingState.State.DistancePass)
             {
-                if(Material.SupportTransparency)
-                    return;
+            //    if(Material.SupportTransparency)
+            //        return;
             }
             if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardOpaquePass)
             {

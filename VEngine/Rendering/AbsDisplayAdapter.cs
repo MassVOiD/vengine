@@ -50,7 +50,21 @@ namespace VEngine
             MouseUp += VEngineWindowAdapter_MouseUp;
             MouseWheel += VEngineWindowAdapter_MouseWheel;
             Load += VEngineWindowAdapter_Load;
+            Resize += VEngineWindowAdapter_Resize;
             Task.Factory.StartNew(() => PhysicsThread());
+        }
+
+        private void VEngineWindowAdapter_Resize(object sender, EventArgs e)
+        {
+            if(Game.DisplayAdapter.MainRenderer != null && Game.Initialized)
+            {
+                Game.Invoke(() =>
+                {
+                    Game.Resolution = new Size(this.Width, this.Height);
+                    Game.DisplayAdapter.MainRenderer.Resize(this.Width, this.Height);
+                    Game.InvokeOnResize(e);
+                });
+            }
         }
 
         public bool IsCursorVisible

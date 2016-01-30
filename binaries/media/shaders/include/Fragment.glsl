@@ -89,6 +89,8 @@ vec3 ApplyLighting(FragmentData data){
 	if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
 	if(UseHBAO == 1 && UseVDAO == 1) directlight += envlight * AOValue;
 	if(UseHBAO == 1 && UseVDAO == 0) directlight += AOValue;
+	//directlight += data.diffuseColor * (UseHBAO == 1 ? AOValue : 1.0) * 0.01;
+	
 	return directlight;
 }
 
@@ -137,7 +139,7 @@ void main(){
 	if(UseNormalsTex == 0 && UseBumpTex == 1){
 		currentFragment.normal = TBN * examineBumpMap();
 	}
-	if(UseRoughnessTex == 1) currentFragment.roughness = texture(roughnessTex, UV).r;
+	if(UseRoughnessTex == 1) currentFragment.roughness = max(0.07, texture(roughnessTex, UV).r);
 	if(UseAlphaTex == 1) currentFragment.alpha = texture(alphaTex, UV).r; 
 	if(UseDiffuseTex == 1) currentFragment.diffuseColor = texture(diffuseTex, UV).rgb; 
 	if(UseSpecularTex == 1) currentFragment.specularColor = texture(specularTex, UV).rgb; 

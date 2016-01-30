@@ -49,7 +49,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float centerDepthDistance = abs((centerDepth) - (depthfocus));
     //float centerDepth = texture(texDepth, UV).r;
     float focus = length(reconstructCameraSpace(vec2(0.5), 0));
-    float cc = length(reconstructCameraSpace(UV, 0).rgb);
+    float cc = texture(distanceTex, UV).r;
     for(float x = 0; x < mPI2; x+=0.2){ 
         for(float y=0.1;y<1.0;y+= 0.08){  
             
@@ -66,9 +66,9 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             vec3 texel = textureMSAAFull(forwardOutputTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
-            w *= dd;
             
             w += (smoothstep(0.1, 0.0, abs(y - 0.9)));
+			w *= 1.0 - smoothstep(0.0, 6.7 * amount, abs(depth - cc)) + step(amount, 2.0) * step(0, depth - cc);
             weight+=w;
             finalColor += texel * w;
             
@@ -93,13 +93,10 @@ float avgdepth(vec2 buv){
     float outc = float(0);
     float counter = 0;
     float fDepth = length(reconstructCameraSpace(vec2(0.5, 0.5), 0).rgb);
-    for(float g = 0; g < mPI2; g+=0.4)
-    { 
-        for(float g2 = 0; g2 < 1.0; g2+=0.11)
-        { 
-            vec2 gauss = buv + vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
-            gauss = clamp(gauss, 0.0, 0.90);
-            float adepth = texture(distanceTex, gauss).r;
+    //
+            //vec2 gauss = buv + vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
+            //gauss = clamp(gauss, 0.0, 0.90);
+            float adepth = texture(distanceTex, buv).r;
             //if(adepth < fDepth) adepth = fDepth + (fDepth - adepth);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);        
             float f = InputFocalLength;
@@ -116,9 +113,9 @@ float avgdepth(vec2 buv){
             float blur = abs(a-b)*c;
             outc += blur;
             counter++;
-        }
-    }
-    return min(abs(outc / counter), 14.0);
+     //   }
+   // }
+    return min(abs(outc / counter), 2.0);
 }
 
 
@@ -126,7 +123,7 @@ float avgdepth(vec2 buv){
 vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 	float vignette = distance(vec2(0), vec2(0.5)) - distance(uv, vec2(0.5));
 	vignette = 0.1 + 0.9*smoothstep(0.0, 0.3, vignette);
-    return vec3pow(color.rgb, 1.0) * vignette;
+    return vec3pow(color.rgb, 1.0) * vignette * Brightness;
 }
 
 
@@ -134,7 +131,7 @@ void main()
 {
     vec4 color1 = textureMSAAFull(forwardOutputTex, UV);
 	//color1.rgb = texture(distanceTex, UV).rrr;
-    if(DisablePostEffects == 0)if(length(texture(distanceTex, UV).r) < 0.01)color1.rgb = texture(cubeMapTex, normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * UV.x + FrustumConeBottomLeftToTopLeft * UV.y))).rgb;
+    if(DisablePostEffects == 0)if(length(texture(distanceTex, UV).r) < 0.01)color1.rgb = texture(cubeMapTex1, normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * UV.x + FrustumConeBottomLeftToTopLeft * UV.y))).rgb;
     //color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
@@ -157,6 +154,8 @@ void main()
 	//color1.rgb += SSIL();
 	
 	//color1.rgb += vec3pow(texture(normalsTex, UV).rgb, 2);
+	
+	//color1.rgb = texture(distanceTex, UV).rrr * 0.1;
 	
     vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
     color1.rgb = vec3(pow(color1.r, gamma.r),

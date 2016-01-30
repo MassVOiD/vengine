@@ -285,6 +285,7 @@ namespace ShadowsTester
             FreeCam = freeCamera;
             PickingResult = new ShaderStorageBuffer();
             MousePicker = new ComputeShader("MousePicker.compute.glsl");
+           
             return freeCamera;
         }
 
@@ -348,12 +349,12 @@ namespace ShadowsTester
                                 
                 if(e.Key == OpenTK.Input.Key.T)
                 {
-                    if(PickedMesh.GetLodLevel(0) != null)
+                    /*if(PickedMesh != null)
                     {
                         PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier -= 0.1f;
                         if(PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier <= 0.01f)
                             PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier = 0.01f;
-                    }
+                    }*/
                 }
                 if(e.Key == OpenTK.Input.Key.Y)
                 {

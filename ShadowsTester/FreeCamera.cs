@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Text;
 using OpenTK;
 using VEngine;
 
 namespace ShadowsTester
 {
+    public class TitleOutput
+    {
+        static public string Message = "Initialized";
+    }
     internal class FreeCamera
     {
         public Camera Cam;
@@ -14,11 +19,21 @@ namespace ShadowsTester
         {
             float fovdegree = 90;
             Cam = new Camera(new Vector3(0, 5, 0), new Vector3(0, 0, 1), Vector3.UnitY, aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
+            Cam.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
             Camera.MainDisplayCamera = Cam;
 
             Game.OnBeforeDraw += UpdateSterring;
             Game.OnMouseMove += OnMouseMove;
 
+            Game.OnResize += (o, e) =>
+            {
+                float aspect = Game.Resolution.Height > Game.Resolution.Width ? Game.Resolution.Height / Game.Resolution.Width : Game.Resolution.Width / Game.Resolution.Height;
+                aspectRatio = aspect;
+                Matrix4 a = Matrix4.Zero;
+                Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspect, 0.1f, 10000.0f, out a);
+                Cam.SetProjectionMatrix(a);
+                Cam.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
+            };
             Game.OnKeyUp += (o, e) =>
             {
                 if(e.Key == OpenTK.Input.Key.M)
@@ -29,7 +44,7 @@ namespace ShadowsTester
                     Matrix4 a = Matrix4.Zero;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out a);
                     Cam.SetProjectionMatrix(a);
-                    Camera.Current.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
+                    Cam.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
                 }
                 if(e.Key == OpenTK.Input.Key.N)
                 {
@@ -39,7 +54,7 @@ namespace ShadowsTester
                     Matrix4 a = Matrix4.Zero;
                     Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out a);
                     Cam.SetProjectionMatrix(a);
-                    Camera.Current.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
+                    Cam.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
                 }
             };
         }
@@ -71,8 +86,13 @@ namespace ShadowsTester
             float ft = (float)Math.Round(e.Time * 1000.0, 2);
             var mem = (double)GC.GetTotalMemory(false) / 1024.0 / 1024.0;
             float MBmemory = (float)Math.Round(mem, 2);
-            string newTitle = string.Format("VEngine App | FPS: {0} | FrameTime: {1} ms | Memory: {2} megabytes", fps.ToString(System.Globalization.CultureInfo.InvariantCulture), ft.ToString(System.Globalization.CultureInfo.InvariantCulture), MBmemory.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            Game.DisplayAdapter.Title = newTitle;
+            StringBuilder newTitle = new StringBuilder();
+            newTitle.Append(string.Format("VEngine App | FPS: {0} | FrameTime: {1} ms | Memory: {2} megabytes", fps.ToString(System.Globalization.CultureInfo.InvariantCulture), ft.ToString(System.Globalization.CultureInfo.InvariantCulture), MBmemory.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            while(newTitle.Length < 71)
+                newTitle.Append(" ");
+            newTitle.Append("$>");
+            newTitle.Append(TitleOutput.Message);
+            Game.DisplayAdapter.Title = newTitle.ToString();
             var currentPosition = Cam.GetPosition();
             if(Game.DisplayAdapter.IsCursorVisible)
                 return;

@@ -32,6 +32,7 @@ namespace VEngine
         static public event EventHandler<FrameEventArgs> OnUpdate;
         static public event EventHandler<FrameEventArgs> OnBeforeDraw, OnAfterDraw;
         static public event EventHandler OnLoad;
+        static public event EventHandler OnResize;
 
         static public ShaderPool ShaderPool;
         static public ShadowMapsArrayTexture ShadowMaps;
@@ -111,6 +112,12 @@ namespace VEngine
         static public void Invoke(Action action)
         {
             ActionQueue.Enqueue(action);
+        }
+        
+        static public void InvokeOnResize(EventArgs eventargs)
+        {
+            if(OnResize != null)
+                OnResize.Invoke(null, eventargs);
         }
 
         static public void InvokeOnAfterDraw(FrameEventArgs eventargs)

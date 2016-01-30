@@ -131,7 +131,7 @@
     <Compile Include="Rendering\Lights\SimplePointLight.cs" />
     <Compile Include="Internals\MathExtensions.cs" />
     <Compile Include="Rendering\TransformationJoint.cs" />
-    <Compile Include="Rendering\PostProcessing.cs" />
+    <Compile Include="Rendering\Renderer.cs" />
     <Compile Include="Rendering\RenderableInterfaces.cs" />
     <Compile Include="Utilities\Media.cs" />
     <Compile Include="Rendering\Object3dInfo.cs" />

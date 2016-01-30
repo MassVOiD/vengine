@@ -23,7 +23,7 @@ namespace VEngine
 
         public bool Generated;
 
-        public int TexColor, TexDepth;
+        public int TexColor, TexDepth = -1;
 
         public int Width, Height;
 
@@ -44,7 +44,7 @@ namespace VEngine
         {
             get
             {
-                if(DefaultF == null)
+                if(DefaultF == null || DefaultF.Width != Game.Resolution.Width || DefaultF.Height != Game.Resolution.Height)
                     DefaultF = new Framebuffer(Game.Resolution.Width, Game.Resolution.Height)
                     {
                         Generated = true,
@@ -141,11 +141,6 @@ namespace VEngine
         private void Generate()
         {
             Generated = true;
-            if(MultiSample)
-            {
-                GenerateMultisampled(4);
-                return;
-            }
             FBO = GL.GenFramebuffer();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
 
@@ -210,37 +205,15 @@ namespace VEngine
             }
         }
 
-        private void GenerateMultisampled(int Samples)
+        public void FreeGPU()
         {
-            // Generate multisampled textures
-            TexColor = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2DMultisample, TexColor);
-            GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Samples, PixelInternalFormat.Rgba16f, Width, Height, false);
-
-            TexDepth = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2DMultisample, TexDepth);
-            GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Samples, PixelInternalFormat.DepthComponent, Width, Height, false);
-
-            //create fbo
-            FBO = GL.GenFramebuffer();
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
-
-            RBO = GL.GenRenderbuffer();
-            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, RBO);
-            GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, Samples, RenderbufferStorage.DepthComponent, Width, Height);
-
-            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, RBO);
-
-            // attach
-            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexColor, 0);
-            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TexDepth, 0);
-
-            GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-
-            if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
-            {
-                throw new Exception("Framebuffer not complete");
-            }
+            if(TexColor > -1)
+                GL.DeleteTexture(TexColor);
+            if(TexDepth > -1)
+                GL.DeleteTexture(TexDepth);
+            if(FBO > 0)
+                GL.DeleteFramebuffer(FBO);
         }
+
     }
 }

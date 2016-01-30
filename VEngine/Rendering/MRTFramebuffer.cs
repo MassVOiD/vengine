@@ -22,13 +22,14 @@ namespace VEngine
 
         public int TexForward, DepthRenderBuffer;
 
-        private int FBO, Width, Height;
+        private int FBO, Width, Height, MSAASamples = 1;
 
-        public MRTFramebuffer(int width, int height)
+        public MRTFramebuffer(int width, int height, int samples)
         {
             Generated = false;
             Width = width;
             Height = height;
+            MSAASamples = samples;
         }
 
         public void RevertToDefault()
@@ -58,9 +59,20 @@ namespace VEngine
         public void UseTextureForwardColor(int startIndex)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + startIndex);
-            GL.BindTexture(Game.MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexForward);
+            GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexForward);
 
             GL.ActiveTexture(TextureUnit.Texture0);
+        }
+
+        public void FreeGPU()
+        {
+
+            if(TexForward > -1)
+                GL.DeleteTexture(TexForward);
+            if(DepthRenderBuffer > -1)
+                GL.DeleteRenderbuffer(DepthRenderBuffer);
+            if(FBO > 0)
+                GL.DeleteFramebuffer(FBO);
         }
         
         private void Generate()
@@ -69,11 +81,11 @@ namespace VEngine
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
 
             // generating textures
-            var ttarget = Game.MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
+            var ttarget = MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D;
             TexForward = GL.GenTexture();
             GL.BindTexture(ttarget, TexForward);
-            if(Game.MSAASamples > 1)
-                GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, Game.MSAASamples, PixelInternalFormat.Rgb16f, Width, Height, true);
+            if(MSAASamples > 1)
+                GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, MSAASamples, PixelInternalFormat.Rgb16f, Width, Height, true);
             else
                 GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
             GL.TexParameter(ttarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
@@ -84,8 +96,8 @@ namespace VEngine
             // generating rbo for depth
             DepthRenderBuffer = GL.GenRenderbuffer();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, DepthRenderBuffer);
-            if(Game.MSAASamples > 1)
-                GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, Game.MSAASamples, RenderbufferStorage.DepthComponent24, Width, Height);
+            if(MSAASamples > 1)
+                GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, MSAASamples, RenderbufferStorage.DepthComponent24, Width, Height);
             else
                 GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent24, Width, Height);
 

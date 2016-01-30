@@ -215,23 +215,23 @@ float AO(
     vec3 position,
     vec3 normal,
     float roughness,
-    float hemisphereSize
+    float hemisphereSize,
+    int quality
 ){
     float outc = 0.0;
     float counter = 0.001;
     float xaon =distance(CameraPosition, Input.WorldPos);
     float factor = 1.0 / xaon;
-    vec2 multiplier = vec2(ratio, 1) * 0.09 * factor;
+    vec2 multiplier = vec2(ratio, 1) * 0.09 * hemisphereSize * factor;
 	vec3 posc = ToCameraSpace(position);
-    float rot = rand2s(UV) * PI * 2;
+    float rot = rand2s(UV) * PI * 2 * hemisphereSize;
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
-	int adder = int(mix(2, 10, xaon * 0.1));
-    for(int g=0;g < xsamples.length();g+=3){
+    for(int g=0;g < xsamples.length();g+=quality){
 		vec2 nuv = UV + (xsamples[g] * multiplier);
         float aon = texture(distanceTex, nuv).r;
 		vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * nuv.x + FrustumConeBottomLeftToTopLeft * nuv.y));
 		vec3 dupa = dir * aon;
-        float dt = max(0, dot(normal, normalize(dupa - posc)) - 0.1);
+        float dt = max(0, dot(normal, normalize(dupa - posc)) - 0.05);
 		float fact = smoothstep(1.0, 0.0, max(0, distance(dupa, posc) - 0.3));
 		outc += dt * fact;
 		counter += 1.0;
@@ -242,6 +242,7 @@ float AO(
 
 float AmbientOcclusion(FragmentData data){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AO(data.worldPos, data.normal, data.roughness, 0.7);
+    ao = AO(data.worldPos, data.normal, data.roughness, 3.0, 2);
+    ao *= AO(data.worldPos, data.normal, data.roughness, 2.8, 6);
     return ao;
 }

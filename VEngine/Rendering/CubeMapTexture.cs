@@ -75,7 +75,6 @@ namespace VEngine
             if(!Generated)
             {
                 Handle = GL.GenTexture();
-                GL.Enable(EnableCap.TextureCubeMapSeamless);
                 GL.BindTexture(TextureTarget.TextureCubeMap, Handle);
                 GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, PixelInternalFormat.Rgba, Size.Width, Size.Height, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, BitmapPosX);
                 GL.TexImage2D(TextureTarget.TextureCubeMapPositiveY, 0, PixelInternalFormat.Rgba, Size.Width, Size.Height, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, BitmapPosY);
@@ -93,6 +92,7 @@ namespace VEngine
                 Generated = true;
             }
             GL.ActiveTexture(unit);
+            GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.BindTexture(TextureTarget.TextureCubeMap, Handle);
         }
 

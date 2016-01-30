@@ -77,9 +77,10 @@ namespace VEngine
             }
             Camera last = Camera.Current;
             Camera.Current = camera;
+            Game.ShaderPool.ForceSingleSample = true;
             FBO.Use();
 
-            Game.ShaderPool.DepthOnly.ProgramsList.ForEach((shader) =>
+            Game.ShaderPool.ChooseShaderDepth().ProgramsList.ForEach((shader) =>
             {
                 if(!shader.Compiled)
                     return;
@@ -88,7 +89,7 @@ namespace VEngine
                 ShaderProgram.Current.SetUniform("LightColor", LightColor);
             });
 
-            GenericMaterial.OverrideShaderPack = Game.ShaderPool.DepthOnly;
+            GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDepth();
             InternalRenderingState.PassState = InternalRenderingState.State.ShadowMapPass;
             Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
@@ -97,6 +98,7 @@ namespace VEngine
             //    Skybox.Current.Draw();
             //ParticleSystem.DrawAll(true);
             Camera.Current = last;
+            Game.ShaderPool.ForceSingleSample = false;
             NeedsRefreshing = false;
         }
 

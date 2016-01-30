@@ -20,15 +20,16 @@ namespace ShadowsTester
         [STAThread]
         private static void Main(string[] args)
         {
-            Game.Initialize(new Size(Config.Width, Config.Height), 1, Config.MediaPath, GameWindowFlags.FixedWindow);
+            Game.Initialize(new Size(Config.Width, Config.Height), 1, Config.MediaPath, GameWindowFlags.Default);
 
             var freeCamera = Commons.SetUpFreeCamera();
             //System.Threading.Thread.Sleep(1100);
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
-            //new OldCityScene();
-            new LightningTestScene();
+            new OldCityScene();
+            //new LightningTestScene();
+           // new HotelScene();
 
             //new DragonScene();
             

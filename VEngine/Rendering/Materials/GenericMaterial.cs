@@ -38,7 +38,7 @@ namespace VEngine
 
         public float Roughness = 0.5f;
 
-        public Vector3 SpecularColor = Vector3.One, DiffuseColor = Vector3.Zero;
+        public Vector3 SpecularColor = new Vector3(0.7f), DiffuseColor = new Vector3(0.3f);
 
         public float Alpha = 1.0f;
 
@@ -97,7 +97,7 @@ namespace VEngine
         
         public ShaderProgram GetShaderProgram()
         {
-            var pack = OverrideShaderPack != null ? OverrideShaderPack : Game.ShaderPool.GenericMaterial;
+            var pack = OverrideShaderPack != null ? OverrideShaderPack : Game.ShaderPool.ChooseShaderGenericMaterial();
             if(Type == MaterialType.Grass || Type == MaterialType.Flag)
                 return pack.Geometry96iTriangles;
             if(Type == MaterialType.TessellatedTerrain)

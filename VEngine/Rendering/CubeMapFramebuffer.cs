@@ -35,6 +35,7 @@ namespace VEngine
 
         public void GenerateMipMaps()
         {
+            GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
             GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
             GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
@@ -93,6 +94,7 @@ namespace VEngine
             FBO = GL.GenFramebuffer();
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
 
+            GL.Enable(EnableCap.TextureCubeMapSeamless);
             TexColor = GL.GenTexture();
             GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
             GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, PixelInternalFormat.Rgba, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
