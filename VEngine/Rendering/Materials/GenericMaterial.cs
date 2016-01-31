@@ -166,7 +166,8 @@ namespace VEngine
                 prg.SetUniform("UseNormalsTex", 1);
                 prg.SetUniform("InvertNormalMap", InvertNormalMap);
                 prg.SetUniform("NormalMapScale", NormalMapScale);
-                NormalsTexture.Use(TextureUnit.Texture2);
+                //NormalsTexture.Use(TextureUnit.Texture2);
+                NormalsTexture.UseBindlessHandle("normalsTexAddr");
             }
             else
                 prg.SetUniform("UseNormalsTex", 0);
@@ -182,7 +183,8 @@ namespace VEngine
             if(RoughnessTexture != null)
             {
                 prg.SetUniform("UseRoughnessTex", 1);
-                RoughnessTexture.Use(TextureUnit.Texture7);
+               // RoughnessTexture.Use(TextureUnit.Texture7);
+                RoughnessTexture.UseBindlessHandle("roughnessTexAddr");
             }
             else
                 prg.SetUniform("UseRoughnessTex", 0);
@@ -198,7 +200,8 @@ namespace VEngine
             if(DiffuseTexture != null)
             {
                 prg.SetUniform("UseDiffuseTex", 1);
-                DiffuseTexture.Use(TextureUnit.Texture5);
+                //DiffuseTexture.Use(TextureUnit.Texture5);
+                DiffuseTexture.UseBindlessHandle("diffuseTexAddr");
             }
             else
                 prg.SetUniform("UseDiffuseTex", 0);
@@ -206,7 +209,7 @@ namespace VEngine
             if(SpecularTexture != null)
             {
                 prg.SetUniform("UseSpecularTex", 1);
-                SpecularTexture.Use(TextureUnit.Texture6);
+                SpecularTexture.UseBindlessHandle("specularTexAddr");
             }
             else
                 prg.SetUniform("UseSpecularTex", 0);

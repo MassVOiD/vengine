@@ -6,7 +6,6 @@ vec3 vec3pow(vec3 inputx, float po){
     );
 }
 
-#extension GL_ARB_bindless_texture : require
 #define MMAL_LOD_REGULATOR 512
 float precentage = 0;
 float falloff = 0;

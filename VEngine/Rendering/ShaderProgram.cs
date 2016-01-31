@@ -184,6 +184,17 @@ namespace VEngine
                 GL.Uniform4(location, data);
         }
 
+        public void SetUniform(string name, long data)
+        {
+            int location = GetUniformLocation(name);
+            // silly c# :)
+            var bytes = BitConverter.GetBytes(data);
+            var ui64_1 = BitConverter.ToUInt32(bytes, 0);
+            var ui64_2 = BitConverter.ToUInt32(bytes, 4);
+            if(location >= 0 && CheckCache(name, data) && data >0 )
+                GL.Uniform2(location, ui64_1, ui64_2);
+        }
+
         public void SetUniformArray(string name, Matrix4[] data)
         {
             int location = GetUniformLocation(name);

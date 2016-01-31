@@ -16,6 +16,7 @@ namespace VEngine
         public string FileName;
 
         public int Handle = -1;
+        long BindlessHandle, BindlessSamplerHandle;
 
         public bool UseNearestFilter = false;
 
@@ -131,48 +132,62 @@ namespace VEngine
             Update(bmp);
         }
 
+        private void Generate() {
+            ImageTextureTarget = TextureTarget.Texture2D;
+            if(IsDDS)
+            {
+                uint o = 0;
+                ImageDDS.LoadFromByteArray(Bitmap, out o, out ImageTextureTarget);
+                Handle = (int)o;
+                GL.BindTexture(ImageTextureTarget, Handle);
+            }
+            else
+            {
+                Handle = GL.GenTexture();
+                GL.BindTexture(ImageTextureTarget, Handle);
+                GL.TexImage2D(ImageTextureTarget, 0, PixelInternalFormat.Rgba, Size.Width, Size.Height, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, Bitmap);
+            }
+            if(UseNearestFilter)
+            {
+                GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+                GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            }
+            else
+            {
+                GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+                GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(ImageTextureTarget, TextureParameterName.GenerateMipmap, (int)TextureMagFilter.Linear);
+                GL.GenerateMipmap((GenerateMipmapTarget)ImageTextureTarget);
+                float maxAniso;
+                GL.GetFloat((GetPName)OldGL.ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out maxAniso);
+                GL.TexParameter(ImageTextureTarget, (TextureParameterName)OldGL.ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, maxAniso);
+                //GL.TexParameter(ImageTextureTarget, (TextureParameterName)0x9366, 0x8008);
+            }
+            GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            BindlessHandle = GL.Arb.GetTextureHandle(Handle);
+            GL.Arb.MakeTextureHandleResident(BindlessHandle);
+            Generated = true;
+            Bitmap = null;
+        }
+
         public void Use(TextureUnit unit)
         {
             if(!Generated)
             {
-                ImageTextureTarget = TextureTarget.Texture2D;
-                if(IsDDS)
-                {
-                    uint o = 0;
-                    ImageDDS.LoadFromByteArray(Bitmap, out o, out ImageTextureTarget);
-                    Handle = (int)o;
-                    GL.BindTexture(ImageTextureTarget, Handle);
-                }
-                else
-                {
-                    Handle = GL.GenTexture();
-                    GL.BindTexture(ImageTextureTarget, Handle);
-                    GL.TexImage2D(ImageTextureTarget, 0, PixelInternalFormat.Rgba, Size.Width, Size.Height, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, Bitmap);
-                }
-                if(UseNearestFilter)
-                {
-                    GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-                    GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-                }
-                else
-                {
-                    GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
-                    GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                    GL.TexParameter(ImageTextureTarget, TextureParameterName.GenerateMipmap, (int)TextureMagFilter.Linear);
-                    GL.GenerateMipmap((GenerateMipmapTarget)ImageTextureTarget);
-                    float maxAniso;
-                    GL.GetFloat((GetPName)OldGL.ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out maxAniso);
-                    GL.TexParameter(ImageTextureTarget, (TextureParameterName)OldGL.ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, maxAniso);
-                    //GL.TexParameter(ImageTextureTarget, (TextureParameterName)0x9366, 0x8008);
-                }
-                GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-                GL.TexParameter(ImageTextureTarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-                Generated = true;
-                Bitmap = null;
+                Generate();
             }
             GL.ActiveTexture(unit);
             GL.BindTexture(ImageTextureTarget, Handle);
         }
+
+        public void UseBindlessHandle(string name)
+        {
+            if(!Generated)
+                Generate();
+            ShaderProgram.Current.SetUniform(name, BindlessHandle);
+        }
+
         private static void BitmapToByteArray(Bitmap bitmap, ref byte[] bytedata)
         {
             BitmapData bmpdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);

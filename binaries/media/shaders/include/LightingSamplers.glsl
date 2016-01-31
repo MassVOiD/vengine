@@ -5,13 +5,26 @@ layout(binding = 1) uniform sampler2DMS forwardOutputTex;
 #else
 layout(binding = 1) uniform sampler2D forwardOutputTex;
 #endif
-layout(binding = 2) uniform sampler2D normalsTex;
-#define bloomMidPassTex normalsTex
+//layout(binding = 2) uniform sampler2D normalsTex;
+//#define bloomMidPassTex normalsTex
 layout(binding = 3) uniform sampler2D bumpTex;
 layout(binding = 4) uniform sampler2D alphaTex;
-layout(binding = 5) uniform sampler2D diffuseTex;
-layout(binding = 6) uniform sampler2D specularTex;
-layout(binding = 7) uniform sampler2D roughnessTex;
+#extension GL_ARB_bindless_texture : require
+//#extension AMD_gpu_shader_int64 : require
+//layout(binding = 5) uniform sampler2D diffuseTex;
+uniform uvec2 diffuseTexAddr;
+#define diffuseTex sampler2D(diffuseTexAddr)
+
+uniform uvec2 normalsTexAddr;
+#define normalsTex sampler2D(normalsTexAddr)
+
+uniform uvec2 specularTexAddr;
+#define specularTex sampler2D(specularTexAddr)
+
+uniform uvec2 roughnessTexAddr;
+#define roughnessTex sampler2D(roughnessTexAddr)
+
+#define bloomMidPassTex sampler2D(roughnessTexAddr)
 
 layout(binding = 8) uniform sampler2D distanceTex;
 
