@@ -81,9 +81,9 @@ float AOValue;
 #include AmbientOcclusion.glsl
 
 vec3 ApplyLighting(FragmentData data){
-	if(UseHBAO == 1 && DisablePostEffects == 0) AOValue = AmbientOcclusion(data);
+	if(UseHBAO == 1) AOValue = AmbientOcclusion(data);
 	vec3 directlight = DirectLight(data);
-	vec3 envlight = DisablePostEffects == 0 ? VDAOGlobalMultiplier * EnvironmentLight(data) : vec3(0, 0, 0);
+	vec3 envlight = UseVDAO == 1 ? (VDAOGlobalMultiplier * EnvironmentLight(data)) : vec3(0);
 
 	
 	if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
@@ -145,7 +145,7 @@ void main(){
 	if(UseSpecularTex == 1) currentFragment.specularColor = texture(specularTex, UV).rgb; 
 	
 	currentFragment.normal = (RotationMatrixes[Input.instanceId] * vec4(currentFragment.normal, 0)).xyz;
-
+//currentFragment.roughness = 0;
 	vec3 resultforward = ApplyLighting(currentFragment);
 	outColor = vec4(resultforward, currentFragment.alpha);
 }

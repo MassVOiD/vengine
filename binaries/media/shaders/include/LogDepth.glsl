@@ -7,6 +7,7 @@ in Data {
 } Input;
 uniform int UseNormalMap;
 uniform int UseBumpMap;
+#define FarPlane (10000.0f)
 
 // it returns the cosine
 float calculateAngleOccupied(float dist, float radius){

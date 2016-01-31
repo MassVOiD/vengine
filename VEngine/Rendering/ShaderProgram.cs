@@ -61,13 +61,13 @@ namespace VEngine
 
         public static ShaderProgram Compile(string vertex, string fragment = null, string geometry = null, string tesscontrol = null, string tesseval = null)
         {
-            string concatedNames = vertex + (fragment != null ? fragment : "nofrag") + (geometry != null ? geometry : "nogeo") + (tesscontrol != null ? tesscontrol : "notess") + (tesseval != null ? tesseval : "notessev");
+           // string concatedNames = vertex + (fragment != null ? fragment : "nofrag") + (geometry != null ? geometry : "nogeo") + (tesscontrol != null ? tesscontrol : "notess") + (tesseval != null ? tesseval : "notessev");
 
-            var cached = ShaderCache.GetShaderProgramOrNull(concatedNames);
-            if(cached != null)
-                return cached;
+            //var cached = ShaderCache.GetShaderProgramOrNull(concatedNames);
+            //if(cached != null)
+            //    return cached;
             var output = new ShaderProgram(vertex, fragment, geometry, tesscontrol, tesseval);
-            ShaderCache.CacheShaderProgram(concatedNames, output);
+         //   ShaderCache.CacheShaderProgram(concatedNames, output);
             return output;
         }
 
@@ -100,12 +100,6 @@ namespace VEngine
                 TessEvaluationSource = ShaderPreparser.Preparse(TessEvalFile, Media.ReadAllText(TessEvalFile));
                 UsingTessellation = true;
             }
-            var sb = new StringBuilder();
-            sb.AppendLine(VertexSource);
-            sb.AppendLine(FragmentSource);
-            sb.AppendLine(GeometrySource);
-            sb.AppendLine(TessControlSource);
-            sb.AppendLine(TessEvaluationSource);
             Compiled = false;
         }
 

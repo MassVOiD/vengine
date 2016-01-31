@@ -60,9 +60,7 @@ namespace VEngine
             {
                 Game.Invoke(() =>
                 {
-                    Game.Resolution = new Size(this.Width, this.Height);
-                    Game.DisplayAdapter.MainRenderer.Resize(this.Width, this.Height);
-                    Game.InvokeOnResize(e);
+                   // Game.InvokeOnResize(e);
                 });
             }
         }
@@ -110,6 +108,8 @@ namespace VEngine
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            if(Game.Resolution.Width != this.Width || Game.Resolution.Height != this.Height)
+                Game.InvokeOnResize(e);
             Interpolator.StepAll();
             TransformationJoint.Resolve();
 

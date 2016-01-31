@@ -2,17 +2,7 @@
 #define PI 3.14159265
 
 float CalculateFallof( float dist){
-    //return 1.0 / pow(((dist) + 1.0), 2.0);
-    //return dist == 0 ? 1 : (1) / (PI*dist*dist+1);
-    
-   float constantAttenuation=1.0;
-
-   float linearAttenuation=1.0;
-
-   float quadraticAttenuation=0.02;
-
-   float att = 1.0/(constantAttenuation + (linearAttenuation * dist) + (quadraticAttenuation * dist * dist));
-   return att;
+   return 1.0 / (dist * dist);
 }
 
 float fresnelSchlick(float VdotH)

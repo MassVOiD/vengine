@@ -45,54 +45,29 @@ namespace VEngine
                 ProgramsList.ForEach((a) => a.SetGlobal(name, value));
             }
         }
-        private ShaderPack DepthOnly, DepthOnlyMSAA, GenericMaterial, GenericMaterialMSAA, DistanceOnly, DistanceOnlyMSAA;
-
-        public bool ForceSingleSample = false;
-
-        public ShaderPack ChooseShaderGenericMaterial(bool forceSingleSample = false)
+        private ShaderPack DepthOnly, GenericMaterial, DistanceOnly;
+        
+        public ShaderPack ChooseShaderGenericMaterial()
         {
-            if(Game.MSAASamples > 1 && !forceSingleSample && !ForceSingleSample)
-                return GenericMaterialMSAA;
-            else
-                return GenericMaterial;
+        return GenericMaterial;
         }
-        public ShaderPack ChooseShaderDepth(bool forceSingleSample = false)
+        public ShaderPack ChooseShaderDepth()
         {
-            if(Game.MSAASamples > 1 && !forceSingleSample && !ForceSingleSample)
-                return DepthOnlyMSAA;
-            else
-                return DepthOnly;
+            return DepthOnly;
         }
-        public ShaderPack ChooseShaderDistance(bool forceSingleSample = false)
+        public ShaderPack ChooseShaderDistance()
         {
-            if(Game.MSAASamples > 1 && !forceSingleSample && !ForceSingleSample)
-                return DistanceOnlyMSAA;
-            else
-                return DistanceOnly;
+            return DistanceOnly;
         }
 
         public ShaderPool()
         {
             DepthOnly = new ShaderPack();
-
-            DepthOnlyMSAA = new ShaderPack();
-            DepthOnlyMSAA.SetGlobal("MSAA_SAMPLES", Game.MSAASamples.ToString());
-            if(Game.MSAASamples > 1)
-                DepthOnlyMSAA.SetGlobal("USE_MSAA", "");
-
+            
             GenericMaterial = new ShaderPack("Generic.fragment.glsl");
-
-            GenericMaterialMSAA = new ShaderPack("Generic.fragment.glsl");
-            GenericMaterialMSAA.SetGlobal("MSAA_SAMPLES", Game.MSAASamples.ToString());
-            if(Game.MSAASamples > 1)
-                GenericMaterialMSAA.SetGlobal("USE_MSAA", "");
-
+            
             DistanceOnly = new ShaderPack("DistanceOnly.fragment.glsl");
-
-            DistanceOnlyMSAA = new ShaderPack("DistanceOnly.fragment.glsl");
-            DistanceOnlyMSAA.SetGlobal("MSAA_SAMPLES", Game.MSAASamples.ToString());
-            if(Game.MSAASamples > 1)
-                DistanceOnlyMSAA.SetGlobal("USE_MSAA", "");
+            
         }
     }
 }

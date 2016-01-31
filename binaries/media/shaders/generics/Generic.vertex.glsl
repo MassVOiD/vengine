@@ -16,5 +16,5 @@ void main(){
     Output.WorldPos = (ModelMatrixes[gl_InstanceID] * v).xyz;
     Output.Normal = in_normal;
     Output.Tangent = in_tangent;
-    gl_Position = (VPMatrix) * vec4(Output.WorldPos, 1);
+    gl_Position = (VPMatrix) * vec4(Output.WorldPos, 1);// + vec4(0, 0.9, 0, 0);
 }

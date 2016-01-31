@@ -16,8 +16,7 @@ layout(binding = 7) uniform sampler2D roughnessTex;
 layout(binding = 8) uniform sampler2D distanceTex;
 
 
-layout(binding = 9) uniform samplerCube cubeMapTex1;
-
+layout(binding = 9)  uniform samplerCube cubeMapTex1;
 layout(binding = 10) uniform samplerCube cubeMapTex2;
 layout(binding = 11) uniform samplerCube cubeMapTex3;
 layout(binding = 12) uniform samplerCube cubeMapTex4;
@@ -27,10 +26,23 @@ layout(binding = 15) uniform samplerCube cubeMapTex7;
 layout(binding = 16) uniform samplerCube cubeMapTex8;
 layout(binding = 17) uniform samplerCube cubeMapTex9;
 layout(binding = 18) uniform samplerCube cubeMapTex10;
+layout(binding = 19) uniform samplerCube cubeMapTex11;
+layout(binding = 20) uniform samplerCube cubeMapTex12;
+layout(binding = 21) uniform samplerCube cubeMapTex13;
+layout(binding = 22) uniform samplerCube cubeMapTex14;
+layout(binding = 23) uniform samplerCube cubeMapTex15;
+layout(binding = 24) uniform samplerCube cubeMapTex16;
+layout(binding = 25) uniform samplerCube cubeMapTex17;
+layout(binding = 26) uniform samplerCube cubeMapTex18;
+layout(binding = 27) uniform samplerCube cubeMapTex19;
+layout(binding = 28) uniform samplerCube cubeMapTex20;
+layout(binding = 29) uniform samplerCube cubeMapTex21;
+layout(binding = 30) uniform samplerCube cubeMapTex22;
+layout(binding = 31) uniform samplerCube cubeMapTex23;
 
 uniform int CubeMapsCount;
-uniform vec4 CubeMapsPositions[10];
-uniform vec4 CubeMapsFalloffs[10];
+uniform vec4 CubeMapsPositions[23];
+uniform vec4 CubeMapsFalloffs[23];
 
 
 #ifdef USE_MSAA

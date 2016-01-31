@@ -68,7 +68,9 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             float dd = length(crd * 0.1 * amount)/0.125;
             
             w += (smoothstep(0.1, 0.0, abs(y - 0.9)));
-			w *= 1.0 - smoothstep(0.0, 6.7 * amount, abs(depth - cc)) + step(amount, 2.0) * step(0, depth - cc);
+			w *= clamp(1.0 - smoothstep(0.0, 6.7 * amount, abs(depth - cc)) + step(amount, 2.0) * step(0, depth - cc) + 
+			(1.0 - ( step(0.1, focus - depth) * 
+			(step(0.1, focus - cc)))), 0.0, 1.0);
             weight+=w;
             finalColor += texel * w;
             
@@ -131,7 +133,7 @@ void main()
 {
     vec4 color1 = textureMSAAFull(forwardOutputTex, UV);
 	//color1.rgb = texture(distanceTex, UV).rrr;
-    if(DisablePostEffects == 0)if(length(texture(distanceTex, UV).r) < 0.01)color1.rgb = texture(cubeMapTex1, normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * UV.x + FrustumConeBottomLeftToTopLeft * UV.y))).rgb;
+    //if(DisablePostEffects == 0)if(length(texture(distanceTex, UV).r) < 0.01)color1.rgb = texture(cubeMapTex1, normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * UV.x + FrustumConeBottomLeftToTopLeft * UV.y))).rgb;
     //color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
@@ -149,7 +151,7 @@ void main()
     
     //if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
     //if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
-    if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
+    //if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
         
 	//color1.rgb += SSIL();
 	
@@ -162,5 +164,5 @@ void main()
     pow(color1.g, gamma.g),
     pow(color1.b, gamma.b));
 
-    outColor = clamp(vec4(color1.rgb, 1), 0.0, 10000.0);
+    outColor = clamp(vec4(color1.rgb, toLogDepthEx(texture(distanceTex, UV).r, 1000.0)), 0.0, 10000.0);
 }

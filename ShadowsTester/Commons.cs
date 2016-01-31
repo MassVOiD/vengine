@@ -32,22 +32,22 @@ namespace ShadowsTester
             RedLight = new List<ProjectionLight>();
             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
             {
-                LightColor = new Vector3(1, 1, 1)*5,
+                LightColor = new Vector3(1, 0.84f, 0.93f)*25,
                 IsStatic = true
             });
             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
             {
-                LightColor = new Vector3(1, 1, 0),
+                LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
                 IsStatic = true
             });
             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
             {
-                LightColor = new Vector3(0, 1, 1),
+                LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
                 IsStatic = true
             });
             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
             {
-                LightColor = new Vector3(1, 0, 1),
+                LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
                 IsStatic = true
             });
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);

@@ -15,6 +15,7 @@ namespace VEngine
             Physics = new Physics();
         }
 
+        public int CurrentlyRenderedCubeMap = -1;
         public void Draw()
         {
             var sp = GenericMaterial.OverrideShaderPack != null ? GenericMaterial.OverrideShaderPack : Game.ShaderPool.ChooseShaderGenericMaterial();
@@ -41,6 +42,7 @@ namespace VEngine
                 shader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
                 shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
                 shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
+                shader.SetUniform("CurrentlyRenderedCubeMap", CurrentlyRenderedCubeMap);
                 shader.SetUniform("DisablePostEffects",  Renderer.DisablePostEffects);
                 shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
                 Game.World.Scene.SetLightingUniforms(shader);

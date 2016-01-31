@@ -77,7 +77,6 @@ namespace VEngine
             }
             Camera last = Camera.Current;
             Camera.Current = camera;
-            Game.ShaderPool.ForceSingleSample = true;
             FBO.Use();
 
             Game.ShaderPool.ChooseShaderDepth().ProgramsList.ForEach((shader) =>
@@ -98,7 +97,6 @@ namespace VEngine
             //    Skybox.Current.Draw();
             //ParticleSystem.DrawAll(true);
             Camera.Current = last;
-            Game.ShaderPool.ForceSingleSample = false;
             NeedsRefreshing = false;
         }
 

@@ -116,6 +116,8 @@ namespace VEngine
         
         static public void InvokeOnResize(EventArgs eventargs)
         {
+            Resolution = new Size(DisplayAdapter.Width, DisplayAdapter.Height);
+            DisplayAdapter.MainRenderer.Resize(DisplayAdapter.Width, DisplayAdapter.Height);
             if(OnResize != null)
                 OnResize.Invoke(null, eventargs);
         }
