@@ -48,7 +48,7 @@ namespace VEngine
             World = new World();
             Media.SearchPath = mediapath;
             Media.LoadFileMap();
-            ShadowMaps = new ShadowMapsArrayTexture(4096, 4096);
+            ShadowMaps = new ShadowMapsArrayTexture(1024, 1024);
             Resolution = resolution;
             SetCurrentThreadCores(1);
 
@@ -61,7 +61,7 @@ namespace VEngine
 
                 GraphicsSettings.UseDeferred = true;
                 GraphicsSettings.UseRSM = false;
-                GraphicsSettings.UseVDAO = true;
+                GraphicsSettings.UseVDAO = false;
                 GraphicsSettings.UseFog = false;
                 GraphicsSettings.UseBloom = false;
                 GraphicsSettings.UseLightPoints = true;
@@ -116,8 +116,9 @@ namespace VEngine
         
         static public void InvokeOnResize(EventArgs eventargs)
         {
-            Resolution = new Size(DisplayAdapter.Width, DisplayAdapter.Height);
-            DisplayAdapter.MainRenderer.Resize(DisplayAdapter.Width, DisplayAdapter.Height);
+            
+            Resolution = new Size(DisplayAdapter.ClientRectangle.Width, DisplayAdapter.ClientRectangle.Height);
+            DisplayAdapter.MainRenderer.Resize(Resolution.Width, Resolution.Height);
             if(OnResize != null)
                 OnResize.Invoke(null, eventargs);
         }

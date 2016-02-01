@@ -133,7 +133,7 @@ void main()
 {
     vec4 color1 = textureMSAAFull(forwardOutputTex, UV);
 	//color1.rgb = texture(distanceTex, UV).rrr;
-    //if(DisablePostEffects == 0)if(length(texture(distanceTex, UV).r) < 0.01)color1.rgb = texture(cubeMapTex1, normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * UV.x + FrustumConeBottomLeftToTopLeft * UV.y))).rgb;
+    if(texture(distanceTex, UV).r < 0.01)color1.rgb = vec3(0);
     //color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;

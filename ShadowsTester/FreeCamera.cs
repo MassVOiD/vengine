@@ -27,7 +27,7 @@ namespace ShadowsTester
 
             Game.OnResize += (o, e) =>
             {
-                float aspect = Game.Resolution.Height > Game.Resolution.Width ? Game.Resolution.Height / Game.Resolution.Width : Game.Resolution.Width / Game.Resolution.Height;
+                float aspect = (float)Game.Resolution.Width / (float)Game.Resolution.Height;
                 aspectRatio = aspect;
                 Matrix4 a = Matrix4.Zero;
                 Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspect, 0.1f, 10000.0f, out a);

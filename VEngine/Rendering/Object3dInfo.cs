@@ -201,7 +201,7 @@ namespace VEngine
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             
             AreBuffersGenerated = true;
-            Draw();
+            //Draw();
         }
         
     }

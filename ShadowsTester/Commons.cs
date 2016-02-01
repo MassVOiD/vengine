@@ -280,7 +280,6 @@ namespace ShadowsTester
         public static FreeCamera SetUpFreeCamera()
         {
             CameraSavedViews = new Dictionary<int, TransformationManager>();
-            float aspect = Game.Resolution.Height > Game.Resolution.Width ? Game.Resolution.Height / Game.Resolution.Width : Game.Resolution.Width / Game.Resolution.Height;
             var freeCamera = new FreeCamera((float)Game.Resolution.Width / (float)Game.Resolution.Height, MathHelper.PiOver3 / 1);
             FreeCam = freeCamera;
             PickingResult = new ShaderStorageBuffer();

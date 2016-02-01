@@ -24,23 +24,25 @@ namespace ShadowsTester
             Commons.PickedMesh = lucy;
             Commons.Picked = null;
 
-
-            Renderer pp = new Renderer(256, 256, 1);
+            int cnt = 16, din = 64;
+            Renderer pp = new Renderer(din, din, 1);
             Game.DisplayAdapter.MainRenderer.CubeMaps.Clear();
-            for(int i = 0; i < 23; i++)
+            for(int i = 0; i < cnt; i++)
             {
-                CubeMapFramebuffer cubens = new CubeMapFramebuffer(48, 48);
+                CubeMapFramebuffer cubens = new CubeMapFramebuffer(din, din);
                 var tex = new CubeMapTexture(cubens.TexColor);
-                if(i < 10)
-                    cubens.SetPosition(new Vector3((i - 5) * 1.3f, 1, 0));
-                else if(i < 20)
-                    cubens.SetPosition(new Vector3((i - 15) * 1.3f, 5, 0));
-                else
-                    cubens.SetPosition(new Vector3((i - 20) * 5, 7, 0));
-                lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.001f), "cubemap-marker-" + i.ToString()));
+                if(i < 4)
+                    cubens.SetPosition(new Vector3((i - 2) * 2.8f, 1.5f, 0));
+                else if(i < 8)
+                    cubens.SetPosition(new Vector3((i - 6) * 1.8f, 2.3f, 0));
+                else if(i < 12)
+                    cubens.SetPosition(new Vector3((i - 10) * 2.8f, 3.5f, 0));
+                else 
+                    cubens.SetPosition(new Vector3((i - 14) * 1.8f, 5, 0));
+                lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.11f), "cubemap-marker-" + i.ToString()));
                 Game.DisplayAdapter.MainRenderer.CubeMaps.Add(new Renderer.CubeMapInfo()
                 {
-                    FalloffScale = 4.0f,
+                    FalloffScale = 1.0f,
                     Framebuffer = cubens,
                     Position = cubens.GetPosition()
                 });
@@ -67,7 +69,7 @@ namespace ShadowsTester
                 }
                 if(eargs.Key == OpenTK.Input.Key.Insert)
                 {
-                    for(int i = 0; i < 23; i++)
+                    for(int i = 0; i < cnt; i++)
                     {
                         Game.DisplayAdapter.MainRenderer.CubeMaps[i].Position *= -1;
                     }
@@ -111,7 +113,7 @@ namespace ShadowsTester
                      //   new Vector3(-1, 0, 2),
 
                     };
-                    for(int i = 0; i < 23; i++)
+                    for(int i = 0; i < cnt; i++)
                     {
                         lucy.GetInstance(i).SetPosition(cpos + displacements[i]);
                     }
@@ -134,14 +136,14 @@ namespace ShadowsTester
                 // {
                 if(!livemode)
                 {
-                    for(int iz = 0; iz < 23; iz++)
+                    for(int iz = 0; iz < cnt; iz++)
                     {
                         if((lucy.GetInstance(iz).GetPosition() - Game.DisplayAdapter.MainRenderer.CubeMaps[iz].Position).Length > 0.01f)
                         {
                             Game.DisplayAdapter.MainRenderer.CubeMaps[iz].Framebuffer.Clear();
                         }
                     }
-                    for(int iz = 0; iz < 23; iz++)
+                    for(int iz = 0; iz < cnt; iz++)
                     {
                         if((lucy.GetInstance(iz).GetPosition() - Game.DisplayAdapter.MainRenderer.CubeMaps[iz].Position).Length > 0.01f)
                         {
@@ -158,7 +160,7 @@ namespace ShadowsTester
                     return;
                 }
                 int i = ix++;
-                if(ix >= 23)
+                if(ix >= cnt)
                     ix = 0;
                 Game.World.CurrentlyRenderedCubeMap = i;
                 pp.CubeMaps = Game.DisplayAdapter.MainRenderer.CubeMaps;

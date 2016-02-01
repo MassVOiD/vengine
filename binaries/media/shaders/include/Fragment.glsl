@@ -74,6 +74,7 @@ uniform int UseFog;
 uniform int DisablePostEffects;
 uniform float VDAOGlobalMultiplier;
 vec2 UV = gl_FragCoord.xy / textureSize(distanceTex, 0);
+vec2 UVX = gl_FragCoord.xy / textureSize(distanceTex, 0);
 float AOValue;
 #include Shade.glsl
 #include EnvironmentLight.glsl
@@ -146,6 +147,9 @@ void main(){
 	
 	currentFragment.normal = (RotationMatrixes[Input.instanceId] * vec4(currentFragment.normal, 0)).xyz;
 //currentFragment.roughness = 0;
-	vec3 resultforward = ApplyLighting(currentFragment);
+	vec3 resultforward = vec3(0);
+   // if(texture(distanceTex, UVX).r < 0.01)resultforward.rgb = vec3(1);
+	//else 
+	resultforward = ApplyLighting(currentFragment);
 	outColor = vec4(resultforward, currentFragment.alpha);
 }

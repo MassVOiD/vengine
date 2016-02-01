@@ -18,6 +18,7 @@ namespace VEngine
         public int Resolution;
         public int TexColor, TexDepth;
         public TransformationManager Transformation;
+        private long BindlessHandle;
 
         public int Width, Height;
 
@@ -35,10 +36,10 @@ namespace VEngine
 
         public void GenerateMipMaps()
         {
-            GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
             GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
             GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.TextureCubeMap, (TextureParameterName)OpenTK.Graphics.OpenGL.All.TextureCubeMapSeamless, 1);
             GL.GenerateMipmap(GenerateMipmapTarget.TextureCubeMap);
         }
 
@@ -114,11 +115,8 @@ namespace VEngine
         private void Generate()
         {
             Generated = true;
-            FBO = GL.GenFramebuffer();
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
-
-            GL.Enable(EnableCap.TextureCubeMapSeamless);
             TexColor = GL.GenTexture();
+            
             GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
             GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, PixelInternalFormat.Rgba32f, Width, Height, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
             GL.TexImage2D(TextureTarget.TextureCubeMapPositiveY, 0, PixelInternalFormat.Rgba32f, Width, Height, 0, PixelFormat.Rgba, PixelType.Float, IntPtr.Zero);
@@ -132,9 +130,18 @@ namespace VEngine
 
             GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
             GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.GenerateMipmap(GenerateMipmapTarget.TextureCubeMap);
+
+            GL.Flush();
+            GL.Finish();
+            GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
+
+            FBO = GL.GenFramebuffer();
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
 
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.TextureCubeMapPositiveX, TexColor, 0);
 
+            GL.BindTexture(TextureTarget.TextureCubeMap, 0);
             GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
             if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
@@ -150,6 +157,23 @@ namespace VEngine
             FacesCameras.Add(TextureTarget.TextureCubeMapNegativeX, new Camera(Vector3.Zero, new Vector3(-1, 0, 0), -Vector3.UnitY, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
             FacesCameras.Add(TextureTarget.TextureCubeMapNegativeY, new Camera(Vector3.Zero, new Vector3(0, -1, 0), -Vector3.UnitZ, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
             FacesCameras.Add(TextureTarget.TextureCubeMapNegativeZ, new Camera(Vector3.Zero, new Vector3(0, 0, -1), -Vector3.UnitY, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            BindlessHandle = GL.Arb.GetTextureHandle(TexColor);
+            GL.Arb.MakeTextureHandleResident(BindlessHandle);
+        }
+        public void UseBindlessHandle(string name)
+        {
+            if(!Generated)
+                Generate();
+            ShaderProgram.Current.SetUniform(name, BindlessHandle);
+        }
+        public long GetBindlessHandle()
+        {
+            if(!Generated)
+                Generate();
+           // BindlessHandle = GL.Arb.GetTextureHandle(TexColor);
+           // GL.Arb.MakeTextureHandleResident(BindlessHandle);
+            return BindlessHandle;
         }
     }
 }

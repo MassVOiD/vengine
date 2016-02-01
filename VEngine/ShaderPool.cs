@@ -63,11 +63,10 @@ namespace VEngine
         public ShaderPool()
         {
             DepthOnly = new ShaderPack();
-            
+
             GenericMaterial = new ShaderPack("Generic.fragment.glsl");
-            
+
             DistanceOnly = new ShaderPack("DistanceOnly.fragment.glsl");
-            
         }
     }
 }

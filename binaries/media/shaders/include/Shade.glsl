@@ -2,7 +2,7 @@
 #define PI 3.14159265
 
 float CalculateFallof( float dist){
-   return 1.0 / (dist * dist);
+   return 1.0 / max(0.01, (dist * dist));
 }
 
 float fresnelSchlick(float VdotH)

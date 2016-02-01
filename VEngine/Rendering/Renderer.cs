@@ -152,11 +152,19 @@ namespace VEngine
         public void SetCubemapsUniforms()
         {
             var shader = ShaderProgram.Current;
-            shader.SetUniform("CubeMapsCount", CubeMaps.Count);
-            shader.SetUniformArray("CubeMapsPositions", CubeMaps.Select<CubeMapInfo, Vector4>((a) => new Vector4(a.Position, 1.0f)).ToArray());
-            shader.SetUniformArray("CubeMapsFalloffs", CubeMaps.Select<CubeMapInfo, Vector4>((a) => new Vector4(a.FalloffScale)).ToArray());
-            for(int i = 0; i < CubeMaps.Count; i++)
-                CubeMaps[i].Framebuffer.UseTexture(9 + i);
+            bool res = shader.SetUniformArray("CubeMapsAddrs", CubeMaps.Select<CubeMapInfo, long>((a) => a.Framebuffer.GetBindlessHandle()).ToArray());
+            if(res)
+            {
+                shader.SetUniform("CubeMapsCount", CubeMaps.Count);
+                shader.SetUniformArray("CubeMapsPositions", CubeMaps.Select<CubeMapInfo, Vector4>((a) => new Vector4(a.Position, 1.0f)).ToArray());
+                shader.SetUniformArray("CubeMapsFalloffs", CubeMaps.Select<CubeMapInfo, Vector4>((a) => new Vector4(a.FalloffScale)).ToArray());
+            }
+            else
+            {
+                shader.SetUniform("CubeMapsCount", 0);
+            }
+           // for(int i = 0; i < CubeMaps.Count; i++)
+           //     CubeMaps[i].Framebuffer.UseTexture(9 + i);
         }
 
         public void SetUniformsShared()

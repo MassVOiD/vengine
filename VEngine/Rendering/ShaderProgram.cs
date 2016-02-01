@@ -245,6 +245,29 @@ namespace VEngine
             }
         }
 
+        public bool SetUniformArray(string name, long[] data)
+        {
+            int location = GetUniformLocation(name);
+            List<uint> floats = new List<uint>();
+            foreach(var v in data)
+            {
+                if(v == 0)
+                    return false;
+                var bytes = BitConverter.GetBytes(v);
+                var ui64_1 = BitConverter.ToUInt32(bytes, 0);
+                var ui64_2 = BitConverter.ToUInt32(bytes, 4);
+                floats.Add(ui64_1);
+                floats.Add(ui64_2);
+            }
+            if(location >= 0 && CheckCache(name, data))
+            {
+                GL.Uniform2(location, data.Length, floats.ToArray());
+                Game.CheckErrors(name);
+                return true;
+            }
+            return false;
+        }
+
         public void SetUniformArray(string name, Vector2[] data)
         {
             int location = GetUniformLocation(name);

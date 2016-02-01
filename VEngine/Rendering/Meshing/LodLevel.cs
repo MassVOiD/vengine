@@ -49,13 +49,13 @@ namespace VEngine
             }
             if(InternalRenderingState.PassState == InternalRenderingState.State.EarlyZPass)
             {
-            //    if(Material.SupportTransparency)
-            //        return;
+                if(Material.SupportTransparency)
+                    return;
             }
             if(InternalRenderingState.PassState == InternalRenderingState.State.DistancePass)
             {
-            //    if(Material.SupportTransparency)
-            //        return;
+                if(Material.SupportTransparency)
+                    return;
             }
             if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardOpaquePass)
             {
@@ -69,20 +69,12 @@ namespace VEngine
             }
             Material.Use();
             container.SetUniforms();
-            SetUniforms();
             ModelMatricesBuffer.Use(0);
             RotationMatricesBuffer.Use(1);
             Ids.Use(2);
             Info3d.DrawInstanced(InstancesFiltered);
         }
-
-        public void SetUniforms()
-        {
-            ShaderProgram shader = ShaderProgram.Current;
-            shader.SetUniform("LodDistanceStart", DistanceStart);
-            shader.SetUniform("LodDistanceEnd", DistanceEnd);
-        }
-
+        
         public void UpdateMatrix(List<Mesh3dInstance> instances, bool instantRebuffer = false)
         {
             var cameraPos = Camera.Current.GetPosition();

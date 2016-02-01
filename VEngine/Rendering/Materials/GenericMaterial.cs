@@ -175,7 +175,7 @@ namespace VEngine
             if(BumpTexture != null)
             {
                 prg.SetUniform("UseBumpTex", 1);
-                BumpTexture.Use(TextureUnit.Texture3);
+                BumpTexture.UseBindlessHandle("bumpTexAddr");
             }
             else
                 prg.SetUniform("UseBumpTex", 0);
@@ -192,7 +192,7 @@ namespace VEngine
             if(AlphaTexture != null)
             {
                 prg.SetUniform("UseAlphaTex", 1);
-                AlphaTexture.Use(TextureUnit.Texture4);
+                AlphaTexture.UseBindlessHandle("alphaTexAddr");
             }
             else
                 prg.SetUniform("UseAlphaTex", 0);

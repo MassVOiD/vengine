@@ -171,7 +171,7 @@ namespace VEngine
             Bitmap = null;
         }
 
-        public void Use(TextureUnit unit)
+        /*public void Use(TextureUnit unit)
         {
             if(!Generated)
             {
@@ -179,7 +179,7 @@ namespace VEngine
             }
             GL.ActiveTexture(unit);
             GL.BindTexture(ImageTextureTarget, Handle);
-        }
+        }*/
 
         public void UseBindlessHandle(string name)
         {

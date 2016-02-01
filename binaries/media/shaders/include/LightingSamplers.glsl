@@ -7,11 +7,15 @@ layout(binding = 1) uniform sampler2D forwardOutputTex;
 #endif
 //layout(binding = 2) uniform sampler2D normalsTex;
 //#define bloomMidPassTex normalsTex
-layout(binding = 3) uniform sampler2D bumpTex;
-layout(binding = 4) uniform sampler2D alphaTex;
 #extension GL_ARB_bindless_texture : require
 //#extension AMD_gpu_shader_int64 : require
 //layout(binding = 5) uniform sampler2D diffuseTex;
+uniform uvec2 bumpTexAddr;
+#define bumpTex sampler2D(bumpTexAddr)
+
+uniform uvec2 alphaTexAddr;
+#define alphaTex sampler2D(alphaTexAddr)
+
 uniform uvec2 diffuseTexAddr;
 #define diffuseTex sampler2D(diffuseTexAddr)
 
@@ -54,8 +58,9 @@ layout(binding = 30) uniform samplerCube cubeMapTex22;
 layout(binding = 31) uniform samplerCube cubeMapTex23;
 
 uniform int CubeMapsCount;
-uniform vec4 CubeMapsPositions[23];
-uniform vec4 CubeMapsFalloffs[23];
+uniform vec4 CubeMapsPositions[233];
+uniform vec4 CubeMapsFalloffs[233];
+uniform uvec2 CubeMapsAddrs[233];
 
 
 #ifdef USE_MSAA

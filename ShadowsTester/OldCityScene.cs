@@ -19,6 +19,13 @@ namespace ShadowsTester
               }*/
             // var scene = Object3dInfo.LoadSceneFromObj(Media.Get("cryteksponza.obj"),
             // Media.Get("cryteksponza.mtl"), 0.03f);
+
+            var cube = VEngine.Generators.Object3dGenerator.CreateCube(new Vector3(300), new Vector2(10, 10));
+            var mesh = Mesh3d.Create(new Object3dInfo(cube.Vertices), new GenericMaterial()
+            {
+
+            };
+
             var scene = new GameScene("Scene.scene");
             scene.Load();
             var cnt = scene.Meshes.Count;
