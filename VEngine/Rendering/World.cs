@@ -15,40 +15,44 @@ namespace VEngine
             Physics = new Physics();
         }
 
+        public void SetUniforms(Renderer renderer)
+        {
+            foreach(var s in Game.ShaderPool.GetPacks())
+            {
+                s.ProgramsList.ForEach((shader) =>
+                {
+                    if(!shader.Compiled)
+                        return;
+                    shader.Use();
+
+                    shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
+                    Camera.Current.SetUniforms();
+
+                    renderer.SetCubemapsUniforms();
+
+                    shader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
+                    shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
+                    shader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
+                    shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
+                    shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
+                    shader.SetUniform("DisablePostEffects", Renderer.DisablePostEffects);
+                    shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
+                    shader.SetUniform("resolution", new Vector2(renderer.Width, renderer.Height));
+                    shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
+                    shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
+                    shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
+                    shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
+                    shader.SetUniform("CurrentlyRenderedCubeMap", CurrentlyRenderedCubeMap);
+                    Game.World.Scene.SetLightingUniforms(shader);
+                    //RandomsSSBO.Use(0);
+                    Game.World.Scene.MapLightsSSBOToShader(shader);
+                });
+            }
+        }
+
         public int CurrentlyRenderedCubeMap = -1;
         public void Draw()
         {
-            var sp = GenericMaterial.OverrideShaderPack != null ? GenericMaterial.OverrideShaderPack : Game.ShaderPool.ChooseShaderGenericMaterial();
-            sp.ProgramsList.ForEach((shader) =>
-            {
-                if(!shader.Compiled)
-                    return;
-                shader.Use();
-
-                //shader.SetUniform("ViewMatrix", Camera.Current.GetViewMatrix());
-                //shader.SetUniform("ProjectionMatrix", Camera.Current.GetProjectionMatrix());
-                shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
-                Camera.Current.SetUniforms();
-
-                Game.DisplayAdapter.MainRenderer.SetCubemapsUniforms();
-
-                shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
-                shader.SetUniform("CameraDirection", Camera.Current.Transformation.GetOrientation().ToDirection());
-                shader.SetUniform("CameraTangentUp", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Up));
-                shader.SetUniform("CameraTangentLeft", Camera.Current.Transformation.GetOrientation().GetTangent(MathExtensions.TangentDirection.Left));
-                shader.SetUniform("resolution", new Vector2(Game.Resolution.Width, Game.Resolution.Height));
-                shader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
-                shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
-                shader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
-                shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
-                shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
-                shader.SetUniform("CurrentlyRenderedCubeMap", CurrentlyRenderedCubeMap);
-                shader.SetUniform("DisablePostEffects",  Renderer.DisablePostEffects);
-                shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
-                Game.World.Scene.SetLightingUniforms(shader);
-                //RandomsSSBO.Use(0);
-                Game.World.Scene.MapLightsSSBOToShader(shader);
-            });
             Scene.Draw();
         }
     }

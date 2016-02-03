@@ -17,13 +17,13 @@ namespace VEngine
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(new ColorFormat(8, 8, 8, 8), 8, 0, 1), title, flags,
                 DisplayDevice.Default, 4, 5,
-                GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
+                GraphicsContextFlags.ForwardCompatible)
         {
             Game.DisplayAdapter = this;
             Game.Resolution = new Size(Width, Height);
             GL.Enable(EnableCap.DepthClamp);
-            GL.Enable(EnableCap.DebugOutput);
-            GL.Enable(EnableCap.DebugOutputSynchronous);
+           // GL.Enable(EnableCap.DebugOutput);
+          //  GL.Enable(EnableCap.DebugOutputSynchronous);
             GL.Enable(EnableCap.Dither);
             GL.Enable(EnableCap.Multisample);
 
@@ -37,10 +37,10 @@ namespace VEngine
             GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
 
             GL.Disable(EnableCap.Blend);
-            GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
-            {
-                Console.WriteLine("{0} {1} {2} {3} {4} {5} {6}", source, type, id, severity, length, message, userParam);
-            }, (IntPtr)0);
+           // GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
+          //  {
+          //      Console.WriteLine("{0} {1} {2} {3} {4} {5} {6}", source, type, id, severity, length, message, userParam);
+          //  }, (IntPtr)0);
 
             MouseMove += Mouse_Move;
             KeyPress += VEngineWindowAdapter_KeyPress;

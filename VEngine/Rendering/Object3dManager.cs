@@ -149,6 +149,18 @@ namespace VEngine
             }
         }
 
+        public void ReverseFaces()
+        {
+            int vcount = Vertices.Count;
+            for(int i = 0; i < vcount; i += 3)
+            {
+                var v1 = Vertices[i];
+                var v3 = Vertices[i + 2];
+                Vertices[i + 2] = v1;
+                Vertices[i] = v3;
+            }
+        }
+
         private void RecalculateNormalsSmooth(float threshold)
         {
             var posmap = new Dictionary<Vector3, List<VertexInfo>>();

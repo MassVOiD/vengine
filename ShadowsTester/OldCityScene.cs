@@ -21,10 +21,14 @@ namespace ShadowsTester
             // Media.Get("cryteksponza.mtl"), 0.03f);
 
             var cube = VEngine.Generators.Object3dGenerator.CreateCube(new Vector3(300), new Vector2(10, 10));
+            cube.ReverseFaces();
             var mesh = Mesh3d.Create(new Object3dInfo(cube.Vertices), new GenericMaterial()
             {
-
-            };
+                Roughness = 1.0f,
+                DiffuseColor = new Vector3(20),
+                SpecularColor = Vector3.Zero
+            });
+            Game.World.Scene.Add(mesh);
 
             var scene = new GameScene("Scene.scene");
             scene.Load();
@@ -45,7 +49,7 @@ namespace ShadowsTester
                 //   bd.Enable();
 
             }
-            // var hbal = Object3dManager.LoadFromRaw(Media.Get("statue2.raw"));
+             var hbal = Object3dManager.LoadFromRaw(Media.Get("statue2.raw"));
             /*int hbalc = hbal.Vertices.Count;
             for(int i = 0; i < hbalc; i += 3)
             {
@@ -57,14 +61,14 @@ namespace ShadowsTester
                 hbal.Vertices[i + 1].Normal = n;
                 hbal.Vertices[i + 2].Normal = n;
             }*/
-            /*     var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), new GenericMaterial());
+                 var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), new GenericMaterial());
                  lucy2.GetInstance(0).Scale(0.5f);
                  lucy2.GetInstance(0).Translate(0, 0, 0);
                  lucy2.GetLodLevel(0).Material.Roughness = 0.26f;
                  lucy2.GetLodLevel(0).Material.DiffuseColor = new Vector3(0, 1, 1);
                  lucy2.GetLodLevel(0).Material.SpecularColor = new Vector3(0.3f, 0.3f, 0.3f);
                Game.World.Scene.Add(lucy2);
-                 GC.Collect();*/
+                 GC.Collect();
 
             //   var sss = Object3dManager.LoadSceneFromObj("sintel.obj", "sintel.mtl");
             //  sss.ForEach((a) => Game.World.Scene.Add(a));

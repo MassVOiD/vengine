@@ -106,6 +106,6 @@ vec3 DirectLight(FragmentData data){
     }*/
 	
 	if(UseFog == 1) color1 += makeFog();
-    
+    if(DisablePostEffects == 1) color1 *= smoothstep(0.0, 0.1, data.cameraDistance);
     return color1;
 }

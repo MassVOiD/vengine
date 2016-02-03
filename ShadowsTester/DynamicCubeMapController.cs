@@ -31,18 +31,29 @@ namespace ShadowsTester
             {
                 CubeMapFramebuffer cubens = new CubeMapFramebuffer(din, din);
                 var tex = new CubeMapTexture(cubens.TexColor);
-                if(i < 4)
-                    cubens.SetPosition(new Vector3((i - 2) * 2.8f, 1.5f, 0));
-                else if(i < 8)
-                    cubens.SetPosition(new Vector3((i - 6) * 1.8f, 2.3f, 0));
-                else if(i < 12)
-                    cubens.SetPosition(new Vector3((i - 10) * 2.8f, 3.5f, 0));
-                else 
-                    cubens.SetPosition(new Vector3((i - 14) * 1.8f, 5, 0));
-                lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.11f), "cubemap-marker-" + i.ToString()));
+
+                if(i < 8)
+                    cubens.SetPosition(new Vector3((i - 4) * 2.8f, 1.5f, 0));
+                else if(i < 16)
+                    cubens.SetPosition(new Vector3((i - 12) * 1.8f, 4.3f, 0));
+                else if(i < 24)
+                    cubens.SetPosition(new Vector3((i - 20) * 2.8f, 1.5f, -3.5f));
+                else if(i < 32)
+                    cubens.SetPosition(new Vector3((i - 28) * 2.8f, 1.5f, 3.5f));
+                else if(i < 40)
+                    cubens.SetPosition(new Vector3((i - 36) * 2.8f, 4.5f, -3.5f));
+                else if(i < 48)
+                    cubens.SetPosition(new Vector3((i - 44) * 2.8f, 4.5f, 3.5f));
+                else if(i < 56)
+                    cubens.SetPosition(new Vector3((i - 52) * 2.8f, 4.5f, 0));
+                else if(i < 64)
+                    cubens.SetPosition(new Vector3((i - 60) * 1.8f, 6.3f, 0));
+
+
+                lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.02f), "cubemap-marker-" + i.ToString()));
                 Game.DisplayAdapter.MainRenderer.CubeMaps.Add(new Renderer.CubeMapInfo()
                 {
-                    FalloffScale = 1.0f,
+                    FalloffScale = (i < 24) ? 3.0f : 1.0f,
                     Framebuffer = cubens,
                     Position = cubens.GetPosition()
                 });
@@ -77,45 +88,14 @@ namespace ShadowsTester
                 if(eargs.Key == OpenTK.Input.Key.Home)
                 {
                     var cpos = Camera.MainDisplayCamera.GetPosition();
-                    var displacements = new List<Vector3> {
-                        Vector3.Zero,
-                        new Vector3(-2, 0, 0),
-                        new Vector3(-1, 0, 0),
-                        new Vector3(1, 0, 0),
-                        new Vector3(2, 0, 0),
 
-                        new Vector3(0, 0, -2),
-                        new Vector3(0, 0, -1),
-                        new Vector3(0, 0, 1),
-                        new Vector3(0, 0, 2),
-
-                        new Vector3(-2, 0, -2),
-                        new Vector3(-1, 0, -1),
-                        new Vector3(1, 0, 1),
-                        new Vector3(2, 0, 2),
-
-                        new Vector3(2, 0, -2),
-                        new Vector3(1, 0, -1),
-                        new Vector3(-1, 0, 1),
-                        new Vector3(-2, 0, 2),
-
-
-                        new Vector3(1, 0, -2),
-                        new Vector3(-1, 0, -2),
-
-                        new Vector3(1, 0, -1),
-                        new Vector3(-1, 0, -1),
-
-                        new Vector3(1, 0, 1),
-                        new Vector3(-1, 0, 1)
-
-                     //   new Vector3(1, 0, 2),
-                     //   new Vector3(-1, 0, 2),
-
-                    };
+                    float angle = 0;
                     for(int i = 0; i < cnt; i++)
                     {
-                        lucy.GetInstance(i).SetPosition(cpos + displacements[i]);
+                        float prc = (float)i / (float)cnt;
+                        angle += 2.39996322f;
+                        var disp = new Vector3(prc * 15.0f * (float)Math.Sin(angle), 1.0f - prc * 3.0f, prc * 15.0f * (float)Math.Cos(angle));
+                        lucy.GetInstance(i).SetPosition(cpos + disp);
                     }
                 }
                 if(eargs.Key == OpenTK.Input.Key.Up)

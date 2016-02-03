@@ -253,6 +253,7 @@ namespace VEngine
 
         private void RenderPrepareToBlit()
         {
+            Game.World.SetUniforms(this);
             DistanceFramebuffer.Use();
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDistance();
             GL.ColorMask(true, true, true, true);

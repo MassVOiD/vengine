@@ -90,6 +90,7 @@ namespace VEngine
 
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDepth();
             InternalRenderingState.PassState = InternalRenderingState.State.ShadowMapPass;
+            Game.World.SetUniforms(Game.DisplayAdapter.MainRenderer);
             Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;

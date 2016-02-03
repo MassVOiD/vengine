@@ -46,6 +46,11 @@ namespace VEngine
             }
         }
         private ShaderPack DepthOnly, GenericMaterial, DistanceOnly;
+
+        public ShaderPack[] GetPacks()
+        {
+            return new ShaderPack[] { DepthOnly, GenericMaterial, DistanceOnly };
+        }
         
         public ShaderPack ChooseShaderGenericMaterial()
         {

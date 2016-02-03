@@ -158,11 +158,11 @@ void main()
 	//color1.rgb += vec3pow(texture(normalsTex, UV).rgb, 2);
 	
 	//color1.rgb = texture(distanceTex, UV).rrr * 0.1;
-	
-    vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
-    color1.rgb = vec3(pow(color1.r, gamma.r),
-    pow(color1.g, gamma.g),
-    pow(color1.b, gamma.b));
-
-    outColor = clamp(vec4(color1.rgb, toLogDepthEx(texture(distanceTex, UV).r, 1000.0)), 0.0, 10000.0);
+	if(DisablePostEffects == 0){
+		vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
+		color1.rgb = vec3(pow(color1.r, gamma.r),
+		pow(color1.g, gamma.g),
+		pow(color1.b, gamma.b));
+	}
+    outColor = clamp(vec4(color1.rgb, toLogDepthEx(texture(distanceTex, UV).r, 1000)), 0.0, 10000.0);
 }
