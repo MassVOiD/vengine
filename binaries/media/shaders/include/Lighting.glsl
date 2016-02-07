@@ -64,11 +64,11 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     float distance3 = (lightScreenSpace.z * 0.5 + 0.5);
     //return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
     float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
-   // return lookupDepthFromLight(i, uv, distance3 - 0.0005);
+    //return lookupDepthFromLight(i, uv, distance3 - 0.000004);
     for(float x = 0; x < mPI2; x+=0.8){ 
         for(float y=0.05;y<1.0;y+= 0.2 ){  
-            fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2s(uv + vec2(x,y)) * distance2 * 0.01;
-            accum += 1.0 - lookupDepthFromLight(i, fakeUV, distance3 - 0.0003);
+            fakeUV = uv + vec2(sin(x+y), cos(x+y)) * rand2s(uv + vec2(x,y)) * distance2 * 0.0001;
+            accum += 1.0 - lookupDepthFromLight(i, fakeUV, distance3 - 0.000004);
 
             //if(distance3 -  distance1 > 0.000015) accum += 1.0 ;
             counter+=1;

@@ -27,6 +27,8 @@ namespace VEngine
          //   BloomShader,
             HDRShader;
 
+       // public VoxelGI VXGI;
+
         public static bool DisablePostEffects = false;
 
         public Framebuffer
@@ -71,6 +73,7 @@ namespace VEngine
 
             Width = initialWidth;
             Height = initialHeight;
+           // VXGI = new VoxelGI();
             //   initialWidth *= 4; initialHeight *= 4;
             MRT = new MRTFramebuffer(initialWidth, initialHeight, samples);
 
@@ -256,7 +259,7 @@ namespace VEngine
             Game.World.SetUniforms(this);
             DistanceFramebuffer.Use();
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDistance();
-            GL.ColorMask(true, true, true, true);
+            GL.ColorMask(true, false, false, false);
             DisableBlending();
             InternalRenderingState.PassState = InternalRenderingState.State.DistancePass;
             Game.World.Draw();

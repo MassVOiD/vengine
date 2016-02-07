@@ -127,7 +127,7 @@ namespace ShadowsTester
                             }
                             else
                             {
-                                matermap[keyname].Roughness = Math.Max(0.02f, texmap[vals].Value.X);
+                                matermap[keyname].Roughness = Math.Max(1f, texmap[vals].Value.X);
                             }
                         }
                     }

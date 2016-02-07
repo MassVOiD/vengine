@@ -46,6 +46,7 @@ namespace VEngine
                     Game.World.Scene.SetLightingUniforms(shader);
                     //RandomsSSBO.Use(0);
                     Game.World.Scene.MapLightsSSBOToShader(shader);
+               //     Game.DisplayAdapter.MainRenderer.VXGI.UseVoxelsBuffer(3, 4);
                 });
             }
         }

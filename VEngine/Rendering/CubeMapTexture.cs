@@ -92,7 +92,7 @@ namespace VEngine
                 Generated = true;
             }
             GL.ActiveTexture(unit);
-            GL.Enable(EnableCap.TextureCubeMapSeamless);
+            //GL.Enable(EnableCap.TextureCubeMapSeamless);
             GL.BindTexture(TextureTarget.TextureCubeMap, Handle);
         }
 

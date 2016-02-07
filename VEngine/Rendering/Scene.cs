@@ -186,6 +186,45 @@ namespace VEngine
             colors = new List<Vector4>();
             mmodes = new List<int>();
         }
+        public void SetLightingUniforms(ComputeShader shader)
+        {
+            // MEMORY LEAK
+            pmats = new List<Matrix4>();
+            shadowmaplayers = new List<int>();
+            vmats = new List<Matrix4>();
+            poss = new List<Vector3>();
+            fplanes = new List<float>();
+            colors = new List<Vector4>();
+            mmodes = new List<int>();
+            ipointer = 0;
+
+            foreach(var e in Lights)
+                if(e is IShadowMapableLight)
+                {
+                    var l = e as IShadowMapableLight;
+                    var p = e as ILight;
+                    pmats.Add(l.GetPMatrix());
+                    vmats.Add(l.GetVMatrix());
+                    shadowmaplayers.Add((l as ProjectionLight).ShadowMapArrayIndex);
+                    poss.Add(p.GetPosition());
+                    colors.Add(new Vector4(p.GetColor()));
+                    ipointer++;
+                }
+            Game.ShadowMaps.Bind(0);
+            shader.SetUniformArray("LightsPs", pmats.ToArray());
+            shader.SetUniformArray("LightsVs", vmats.ToArray());
+            shader.SetUniformArray("LightsShadowMapsLayer", shadowmaplayers.ToArray());
+            shader.SetUniformArray("LightsPos", poss.ToArray());
+            shader.SetUniformArray("LightsFarPlane", fplanes.ToArray());
+            shader.SetUniformArray("LightsColors", colors.ToArray());
+            shader.SetUniform("LightsCount", pmats.Count);
+            pmats = new List<Matrix4>();
+            vmats = new List<Matrix4>();
+            poss = new List<Vector3>();
+            fplanes = new List<float>();
+            colors = new List<Vector4>();
+            mmodes = new List<int>();
+        }
 
         private static List<byte> Bytes(Vector4 vec)
         {

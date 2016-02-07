@@ -17,12 +17,9 @@ namespace ShadowsTester
             var terrain3dManager = Object3dGenerator.CreateGround(new Vector2(-200), new Vector2(200), new Vector2(200), Vector3.UnitY);
             var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
             var terrainMaterial = new GenericMaterial();
-            terrainMaterial.SetDiffuseTexture("DisplaceIT_Ground_Pebble1_Color.bmp");
-            terrainMaterial.SpecularTexture = terrainMaterial.DiffuseTexture;
-            terrainMaterial.SetNormalsTexture("DisplaceIT_Ground_Pebble1_NormalBump2.bmp");
-            terrainMaterial.SetBumpTexture("DisplaceIT_Ground_Pebble1_Displace.bmp");
-            terrainMaterial.SetRoughnessTexture("DisplaceIT_Ground_Pebble1_Roughness.bmp");
-            terrainMaterial.InvertNormalMap = true;
+            terrainMaterial.DiffuseColor = Vector3.One;
+            terrainMaterial.SpecularColor = Vector3.Zero;
+            terrainMaterial.Roughness = 1.0f;
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             var terrainShape = new BulletSharp.StaticPlaneShape(Vector3.UnitY, terrainMesh.GetInstance(0).GetPosition().Y);
             var terrainBody = Game.World.Physics.CreateBody(0.0f, terrainMesh.GetInstance(0), terrainShape);
@@ -83,31 +80,19 @@ namespace ShadowsTester
 
 
 
-            
-            var buildings3dManager = Object3dManager.LoadFromObjSingle(Media.Get("osiedle.obj"));
+
+            var buildings3dManager = Object3dManager.LoadFromObjSingle(Media.Get("volkswagen.obj"));
+            buildings3dManager.TryToFixVertexWinding();
             var buildings3dInfo = new Object3dInfo(buildings3dManager.Vertices);
             var buildingsMaterial = new GenericMaterial();
-            buildingsMaterial.DiffuseColor = new Vector3(0.8f, 0.2f, 0.2f);
-            buildingsMaterial.SpecularColor = new Vector3(0.8f);
-            buildingsMaterial.Roughness = 0.2f;
+            buildingsMaterial.DiffuseColor = Vector3.One;
+            buildingsMaterial.SpecularColor = Vector3.Zero;
+            buildingsMaterial.Roughness = 1.0f;
             var buildingsMesh = Mesh3d.Create(buildings3dInfo, buildingsMaterial);
             scene.Add(buildingsMesh);
 
-            
-            var jesus3dManager = Object3dManager.LoadFromObjSingle(Media.Get("test1.obj"));
-            jesus3dManager.RecalulateNormals(Object3dManager.NormalRecalculationType.Smooth, 0.5f);
-            var jesus3dInfo = new Object3dInfo(jesus3dManager.Vertices);
-            var jesusMaterial = new GenericMaterial();
-            //  jesusMaterial.SetDiffuseTexture("jesus_statue_diffuse.bmp");
-            //  jesusMaterial.SetSpecularTexture("jesus_statue_specular.bmp");
-            //  jesusMaterial.SetNormalsTexture("jesus_statue_normal.bmp");
-            //  jesusMaterial.SetRoughnessTexture("jesus_statue_roughness.bmp");
-            jesusMaterial.Roughness = 0.01f;
-            jesusMaterial.InvertNormalMap = true;
-            //jesusMaterial.InvertUVYAxis = true;
-            var jesusMesh = Mesh3d.Create(jesus3dInfo, jesusMaterial);
-            jesusMesh.GetInstance(0).Scale(2.0f);
-            scene.Add(jesusMesh);
+            DynamicCubeMapController.Create();
+
         }
     }
 }

@@ -9,6 +9,22 @@ namespace ShadowsTester
 {
     public class OldCityScene
     {
+        dynamic max(params dynamic[] obj)
+        {
+            dynamic m = obj[0];
+            foreach(dynamic a in obj)
+                if(a > m)
+                    m = a;
+            return m;
+        }
+        dynamic min(params dynamic[] obj)
+        {
+            dynamic m = obj[0];
+            foreach(dynamic a in obj)
+                if(a < m)
+                    m = a;
+            return m;
+        }
         public OldCityScene()
         {
             /*  var scene = Object3dInfo.LoadSceneFromObj(Media.Get("desertcity.obj"), Media.Get("desertcity.mtl"), 1.0f);
@@ -28,47 +44,69 @@ namespace ShadowsTester
                 DiffuseColor = new Vector3(20),
                 SpecularColor = Vector3.Zero
             });
-            Game.World.Scene.Add(mesh);
+            //  Game.World.Scene.Add(mesh);
 
-            var scene = new GameScene("Scene.scene");
-            scene.Load();
+             var scene = new GameScene("Scene.scene");
+             scene.Load();
+           // var scene = Object3dManager.LoadFromObj(Media.Get("originalsponza.obj"));
             var cnt = scene.Meshes.Count;
             var sc = new Vector3(2.0f, 2.0f, 2.0f);
-            for(var i = 0; i < cnt; i++)
+           // VoxelGI gi = Game.DisplayAdapter.MainRenderer.VXGI;
+            Game.Invoke(() =>
             {
-                var o = scene.Meshes[i];
-                var b = o.GetInstance(0).GetPosition();
-                b = new Vector3(b.X * 0.25f, b.Y * 0.25f, b.Z * 0.25f);
-                o.GetInstance(0).SetPosition(b);
-                o.GetInstance(0).Scale(0.25f);
-               // var bdshape = o.GetLodLevel(0).Info3d.GetConvexHull();
-               // var bd = Game.World.Physics.CreateBody(0, o.GetInstance(0), bdshape);
-               // bd.Enable();
-                Game.World.Scene.Add(o);
-                o.GetLodLevel(0).Info3d.Manager = null;
-                //   bd.Enable();
+                PassiveVoxelizer vox = new PassiveVoxelizer();
+                List<VoxelGI.VoxelContainer> containers = new List<VoxelGI.VoxelContainer>();
+                Random rand = new Random();
+                for(var i = 0; i < cnt; i++)
+                {
+                    var o = scene.Meshes[i];
+                   // var b = o.GetInstance(0).GetPosition();
+                   //  b = new Vector3(b.X * 0.25f, b.Y * 0.25f, b.Z * 0.25f);
+                   // o.GetInstance(0).SetPosition(b);
+                   // o.GetInstance(0).Scale(0.25f);
+                   // var bdshape = o.GetLodLevel(0).Info3d.GetConvexHull();
+                   // var bd = Game.World.Physics.CreateBody(0, o.GetInstance(0), bdshape);
+                   // bd.Enable();
+                    Game.World.Scene.Add(o);
+                    /*
+                    // voxelize
+                    float acceptableVoxelSize = 0.2f;
+                    Object3dManager mgm = scene[i];
+                    mgm.RecalulateNormals(Object3dManager.NormalRecalculationType.Flat);
+                    var aabb = mgm.GetAxisAlignedBox();
+                    var aabbEx = mgm.GetAxisAlignedBoxEx();
+                    float maxbba = max(aabb.X, aabb.Y, aabb.Z);
+                    //// if(maxbba > 9.0)
+                    //      continue;
+                    float divc = maxbba / acceptableVoxelSize;
+                    int grid = min(32, (int)Math.Floor(divc));
 
-            }
-             var hbal = Object3dManager.LoadFromRaw(Media.Get("statue2.raw"));
-            /*int hbalc = hbal.Vertices.Count;
-            for(int i = 0; i < hbalc; i += 3)
-            {
-                var v1 = hbal.Vertices[i].Position; 
-                var v2 = hbal.Vertices[i + 1].Position;
-                var v3 = hbal.Vertices[i + 2].Position;
-                var n = Vector3.Cross(v2 - v1, v3 - v1).Normalized();
-                hbal.Vertices[i].Normal = n;
-                hbal.Vertices[i + 1].Normal = n;
-                hbal.Vertices[i + 2].Normal = n;
-            }*/
-                 var lucy2 = Mesh3d.Create(new Object3dInfo(hbal.Vertices), new GenericMaterial());
-                 lucy2.GetInstance(0).Scale(0.5f);
-                 lucy2.GetInstance(0).Translate(0, 0, 0);
-                 lucy2.GetLodLevel(0).Material.Roughness = 0.26f;
-                 lucy2.GetLodLevel(0).Material.DiffuseColor = new Vector3(0, 1, 1);
-                 lucy2.GetLodLevel(0).Material.SpecularColor = new Vector3(0.3f, 0.3f, 0.3f);
-               Game.World.Scene.Add(lucy2);
-                 GC.Collect();
+                    Console.WriteLine("VOXELIZING:: {0} GRID SIZE:: {1}", o.GetInstance(0).Name, grid);
+
+                    var voxels = vox.Voxelize(mgm, grid);
+                    var vw = new Vector3(
+                        (float)rand.NextDouble(),
+                        (float)rand.NextDouble(),
+                        (float)rand.NextDouble()
+                    );
+                    voxels.ForEach((a) => a.Albedo = vw*0.01f);
+                    Console.WriteLine("RESULT COUNT:: {0}", voxels.Count);
+
+                    var container = new VoxelGI.VoxelContainer(aabbEx[0], aabbEx[1], voxels);
+                    o.GIContainer = containers.Count;
+                    containers.Add(container);*/
+
+                    o.GetLodLevel(0).Info3d.Manager = null;
+                    //   bd.Enable();
+
+                }
+                //gi.UpdateVoxels(containers);
+                Game.OnBeforeDraw += (aa, aaa) =>
+                {
+                  //  gi.UpdateGI();
+                };
+            });
+
 
             //   var sss = Object3dManager.LoadSceneFromObj("sintel.obj", "sintel.mtl");
             //  sss.ForEach((a) => Game.World.Scene.Add(a));
@@ -129,7 +167,7 @@ namespace ShadowsTester
              }
          };
          Game.World.Scene.Add(barrels);*/
-            DynamicCubeMapController.Create();
+            // DynamicCubeMapController.Create();
             /*
             List<Mesh3d> cubes = new List<Mesh3d>();
             for(int i = 0; i < 80; i++)

@@ -108,6 +108,8 @@ namespace VEngine
             LodLevels.Remove(level);
         }
 
+        public int GIContainer = -1;
+
         public void SetUniforms()
         {
             if(Instances.Count < 16 || AutoRecalculateMatrixForOver16Instances)
@@ -120,6 +122,7 @@ namespace VEngine
 
             var shader = ShaderProgram.Current;
             shader.SetUniform("Instances", Instances.Count);
+            shader.SetUniform("GIContainer", GIContainer);
         }
 
         // rest

@@ -16,14 +16,14 @@ namespace VEngine
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(new ColorFormat(8, 8, 8, 8), 8, 0, 1), title, flags,
-                DisplayDevice.Default, 4, 5,
-                GraphicsContextFlags.ForwardCompatible)
+                DisplayDevice.Default, 4, 4,
+                GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             Game.DisplayAdapter = this;
             Game.Resolution = new Size(Width, Height);
             GL.Enable(EnableCap.DepthClamp);
-           // GL.Enable(EnableCap.DebugOutput);
-          //  GL.Enable(EnableCap.DebugOutputSynchronous);
+            GL.Enable(EnableCap.DebugOutput);
+            GL.Enable(EnableCap.DebugOutputSynchronous);
             GL.Enable(EnableCap.Dither);
             GL.Enable(EnableCap.Multisample);
 

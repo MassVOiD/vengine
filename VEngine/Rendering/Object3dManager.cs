@@ -149,6 +149,24 @@ namespace VEngine
             }
         }
 
+        public void TryToFixVertexWinding()
+        {
+            int vcount = Vertices.Count;
+            for(int i = 0; i < vcount; i += 3)
+            {
+                var v1 = Vertices[i];
+                var v2 = Vertices[i + 1];
+                var v3 = Vertices[i + 2];
+                var normal = Vector3.Cross(v2.Position - v1.Position, v3.Position - v1.Position).Normalized();
+                Vector3 avg = (v1.Normal + v2.Normal + v3.Normal) / 3.0f;
+                if(Vector3.Dot(avg, normal) < 0)
+                {
+                    Vertices[i] = v3;
+                    Vertices[i + 2] = v1;
+                }
+            }
+        }
+
         public void ReverseFaces()
         {
             int vcount = Vertices.Count;
@@ -510,7 +528,7 @@ namespace VEngine
 
         public Vector3 GetAxisAlignedBox()
         {
-            float maxx = 0, maxy = 0, maxz = 0;
+            float maxx = -999999, maxy = -999999, maxz = -999999;
             float minx = 999999, miny = 999999, minz = 999999;
             for(int i = 0; i < Vertices.Count; i++)
             {
@@ -525,6 +543,24 @@ namespace VEngine
                 minz = minz > vertex.Z ? vertex.Z : minz;
             }
             return new Vector3(maxx - minx, maxy - miny, maxz - minz);
+        }
+        public Vector3[] GetAxisAlignedBoxEx()
+        {
+            float maxx = -999999, maxy = -999999, maxz = -999999;
+            float minx = 999999, miny = 999999, minz = 999999;
+            for(int i = 0; i < Vertices.Count; i++)
+            {
+                var vertex = Vertices[i].Position;
+
+                maxx = maxx < vertex.X ? vertex.X : maxx;
+                maxy = maxy < vertex.Y ? vertex.Y : maxy;
+                maxz = maxz < vertex.Z ? vertex.Z : maxz;
+
+                minx = minx > vertex.X ? vertex.X : minx;
+                miny = miny > vertex.Y ? vertex.Y : miny;
+                minz = minz > vertex.Z ? vertex.Z : minz;
+            }
+            return new Vector3[2] { new Vector3(minx, miny, minz), new Vector3(maxx, maxy, maxz) };
         }
 
         public ConvexHullShape GetConvexHull(float scale = 1.0f)
@@ -550,7 +586,6 @@ namespace VEngine
 
         public float GetNormalizeDivisor()
         {
-            List<Vector3> vectors = new List<Vector3>();
             float maxval = 0.0001f;
             for(int i = 0; i < Vertices.Count; i++)
             {
@@ -583,17 +618,28 @@ namespace VEngine
 
         public void Normalize()
         {
-            List<Vector3> vectors = new List<Vector3>();
-            float maxval = 0.0001f;
-            for(int i = 0; i < Vertices.Count; i++)
-            {
-                var vertex = Vertices[i].Position;
-                if(vertex.Length > maxval)
-                    maxval = vertex.Length;
-            }
+            float maxval = GetNormalizeDivisor();
             for(int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].Position /= maxval;
+            }
+        }
+
+        public void AxisMultiple(Vector3 axes)
+        {
+            for(int i = 0; i < Vertices.Count; i++)
+            {
+                Vertices[i].Position *= axes;
+            }
+        }
+
+        public void AxisDivide(Vector3 axes)
+        {
+            for(int i = 0; i < Vertices.Count; i++)
+            {
+                Vertices[i].Position.X /= axes.X;
+                Vertices[i].Position.Y /= axes.Y;
+                Vertices[i].Position.Z /= axes.Z;
             }
         }
 
@@ -607,9 +653,9 @@ namespace VEngine
                 averagey += vertex.Y;
                 averagez += vertex.Z;
             }
-            averagex /= Vertices.Count;
-            averagey /= Vertices.Count;
-            averagez /= Vertices.Count;
+            averagex /= (float)Vertices.Count;
+            averagey /= (float)Vertices.Count;
+            averagez /= (float)Vertices.Count;
             for(int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].Position -= new Vector3(averagex, averagey, averagez);

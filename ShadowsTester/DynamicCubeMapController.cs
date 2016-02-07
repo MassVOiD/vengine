@@ -24,7 +24,7 @@ namespace ShadowsTester
             Commons.PickedMesh = lucy;
             Commons.Picked = null;
 
-            int cnt = 16, din = 64;
+            int cnt = 44, din = 256;
             Renderer pp = new Renderer(din, din, 1);
             Game.DisplayAdapter.MainRenderer.CubeMaps.Clear();
             for(int i = 0; i < cnt; i++)
@@ -120,7 +120,7 @@ namespace ShadowsTester
                     {
                         if((lucy.GetInstance(iz).GetPosition() - Game.DisplayAdapter.MainRenderer.CubeMaps[iz].Position).Length > 0.01f)
                         {
-                            Game.DisplayAdapter.MainRenderer.CubeMaps[iz].Framebuffer.Clear();
+                            //Game.DisplayAdapter.MainRenderer.CubeMaps[iz].Framebuffer.Clear();
                         }
                     }
                     for(int iz = 0; iz < cnt; iz++)

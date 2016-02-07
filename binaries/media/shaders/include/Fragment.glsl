@@ -8,6 +8,7 @@ out vec4 outColor;
 #include UsefulIncludes.glsl
 
 #include ParallaxOcclusion.glsl
+#include VoxelGI.glsl
 
 bool markAsParallax = false;
 
@@ -38,6 +39,7 @@ vec3 makeSphereNormals(vec2 uv, float r) {
 vec2 getTexel(sampler2D t){
 	return 1.0 / vec2(textureSize(t, 0));
 }
+
 
 vec3 examineBumpMap(){
 	vec2 iuv = Input.TexCoord;
@@ -75,7 +77,7 @@ uniform int DisablePostEffects;
 uniform float VDAOGlobalMultiplier;
 vec2 UV = gl_FragCoord.xy / textureSize(distanceTex, 0);
 vec2 UVX = gl_FragCoord.xy / textureSize(distanceTex, 0);
-float AOValue;
+float AOValue = 1;
 #include Shade.glsl
 #include EnvironmentLight.glsl
 #include Direct.glsl
@@ -86,15 +88,13 @@ vec3 ApplyLighting(FragmentData data){
 	vec3 directlight = DirectLight(data);
 	vec3 envlight = UseVDAO == 1 ? (VDAOGlobalMultiplier * EnvironmentLight(data)) : vec3(0);
 
+	directlight += envlight * AOValue;
 	
-	if(UseVDAO == 1 && UseHBAO == 0) directlight += envlight;
-	if(UseHBAO == 1 && UseVDAO == 1) directlight += envlight * AOValue;
-	if(UseHBAO == 1 && UseVDAO == 0) directlight += AOValue;
-	//directlight += data.diffuseColor * (UseHBAO == 1 ? AOValue : 1.0) * 0.01;
-	
+	if(data.diffuseColor.x > 1.0 && data.diffuseColor.y > 1.0 && data.diffuseColor.z > 1.0) directlight = (data.diffuseColor - 1.0) * AOValue;
 	return directlight;
 }
 
+uniform int GIContainer;
 
 void main(){
 	// if(diffuse.a < 0.01) discard;
@@ -151,5 +151,9 @@ void main(){
    // if(texture(distanceTex, UVX).r < 0.01)resultforward.rgb = vec3(1);
 	//else 
 	resultforward = ApplyLighting(currentFragment);
+	
+	//resultforward += traceRay(Input.WorldPos, normalize(reflect(normalize(currentFragment.cameraPos), currentFragment.normal)));
+
+	
 	outColor = vec4(resultforward, currentFragment.alpha);
 }
