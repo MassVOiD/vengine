@@ -20,6 +20,8 @@ namespace VEngine
         private List<int> mmodes = new List<int>();
 
         private List<Matrix4> pmats = new List<Matrix4>();
+        private List<float> blurfactors = new List<float>();
+        private List<int> exclgroups = new List<int>();
         private List<int> shadowmaplayers = new List<int>();
 
         private List<Vector3> poss = new List<Vector3>();
@@ -157,6 +159,8 @@ namespace VEngine
             fplanes = new List<float>();
             colors = new List<Vector4>();
             mmodes = new List<int>();
+            exclgroups = new List<int>();
+            blurfactors = new List<float>();
             ipointer = 0;
 
             foreach(var e in Lights)
@@ -166,6 +170,8 @@ namespace VEngine
                     var p = e as ILight;
                     pmats.Add(l.GetPMatrix());
                     vmats.Add(l.GetVMatrix());
+                    blurfactors.Add(l.GetBlurFactor());
+                    exclgroups.Add(l.GetExclusionGroup());
                     shadowmaplayers.Add((l as ProjectionLight).ShadowMapArrayIndex);
                     poss.Add(p.GetPosition());
                     colors.Add(new Vector4(p.GetColor()));
@@ -178,6 +184,8 @@ namespace VEngine
             shader.SetUniformArray("LightsPos", poss.ToArray());
             shader.SetUniformArray("LightsFarPlane", fplanes.ToArray());
             shader.SetUniformArray("LightsColors", colors.ToArray());
+            shader.SetUniformArray("LightsBlurFactors", blurfactors.ToArray());
+            shader.SetUniformArray("LightsExclusionGroups", exclgroups.ToArray());
             shader.SetUniform("LightsCount", pmats.Count);
             pmats = new List<Matrix4>();
             vmats = new List<Matrix4>();
@@ -185,6 +193,8 @@ namespace VEngine
             fplanes = new List<float>();
             colors = new List<Vector4>();
             mmodes = new List<int>();
+            exclgroups = new List<int>();
+            blurfactors = new List<float>();
         }
         public void SetLightingUniforms(ComputeShader shader)
         {
@@ -196,6 +206,8 @@ namespace VEngine
             fplanes = new List<float>();
             colors = new List<Vector4>();
             mmodes = new List<int>();
+            exclgroups = new List<int>();
+            blurfactors = new List<float>();
             ipointer = 0;
 
             foreach(var e in Lights)
@@ -205,6 +217,8 @@ namespace VEngine
                     var p = e as ILight;
                     pmats.Add(l.GetPMatrix());
                     vmats.Add(l.GetVMatrix());
+                    blurfactors.Add(l.GetBlurFactor());
+                    exclgroups.Add(l.GetExclusionGroup());
                     shadowmaplayers.Add((l as ProjectionLight).ShadowMapArrayIndex);
                     poss.Add(p.GetPosition());
                     colors.Add(new Vector4(p.GetColor()));
@@ -217,6 +231,8 @@ namespace VEngine
             shader.SetUniformArray("LightsPos", poss.ToArray());
             shader.SetUniformArray("LightsFarPlane", fplanes.ToArray());
             shader.SetUniformArray("LightsColors", colors.ToArray());
+            shader.SetUniformArray("LightsBlurFactors", blurfactors.ToArray());
+            shader.SetUniformArray("LightsExclusionGroups", exclgroups.ToArray());
             shader.SetUniform("LightsCount", pmats.Count);
             pmats = new List<Matrix4>();
             vmats = new List<Matrix4>();
@@ -224,6 +240,8 @@ namespace VEngine
             fplanes = new List<float>();
             colors = new List<Vector4>();
             mmodes = new List<int>();
+            exclgroups = new List<int>();
+            blurfactors = new List<float>();
         }
 
         private static List<byte> Bytes(Vector4 vec)

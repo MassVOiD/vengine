@@ -31,6 +31,10 @@ vec3 reconstructCameraSpace(vec2 uv, int samplee){
     vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
     return dir * texture(distanceTex, uv).r;
 }
+vec3 reconstructCameraSpaceDistance(vec2 uv, float dist){
+    vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
+    return dir * dist;
+}
 vec3 getTangentPlane(vec3 inp){
     return normalize(cross(inp.xzy,inp));    
 }

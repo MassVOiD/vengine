@@ -63,7 +63,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
             float depth = texture(distanceTex, coord).r;
-            vec3 texel = textureMSAAFull(forwardOutputTex, coord).rgb;
+            vec3 texel = texture(lastStageResultTex, coord).rgb;
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
             
@@ -131,7 +131,7 @@ vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 
 void main()
 {
-    vec4 color1 = textureMSAAFull(forwardOutputTex, UV);
+    vec4 color1 = texture(lastStageResultTex, UV);
 	//color1.rgb = texture(distanceTex, UV).rrr;
     if(texture(distanceTex, UV).r < 0.01)color1.rgb = vec3(0);
     //color1.rgb = funnybloom(UV);

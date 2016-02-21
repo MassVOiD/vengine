@@ -43,6 +43,21 @@ float GetTessLevelAlternative(float Distance0, float Distance1, float surfaceSiz
 
 uniform float TesselationMultiplier;
 
+vec2 ss(vec3 pos){
+	vec4 tmp = (VPMatrix * vec4(pos, 1.0));
+	return tmp.xy / tmp.w;
+}
+
+float surfacess(vec3 p1, vec3 p2, vec3 p3){
+	vec2 a = ss(p1);
+    vec2 b = ss(p2);
+    vec2 c = ss(p3);
+    vec2 hp = mix(a, b, 0.5);
+    float h = distance(hp, c);
+    float p = distance(a, b);
+    return 0.5 * p * h;
+}
+
 void main()
 {
     // Set the control points of the output patch
@@ -51,6 +66,7 @@ void main()
     Output[gl_InvocationID].WorldPos = Input[gl_InvocationID].WorldPos;
    // Output[gl_InvocationID].Barycentric = Barycentric_CS_in[gl_InvocationID];
     Output[gl_InvocationID].Tangent = Input[gl_InvocationID].Tangent;
+    Output[gl_InvocationID].Data = Input[gl_InvocationID].Data;
     Output[gl_InvocationID].instanceId = Input[gl_InvocationID].instanceId;
        //Barycentric_ES_in = Output[0].Barycentric;
     
@@ -64,39 +80,15 @@ void main()
     /*float surfaceSize = (distance(WorldPos_CS_in[0], WorldPos_CS_in[1]) +
         distance(WorldPos_CS_in[1], WorldPos_CS_in[2]) + 
         distance(WorldPos_CS_in[2], WorldPos_CS_in[0])) * 0.33;*/
-        
-    vec3 a = Input[0].WorldPos;
-    vec3 b = Input[1].WorldPos;
-    vec3 c = Input[2].WorldPos;
-    vec3 hp = mix(a, b, 0.5);
-    float h = distance(hp, c);
-    float p = distance(a, b);
-    float surfaceSize = 0.5 * p * h;
+       
+	float ssarea = surfacess(Input[0].WorldPos, Input[1].WorldPos, Input[2].WorldPos);
+	float tesslevel = clamp(ssarea * 1256, 1, 32);
+	Output[gl_InvocationID].Data.x = tesslevel;
 
-    if(MaterialType == MaterialTypeWater){
-        gl_TessLevelOuter[0] = GetTessLevelAlternative(EyeToVertexDistanceMin1, EyeToVertexDistanceMin2, surfaceSize) * TesselationMultiplier;
-        gl_TessLevelOuter[1] = GetTessLevelAlternative(EyeToVertexDistanceMin1, EyeToVertexDistanceMin2, surfaceSize) * TesselationMultiplier;
-        gl_TessLevelOuter[2] = GetTessLevelAlternative(EyeToVertexDistanceMin1, EyeToVertexDistanceMin2, surfaceSize) * TesselationMultiplier;
-        gl_TessLevelInner[0] = gl_TessLevelOuter[0];
-        gl_TessLevelInner[1] = gl_TessLevelOuter[1];
-    } else if(MaterialType == MaterialTypeTessellatedTerrain){
-        gl_TessLevelOuter[0] = min(332, 1 * GetTessLevelAlternative(EyeToVertexDistanceMin1, EyeToVertexDistanceMin2, surfaceSize)) * TesselationMultiplier*1;
-        gl_TessLevelOuter[1] = min(332,1 *  GetTessLevelAlternative(EyeToVertexDistanceMin1, EyeToVertexDistanceMin2, surfaceSize)) * TesselationMultiplier*1;
-        gl_TessLevelOuter[2] = min(332,1 *  GetTessLevelAlternative(EyeToVertexDistanceMin1, EyeToVertexDistanceMin2, surfaceSize)) * TesselationMultiplier*1;
-        gl_TessLevelInner[0] = gl_TessLevelOuter[0];
-        gl_TessLevelInner[1] = gl_TessLevelOuter[0];
-    } else if(MaterialType == MaterialTypeGrass){
-        gl_TessLevelOuter[0] = min(115, GetTessLevelAlternative(EyeToVertexDistance1, EyeToVertexDistance2, surfaceSize)) * TesselationMultiplier;
-        gl_TessLevelOuter[1] = min(115, GetTessLevelAlternative(EyeToVertexDistance2, EyeToVertexDistance0, surfaceSize)) * TesselationMultiplier;
-        gl_TessLevelOuter[2] = min(115, GetTessLevelAlternative(EyeToVertexDistance0, EyeToVertexDistance1, surfaceSize)) * TesselationMultiplier;
-        gl_TessLevelInner[0] = gl_TessLevelOuter[0];
-        gl_TessLevelInner[1] = gl_TessLevelOuter[0];
-    } else {
-        gl_TessLevelOuter[0] = GetTessLevelAlternative(EyeToVertexDistance1, EyeToVertexDistance2, surfaceSize) * TesselationMultiplier;
-        gl_TessLevelOuter[1] = GetTessLevelAlternative(EyeToVertexDistance2, EyeToVertexDistance0, surfaceSize) * TesselationMultiplier;
-        gl_TessLevelOuter[2] = GetTessLevelAlternative(EyeToVertexDistance0, EyeToVertexDistance1, surfaceSize) * TesselationMultiplier;
-        gl_TessLevelInner[0] = gl_TessLevelOuter[0];
-        gl_TessLevelInner[1] = gl_TessLevelOuter[0];
-    }
+	gl_TessLevelOuter[0] = tesslevel;
+	gl_TessLevelOuter[1] = tesslevel;
+	gl_TessLevelOuter[2] = tesslevel;
+	gl_TessLevelInner[0] = gl_TessLevelOuter[0];
+	gl_TessLevelInner[1] = gl_TessLevelOuter[0];
 
 }

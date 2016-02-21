@@ -48,6 +48,10 @@ namespace VEngine
 
         Matrix4 GetVMatrix();
 
+        float GetBlurFactor();
+
+        int GetExclusionGroup();
+
         void Map();
     }
 

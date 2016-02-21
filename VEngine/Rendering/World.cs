@@ -28,7 +28,6 @@ namespace VEngine
                     shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
                     Camera.Current.SetUniforms();
 
-                    renderer.SetCubemapsUniforms();
 
                     shader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
                     shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
@@ -45,6 +44,7 @@ namespace VEngine
                     shader.SetUniform("CurrentlyRenderedCubeMap", CurrentlyRenderedCubeMap);
                     Game.World.Scene.SetLightingUniforms(shader);
                     //RandomsSSBO.Use(0);
+                    renderer.SetCubemapsUniforms();
                     Game.World.Scene.MapLightsSSBOToShader(shader);
                //     Game.DisplayAdapter.MainRenderer.VXGI.UseVoxelsBuffer(3, 4);
                 });

@@ -1,14 +1,26 @@
+layout(location = 0) out vec4 outAlbedoRoughness;
+layout(location = 1) out vec4 outNormalsDistance;
+layout(location = 2) out vec4 outSpecularBump;
 
-out vec4 outColor;
 
-//layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
+//vec2 UV = gl_FragCoord.xy / textureSize(distanceTex, 0);
+
+uniform int UseVDAO;
+uniform int UseHBAO;
+uniform int UseFog;
+uniform int DisablePostEffects;
+uniform float VDAOGlobalMultiplier;
 
 #include LogDepth.glsl
 #include Lighting.glsl
 #include UsefulIncludes.glsl
 
+//layout (binding = 22, r32ui) coherent uniform uimage3D full3dScene;
+
+
+
 #include ParallaxOcclusion.glsl
-#include VoxelGI.glsl
+
 
 bool markAsParallax = false;
 
@@ -54,34 +66,15 @@ vec3 examineBumpMap(){
 	return normalize(vec3(0,0,1) + bdx * tang + bdy * bitan);
 }
 
-struct FragmentData
-{
-	vec3 diffuseColor;
-	vec3 specularColor;
-	vec3 normal;
-	vec3 tangent;
-	vec3 worldPos;
-	vec3 cameraPos;
-	float cameraDistance;
-	float alpha;
-	float roughness;
-	float bump;
-};
-
 FragmentData currentFragment;
 
-uniform int UseVDAO;
-uniform int UseHBAO;
-uniform int UseFog;
-uniform int DisablePostEffects;
-uniform float VDAOGlobalMultiplier;
-vec2 UV = gl_FragCoord.xy / textureSize(distanceTex, 0);
 vec2 UVX = gl_FragCoord.xy / textureSize(distanceTex, 0);
 float AOValue = 1;
-#include Shade.glsl
-#include EnvironmentLight.glsl
-#include Direct.glsl
-#include AmbientOcclusion.glsl
+/*
+include Shade.glsl
+include EnvironmentLight.glsl
+include Direct.glsl
+include AmbientOcclusion.glsl
 
 vec3 ApplyLighting(FragmentData data){
 	if(UseHBAO == 1) AOValue = AmbientOcclusion(data);
@@ -94,10 +87,9 @@ vec3 ApplyLighting(FragmentData data){
 	return directlight;
 }
 
-uniform int GIContainer;
+uniform int GIContainer;*/
 
 void main(){
-	// if(diffuse.a < 0.01) discard;
 	//outColor = vec4(1.0);
 	//return;
 	currentFragment = FragmentData(
@@ -143,17 +135,25 @@ void main(){
 	if(UseRoughnessTex == 1) currentFragment.roughness = max(0.07, texture(roughnessTex, UV).r);
 	if(UseAlphaTex == 1) currentFragment.alpha = texture(alphaTex, UV).r; 
 	if(UseDiffuseTex == 1) currentFragment.diffuseColor = texture(diffuseTex, UV).rgb; 
+	//if(UseDiffuseTex == 1 && UseAlphaTex == 0)currentFragment.alpha = texture(diffuseTex, UV).r; 
 	if(UseSpecularTex == 1) currentFragment.specularColor = texture(specularTex, UV).rgb; 
+	if(currentFragment.alpha < 0.01) discard;
 	
 	currentFragment.normal = (RotationMatrixes[Input.instanceId] * vec4(currentFragment.normal, 0)).xyz;
+	
+	currentFragment.diffuseColor = mix(vec3(1), vec3(1,0,0), (Input.Data.x-1.0) / 31.0);
 //currentFragment.roughness = 0;
-	vec3 resultforward = vec3(0);
+	//vec3 resultforward = vec3(0);
    // if(texture(distanceTex, UVX).r < 0.01)resultforward.rgb = vec3(1);
 	//else 
-	resultforward = ApplyLighting(currentFragment);
+	//resultforward = ApplyLighting(currentFragment);
 	
 	//resultforward += traceRay(Input.WorldPos, normalize(reflect(normalize(currentFragment.cameraPos), currentFragment.normal)));
 
 	
-	outColor = vec4(resultforward, currentFragment.alpha);
+	//outColor = vec4(resultforward, currentFragment.alpha);
+	
+	outAlbedoRoughness = vec4(currentFragment.diffuseColor, currentFragment.roughness);
+	outNormalsDistance = vec4(currentFragment.normal, currentFragment.cameraDistance);
+	outSpecularBump = vec4(currentFragment.specularColor, currentFragment.bump);
 }

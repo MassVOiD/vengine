@@ -10,6 +10,8 @@ uniform int LightsShadowMapsLayer[MAX_LIGHTS];
 uniform vec3 LightsPos[MAX_LIGHTS];
 uniform float LightsFarPlane[MAX_LIGHTS];
 uniform vec4 LightsColors[MAX_LIGHTS];
+uniform float LightsBlurFactors[MAX_LIGHTS];
+uniform int LightsExclusionGroups[MAX_LIGHTS];
 
 uniform float ParallaxHeightMultiplier;
 

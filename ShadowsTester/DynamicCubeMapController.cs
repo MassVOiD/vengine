@@ -24,40 +24,33 @@ namespace ShadowsTester
             Commons.PickedMesh = lucy;
             Commons.Picked = null;
 
-            int cnt = 44, din = 256;
+            int cnt = 0, din = 64;
             Renderer pp = new Renderer(din, din, 1);
             Game.DisplayAdapter.MainRenderer.CubeMaps.Clear();
-            for(int i = 0; i < cnt; i++)
+
+            for(float x = -10; x < 10; x += 2.0f)
             {
-                CubeMapFramebuffer cubens = new CubeMapFramebuffer(din, din);
-                var tex = new CubeMapTexture(cubens.TexColor);
-
-                if(i < 8)
-                    cubens.SetPosition(new Vector3((i - 4) * 2.8f, 1.5f, 0));
-                else if(i < 16)
-                    cubens.SetPosition(new Vector3((i - 12) * 1.8f, 4.3f, 0));
-                else if(i < 24)
-                    cubens.SetPosition(new Vector3((i - 20) * 2.8f, 1.5f, -3.5f));
-                else if(i < 32)
-                    cubens.SetPosition(new Vector3((i - 28) * 2.8f, 1.5f, 3.5f));
-                else if(i < 40)
-                    cubens.SetPosition(new Vector3((i - 36) * 2.8f, 4.5f, -3.5f));
-                else if(i < 48)
-                    cubens.SetPosition(new Vector3((i - 44) * 2.8f, 4.5f, 3.5f));
-                else if(i < 56)
-                    cubens.SetPosition(new Vector3((i - 52) * 2.8f, 4.5f, 0));
-                else if(i < 64)
-                    cubens.SetPosition(new Vector3((i - 60) * 1.8f, 6.3f, 0));
-
-
-                lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.02f), "cubemap-marker-" + i.ToString()));
-                Game.DisplayAdapter.MainRenderer.CubeMaps.Add(new Renderer.CubeMapInfo()
+                for(float y = 0.2f; y < 13.3f; y += 5.0f)
                 {
-                    FalloffScale = (i < 24) ? 3.0f : 1.0f,
-                    Framebuffer = cubens,
-                    Position = cubens.GetPosition()
-                });
+                    for(float z = -3; z < 3; z += 2.0f)
+                    {
+                        CubeMapFramebuffer cubens = new CubeMapFramebuffer(din, din);
+                        var tex = new CubeMapTexture(cubens.TexColor);
+
+                        cubens.SetPosition(x, y, z);
+
+                        lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.02f), "cubemap-marker-" + cnt.ToString()));
+                        Game.DisplayAdapter.MainRenderer.CubeMaps.Add(new Renderer.CubeMapInfo()
+                        {
+                            FalloffScale = 1.0f,
+                            Framebuffer = cubens,
+                            Position = cubens.GetPosition()
+                        });
+                        cnt++;
+                    }
+                }
             }
+            
             int index = 0;
             bool livemode = false;
             Game.OnKeyUp += (xa, eargs) =>

@@ -25,7 +25,8 @@ namespace VEngine
 
         private ShaderProgram
          //   BloomShader,
-            HDRShader;
+            HDRShader, 
+            DeferredShader;
 
        // public VoxelGI VXGI;
 
@@ -103,6 +104,11 @@ namespace VEngine
             HDRShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
                 HDRShader.SetGlobal("USE_MSAA", "");
+
+            DeferredShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Deferred.fragment.glsl");
+            DeferredShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
+            if(samples > 1)
+                DeferredShader.SetGlobal("USE_MSAA", "");
             // BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
 
             PostProcessingMesh = new Object3dInfo(VertexInfo.FromFloatArray(postProcessingPlaneVertices));
@@ -178,6 +184,10 @@ namespace VEngine
             shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
             Camera.Current.SetUniforms();
 
+            MRT.UseTextures(1, 2, 3);
+
+            DistanceFramebuffer.UseTexture(8);
+
             //SetCubemapsUniforms();
 
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
@@ -188,6 +198,16 @@ namespace VEngine
             shader.SetUniform("DisablePostEffects", DisablePostEffects);
             shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
             shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
+            shader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
+            shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
+            shader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
+            shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
+            shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
+            shader.SetUniform("CurrentlyRenderedCubeMap", Game.World.CurrentlyRenderedCubeMap);
+            Game.World.Scene.SetLightingUniforms(shader);
+            //RandomsSSBO.Use(0);
+            SetCubemapsUniforms();
+            Game.World.Scene.MapLightsSSBOToShader(shader);
         }
         
         
@@ -228,16 +248,16 @@ namespace VEngine
 
         private void HDR()
         {
-            HDRShader.Use();
-            HDRShader.SetUniform("UseBloom", Game.GraphicsSettings.UseBloom);
-            HDRShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
+            DeferredShader.Use();
+            DeferredShader.SetUniform("UseBloom", Game.GraphicsSettings.UseBloom);
+            DeferredShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
             if(Camera.MainDisplayCamera != null)
             {
-                HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
-                HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
+                DeferredShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
+                DeferredShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
             //MSAAEdgeDetectFramebuffer.UseTexture(28);
-            MRT.UseTextureForwardColor(1);
+            //MRT.UseTextureForwardColor(1);
           //  BloomYPass.UseTexture(2);
             DrawPPMesh();
         }
@@ -269,7 +289,7 @@ namespace VEngine
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDepth();
             GL.ColorMask(false, false, false, false);
             InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
-            Game.World.Draw();
+           // Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
             //CubeMap.Use(TextureUnit.Texture8);
@@ -286,7 +306,7 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             // DisableBlending();
 
-            Bloom();
+            //Bloom();
             
         }
         

@@ -9,6 +9,10 @@ namespace VEngine
 
         public float CullerMultiplier = 1.0f;
 
+        public float BlurFactor = 1.0f;
+
+        public int ExclusionGroup = -1;
+
         public Vector3 FakePosition = Vector3.Zero;
 
         public Framebuffer FBO;
@@ -43,6 +47,16 @@ namespace VEngine
         public Vector3 GetColor()
         {
             return LightColor;
+        }
+
+        public float GetBlurFactor()
+        {
+            return BlurFactor;
+        }
+
+        public int GetExclusionGroup()
+        {
+            return ExclusionGroup;
         }
 
         public Matrix4 GetPMatrix()

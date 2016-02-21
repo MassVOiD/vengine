@@ -46,7 +46,7 @@ namespace VEngine
                 return new Object3dInfo(new VertexInfo[0]);
             }
         }
-        
+
         public void Draw()
         {
             DrawPrepare();

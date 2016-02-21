@@ -41,7 +41,7 @@ namespace VEngine
 
         public void Draw(Mesh3d container, int instances)
         {
-            
+            /*
             if(InternalRenderingState.PassState == InternalRenderingState.State.ShadowMapPass)
             {
                 if(!Material.CastShadows)
@@ -66,7 +66,7 @@ namespace VEngine
             {
                 if(!Material.SupportTransparency)
                     return;
-            }
+            }*/
             Material.Use();
             container.SetUniforms();
             ModelMatricesBuffer.Use(0);

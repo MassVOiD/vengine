@@ -23,7 +23,7 @@ namespace ShadowsTester
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             var terrainShape = new BulletSharp.StaticPlaneShape(Vector3.UnitY, terrainMesh.GetInstance(0).GetPosition().Y);
             var terrainBody = Game.World.Physics.CreateBody(0.0f, terrainMesh.GetInstance(0), terrainShape);
-            scene.Add(terrainMesh);
+           // scene.Add(terrainMesh);
             terrainBody.Enable();
 
             var invisibleBoundingBoxShape = new BulletSharp.BoxShape(25, 1111, 25);
@@ -53,7 +53,7 @@ namespace ShadowsTester
             boxMesh.AutoRecalculateMatrixForOver16Instances = true;
             boxMesh.ClearInstances();
             var boxShape = new BulletSharp.SphereShape(1.0f);
-            scene.Add(boxMesh);
+           // scene.Add(boxMesh);
 
             Game.OnUpdate += (ox, oe) =>
             {
@@ -81,16 +81,18 @@ namespace ShadowsTester
 
 
 
-            var buildings3dManager = Object3dManager.LoadFromObjSingle(Media.Get("volkswagen.obj"));
-            buildings3dManager.TryToFixVertexWinding();
+            var buildings3dManager = Object3dManager.LoadFromObjSingle(Media.Get("tesstest.obj"));
+          //  buildings3dManager.TryToFixVertexWinding();
             var buildings3dInfo = new Object3dInfo(buildings3dManager.Vertices);
             var buildingsMaterial = new GenericMaterial();
+            buildingsMaterial.Type = GenericMaterial.MaterialType.TessellatedTerrain;
             buildingsMaterial.DiffuseColor = Vector3.One;
-            buildingsMaterial.SpecularColor = Vector3.Zero;
-            buildingsMaterial.Roughness = 1.0f;
+            buildingsMaterial.SpecularColor = Vector3.One;
+            buildingsMaterial.SetDiffuseTexture("cat.png");
+            buildingsMaterial.Roughness = 1f;
             var buildingsMesh = Mesh3d.Create(buildings3dInfo, buildingsMaterial);
             scene.Add(buildingsMesh);
-
+            
             DynamicCubeMapController.Create();
 
         }

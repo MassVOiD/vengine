@@ -1,10 +1,17 @@
 // let get it done well this time
 layout(binding = 0) uniform sampler2DArrayShadow shadowMapsArray;
 #ifdef USE_MSAA
-layout(binding = 1) uniform sampler2DMS forwardOutputTex;
+layout(binding = 1) uniform sampler2DMS albedoRoughnessTex;
+layout(binding = 2) uniform sampler2DMS normalsDistancetex;
+layout(binding = 3) uniform sampler2DMS specularBumpTex;
 #else
-layout(binding = 1) uniform sampler2D forwardOutputTex;
+layout(binding = 1) uniform sampler2D albedoRoughnessTex;
+layout(binding = 2) uniform sampler2D normalsDistancetex;
+layout(binding = 3) uniform sampler2D specularBumpTex;
 #endif
+
+layout(binding = 4) uniform sampler2D lastStageResultTex;
+
 //layout(binding = 2) uniform sampler2D normalsTex;
 //#define bloomMidPassTex normalsTex
 #extension GL_ARB_bindless_texture : require
@@ -31,7 +38,7 @@ uniform uvec2 roughnessTexAddr;
 #define bloomMidPassTex sampler2D(roughnessTexAddr)
 
 layout(binding = 8) uniform sampler2D distanceTex;
-
+/*
 
 layout(binding = 9)  uniform samplerCube cubeMapTex1;
 layout(binding = 10) uniform samplerCube cubeMapTex2;
@@ -56,7 +63,7 @@ layout(binding = 28) uniform samplerCube cubeMapTex20;
 layout(binding = 29) uniform samplerCube cubeMapTex21;
 layout(binding = 30) uniform samplerCube cubeMapTex22;
 layout(binding = 31) uniform samplerCube cubeMapTex23;
-
+*/
 uniform int CubeMapsCount;
 uniform vec4 CubeMapsPositions[233];
 uniform vec4 CubeMapsFalloffs[233];
@@ -65,7 +72,7 @@ uniform uvec2 CubeMapsAddrs[233];
 
 #ifdef USE_MSAA
 
-ivec2 txsize = textureSize(forwardOutputTex);
+ivec2 txsize = textureSize(albedoRoughnessTex);
 vec4 textureMSAAFull(sampler2DMS tex, vec2 inUV){
     vec4 color11 = vec4(0.0);
     ivec2 texcoord = ivec2(vec2(txsize) * inUV); 
@@ -84,7 +91,7 @@ vec4 textureMSAA(sampler2DMS tex, vec2 inUV, int samplee){
 
 #else
 
-ivec2 txsize = textureSize(forwardOutputTex, 0);
+ivec2 txsize = textureSize(albedoRoughnessTex, 0);
 vec4 textureMSAAFull(sampler2D tex, vec2 inUV){
     return texture(tex, inUV);
 }

@@ -65,6 +65,8 @@ namespace VEngine
         {
             Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
             Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
+            ProjectionMatrix[2, 2] = near / (near - far);
+            ProjectionMatrix[3, 2] = ProjectionMatrix[2, 2] == 0 ? near : (far * near / (far - near));
             Far = far;
             if(Current == null)
                 Current = this;
