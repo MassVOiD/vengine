@@ -84,7 +84,10 @@ void main()
 	
 	Output.Normal = normalize(normal);
 	
-	Output.WorldPos += normalize(normal) * sns(UV, 100.0, 1.0);
+	//Output.WorldPos += getwater(UV);
+	//Output.WorldPos += normalize(normal) * 11*sns(UV, 0.1, 1.0);
+	//Output.WorldPos += normalize(normal) * sns(UV, 2.1, 0.1);
+	Output.WorldPos += normalize(normal) * 11*sns(UV, 22.1, 0.1);
 	
 	gl_Position = VPMatrix * vec4(Output.WorldPos, 1.0);
 }

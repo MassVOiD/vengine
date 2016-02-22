@@ -67,7 +67,7 @@ namespace VEngine
 
         public ShaderPool()
         {
-            DepthOnly = new ShaderPack();
+            DepthOnly = new ShaderPack("ConeLight.fragment.glsl");
 
             GenericMaterial = new ShaderPack("Generic.fragment.glsl");
 

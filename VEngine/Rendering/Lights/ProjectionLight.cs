@@ -28,7 +28,7 @@ namespace VEngine
         {
             camera = new Camera(position, Vector3.Zero, Vector3.UnitY, mapwidth / mapheight, fov, near, far);
             camera.LookAt(Vector3.Zero);
-            FBO = new Framebuffer(mapwidth, mapheight, true);
+            FBO = new Framebuffer(mapwidth, mapheight, false);
             FBO.DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
             FBO.DepthPixelFormat = PixelFormat.DepthComponent;
             FBO.DepthPixelType = PixelType.Float;

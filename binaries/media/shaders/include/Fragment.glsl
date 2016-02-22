@@ -141,7 +141,7 @@ void main(){
 	
 	currentFragment.normal = (RotationMatrixes[Input.instanceId] * vec4(currentFragment.normal, 0)).xyz;
 	
-	currentFragment.diffuseColor = mix(vec3(1), vec3(1,0,0), (Input.Data.x-1.0) / 31.0);
+	//currentFragment.diffuseColor = mix(vec3(1), vec3(1,0,0), (Input.Data.x-1.0) / 31.0);
 //currentFragment.roughness = 0;
 	//vec3 resultforward = vec3(0);
    // if(texture(distanceTex, UVX).r < 0.01)resultforward.rgb = vec3(1);

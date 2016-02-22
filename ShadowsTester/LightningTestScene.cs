@@ -10,91 +10,49 @@ namespace ShadowsTester
 {
     public class LightningTestScene
     {
+
+        Mesh3d CreateWall(Vector2 start, Vector2 end, Quaternion rotation, Vector3 position, Vector3 color)
+        {
+            var terrain3dManager = Object3dGenerator.CreateGround(start, end, new Vector2(1), Vector3.UnitY);
+            var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
+            var terrainMaterial = new GenericMaterial();
+            terrainMaterial.DiffuseColor = color;
+            terrainMaterial.SpecularColor = Vector3.Zero;
+            terrainMaterial.Roughness = 1.0f;
+            var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
+            terrainMesh.GetInstance(0).Rotate(rotation);
+            return terrainMesh;
+        }
+
+        Mesh3d CreateDiffuseModelFromRaw(string obj, Vector3 color)
+        {
+            var terrain3dManager = Object3dManager.LoadFromRaw(Media.Get(obj));
+            var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
+            var terrainMaterial = new GenericMaterial();
+            terrainMaterial.DiffuseColor = color;
+            terrainMaterial.SpecularColor = color;
+            terrainMaterial.Roughness = 0.1f;
+            var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
+            return terrainMesh;
+        }
+
         public LightningTestScene()
         {
             var scene = Game.World.Scene;
 
-            var terrain3dManager = Object3dGenerator.CreateGround(new Vector2(-200), new Vector2(200), new Vector2(200), Vector3.UnitY);
-            var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
-            var terrainMaterial = new GenericMaterial();
-            terrainMaterial.DiffuseColor = Vector3.One;
-            terrainMaterial.SpecularColor = Vector3.Zero;
-            terrainMaterial.Roughness = 1.0f;
-            var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
-            var terrainShape = new BulletSharp.StaticPlaneShape(Vector3.UnitY, terrainMesh.GetInstance(0).GetPosition().Y);
-            var terrainBody = Game.World.Physics.CreateBody(0.0f, terrainMesh.GetInstance(0), terrainShape);
-           // scene.Add(terrainMesh);
-            terrainBody.Enable();
+            var ground = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.Identity, Vector3.Zero, new Vector3(0.1f, 0.4f, 1));
+            var green = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(0.2f, 1, 0.3f));
+            var red = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(1, 0.2f, 0.2f));
+            green.GetInstance(0).Translate(0, 0, -15);
+            red.GetInstance(0).Translate(15, 0, 0);
 
-            var invisibleBoundingBoxShape = new BulletSharp.BoxShape(25, 1111, 25);
-            var invisibleBoundingBoxBody = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(0, 400, 0)), invisibleBoundingBoxShape);
-          //  invisibleBoundingBoxBody.Enable();
-            
-            var invisibleBoundingBoxBody2 = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(50, 0, 0)), invisibleBoundingBoxShape);
-            invisibleBoundingBoxBody2.Enable();
-            
-            var invisibleBoundingBoxBody3 = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(-50, 0, 0)), invisibleBoundingBoxShape);
-            invisibleBoundingBoxBody3.Enable();
-            
-            var invisibleBoundingBoxBody4 = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(0, 0, 50)), invisibleBoundingBoxShape);
-            invisibleBoundingBoxBody4.Enable();
-            
-            var invisibleBoundingBoxBody5 = Game.World.Physics.CreateBody(0.0f, new TransformationManager(new Vector3(0, 0, -50)), invisibleBoundingBoxShape);
-            invisibleBoundingBoxBody5.Enable();
+            var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
 
+            scene.Add(ground);
+            scene.Add(green);
+            scene.Add(red);
 
-            var box3dManager = Object3dManager.LoadFromObjSingle(Media.Get("icosphere.obj"));
-            var box3dInfo = new Object3dInfo(box3dManager.Vertices);
-            var boxMaterial = new GenericMaterial();
-            boxMaterial.Roughness = 0.5f;
-            boxMaterial.DiffuseColor = new Vector3(0.1f, 0.5f, 0.9f);
-            boxMaterial.SpecularColor = new Vector3(0.5f);
-            var boxMesh = Mesh3d.Create(box3dInfo, boxMaterial);
-            boxMesh.AutoRecalculateMatrixForOver16Instances = true;
-            boxMesh.ClearInstances();
-            var boxShape = new BulletSharp.SphereShape(1.0f);
-           // scene.Add(boxMesh);
-
-            Game.OnUpdate += (ox, oe) =>
-            {
-                var state = OpenTK.Input.Keyboard.GetState();
-                if(state.IsKeyDown(OpenTK.Input.Key.Keypad0))
-                {
-                    var instance = boxMesh.AddInstance(new TransformationManager(Camera.MainDisplayCamera.GetPosition()));
-                    var phys = Game.World.Physics.CreateBody(0.7f, instance, boxShape);
-                    phys.Enable();
-                    phys.Body.LinearVelocity += Camera.MainDisplayCamera.GetDirection() * 36;
-                }
-                if(state.IsKeyDown(OpenTK.Input.Key.Keypad1))
-                {
-                    var instance = boxMesh.AddInstance(new TransformationManager(Camera.MainDisplayCamera.GetPosition()));
-                    var phys = Game.World.Physics.CreateBody(0.7f, instance, boxShape);
-                    phys.Enable();
-                    phys.Body.LinearVelocity += Camera.MainDisplayCamera.GetDirection() * 1;
-                }
-            };
-            /*Game.OnKeyUp += (ox, oe) =>
-            {
-                
-            };*/
-
-
-
-
-            var buildings3dManager = Object3dManager.LoadFromObjSingle(Media.Get("tesstest.obj"));
-          //  buildings3dManager.TryToFixVertexWinding();
-            var buildings3dInfo = new Object3dInfo(buildings3dManager.Vertices);
-            var buildingsMaterial = new GenericMaterial();
-            buildingsMaterial.Type = GenericMaterial.MaterialType.TessellatedTerrain;
-            buildingsMaterial.DiffuseColor = Vector3.One;
-            buildingsMaterial.SpecularColor = Vector3.One;
-            buildingsMaterial.SetDiffuseTexture("cat.png");
-            buildingsMaterial.Roughness = 1f;
-            var buildingsMesh = Mesh3d.Create(buildings3dInfo, buildingsMaterial);
-            scene.Add(buildingsMesh);
-            
-            DynamicCubeMapController.Create();
-
+            scene.Add(lucy);
         }
     }
 }

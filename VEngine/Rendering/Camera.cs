@@ -167,6 +167,19 @@ namespace VEngine
                 s.SetUniform("FrustumConeBottomLeftToTopLeft", cone.LeftTop - cone.LeftBottom);
             }
         }
+        public class ConeInfo
+        {
+            public Vector3 FrustumConeLeftBottom, FrustumConeBottomLeftToBottomRight, FrustumConeBottomLeftToTopLeft;
+        }
+        public ConeInfo GetConeInfo()
+        {
+            return new ConeInfo()
+            {
+                FrustumConeLeftBottom = cone.LeftBottom,
+                FrustumConeBottomLeftToBottomRight = cone.RightBottom - cone.LeftBottom,
+                FrustumConeBottomLeftToTopLeft = cone.LeftTop - cone.LeftBottom
+            };
+        }
 
         public void Update()
         {

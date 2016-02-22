@@ -161,6 +161,9 @@ namespace VEngine
             mmodes = new List<int>();
             exclgroups = new List<int>();
             blurfactors = new List<float>();
+            var coneLB = new List<Vector4>();
+            var coneLB2BR = new List<Vector4>();
+            var coneLB2TL = new List<Vector4>();
             ipointer = 0;
 
             foreach(var e in Lights)
@@ -175,11 +178,19 @@ namespace VEngine
                     shadowmaplayers.Add((l as ProjectionLight).ShadowMapArrayIndex);
                     poss.Add(p.GetPosition());
                     colors.Add(new Vector4(p.GetColor()));
+                    var cone = (l as ProjectionLight).camera.GetConeInfo();
+                    fplanes.Add((l as ProjectionLight).camera.Far);
+                    coneLB.Add(new Vector4(cone.FrustumConeLeftBottom, 0));
+                    coneLB2BR.Add(new Vector4(cone.FrustumConeBottomLeftToBottomRight, 0));
+                    coneLB2TL.Add(new Vector4(cone.FrustumConeBottomLeftToTopLeft, 0));
                     ipointer++;
                 }
-            Game.ShadowMaps.Bind(0);
+            Game.ShadowMaps.Bind(5, 0);
             shader.SetUniformArray("LightsPs", pmats.ToArray());
             shader.SetUniformArray("LightsVs", vmats.ToArray());
+            shader.SetUniformArray("LightsConeLB", coneLB.ToArray());
+            shader.SetUniformArray("LightsConeLB2BR", coneLB2BR.ToArray());
+            shader.SetUniformArray("LightsConeLB2TL", coneLB2TL.ToArray());
             shader.SetUniformArray("LightsShadowMapsLayer", shadowmaplayers.ToArray());
             shader.SetUniformArray("LightsPos", poss.ToArray());
             shader.SetUniformArray("LightsFarPlane", fplanes.ToArray());
@@ -224,7 +235,7 @@ namespace VEngine
                     colors.Add(new Vector4(p.GetColor()));
                     ipointer++;
                 }
-            Game.ShadowMaps.Bind(0);
+            Game.ShadowMaps.Bind(5, 0);
             shader.SetUniformArray("LightsPs", pmats.ToArray());
             shader.SetUniformArray("LightsVs", vmats.ToArray());
             shader.SetUniformArray("LightsShadowMapsLayer", shadowmaplayers.ToArray());

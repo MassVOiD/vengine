@@ -2,9 +2,9 @@
 
 float lookupDepthFromLight(uint i, vec2 uvi, float comparison){
     float distance1 = 0.0;
-    vec4 uv = vec4(uvi, float(i), comparison);
-    distance1 = texture(shadowMapsArray, uv);
-    return distance1;
+    vec3 uv = vec3(uvi, float(i));
+    distance1 = texture(shadowMapsArray, uv).r;
+    return step(comparison, distance1);
 }
 #define mPI (3.14159265)
 #define mPI2 (2.0*3.14159265)

@@ -34,6 +34,21 @@ uniform int MaterialType;
 #define MaterialTypeParallax 11
 #include noise4D.glsl
 
+vec2 ss(vec3 pos){
+	vec4 tmp = (VPMatrix * vec4(pos, 1.0));
+	return tmp.xy / tmp.w;
+}
+
+float surfacess(vec3 p1, vec3 p2, vec3 p3){
+	vec2 a = ss(p1);
+    vec2 b = ss(p2);
+    vec2 c = ss(p3);
+    vec2 hp = mix(a, b, 0.5);
+    float h = distance(hp, c);
+    float p = distance(a, b);
+    return 0.5 * p * h;
+}
+
 // input 3 vertices
 // output 3 to 32 vertices
 vec2 interpolate2D(vec3 interpolator, vec2 v0, vec2 v1, vec2 v2)

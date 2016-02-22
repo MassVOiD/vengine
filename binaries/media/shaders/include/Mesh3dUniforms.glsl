@@ -13,6 +13,10 @@ uniform vec4 LightsColors[MAX_LIGHTS];
 uniform float LightsBlurFactors[MAX_LIGHTS];
 uniform int LightsExclusionGroups[MAX_LIGHTS];
 
+uniform vec4 LightsConeLB[MAX_LIGHTS];
+uniform vec4 LightsConeLB2BR[MAX_LIGHTS];
+uniform vec4 LightsConeLB2TL[MAX_LIGHTS];
+
 uniform float ParallaxHeightMultiplier;
 
 uniform int Instances;
@@ -37,6 +41,7 @@ uniform int FrameINT;
 uniform vec3 SpecularColor;
 uniform vec3 DiffuseColor;
 uniform float Alpha;
+uniform float Brightness;
 
 uniform int UseNormalsTex;
 uniform int UseBumpTex;
