@@ -27,7 +27,7 @@ vec3 reconstructCameraSpaceFull(vec2 uv){
     vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
     return dir * texture(distanceTex, uv).r;
 }
-vec3 reconstructCameraSpace(vec2 uv, int samplee){
+vec3 reconstructCameraSpace(vec2 uv){
     vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
     return dir * texture(distanceTex, uv).r;
 }

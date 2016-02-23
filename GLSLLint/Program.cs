@@ -63,6 +63,7 @@ namespace GLSLLint
 
 
                 string fullsrc = Regex.Replace(src, @"\#version (.+)\r\n", "#version $1\r\n" + globalsString);
+               // File.WriteAllText(file + ".out.txt", fullsrc);
                 GL.ShaderSource(shader, fullsrc);
 
                 GL.CompileShader(shader);

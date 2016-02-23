@@ -50,6 +50,20 @@ namespace VEngine
             GL.ActiveTexture(TextureUnit.Texture0);
         }
 
+        public void GenerateMipMaps()
+        {
+            GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexAlbedoRoughness);
+            GL.GenerateMipmap(MSAASamples > 1 ? GenerateMipmapTarget.Texture2DMultisample : GenerateMipmapTarget.Texture2D);
+            
+            GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexNormalsDistance);
+            GL.GenerateMipmap(MSAASamples > 1 ? GenerateMipmapTarget.Texture2DMultisample : GenerateMipmapTarget.Texture2D);
+
+            GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexSpecularBump);
+            GL.GenerateMipmap(MSAASamples > 1 ? GenerateMipmapTarget.Texture2DMultisample : GenerateMipmapTarget.Texture2D);
+
+            GL.ActiveTexture(TextureUnit.Texture0);
+        }
+
         public void FreeGPU()
         {
 

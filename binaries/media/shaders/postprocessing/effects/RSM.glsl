@@ -1,8 +1,10 @@
 vec3 ColorCurrent = vec3(0);
+vec3 NormalCurrent = vec3(1);
 float DistCurrent = 0;
 vec3 reconstructLightPos(vec2 uv, int i){    
 	vec3 uv2 = vec3(uv, float(i));	
 	vec4 data = texture(shadowMapsColorsArray, uv2).rgba;	
+	NormalCurrent = texture(shadowMapsNormalsArray, uv2).rgb;	
 	vec3 dir = normalize((LightsConeLB[i].xyz + LightsConeLB2BR[i].xyz * uv.x + LightsConeLB2TL[i].xyz * uv.y));
 	ColorCurrent = LightsColors[i].xyz * data.rgb;
 	DistCurrent = data.a;
@@ -41,7 +43,20 @@ vec2(0.25, 0.25),
 vec2(0.75, 0.75),
 
 vec2(0.75, 0.25),
-vec2(0.75, 0.25)
+vec2(0.75, 0.25),
+
+
+vec2(0.33, 0.5),
+vec2(0.66, 0.5),
+
+vec2(0.5, 0.33),
+vec2(0.5, 0.66),
+
+vec2(0.33, 0.33),
+vec2(0.66, 0.66),
+
+vec2(0.66, 0.33),
+vec2(0.66, 0.33)
 );
 
 vec3 RSM(FragmentData data){
@@ -52,13 +67,15 @@ vec3 RSM(FragmentData data){
 		for(int g = 0; g < rsmsamples.length(); g++){
 		
 			vec3 pos = reconstructLightPos(rsmsamples[g], i);
-			//vec3 dir = normalize(pos - data.worldPos);
+			vec3 dir2f = normalize(data.worldPos - pos);
+			vec3 dir2l = -normalize(LightsPos[i].xyz - pos);
+			vec3 ldir = normalize(reflect(dir2l, NormalCurrent));
 			
 			//float percent = checkVisibility(UV, project(pos));
 		
 			vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, pos, ColorCurrent, max(0.23, data.roughness), true) * (1.0 - data.roughness);
 			vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, pos, ColorCurrent, 1.0, true) * (data.roughness + 1.0);
-			color1 += (radiance + difradiance) * invs * CalculateFallof(DistCurrent + distance(pos, data.worldPos));
+			color1 += (radiance + difradiance) * invs * CalculateFallof(DistCurrent + distance(pos, data.worldPos));// * max(0, dot(dir2f, ldir));
 		}
     }
     return color1;

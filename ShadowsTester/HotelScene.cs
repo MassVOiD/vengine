@@ -213,7 +213,7 @@ namespace ShadowsTester
                 }
             }
 
-            DynamicCubeMapController.Create();
+            //DynamicCubeMapController.Create();
 
         }
     }

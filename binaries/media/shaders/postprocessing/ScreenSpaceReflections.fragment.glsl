@@ -15,23 +15,8 @@ FragmentData currentFragment;
 #include Lighting.glsl
 #include UsefulIncludes.glsl
 #include Shade.glsl
-#include EnvironmentLight.glsl
-#include Direct.glsl
-#include AmbientOcclusion.glsl
-#include RSM.glsl
+#include ScreenReflections.glsl
 
-float AOValue = 1.0;
-
-vec3 ApplyLighting(FragmentData data){
-	if(UseHBAO == 1) AOValue = AmbientOcclusion(data);
-	vec3 directlight = DirectLight(data);
-	//vec3 envlight = UseVDAO == 1 ? (VDAOGlobalMultiplier * EnvironmentLight(data)) : vec3(0);
-
-	directlight += (AOValue * 1) * (UseVDAO == 1 ? (data.diffuseColor*0.01) : vec3(0.0));
-	
-	//if(data.diffuseColor.x > 1.0 && data.diffuseColor.y > 1.0 && data.diffuseColor.z > 1.0) directlight = (data.diffuseColor - 1.0) * AOValue;
-	return directlight + RSM(data) * AOValue;
-}
 
 void main()
 {	
@@ -54,6 +39,6 @@ void main()
 		specularBumpData.a
 	);	
 	
-	vec3 color = ApplyLighting(currentFragment);
-    outColor = clamp(vec4(color, 1.0), 0.0, 10000.0);
+	vec4 color = ScreenReflections(currentFragment);
+    outColor = clamp(color, 0.0, 10000.0);
 }

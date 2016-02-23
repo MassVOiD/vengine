@@ -11,7 +11,7 @@ uniform int Numbers[12];
 uniform int NumbersCount;
 
 
-uniform float Brightness;
+//uniform float Brightness;
 
 out vec4 outColor;
 
@@ -48,7 +48,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float radius = max_radius;  
     float centerDepthDistance = abs((centerDepth) - (depthfocus));
     //float centerDepth = texture(texDepth, UV).r;
-    float focus = length(reconstructCameraSpace(vec2(0.5), 0));
+    float focus = length(reconstructCameraSpace(vec2(0.5)));
     float cc = texture(distanceTex, UV).r;
     for(float x = 0; x < mPI2; x+=0.2){ 
         for(float y=0.1;y<1.0;y+= 0.08){  
@@ -94,7 +94,7 @@ uniform float InputFocalLength;
 float avgdepth(vec2 buv){
     float outc = float(0);
     float counter = 0;
-    float fDepth = length(reconstructCameraSpace(vec2(0.5, 0.5), 0).rgb);
+    float fDepth = length(reconstructCameraSpace(vec2(0.5, 0.5)).rgb);
     //
             //vec2 gauss = buv + vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
             //gauss = clamp(gauss, 0.0, 0.90);
@@ -128,10 +128,34 @@ vec3 ExecutePostProcessing(vec3 color, vec2 uv){
     return vec3pow(color.rgb, 1.0) * vignette * Brightness;
 }
 
+vec3 lookupSSR(vec2 fuv, float radius){
+    vec3 outc = vec3(0);
+    int counter = 0;
+    float depthCenter = texture(distanceTex, fuv).r;
+	vec3 normalcenter = textureMSAAFull(normalsDistancetex, fuv).rgb;
+    for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO*0.5)
+    {
+        for(float g2 = 0; g2 < 1.0; g2+=0.1)
+        {
+            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.001 * radius);
+            vec3 color = texture(ssRefTex, fuv + gauss).rgb;
+            float depthThere = texture(distanceTex, fuv + gauss).r;
+			vec3 normalthere = textureMSAAFull(normalsDistancetex, fuv).rgb;
+            if(abs(depthThere - depthCenter) < 0.1 && dot(normalthere, normalcenter) > 0.9){
+                outc += color;
+                counter++;
+            }
+        }
+    }
+    return counter == 0 ? texture(ssRefTex, fuv).rgb : outc / counter;
+}
 
 void main()
 {
-    vec4 color1 = texture(lastStageResultTex, UV);
+    vec4 color1 = texture(deferredTex, UV);
+    //vec3 srdata = lookupSSR(UV, 1.0);
+    vec3 srdata = texture(ssRefTex, UV).rgb;
+    color1 += srdata.rgbb;
 	//color1.rgb = texture(distanceTex, UV).rrr;
     if(texture(distanceTex, UV).r < 0.01)color1.rgb = vec3(0);
     //color1.rgb = funnybloom(UV);

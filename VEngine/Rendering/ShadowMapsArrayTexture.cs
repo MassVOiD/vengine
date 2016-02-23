@@ -11,8 +11,9 @@ namespace VEngine
     {
         private int HandleDepths = -1;
         private int HandleColors = -1;
+        private int HandleNormals = -1;
         private int Levels;
-        private int Width, Height; 
+        private int Width, Height;
 
         public ShadowMapsArrayTexture(int width, int height)
         {
@@ -27,6 +28,8 @@ namespace VEngine
                 GL.DeleteTexture(HandleDepths);
             if(HandleColors != -1)
                 GL.DeleteTexture(HandleColors);
+            if(HandleNormals != -1)
+                GL.DeleteTexture(HandleNormals);
         }
 
         private void Reallocate(int levels)
@@ -50,18 +53,30 @@ namespace VEngine
             GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
             GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
             GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
+
+            HandleNormals = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2DArray, HandleNormals);
+            //GL.TexStorage3D(TextureTarget3d.Texture2DArray, 1, SizedInternalFormat.R32f, Width, Height, levels);
+            GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba16f, Width, Height, levels, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
+            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
+            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
             Levels = levels;
         }
 
         private void AttachLayer(int level)
         {
             GL.FramebufferTextureLayer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, HandleColors, 0, level);
+            GL.FramebufferTextureLayer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, HandleNormals, 0, level);
             GL.FramebufferTextureLayer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, HandleDepths, 0, level);
+            GL.DrawBuffers(2, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1 });
         }
 
         public void UpdateFromLightsList(List<ProjectionLight> lights)
         {
-            if(lights.Count != Levels) Reallocate(lights.Count);
+            if(lights.Count != Levels)
+                Reallocate(lights.Count);
             for(int i = 0; i < lights.Count; i++)
             {
                 lights[i].FBO.Use();
@@ -72,10 +87,14 @@ namespace VEngine
             }
         }
 
-        public void Bind(int colorsloc, int depthloc)
+        public void Bind(int colorsloc, int normalsloc, int depthloc)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + colorsloc);
             GL.BindTexture(TextureTarget.Texture2DArray, HandleColors);
+
+            GL.ActiveTexture(TextureUnit.Texture0 + normalsloc);
+            GL.BindTexture(TextureTarget.Texture2DArray, HandleNormals);
+
             GL.ActiveTexture(TextureUnit.Texture0 + depthloc);
             GL.BindTexture(TextureTarget.Texture2DArray, HandleDepths);
         }

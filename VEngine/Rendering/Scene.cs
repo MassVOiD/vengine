@@ -185,7 +185,7 @@ namespace VEngine
                     coneLB2TL.Add(new Vector4(cone.FrustumConeBottomLeftToTopLeft, 0));
                     ipointer++;
                 }
-            Game.ShadowMaps.Bind(5, 0);
+            Game.ShadowMaps.Bind(5, 6, 0);
             shader.SetUniformArray("LightsPs", pmats.ToArray());
             shader.SetUniformArray("LightsVs", vmats.ToArray());
             shader.SetUniformArray("LightsConeLB", coneLB.ToArray());
@@ -235,7 +235,7 @@ namespace VEngine
                     colors.Add(new Vector4(p.GetColor()));
                     ipointer++;
                 }
-            Game.ShadowMaps.Bind(5, 0);
+            Game.ShadowMaps.Bind(5, 6, 0);
             shader.SetUniformArray("LightsPs", pmats.ToArray());
             shader.SetUniformArray("LightsVs", vmats.ToArray());
             shader.SetUniformArray("LightsShadowMapsLayer", shadowmaplayers.ToArray());

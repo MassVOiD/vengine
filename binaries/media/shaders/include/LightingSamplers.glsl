@@ -12,6 +12,12 @@ layout(binding = 3) uniform sampler2D specularBumpTex;
 
 layout(binding = 4) uniform sampler2D lastStageResultTex;
 layout(binding = 5) uniform sampler2DArray shadowMapsColorsArray;
+layout(binding = 6) uniform sampler2DArray shadowMapsNormalsArray;
+
+
+layout(binding = 7) uniform sampler2D deferredTex;
+
+layout(binding = 9) uniform sampler2D ssRefTex;
 
 //layout(binding = 2) uniform sampler2D normalsTex;
 //#define bloomMidPassTex normalsTex

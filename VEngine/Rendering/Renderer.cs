@@ -25,7 +25,8 @@ namespace VEngine
 
         private ShaderProgram
          //   BloomShader,
-            HDRShader, 
+            HDRShader,
+            ScreenSpaceReflectionsShader,
             DeferredShader;
 
        // public VoxelGI VXGI;
@@ -34,7 +35,9 @@ namespace VEngine
 
         public Framebuffer
           //  BloomXPass, BloomYPass,
-            DistanceFramebuffer;
+            DistanceFramebuffer,
+            ScreenSpaceReflectionsFramebuffer,
+            DeferredFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
         
@@ -50,6 +53,8 @@ namespace VEngine
         public void Resize(int initialWidth, int initialHeight)
         {
             DistanceFramebuffer.FreeGPU();
+            ScreenSpaceReflectionsFramebuffer.FreeGPU();
+            DeferredFramebuffer.FreeGPU();
             MRT.FreeGPU();
             MRT = new MRTFramebuffer(initialWidth, initialHeight, Game.MSAASamples);
 
@@ -60,7 +65,21 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Red,
                 ColorPixelType = PixelType.Float
             };
-            
+            ScreenSpaceReflectionsFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+            DeferredFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+
             Width = initialWidth;
             Height = initialHeight;
         }
@@ -85,6 +104,20 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Red,
                 ColorPixelType = PixelType.Float
             };
+            ScreenSpaceReflectionsFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+            DeferredFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
             /*BloomXPass = new Framebuffer(initialWidth / 1, initialHeight / 1)
             {
                 ColorOnly = true,
@@ -104,6 +137,11 @@ namespace VEngine
             HDRShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
                 HDRShader.SetGlobal("USE_MSAA", "");
+
+            ScreenSpaceReflectionsShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "ScreenSpaceReflections.fragment.glsl");
+            ScreenSpaceReflectionsShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
+            if(samples > 1)
+                ScreenSpaceReflectionsShader.SetGlobal("USE_MSAA", "");
 
             DeferredShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Deferred.fragment.glsl");
             DeferredShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
@@ -186,7 +224,10 @@ namespace VEngine
 
             MRT.UseTextures(1, 2, 3);
 
+            DeferredFramebuffer.UseTexture(7);
             DistanceFramebuffer.UseTexture(8);
+            ScreenSpaceReflectionsFramebuffer.GenerateMipMaps();
+            ScreenSpaceReflectionsFramebuffer.UseTexture(9);
 
             //SetCubemapsUniforms();
 
@@ -246,19 +287,29 @@ namespace VEngine
             //framebuffer.GenerateMipMaps();
         }
 
-        private void HDR()
+        private void Deferred()
         {
             DeferredShader.Use();
-            DeferredShader.SetUniform("UseBloom", Game.GraphicsSettings.UseBloom);
-            DeferredShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
+            DeferredFramebuffer.Use();
+            DrawPPMesh();
+        }
+        private void HDR()
+        {
+            HDRShader.Use();
+            HDRShader.SetUniform("UseBloom", Game.GraphicsSettings.UseBloom);
+            HDRShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
             if(Camera.MainDisplayCamera != null)
             {
-                DeferredShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
-                DeferredShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
+                HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
+                HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
-            //MSAAEdgeDetectFramebuffer.UseTexture(28);
-            //MRT.UseTextureForwardColor(1);
-          //  BloomYPass.UseTexture(2);
+            DrawPPMesh();
+        }
+        private void ScreenSpaceReflections()
+        {
+            ScreenSpaceReflectionsShader.Use();
+            ScreenSpaceReflectionsFramebuffer.Use();
+            DeferredFramebuffer.UseTexture(7);
             DrawPPMesh();
         }
         private void Bloom()
@@ -305,9 +356,11 @@ namespace VEngine
             //DisableBlending();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             // DisableBlending();
-
             //Bloom();
-            
+
+            Deferred();
+            ScreenSpaceReflections();
+
         }
         
         private void SwitchToFB(Framebuffer buffer)
