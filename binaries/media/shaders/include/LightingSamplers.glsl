@@ -30,6 +30,19 @@ uniform uvec2 CubeMapsAddrs[233];
 #ifdef USE_MSAA
 
 ivec2 txsize = textureSize(albedoRoughnessTex);
+float MSAADifference(sampler2DMS tex, vec2 inUV){
+    ivec2 texcoord = ivec2(vec2(txsize) * inUV); 
+    vec4 color11 = texelFetch(tex, texcoord, 0);
+    float diff = 0;
+    for (int i=1;i<MSAA_SAMPLES;i++)
+    {
+        vec4 color2 = texelFetch(tex, texcoord, i);
+        diff += distance(color11, color2);  
+        color11 = color2;
+    }
+    return diff;
+}
+
 vec4 textureMSAAFull(sampler2DMS tex, vec2 inUV){
     vec4 color11 = vec4(0.0);
     ivec2 texcoord = ivec2(vec2(txsize) * inUV); 
@@ -47,6 +60,10 @@ vec4 textureMSAA(sampler2DMS tex, vec2 inUV, int samplee){
 }
 
 #else
+
+float MSAADifference(sampler2D tex, vec2 inUV){
+    return 0;
+}
 
 ivec2 txsize = textureSize(albedoRoughnessTex, 0);
 vec4 textureMSAAFull(sampler2D tex, vec2 inUV){

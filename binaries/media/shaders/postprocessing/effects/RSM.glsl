@@ -218,7 +218,7 @@ vec2(1, 1)
 
 );
 
-#define rsmsamples rsmsamplesQuality
+#define rsmsamples rsmsamplesSpeed
 
 vec3 RSM(FragmentData data){
     vec3 color1 = vec3(0);

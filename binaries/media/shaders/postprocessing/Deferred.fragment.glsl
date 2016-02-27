@@ -35,26 +35,32 @@ vec3 ApplyLighting(FragmentData data){
 
 void main()
 {	
-	vec4 albedoRoughnessData = textureMSAAFull(albedoRoughnessTex, UV);
-	vec4 normalsDistanceData = textureMSAAFull(normalsDistancetex, UV);
-	vec4 specularBumpData = textureMSAAFull(specularBumpTex, UV);
-	vec3 camSpacePos = reconstructCameraSpaceDistance(UV, normalsDistanceData.a);
-	vec3 worldPos = FromCameraSpace(camSpacePos);
-	
-	currentFragment = FragmentData(
-		albedoRoughnessData.rgb,
-		specularBumpData.rgb,
-		normalsDistanceData.rgb,
-		vec3(1,0,0),
-		worldPos,
-		camSpacePos,
-		normalsDistanceData.a,
-		1.0,
-		albedoRoughnessData.a,
-		specularBumpData.a
-	);	
-	
-	vec3 color = ApplyLighting(currentFragment);
-	//vec3 color = albedoRoughnessData.rgb;
+	float MSAASampleFrequency = MSAADifference(albedoRoughnessTex, UV);
+    int samples = min(int(mix(1, 8, MSAASampleFrequency)), 8);
+    vec3 color  = vec3(0);
+    
+    for(int i=0;i<samples;i++){
+        vec4 albedoRoughnessData = textureMSAA(albedoRoughnessTex, UV, i);
+        vec4 normalsDistanceData = textureMSAA(normalsDistancetex, UV, i);
+        vec4 specularBumpData = textureMSAA(specularBumpTex, UV, i);
+        vec3 camSpacePos = reconstructCameraSpaceDistance(UV, normalsDistanceData.a);
+        vec3 worldPos = FromCameraSpace(camSpacePos);
+        
+        currentFragment = FragmentData(
+            albedoRoughnessData.rgb,
+            specularBumpData.rgb,
+            normalsDistanceData.rgb,
+            vec3(1,0,0),
+            worldPos,
+            camSpacePos,
+            normalsDistanceData.a,
+            1.0,
+            albedoRoughnessData.a,
+            specularBumpData.a
+        );	
+        
+        color += ApplyLighting(currentFragment);
+    }
+    color /= samples;
     outColor = clamp(vec4(color, 1.0), 0.0, 10000.0);
 }
