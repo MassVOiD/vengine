@@ -41,7 +41,7 @@ namespace ShadowsTester
             var scene = Game.World.Scene;
 
             Game.Invoke(() =>
-            {
+            {/*
                 var ground = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.Identity, Vector3.Zero, new Vector3(0.1f, 0.4f, 1));
                 var green = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(0.2f, 1, 0.3f));
                 var red = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(1, 0.2f, 0.2f));
@@ -54,7 +54,24 @@ namespace ShadowsTester
                 scene.Add(green);
                 scene.Add(red);
 
-                scene.Add(lucy);
+                scene.Add(lucy);*/
+
+                var cubeMaterial = new GenericMaterial(new Vector3(1, 0, 0));
+                var cubeObj3d = new Object3dInfo(Object3dGenerator.CreateCube(new Vector3(1), new Vector2(1)).Vertices);
+                //var cubeObj3d = new Object3dInfo(Object3dGenerator.CreateGround(new Vector2(-1), new Vector2(1), new Vector2(1), Vector3.UnitY).Vertices);
+                
+                var cubes = Mesh3d.Create(cubeObj3d, cubeMaterial);
+                cubes.ClearInstances();
+
+                for(int x = 0; x < 100; x++)
+                    for(int y = 0; y < 100; y++)
+                        for(int z = 0; z < 100; z++)
+                        {
+                            cubes.AddInstance(new TransformationManager(new Vector3(x, y, z) * 4));
+                        }
+                cubes.UpdateMatrix();
+
+                scene.Add(cubes);
 
                 GenericMaterial.UpdateMaterialsBuffer();
             });

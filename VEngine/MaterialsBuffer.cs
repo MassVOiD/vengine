@@ -24,11 +24,11 @@ namespace VEngine
 
         public void Update(List<GenericMaterial> materials)
         {
-            byte[] bytes = new byte[128 * materials.Count];
+            byte[] bytes = new byte[96 * materials.Count];
             int cursor = 0, cursor2 = 0;
             foreach(var mat in materials) {
-                bset(SerializeMaterial(mat), ref bytes, cursor, 128);
-                cursor += 128;
+                bset(SerializeMaterial(mat), ref bytes, cursor, 96);
+                cursor += 96;
                 mat.BufferOffset = cursor2;
                 cursor2++;
             }
@@ -66,8 +66,8 @@ namespace VEngine
 
             totals 96 bytes
             */
-            byte[] bytes = new byte[128];
-            Array.Clear(bytes, 0, 128);
+            byte[] bytes = new byte[96];
+            Array.Clear(bytes, 0, 96);
             int cursor = 0;
             bset(BitConverter.GetBytes(mat.DiffuseColor.X), ref bytes, cursor, 4);
             cursor += 4;

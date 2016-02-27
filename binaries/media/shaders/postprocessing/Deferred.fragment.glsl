@@ -54,7 +54,7 @@ void main()
 		specularBumpData.a
 	);	
 	
-	vec3 color = ApplyLighting(currentFragment);
-	//vec3 color = albedoRoughnessData.rgb;
+	//vec3 color = ApplyLighting(currentFragment);
+	vec3 color = albedoRoughnessData.rgb;
     outColor = clamp(vec4(color, 1.0), 0.0, 10000.0);
 }

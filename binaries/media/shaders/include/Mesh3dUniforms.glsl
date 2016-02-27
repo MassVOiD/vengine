@@ -31,9 +31,6 @@ struct Material{
 	uvec2 roughnessAddr;
 	uvec2 bumpAddr;
 	uvec2 normalAddr;
-	
-	vec4 alignment3;
-	vec4 alignment4;
 };
 
 layout (std430, binding = 7) buffer MatBuffer
@@ -54,10 +51,7 @@ Material getCurrentMaterial(){
 		Materials[MaterialIndex].alphaAddr,
 		Materials[MaterialIndex].roughnessAddr,
 		Materials[MaterialIndex].bumpAddr,
-		Materials[MaterialIndex].normalAddr,
-		
-		Materials[MaterialIndex].alignment3,
-		Materials[MaterialIndex].alignment4
+		Materials[MaterialIndex].normalAddr
 	);
 	return mat;
 }
