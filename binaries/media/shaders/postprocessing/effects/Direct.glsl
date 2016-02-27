@@ -77,6 +77,8 @@ vec3 DirectLight(FragmentData data){
     
     //float parallax = step(100.0, metalness);
     //metalness = fract(metalness);
+	
+	float rr = 0.5;
     
     for(int i=0;i<LightsCount;i++){
 
@@ -90,9 +92,9 @@ vec3 DirectLight(FragmentData data){
             percent = getShadowPercent(lightScreenSpace, data.worldPos, LightsShadowMapsLayer[i]);
 			//percent *= 1.0 - smoothstep(0.4, 0.5, distance(lightScreenSpace, vec2(0.5)));
         }
-        vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightsPos[i], LightsColors[i].rgb, data.roughness, false) * (1.0 - data.roughness);
+        vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightsPos[i], LightsColors[i].rgb, data.roughness, false) * (data.roughness);
 		vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightsPos[i], LightsColors[i].rgb, 1.0, false) * (data.roughness + 1.0);
-        color1 += (radiance + difradiance) * percent;
+        color1 += (radiance + difradiance) * 0.5 * percent;
     }/*
     for(int i=0;i<SimpleLightsCount;i++){
         vec3 pos = simpleLights[i].Position.xyz;

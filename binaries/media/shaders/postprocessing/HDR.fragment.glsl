@@ -154,8 +154,8 @@ void main()
 {
     vec4 color1 = texture(deferredTex, UV);
     //vec3 srdata = lookupSSR(UV, 1.0);
-    vec3 srdata = texture(ssRefTex, UV).rgb;
-    color1 += srdata.rgbb;
+    //vec3 srdata = texture(ssRefTex, UV).rgb;
+    //color1 += srdata.rgbb;
 	//color1.rgb = texture(distanceTex, UV).rrr;
     if(texture(distanceTex, UV).r < 0.01)color1.rgb = vec3(0);
     //color1.rgb = funnybloom(UV);

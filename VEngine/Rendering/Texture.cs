@@ -188,6 +188,13 @@ namespace VEngine
             ShaderProgram.Current.SetUniform(name, BindlessHandle);
         }
 
+        public byte[] SerializeBindlessHandle()
+        {
+            if(!Generated)
+                Generate();
+            return BitConverter.GetBytes(BindlessHandle);
+        }
+
         private static void BitmapToByteArray(Bitmap bitmap, ref byte[] bytedata)
         {
             BitmapData bmpdata = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);

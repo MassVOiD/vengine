@@ -100,43 +100,40 @@ void main(){
 		Input.WorldPos,
 		ToCameraSpace(Input.WorldPos),
 		distance(CameraPosition, Input.WorldPos),
-		Alpha,
+		1.0,
 		Roughness,
 		0.0
 	);	
 	
 	vec2 UV = Input.TexCoord;
-	if(UseBumpTex == 1) {
+	if(UseBumpTex) {
         UV = adjustParallaxUV();
     }
 	
-	mat3 TBN = inverse(transpose(mat3(
+	mat3 TBN = mat3(
 		normalize(Input.Tangent.xyz),
 		normalize(cross(Input.Normal, (Input.Tangent.xyz))) * Input.Tangent.w,
 		normalize(Input.Normal)
-	)));   
+	);   
 	
-	if(UseNormalsTex == 1){  
-		vec3 map = texture(normalsTex, UV * NormalMapScale ).rgb;
+	if(UseNormalsTex){  
+		vec3 map = texture(normalsTex, UV ).rgb;
 		map = map * 2 - 1;
-		if(InvertNormalMap == 1){
-			    map.r = - map.r;
-			    map.g = - map.g;
-		} else {
-			//    map.g = - map.r;
-		}
+
 		map.r = - map.r;
 		map.g = - map.g;
+		
 		currentFragment.normal = TBN * map;
 	} 
-	if(UseNormalsTex == 0 && UseBumpTex == 1){
+	if(!UseNormalsTex && UseBumpTex){
 		currentFragment.normal = TBN * examineBumpMap();
 	}
-	if(UseRoughnessTex == 1) currentFragment.roughness = max(0.07, texture(roughnessTex, UV).r);
-	if(UseAlphaTex == 1) currentFragment.alpha = texture(alphaTex, UV).r; 
-	if(UseDiffuseTex == 1) currentFragment.diffuseColor = texture(diffuseTex, UV).rgb; 
-	//if(UseDiffuseTex == 1 && UseAlphaTex == 0)currentFragment.alpha = texture(diffuseTex, UV).r; 
-	if(UseSpecularTex == 1) currentFragment.specularColor = texture(specularTex, UV).rgb; 
+	if(UseRoughnessTex) currentFragment.roughness = max(0.07, texture(roughnessTex, UV).r);
+	if(UseAlphaTex) currentFragment.alpha = texture(alphaTex, UV).r; 
+	if(UseDiffuseTex) currentFragment.diffuseColor = texture(diffuseTex, UV).rgb; 
+	//if(UseDiffuseTex && !UseAlphaTex)currentFragment.alpha = texture(diffuseTex, UV).r; 
+	if(UseSpecularTex) currentFragment.specularColor = texture(specularTex, UV).rgb; 
+	if(UseBumpTex) currentFragment.bump = texture(bumpTex, UV).r; 
 	if(currentFragment.alpha < 0.01) discard;
 	
 	currentFragment.normal = (RotationMatrixes[Input.instanceId] * vec4(currentFragment.normal, 0)).xyz;

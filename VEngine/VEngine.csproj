@@ -99,6 +99,7 @@
     <Compile Include="GUI\Drawables\Container.cs" />
     <Compile Include="GUI\GUIDrawable.cs" />
     <Compile Include="GUI\GUIRenderer.cs" />
+    <Compile Include="MaterialsBuffer.cs" />
     <Compile Include="ObjectIDGenerator.cs" />
     <Compile Include="PathTracing\JitterRandomSequenceGenerator.cs" />
     <Compile Include="PhysicalBody.cs" />

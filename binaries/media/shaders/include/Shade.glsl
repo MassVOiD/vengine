@@ -125,7 +125,7 @@ vec3 shade(
     float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight));
 	//att = mix(1.0, att, roughness);
   
-    vec3 specularComponent = mix(1.0, att, roughness) * LightingFuncGGX_REF(
+    vec3 specularComponent = LightingFuncGGX_REF(
         normal,
         cameraRelativeToVPos,
         lightRelativeToVPos,

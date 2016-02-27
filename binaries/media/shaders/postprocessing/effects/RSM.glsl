@@ -63,10 +63,18 @@ vec3 RSM(FragmentData data){
     vec3 color1 = vec3(0);
 	float invs = 1.0 / float(rsmsamples.length());
     //for(int i=0;i<LightsCount;i++){
+	vec3 lastPoint = vec3(0);
+	float distanceProbe = 0;
     for(int i=0;i<1;i++){
 		for(int g = 0; g < rsmsamples.length(); g++){
-		
 			vec3 pos = reconstructLightPos(rsmsamples[g], i);
+			
+			if(g == 0) lastPoint = pos;
+			else {
+				distanceProbe += distance(pos, lastPoint) * 10;
+				lastPoint = pos;
+			}
+			
 			vec3 dir2f = normalize(data.worldPos - pos);
 			vec3 dir2l = -normalize(LightsPos[i].xyz - pos);
 			vec3 ldir = normalize(reflect(dir2l, NormalCurrent));
@@ -78,5 +86,5 @@ vec3 RSM(FragmentData data){
 			color1 += (radiance + difradiance) * invs * CalculateFallof(DistCurrent + distance(pos, data.worldPos));// * max(0, dot(dir2f, ldir));
 		}
     }
-    return color1;
+    return color1 * distanceProbe;
 }

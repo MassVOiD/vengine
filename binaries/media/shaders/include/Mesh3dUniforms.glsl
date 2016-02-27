@@ -17,9 +17,52 @@ uniform vec4 LightsConeLB[MAX_LIGHTS];
 uniform vec4 LightsConeLB2BR[MAX_LIGHTS];
 uniform vec4 LightsConeLB2TL[MAX_LIGHTS];
 
-uniform float ParallaxHeightMultiplier;
 
 uniform int Instances;
+
+struct Material{
+	vec4 diffuseColor;
+	vec4 specularColor;
+	vec4 roughnessAndParallaxHeight;
+	
+	uvec2 diffuseAddr;
+	uvec2 specularAddr;
+	uvec2 alphaAddr;
+	uvec2 roughnessAddr;
+	uvec2 bumpAddr;
+	uvec2 normalAddr;
+	
+	vec4 alignment3;
+	vec4 alignment4;
+};
+
+layout (std430, binding = 7) buffer MatBuffer
+{
+  Material Materials[]; 
+};
+uniform int MaterialIndex;
+
+Material getCurrentMaterial(){
+	//return Materials[MaterialIndex];
+	Material mat = Material(
+		Materials[MaterialIndex].diffuseColor,
+		Materials[MaterialIndex].specularColor,
+		Materials[MaterialIndex].roughnessAndParallaxHeight,
+		
+		Materials[MaterialIndex].diffuseAddr,
+		Materials[MaterialIndex].specularAddr,
+		Materials[MaterialIndex].alphaAddr,
+		Materials[MaterialIndex].roughnessAddr,
+		Materials[MaterialIndex].bumpAddr,
+		Materials[MaterialIndex].normalAddr,
+		
+		Materials[MaterialIndex].alignment3,
+		Materials[MaterialIndex].alignment4
+	);
+	return mat;
+}
+
+Material currentMaterial = getCurrentMaterial();
 
 layout (std430, binding = 0) buffer MMBuffer
 {
@@ -34,41 +77,34 @@ layout (std430, binding = 2) buffer IDMBuffer
   uint InstancedIds[]; 
 }; 
 uniform vec3 CameraPosition;
-uniform vec3 CameraDirection;
+//uniform vec3 CameraDirection;
 uniform float Time;
-uniform int FrameINT;
 
-uniform vec3 SpecularColor;
-uniform vec3 DiffuseColor;
-uniform float Alpha;
+#define SpecularColor currentMaterial.specularColor.xyz
+#define DiffuseColor currentMaterial.diffuseColor.xyz
+
 uniform float Brightness;
 
-uniform int UseNormalsTex;
-uniform int UseBumpTex;
-uniform int UseAlphaTex;
-uniform int UseRoughnessTex;
-uniform int UseDiffuseTex;
-uniform int UseSpecularTex;
+#define UseNormalsTex (currentMaterial.normalAddr.x > 0)
+#define UseBumpTex (currentMaterial.bumpAddr.x > 0)
+#define UseAlphaTex (currentMaterial.alphaAddr.x > 0)
+#define UseRoughnessTex (currentMaterial.roughnessAddr.x > 0)
+#define UseDiffuseTex (currentMaterial.diffuseAddr.x > 0)
+#define UseSpecularTex (currentMaterial.specularAddr.x > 0)
 
-uniform float Roughness;
+
+#extension GL_ARB_bindless_texture : require
+#define bumpTex sampler2D(currentMaterial.bumpAddr)
+#define alphaTex sampler2D(currentMaterial.alphaAddr)
+#define diffuseTex sampler2D(currentMaterial.diffuseAddr)
+#define normalsTex sampler2D(currentMaterial.normalAddr)
+#define specularTex sampler2D(currentMaterial.specularAddr)
+#define roughnessTex sampler2D(currentMaterial.roughnessAddr)
+
+
+#define Roughness currentMaterial.roughnessAndParallaxHeight.x
+#define ParallaxHeightMultiplier currentMaterial.roughnessAndParallaxHeight.y
 //uniform float Metalness;
-uniform float ReflectionStrength;
-uniform float RefractionStrength;
-uniform float LodDistanceStart;
-uniform float LodDistanceEnd;
+
 uniform vec2 resolution;
 float ratio = resolution.y/resolution.x;
-
-
-uniform float AORange;
-uniform float AOStrength;
-uniform float AOAngleCutoff;
-uniform float VDAOMultiplier;
-uniform float VDAOSamplingMultiplier;
-uniform float VDAORefreactionMultiplier;
-uniform float SubsurfaceScatteringMultiplier;
-// settings
-uniform float ShadowsBlur;
-uniform float ShadowsSamples;
-uniform float LightPointSize;
-uniform float SimpleLightPointSize;

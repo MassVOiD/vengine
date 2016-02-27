@@ -396,14 +396,14 @@ namespace VEngine.FileFormats
                     {
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.InvertNormalMap = data == "true" ? true : false;
+                       // tempMaterial.InvertNormalMap = data == "true" ? true : false;
                         break;
                     }
                     case "transparency":
                     {
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        tempMaterial.SupportTransparency = data == "true" ? true : false;
+                        //tempMaterial.SupportTransparency = data == "true" ? true : false;
                         break;
                     }
                     case "normalmap":
@@ -479,7 +479,7 @@ namespace VEngine.FileFormats
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.DiffuseTexture = new Texture(Media.Get(data));
                         tempMaterial.SpecularTexture = tempMaterial.DiffuseTexture;
-                        tempMaterial.Mode = GenericMaterial.DrawMode.TextureMultipleColor;
+                        //tempMaterial.Mode = GenericMaterial.DrawMode.TextureMultipleColor;
                         break;
                     }
 

@@ -401,7 +401,7 @@ namespace VEngine
                         var m = new GenericMaterial();
                         m.SetDiffuseTexture(Path.GetFileName(mat.TextureName));
                         m.SpecularTexture = m.DiffuseTexture;
-                        m.NormalMapScale = 10;
+                       // m.NormalMapScale = 10;
                         material = m;
 
                         material.Name = obj.MaterialName;

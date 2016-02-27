@@ -40,19 +40,24 @@ namespace ShadowsTester
         {
             var scene = Game.World.Scene;
 
-            var ground = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.Identity, Vector3.Zero, new Vector3(0.1f, 0.4f, 1));
-            var green = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(0.2f, 1, 0.3f));
-            var red = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(1, 0.2f, 0.2f));
-            green.GetInstance(0).Translate(0, 0, -15);
-            red.GetInstance(0).Translate(15, 0, 0);
+            Game.Invoke(() =>
+            {
+                var ground = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.Identity, Vector3.Zero, new Vector3(0.1f, 0.4f, 1));
+                var green = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(0.2f, 1, 0.3f));
+                var red = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(1, 0.2f, 0.2f));
+                green.GetInstance(0).Translate(0, 0, -15);
+                red.GetInstance(0).Translate(15, 0, 0);
 
-            var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
+                var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
 
-            scene.Add(ground);
-            scene.Add(green);
-            scene.Add(red);
+                scene.Add(ground);
+                scene.Add(green);
+                scene.Add(red);
 
-            scene.Add(lucy);
+                scene.Add(lucy);
+
+                GenericMaterial.UpdateMaterialsBuffer();
+            });
         }
     }
 }

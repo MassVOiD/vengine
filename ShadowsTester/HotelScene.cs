@@ -112,7 +112,7 @@ namespace ShadowsTester
                                 {
                                     matermap[keyname].DiffuseColor = texmap[vals].Value;
                                 }
-                                matermap[keyname].InvertUVYAxis = texmap[vals].InvertUVX || texmap[vals].InvertUVY;
+                               // matermap[keyname].InvertUVYAxis = texmap[vals].InvertUVX || texmap[vals].InvertUVY;
                             }
                         }
                     }

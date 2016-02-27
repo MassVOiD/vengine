@@ -32,7 +32,7 @@ namespace ShadowsTester
             RedLight = new List<ProjectionLight>();
             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
             {
-                LightColor = new Vector3(1, 0.84f, 0.93f)*125,
+                LightColor = new Vector3(1, 0.84f, 0.93f)*1,
                 IsStatic = false
             });
             Picked = RedLight[0];
@@ -365,24 +365,7 @@ namespace ShadowsTester
                             PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier = 24;
                     }
                 }
-                if(e.Key == OpenTK.Input.Key.U)
-                {
-                    if(PickedMesh.GetLodLevel(0) != null)
-                    {
-                        PickedMesh.GetLodLevel(0).Material.ParallaxInstances--;
-                        if(PickedMesh.GetLodLevel(0).Material.ParallaxInstances <= 0)
-                            PickedMesh.GetLodLevel(0).Material.ParallaxInstances = 0;
-                    }
-                }
-                if(e.Key == OpenTK.Input.Key.I)
-                {
-                    if(PickedMesh.GetLodLevel(0) != null)
-                    {
-                        PickedMesh.GetLodLevel(0).Material.ParallaxInstances++;
-                        if(PickedMesh.GetLodLevel(0).Material.ParallaxInstances >= 24)
-                            PickedMesh.GetLodLevel(0).Material.ParallaxInstances = 24;
-                    }
-                }
+               
                 if(e.Key == OpenTK.Input.Key.Pause)
                 {
                     ShaderProgram.RecompileAll();

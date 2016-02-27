@@ -54,6 +54,7 @@ namespace VEngine
         public int CurrentlyRenderedCubeMap = -1;
         public void Draw()
         {
+            GenericMaterial.UseBuffer(7);
             Scene.Draw();
         }
     }

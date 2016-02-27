@@ -229,6 +229,8 @@ namespace VEngine
             ScreenSpaceReflectionsFramebuffer.GenerateMipMaps();
             ScreenSpaceReflectionsFramebuffer.UseTexture(9);
 
+            GenericMaterial.UseBuffer(7);
+
             //SetCubemapsUniforms();
 
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());

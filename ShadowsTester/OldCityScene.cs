@@ -105,6 +105,7 @@ namespace ShadowsTester
                 {
                   //  gi.UpdateGI();
                 };
+                GenericMaterial.UpdateMaterialsBuffer();
             });
 
 

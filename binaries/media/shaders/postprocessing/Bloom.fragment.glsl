@@ -1,5 +1,5 @@
 #version 430 core
-uniform int Pass;
+/*uniform int Pass;
 
 in vec2 UV;// let get it done well this time
 out vec4 outColor;
@@ -69,4 +69,4 @@ vec3 gauss(){
 void main()
 {
     outColor = vec4(gauss(), 1.0);
-}
+}*/
