@@ -29,9 +29,7 @@ namespace ShadowsTester
             {
                 float aspect = (float)Game.Resolution.Width / (float)Game.Resolution.Height;
                 aspectRatio = aspect;
-                Matrix4 a = Matrix4.Zero;
-                Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspect, 0.1f, 10000.0f, out a);
-                Cam.SetProjectionMatrix(a);
+                Cam.UpdatePerspective(aspect, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
                 Cam.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
             };
             Game.OnKeyUp += (o, e) =>
@@ -41,9 +39,7 @@ namespace ShadowsTester
                     fovdegree += 5f;
                     if(fovdegree >= 179)
                         fovdegree = 179;
-                    Matrix4 a = Matrix4.Zero;
-                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out a);
-                    Cam.SetProjectionMatrix(a);
+                    Cam.UpdatePerspective(aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
                     Cam.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
                 }
                 if(e.Key == OpenTK.Input.Key.N)
@@ -51,9 +47,7 @@ namespace ShadowsTester
                     fovdegree -= 5f;
                     if(fovdegree <= 10)
                         fovdegree = 10;
-                    Matrix4 a = Matrix4.Zero;
-                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), aspectRatio, 0.1f, 10000.0f, out a);
-                    Cam.SetProjectionMatrix(a);
+                    Cam.UpdatePerspective(aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
                     Cam.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
                 }
             };

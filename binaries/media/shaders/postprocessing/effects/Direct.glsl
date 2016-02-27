@@ -25,14 +25,16 @@ vec3 raymarchFog(vec3 start, vec3 end){
         
         
         float fogDensity = 0.0;
-        float fogMultiplier = 1.0;
+        float fogMultiplier = 111.0;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
         vec3 lastPos = start - mix(start, end, 0.01);
-        const float stepr = 0.005;
+        const float stepr = 0.009;
         float samples = 1.0 / stepr;
         float stepsize = distance(start, end) / samples;
+		float rd = rand2s(UV);
         for(float m = 0.0; m< 1.0;m+= stepr){
-            vec3 pos = mix(start, end, m + rand2s(UV * 3 + m * 5) * stepsize);
+			rd += 1.432135647;
+            vec3 pos = mix(start, end, m + fract(rd) * stepsize);
             float distanceMult = stepsize;
             //float distanceMult = 5;
             lastPos = pos;
@@ -43,21 +45,19 @@ vec3 raymarchFog(vec3 start, vec3 end){
             float fogNoise = 1.0;
     
             vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
-            float frfuvz = (lightClipSpace.z / lightClipSpace.w) * 0.5 + 0.5;
+            float frfuvz = (lightClipSpace.z / lightClipSpace.w);
             //float idle = 1.0 / 1000.0 * fogNoise * fogMultiplier * distanceMult;
             float idle = 0.0;
             if(lightClipSpace.z < 0.0 || frfuv.x < 0.0 || frfuv.x > 1.0 || frfuv.y < 0.0 || frfuv.y > 1.0){ 
                 fogDensity += idle;
                 continue;
             }
-            float diff = (lookupDepthFromLight(i, frfuv, frfuvz));
-            if(diff > 0) {
-                float culler = 1;//clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
-                //float fogNoise = 1.0;
-                fogDensity += idle + 1.0 / 20.0 * culler * fogNoise * fogMultiplier * att * distanceMult;
-            } else {
-                fogDensity += idle;
-            }
+            float diff =1.0 - (lookupDepthFromLight(i, frfuv, frfuvz));
+		
+			float culler = 1;//clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
+			//float fogNoise = 1.0;
+			fogDensity += diff * (idle + 1.0 / 20.0 * culler * fogNoise * fogMultiplier * att * distanceMult) * smoothstep(0.0, 11.0, distance(pos, LightsPos[i].rgb));
+            
         }
         color1 += LightsColors[i].xyz * fogDensity;
         
@@ -65,10 +65,10 @@ vec3 raymarchFog(vec3 start, vec3 end){
     return color1;
 }
 
-vec3 makeFog(){
-    vec3 cspaceEnd = ToCameraSpace(Input.WorldPos);
+vec3 makeFog(FragmentData data){
+    vec3 cspaceEnd = data.cameraPos;
     if(length(cspaceEnd) > 280) cspaceEnd = normalize(cspaceEnd) * 280;
-    vec3 fragmentPosWorld3d = Input.WorldPos;
+    vec3 fragmentPosWorld3d = data.worldPos;
     return vec3(raymarchFog(CameraPosition, fragmentPosWorld3d));
 }
 
@@ -107,7 +107,7 @@ vec3 DirectLight(FragmentData data){
         color1 += shade(CameraPosition, albedo, normal, position, pos, col, roughness, false) * AOValue;
     }*/
 	
-	if(UseFog == 1) color1 += makeFog();
+	if(UseFog == 1) color1 += makeFog(data);
     if(DisablePostEffects == 1) color1 *= smoothstep(0.0, 0.1, data.cameraDistance);
     return color1;
 }

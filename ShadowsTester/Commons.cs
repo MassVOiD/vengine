@@ -60,18 +60,14 @@ namespace ShadowsTester
                     fovdegree += 5f;
                     if(fovdegree >= 180)
                         fovdegree = 179;
-                    Matrix4 a = Matrix4.Zero;
-                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out a);
-                    RedLight.ForEach((ax)=>ax.camera.SetProjectionMatrix(a));
+                    RedLight.ForEach((ax) => ax.camera.UpdatePerspective(1, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f));
                 }
                 if(e.Key == OpenTK.Input.Key.K)
                 {
                     fovdegree -= 5f;
                     if(fovdegree <= 10)
                         fovdegree = 10;
-                    Matrix4 a = Matrix4.Zero;
-                    Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(fovdegree), 1, 0.1f, 10000.0f, out a);
-                    RedLight.ForEach((ax) => ax.camera.SetProjectionMatrix(a));
+                    RedLight.ForEach((ax) => ax.camera.UpdatePerspective(1, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f));
                 }
             };
             RedLight.ForEach((a) => Game.World.Scene.Add(a));

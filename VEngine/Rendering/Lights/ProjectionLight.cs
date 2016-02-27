@@ -33,17 +33,7 @@ namespace VEngine
             FBO.DepthPixelFormat = PixelFormat.DepthComponent;
             FBO.DepthPixelType = PixelType.Float;
         }
-
-        public void BuildOrthographicProjection(float width, float height, float near, float far)
-        {
-            camera.SetProjectionMatrix(Matrix4.CreateOrthographic(width, height, near, far));
-        }
-
-        public void BuildOrthographicProjection(float left, float right, float bottom, float top, float near, float far)
-        {
-            camera.SetProjectionMatrix(Matrix4.CreateOrthographicOffCenter(left, right, bottom, top, near, far));
-        }
-
+        
         public Vector3 GetColor()
         {
             return LightColor;
@@ -127,12 +117,7 @@ namespace VEngine
             camera.Transformation.SetOrientation(orientation);
             camera.Update();
         }
-
-        public void SetProjection(Matrix4 matrix)
-        {
-            camera.SetProjectionMatrix(matrix);
-        }
-
+        
         public void UpdateInverse()
         {
             camera.UpdateInverse();

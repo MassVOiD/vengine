@@ -6,10 +6,11 @@ vec2 project(vec3 pos){
 
 
 vec4 ScreenReflections(FragmentData data){
+	if(data.roughness > 0.5) return vec4(0);
     vec2 closuv = vec2(0);
 	float closest = 0;
 	float closestdst = 0;
-	#define SSREFSSTEPS 12
+	#define SSREFSSTEPS 64
 	
 	vec2 start = UV;
 	vec2 reconstructNorm = project(data.worldPos + data.normal * 0.05);
@@ -45,5 +46,7 @@ vec4 ScreenReflections(FragmentData data){
 	
 		res = deferred * dim * step(0, dot(normal, -data.normal));
 	}
-    return vec4(res, blurfactor * data.roughness);
+	float roughMaxed = 1.0 - (data.roughness * 2.0);
+	
+    return vec4(res * roughMaxed, blurfactor * data.roughness);
 }

@@ -57,7 +57,7 @@ namespace VEngine
                 Generate();
             var proj = FacesCameras[face].GetProjectionMatrix();
             FacesCameras[face].Transformation.SetPosition(Transformation.GetPosition());
-            FacesCameras[face].SetProjectionMatrix(proj);
+            //FacesCameras[face].SetProjectionMatrix(proj);
             Camera.Current = FacesCameras[face];
         }
 

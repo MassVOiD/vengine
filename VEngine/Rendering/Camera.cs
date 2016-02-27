@@ -78,6 +78,14 @@ namespace VEngine
             Update();
         }
 
+        public void UpdatePerspective(float aspectRatio, float fov, float near, float far)
+        {
+            Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
+            ProjectionMatrix[2, 2] = near / (near - far);
+            ProjectionMatrix[3, 2] = ProjectionMatrix[2, 2] == 0 ? near : (far * near / (far - near));
+            Far = far;
+        }
+
         public Camera(Vector3 position, Vector3 lookAt, Vector2 size, float near, float far)
         {
             Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
@@ -145,13 +153,7 @@ namespace VEngine
 
             Update();*/
         }
-
-        public void SetProjectionMatrix(Matrix4 proj)
-        {
-            this.ProjectionMatrix = proj;
-            Update();
-        }
-
+        
         public void SetUniforms()
         {
             if(cone == null)

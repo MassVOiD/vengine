@@ -65,7 +65,7 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Red,
                 ColorPixelType = PixelType.Float
             };
-            ScreenSpaceReflectionsFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            ScreenSpaceReflectionsFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -339,6 +339,7 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GL.ColorMask(true, true, true, true);
             MRT.Use();
+            DistanceFramebuffer.GenerateMipMaps();
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDepth();
             GL.ColorMask(false, false, false, false);
             InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
