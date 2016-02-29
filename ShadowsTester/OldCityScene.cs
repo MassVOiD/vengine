@@ -57,16 +57,18 @@ namespace ShadowsTester
                 PassiveVoxelizer vox = new PassiveVoxelizer();
                 List<VoxelGI.VoxelContainer> containers = new List<VoxelGI.VoxelContainer>();
                 Random rand = new Random();
+
                 for(var i = 0; i < cnt; i++)
                 {
                     var o = scene.Meshes[i];
-                   // var b = o.GetInstance(0).GetPosition();
-                   //  b = new Vector3(b.X * 0.25f, b.Y * 0.25f, b.Z * 0.25f);
-                   // o.GetInstance(0).SetPosition(b);
-                   // o.GetInstance(0).Scale(0.25f);
-                   // var bdshape = o.GetLodLevel(0).Info3d.GetConvexHull();
-                   // var bd = Game.World.Physics.CreateBody(0, o.GetInstance(0), bdshape);
-                   // bd.Enable();
+                    var b = o.GetInstance(0).GetPosition();
+                    b = new Vector3(b.X * 0.25f, b.Y * 0.25f, b.Z * 0.25f);
+                    o.GetInstance(0).SetPosition(b);
+                    o.GetInstance(0).Scale(0.25f);
+                    o.GetInstance(0).Translate(0,0,0);
+                    // var bdshape = o.GetLodLevel(0).Info3d.GetConvexHull();
+                    // var bd = Game.World.Physics.CreateBody(0, o.GetInstance(0), bdshape);
+                    // bd.Enable();
                     Game.World.Scene.Add(o);
                     /*
                     // voxelize
@@ -105,6 +107,7 @@ namespace ShadowsTester
                 {
                   //  gi.UpdateGI();
                 };
+                DynamicCubeMapController.Create();
                 GenericMaterial.UpdateMaterialsBuffer();
             });
 

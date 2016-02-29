@@ -1,10 +1,8 @@
 #version 430 core
 
+layout(location = 0) out vec4 outColor;
+
 in vec2 UV;
-out vec4 outColor;
-uniform int UseVDAO;
-uniform int UseHBAO;
-uniform int UseFog;
 uniform int DisablePostEffects;
 uniform float VDAOGlobalMultiplier;
 
@@ -15,7 +13,6 @@ FragmentData currentFragment;
 #include Lighting.glsl
 #include UsefulIncludes.glsl
 #include Shade.glsl
-#include EnvironmentLight.glsl
 #include Direct.glsl
 #include AmbientOcclusion.glsl
 #include RSM.glsl
@@ -24,17 +21,17 @@ float AOValue = 1.0;
 
 vec3 ApplyLighting(FragmentData data){
 	if(UseHBAO == 1) AOValue = AmbientOcclusion(data);
-	vec3 directlight = DirectLight(data);
-	//vec3 envlight = UseVDAO == 1 ? (VDAOGlobalMultiplier * EnvironmentLight(data)) : vec3(0);
-
-	directlight += (AOValue * 1) * (UseVDAO == 1 ? (data.diffuseColor*0.01) : vec3(0.0));
-	
-	//if(data.diffuseColor.x > 1.0 && data.diffuseColor.y > 1.0 && data.diffuseColor.z > 1.0) directlight = (data.diffuseColor - 1.0) * AOValue;
-	return directlight + RSM(data) * AOValue;
+	vec3 result = vec3(0);
+	if(UseDeferred == 1) result += DirectLight(data);
+	if(UseVDAO == 1) result += AOValue * texture(envLightTex, UV).rgb;
+	if(UseRSM == 1) result += AOValue * RSM(data);
+	if(UseDepth == 1) result = mix(result, vec3(1), 1.0 - CalculateFallof(data.cameraDistance*0.1));
+	return result;
 }
 
 void main()
 {	
+	
 	float MSAASampleFrequency = MSAADifference(albedoRoughnessTex, UV);
     int samples = min(int(mix(1, 8, MSAASampleFrequency)), 8);
     vec3 color  = vec3(0);

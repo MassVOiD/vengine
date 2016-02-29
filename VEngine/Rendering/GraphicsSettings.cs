@@ -12,7 +12,7 @@
 
         public bool UseHBAO = false;
 
-        public bool UseLightPoints = false;
+        public bool UseCubeMapGI = false;
 
         public bool UseRSM = false;
 

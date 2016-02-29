@@ -57,7 +57,7 @@ namespace VEngine
                 Generate();
             var proj = FacesCameras[face].GetProjectionMatrix();
             FacesCameras[face].Transformation.SetPosition(Transformation.GetPosition());
-            //FacesCameras[face].SetProjectionMatrix(proj);
+            FacesCameras[face].Update();
             Camera.Current = FacesCameras[face];
         }
 
@@ -159,8 +159,8 @@ namespace VEngine
             FacesCameras.Add(TextureTarget.TextureCubeMapNegativeZ, new Camera(Vector3.Zero, new Vector3(0, 0, -1), -Vector3.UnitY, (float)Width / Height, MathHelper.DegreesToRadians(90.0f), 0.1f, 10000.0f));
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         //    GL.TextureParameter(TexColor, (TextureParameterName)OpenTK.Graphics.OpenGL.All.TextureCubeMapSeamless, 1);
-            BindlessHandle = GL.Arb.GetTextureHandle(TexColor);
-            GL.Arb.MakeTextureHandleResident(BindlessHandle);
+           // BindlessHandle = GL.Arb.GetTextureHandle(TexColor);
+           // GL.Arb.MakeTextureHandleResident(BindlessHandle);
         }
         public void UseBindlessHandle(string name)
         {
@@ -174,6 +174,15 @@ namespace VEngine
             if(!Generated)
                 Generate();
             return BindlessHandle;
+        }
+
+        public void UseTexture(TextureUnit unit)
+        {
+            if(!Generated)
+                Generate();
+            GL.ActiveTexture(unit);
+            //GL.Enable(EnableCap.TextureCubeMapSeamless);
+            GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
         }
     }
 }

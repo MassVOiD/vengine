@@ -141,12 +141,6 @@
     <Compile Include="Utilities\Media.cs" />
     <Compile Include="Rendering\Object3dInfo.cs" />
     <Compile Include="Rendering\Scene.cs" />
-    <Compile Include="SettingsWindow.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SettingsWindow.Designer.cs">
-      <DependentUpon>SettingsWindow.cs</DependentUpon>
-    </Compile>
     <Compile Include="Internals\ShaderCache.cs" />
     <Compile Include="Internals\ShaderPreparser.cs" />
     <Compile Include="Rendering\ShaderStorageBuffer.cs" />
@@ -163,11 +157,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="SettingsWindow.resx">
-      <DependentUpon>SettingsWindow.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

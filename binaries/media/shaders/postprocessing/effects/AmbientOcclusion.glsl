@@ -228,7 +228,7 @@ float AO(
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
     for(int g=0;g < xsamples.length();g+=quality){
 		vec2 nuv = UV + RM * (xsamples[g] * multiplier);
-        float aon = texture(distanceTex, nuv).r;
+        float aon = textureMSAA(normalsDistancetex, nuv, 0).a;
 		vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * nuv.x + FrustumConeBottomLeftToTopLeft * nuv.y));
 		vec3 dupa = dir * aon;
         float dt = max(0, dot(normal, normalize(dupa - posc)) - 0.05);
@@ -243,7 +243,7 @@ float AO(
 
 float AmbientOcclusion(FragmentData data){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AO(data.worldPos, data.normal, data.roughness, 3.0, 4);
-    ao *= pow(AO(data.worldPos, data.normal, data.roughness, 8.0, 4), 5);
-    return ao;
+    ao = AO(data.worldPos, data.normal, data.roughness, 0.5, 4);
+   // ao *= pow(AO(data.worldPos, data.normal, data.roughness, 8.0, 4), 5);
+    return pow(ao, 2.5);
 }

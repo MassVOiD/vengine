@@ -18,9 +18,7 @@ namespace VEngine
         public PixelFormat DepthPixelFormat = PixelFormat.DepthComponent;
 
         public PixelType DepthPixelType = PixelType.Float;
-
-        public int DrawBufferIndex = 0;
-
+        
         public bool Generated;
 
         public int TexColor, TexDepth = -1;
@@ -106,7 +104,10 @@ namespace VEngine
             if(setViewport)
                 GL.Viewport(0, 0, Width, Height);
             if(clearViewport)
-                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            {
+                if(ColorOnly) GL.Clear(ClearBufferMask.ColorBufferBit);
+                else GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            }
         }
 
         public void UseTexture(int startIndex)
@@ -192,12 +193,12 @@ namespace VEngine
             // FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, RBO);
 
             if(!DepthOnly)
-                GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0 + DrawBufferIndex, TexColor, 0);
+                GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexColor, 0);
 
             if(!ColorOnly)
                 GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TexDepth, 0);
 
-            GL.DrawBuffer(DrawBufferMode.ColorAttachment0 + DrawBufferIndex);
+            GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
             if(GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
             {

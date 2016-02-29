@@ -18,8 +18,9 @@ layout(binding = 6) uniform sampler2DArray shadowMapsNormalsArray;
 layout(binding = 7) uniform sampler2D deferredTex;
 
 layout(binding = 9) uniform sampler2D ssRefTex;
+layout(binding = 10) uniform sampler2D envLightTex;
 
-layout(binding = 8) uniform sampler2D distanceTex;
+//layout(binding = 8) uniform sampler2D distanceTex;
 
 uniform int CubeMapsCount;
 uniform vec4 CubeMapsPositions[233];

@@ -9,8 +9,10 @@ vec3 vec3pow(vec3 inputx, float po){
 #define MMAL_LOD_REGULATOR 512
 float precentage = 0;
 float falloff = 0;
-samplerCube cube;
-vec3 MMALNoPrcDiffuse(vec3 visdis, float dist, vec3 normal, float roughness, int i){
+
+layout(binding = 12) uniform samplerCube cube;
+
+vec3 MMALNoPrcDiffuse(vec3 visdis, float dist, vec3 normal, float roughness){
 	
     float levels = float(textureQueryLevels(cube)) - 1;
     float mx = log2(roughness*MMAL_LOD_REGULATOR+1)/log2(MMAL_LOD_REGULATOR);
@@ -28,36 +30,25 @@ vec3 MMALNoPrcDiffuse(vec3 visdis, float dist, vec3 normal, float roughness, int
 
 #define rlg(a) reverseLogEx(a,1000)
 #define tld(a) toLogDepthEx(a,1000)
-
 float MMALGetShadowforFuckSake(float dists, vec3 wpos, vec3 dir){
 	float dist = toLogDepthEx(dists, 1000);
-	/*float blocker = 0.0;
-	for(int x = 0; x < 9; x++){
-		//rd=rd.wxyz;
-		vec3 rd = vec3(
-			rand2s(x+currentFragment.worldPos.xy), 
-			rand2s(x+currentFragment.worldPos.zx), 
-			rand2s(x+currentFragment.worldPos.yz)
-		) * 0.1;
-		float dst = texture(cube, dir + rd*0.5).a;
-		blocker = max(blocker, dists - rlg(dst));
-	}*/
 	float aaprc = 0.0;
-	for(int x = 0; x < 3; x++){
+	float count = 0.0;
+	for(int x = 0; x < 11; x++){
 		//rd=rd.wxyz;
 		vec3 rd = vec3(
 			rand2s(x+currentFragment.worldPos.xy), 
 			rand2s(x+currentFragment.worldPos.zx), 
 			rand2s(x+currentFragment.worldPos.yz)
-		) ;
-		float dst = texture(cube, dir + rd*0.1).a;
+		) *2-1;
+		float dst = texture(cube, normalize(dir + rd * 0.04)).a;
 		float prc = max(0.0, 1.0 - step(0.001, dist - dst)); 
 		aaprc += prc;
 	}
-	return aaprc / 3;
+	return aaprc / 11;
 }
 
-vec3 MMAL(vec3 visdis, float dist, vec3 normal, vec3 reflected, float roughness, int i){
+vec3 MMAL(vec3 visdis, float dist, vec3 normal, vec3 reflected, float roughness){
 	
     float levels = float(textureQueryLevels(cube))*0.5;
     float mx = log2(roughness*MMAL_LOD_REGULATOR+1)/log2(MMAL_LOD_REGULATOR);
@@ -67,47 +58,56 @@ vec3 MMAL(vec3 visdis, float dist, vec3 normal, vec3 reflected, float roughness,
 	float aafw = 0;
 	
 	float fw = 0.2;//CubeMapsFalloffs[i].x * CalculateFallof(length((currentFragment.worldPos - CubeMapsPositions[i].xyz)));
-	precentage = MMALGetShadowforFuckSake(dist, currentFragment.worldPos, visdis);
-	for(int x = 0; x < 9; x++){
-		//rd=rd.wxyz;
-		vec3 rd = vec3(
-			rand2s(x+currentFragment.worldPos.xy), 
-			rand2s(x+currentFragment.worldPos.zx), 
-			rand2s(x+currentFragment.worldPos.yz)
-		) * 0.6;
-		result += precentage * ( textureLod(cube, mix(reflected, normal, roughness) + rd*0.9*roughness, mx * levels).rgb);
-		counter += 1.0;
-	}
+	//precentage = MMALGetShadowforFuckSake(dist, currentFragment.worldPos, visdis);
+
+	result += precentage * ( textureLod(cube, mix(reflected, normal, roughness), mx * levels).rgb);
+
+	
 	aafw += fw;
 	
     //return vec3pow(result * 2.0, 1.7)*0.5;
 	falloff = fw;
-    return (result / counter) * (1.0 - ncos(roughness));
+    return (result) * (1.0 - ncos(roughness));
 }
 
 
 uniform int CurrentlyRenderedCubeMap;
+uniform vec3 MapPosition;
 vec3 EnvironmentLight(FragmentData data)
 {       
-	
     vec3 dir = normalize(reflect(data.cameraPos, data.normal));
     vec3 vdir = normalize(data.cameraPos);
 	vec3 reflected = vec3(0);
 	vec3 diffused = vec3(0);
-	for(int i=0;i<CubeMapsCount;i++){
-		#define CUT 7.0
-		if(distance(data.worldPos, CubeMapsPositions[i].xyz) < CUT) {
-			float fv = 1.0 - smoothstep(0.0, CUT, distance(data.worldPos, CubeMapsPositions[i].xyz));
-			cube = samplerCube(CubeMapsAddrs[i]);
-			vec3 dirvis = -normalize(CubeMapsPositions[i].xyz - data.worldPos);
+	#define CUT 7.0
+	if(distance(data.worldPos, MapPosition) < CUT) {
+		float fv = 1.0 - smoothstep(0.0, CUT, distance(data.worldPos, MapPosition));
+		vec3 dirvis = normalize(data.worldPos - MapPosition);
 
-			precentage = MMALGetShadowforFuckSake(distance(data.worldPos, CubeMapsPositions[i].xyz), currentFragment.worldPos, dirvis);
-			reflected += fv * MMAL(dirvis, distance(data.worldPos, CubeMapsPositions[i].xyz), data.normal, dir, data.roughness, i) * data.specularColor ;
-			//reflected = vec3(0);
-			diffused += fv * MMALNoPrcDiffuse(dirvis, distance(data.worldPos, CubeMapsPositions[i].xyz), normalize(data.normal), 1.0, i) * data.diffuseColor;
-		}
+		precentage = MMALGetShadowforFuckSake(distance(data.worldPos, MapPosition), currentFragment.worldPos, dirvis);
+		reflected += fv * MMAL(dirvis, distance(data.worldPos, MapPosition), data.normal, dir, data.roughness) * data.specularColor;
+		//reflected = vec3(0);
+		diffused += fv * MMALNoPrcDiffuse(dirvis, distance(data.worldPos, MapPosition), normalize(data.normal), 1.0) * data.diffuseColor;
 	}
+
 	//if(DisablePostEffects == 1){reflected *= 0.6;diffused *= 0.6;}
-    return (reflected + diffused) * 0.5;
+	vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, MapPosition, reflected, data.roughness, true) * (data.roughness);
+	vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, MapPosition, diffused, 1.0, true) * (data.roughness + 1.0);
 	//return vec3(vdir);
+    //return (radiance + difradiance) * 0.5;
+    return (reflected + diffused) * 1;
 }
+vec3 EnvironmentLightShadowsOnly(FragmentData data)
+{       
+	vec3 reflected = vec3(0);
+	#define CUT 7.0
+	if(distance(data.worldPos, MapPosition) < CUT) {
+		float fv = 1.0 - smoothstep(0.0, CUT, distance(data.worldPos, MapPosition));
+		vec3 dirvis = normalize(data.worldPos - MapPosition);
+
+		precentage = MMALGetShadowforFuckSake(distance(data.worldPos, MapPosition), currentFragment.worldPos, dirvis);
+		reflected += fv * vec3(precentage);
+	}
+    return reflected * 0.1;
+}
+

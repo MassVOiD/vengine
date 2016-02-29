@@ -7,7 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
-    
+
     public class Renderer
     {
         public class CubeMapInfo
@@ -18,29 +18,33 @@ namespace VEngine
         }
 
         public List<CubeMapInfo> CubeMaps = new List<CubeMapInfo>();
-        
+
         public MRTFramebuffer MRT;
-        
+
         public int Width, Height;
 
+        public GraphicsSettings GraphicsSettings = new GraphicsSettings();
+
         private ShaderProgram
-         //   BloomShader,
+            //   BloomShader,
             HDRShader,
             ScreenSpaceReflectionsShader,
+            EnvLightShader,
             DeferredShader;
 
-       // public VoxelGI VXGI;
+        // public VoxelGI VXGI;
 
         public static bool DisablePostEffects = false;
 
         public Framebuffer
-          //  BloomXPass, BloomYPass,
+            //  BloomXPass, BloomYPass,
             DistanceFramebuffer,
             ScreenSpaceReflectionsFramebuffer,
+            EnvLightFramebuffer,
             DeferredFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
-        
+
         private float[] postProcessingPlaneVertices = {
                 -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
@@ -49,6 +53,8 @@ namespace VEngine
                 -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f
             };
+
+        private Object3dInfo CubeMapSphere;
 
         public void Resize(int initialWidth, int initialHeight)
         {
@@ -79,6 +85,13 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.HalfFloat
             };
+            EnvLightFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
 
             Width = initialWidth;
             Height = initialHeight;
@@ -86,14 +99,14 @@ namespace VEngine
 
         public Renderer(int initialWidth, int initialHeight, int samples)
         {
-            
+            CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
             //CubeMap = new CubeMapTexture(Media.Get("posx.jpg"), Media.Get("posy.jpg"), Media.Get("posz.jpg"),
             //    Media.Get("negx.jpg"), Media.Get("negy.jpg"), Media.Get("negz.jpg"));
 
             Width = initialWidth;
             Height = initialHeight;
-           // VXGI = new VoxelGI();
+            // VXGI = new VoxelGI();
             //   initialWidth *= 4; initialHeight *= 4;
             MRT = new MRTFramebuffer(initialWidth, initialHeight, samples);
 
@@ -104,7 +117,7 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Red,
                 ColorPixelType = PixelType.Float
             };
-            ScreenSpaceReflectionsFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            ScreenSpaceReflectionsFramebuffer = new Framebuffer(initialWidth / 2, initialHeight / 2)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -112,6 +125,13 @@ namespace VEngine
                 ColorPixelType = PixelType.HalfFloat
             };
             DeferredFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+            EnvLightFramebuffer = new Framebuffer(initialWidth / 1, initialHeight / 1)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -147,11 +167,16 @@ namespace VEngine
             DeferredShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
                 DeferredShader.SetGlobal("USE_MSAA", "");
+
+            EnvLightShader = ShaderProgram.Compile("PostProcessPerspective.vertex.glsl", "EnvironmentLight.fragment.glsl");
+            EnvLightShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
+            if(samples > 1)
+                EnvLightShader.SetGlobal("USE_MSAA", "");
             // BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
 
             PostProcessingMesh = new Object3dInfo(VertexInfo.FromFloatArray(postProcessingPlaneVertices));
         }
-        
+
         public void RenderToCubeMapFramebuffer(CubeMapFramebuffer framebuffer)
         {
             Game.World.Scene.RecreateSimpleLightsSSBO();
@@ -199,10 +224,17 @@ namespace VEngine
         public void SetCubemapsUniforms()
         {
             var shader = ShaderProgram.Current;
-            bool res = shader.SetUniformArray("CubeMapsAddrs", CubeMaps.Select<CubeMapInfo, long>((a) => a.Framebuffer.GetBindlessHandle()).ToArray());
+            List<long> cubemapsaddrs = new List<long>();
+
+            for(int i = 0; i < CubeMaps.Count; i++)
+            {
+                // if(i != Game.World.CurrentlyRenderedCubeMap)
+                cubemapsaddrs.Add(CubeMaps[i].Framebuffer.GetBindlessHandle());
+            }
+            bool res = shader.SetUniformArray("CubeMapsAddrs", cubemapsaddrs.ToArray());
             if(res)
             {
-                shader.SetUniform("CubeMapsCount", CubeMaps.Count);
+                shader.SetUniform("CubeMapsCount", cubemapsaddrs.Count);
                 shader.SetUniformArray("CubeMapsPositions", CubeMaps.Select<CubeMapInfo, Vector4>((a) => new Vector4(a.Position, 1.0f)).ToArray());
                 shader.SetUniformArray("CubeMapsFalloffs", CubeMaps.Select<CubeMapInfo, Vector4>((a) => new Vector4(a.FalloffScale)).ToArray());
             }
@@ -210,8 +242,8 @@ namespace VEngine
             {
                 shader.SetUniform("CubeMapsCount", 0);
             }
-           // for(int i = 0; i < CubeMaps.Count; i++)
-           //     CubeMaps[i].Framebuffer.UseTexture(9 + i);
+            // for(int i = 0; i < CubeMaps.Count; i++)
+            //     CubeMaps[i].Framebuffer.UseTexture(9 + i);
         }
 
         public void SetUniformsShared()
@@ -226,8 +258,9 @@ namespace VEngine
 
             DeferredFramebuffer.UseTexture(7);
             DistanceFramebuffer.UseTexture(8);
-            ScreenSpaceReflectionsFramebuffer.GenerateMipMaps();
+            //ScreenSpaceReflectionsFramebuffer.GenerateMipMaps();
             ScreenSpaceReflectionsFramebuffer.UseTexture(9);
+            EnvLightFramebuffer.UseTexture(10);
 
             GenericMaterial.UseBuffer(7);
 
@@ -241,19 +274,27 @@ namespace VEngine
             shader.SetUniform("DisablePostEffects", DisablePostEffects);
             shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
             shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
-            shader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
-            shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
-            shader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
+
+            shader.SetUniform("UseVDAO", GraphicsSettings.UseVDAO);
+            shader.SetUniform("UseHBAO", GraphicsSettings.UseHBAO);
+            shader.SetUniform("UseFog", GraphicsSettings.UseFog);
+            shader.SetUniform("UseBloom", GraphicsSettings.UseBloom);
+            shader.SetUniform("UseDeferred", GraphicsSettings.UseDeferred);
+            shader.SetUniform("UseDepth", GraphicsSettings.UseDepth);
+            shader.SetUniform("UseCubeMapGI", GraphicsSettings.UseCubeMapGI);
+            shader.SetUniform("UseRSM", GraphicsSettings.UseRSM);
+            shader.SetUniform("UseSSReflections", GraphicsSettings.UseSSReflections);
+
             shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
             shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
             shader.SetUniform("CurrentlyRenderedCubeMap", Game.World.CurrentlyRenderedCubeMap);
             Game.World.Scene.SetLightingUniforms(shader);
             //RandomsSSBO.Use(0);
-            SetCubemapsUniforms();
+            //  SetCubemapsUniforms();
             Game.World.Scene.MapLightsSSBOToShader(shader);
         }
-        
-        
+
+
         private void DisableBlending()
         {
             GL.Disable(EnableCap.Blend);
@@ -274,19 +315,28 @@ namespace VEngine
             GL.DepthMask(false);
             //GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
+        private void EnableAdditiveBlending()
+        {
+            GL.Enable(EnableCap.Blend);
+            GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
+            GL.DepthMask(false);
+            //GL.BlendEquation(BlendEquationMode.FuncAdd);
+        }
 
         private void FaceRender(CubeMapFramebuffer framebuffer, TextureTarget target)
         {
             GL.Enable(EnableCap.DepthTest);
             framebuffer.SwitchCamera(target);
             RenderPrepareToBlit();
+            GL.Disable(EnableCap.DepthTest);
 
             framebuffer.Use(true, false);
             framebuffer.SwitchFace(target);
             GL.Viewport(0, 0, framebuffer.Width, framebuffer.Height);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             HDR();
-            //framebuffer.GenerateMipMaps();
+            framebuffer.GenerateMipMaps();
+            GL.Enable(EnableCap.DepthTest);
         }
 
         private void Deferred()
@@ -295,10 +345,31 @@ namespace VEngine
             DeferredFramebuffer.Use();
             DrawPPMesh();
         }
+
+        private void EnvLight()
+        {
+            EnvLightShader.Use();
+            EnvLightFramebuffer.Use();
+            SetUniformsShared();
+            EnableAdditiveBlending();
+            GL.CullFace(CullFaceMode.Front);
+            for(int i = 0; i < CubeMaps.Count; i++)
+            {
+                if(i == Game.World.CurrentlyRenderedCubeMap)
+                    continue;
+                Matrix4 mat = Matrix4.CreateScale(7.0f) * Matrix4.CreateTranslation(CubeMaps[i].Position);
+                CubeMaps[i].Framebuffer.UseTexture(TextureUnit.Texture12);
+                EnvLightShader.SetUniform("ModelMatrix", mat);
+                EnvLightShader.SetUniform("MapPosition", CubeMaps[i].Position);
+                CubeMapSphere.Draw();
+            }
+            GL.CullFace(CullFaceMode.Back);
+            DisableBlending();
+        }
+
         private void HDR()
         {
             HDRShader.Use();
-            HDRShader.SetUniform("UseBloom", Game.GraphicsSettings.UseBloom);
             HDRShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
             if(Camera.MainDisplayCamera != null)
             {
@@ -316,34 +387,26 @@ namespace VEngine
         }
         private void Bloom()
         {
-        /*    BloomXPass.Use();
-            BloomShader.Use();
-            BloomShader.SetUniform("Pass", 0);
-            MRT.UseTextureForwardColor(1);
-            DrawPPMesh();
-            BloomYPass.Use();
-            BloomShader.SetUniform("Pass", 1);
-            BloomXPass.UseTexture(2);
-            DrawPPMesh();*/
+            /*    BloomXPass.Use();
+                BloomShader.Use();
+                BloomShader.SetUniform("Pass", 0);
+                MRT.UseTextureForwardColor(1);
+                DrawPPMesh();
+                BloomYPass.Use();
+                BloomShader.SetUniform("Pass", 1);
+                BloomXPass.UseTexture(2);
+                DrawPPMesh();*/
         }
 
         private void RenderPrepareToBlit()
         {
             Game.World.SetUniforms(this);
-            DistanceFramebuffer.Use();
-            GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDistance();
-            GL.ColorMask(true, false, false, false);
-            DisableBlending();
-            InternalRenderingState.PassState = InternalRenderingState.State.DistancePass;
-            Game.World.Draw();
-            InternalRenderingState.PassState = InternalRenderingState.State.Idle;
-            GL.ColorMask(true, true, true, true);
             MRT.Use();
-            DistanceFramebuffer.GenerateMipMaps();
+            //DistanceFramebuffer.GenerateMipMaps();
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDepth();
             GL.ColorMask(false, false, false, false);
             InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
-           // Game.World.Draw();
+            // Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
             //CubeMap.Use(TextureUnit.Texture8);
@@ -353,23 +416,18 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;
             DisableBlending();
             Game.World.Draw();
-            //InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
-            //EnableBlending();
-            //Game.World.Draw();
-            //DisableBlending();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
-            // DisableBlending();
-            //Bloom();
-
+            if(GraphicsSettings.UseCubeMapGI || GraphicsSettings.UseVDAO)
+                EnvLight();
             Deferred();
-            ScreenSpaceReflections();
-
+            if(GraphicsSettings.UseSSReflections)
+                ScreenSpaceReflections();
         }
-        
+
         private void SwitchToFB(Framebuffer buffer)
         {
             buffer.Use();
         }
-        
+
     }
 }

@@ -25,11 +25,11 @@ uniform vec3 FrustumConeBottomLeftToTopLeft;
 //mat4 imvp =inverse(ProjectionMatrix * ViewMatrix);
 vec3 reconstructCameraSpaceFull(vec2 uv){
     vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
-    return dir * texture(distanceTex, uv).r;
+    return dir * textureMSAA(normalsDistancetex, uv, 0).a;
 }
 vec3 reconstructCameraSpace(vec2 uv){
     vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));
-    return dir * texture(distanceTex, uv).r;
+    return dir * textureMSAA(normalsDistancetex, uv, 0).a;
 }
 vec3 reconstructCameraSpaceDistance(vec2 uv, float dist){
     vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * uv.x + FrustumConeBottomLeftToTopLeft * uv.y));

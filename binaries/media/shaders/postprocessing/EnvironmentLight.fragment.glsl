@@ -1,6 +1,5 @@
 #version 430 core
 
-in vec2 UV;
 out vec4 outColor;
 uniform int DisablePostEffects;
 uniform float VDAOGlobalMultiplier;
@@ -10,9 +9,10 @@ uniform float VDAOGlobalMultiplier;
 FragmentData currentFragment;
 
 #include Lighting.glsl
+vec2 UV = gl_FragCoord.xy / textureSize(deferredTex, 0);
 #include UsefulIncludes.glsl
 #include Shade.glsl
-#include ScreenReflections.glsl
+#include EnvironmentLight.glsl
 
 
 void main()
@@ -36,6 +36,6 @@ void main()
 		specularBumpData.a
 	);	
 	
-	vec4 color = ScreenReflections(currentFragment);
+	vec4 color = EnvironmentLight(currentFragment).rgbb;
     outColor = clamp(color, 0.0, 10000.0);
 }

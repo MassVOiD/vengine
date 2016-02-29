@@ -16,6 +16,9 @@ namespace ShadowsTester
             var lucyobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("sph1.obj")).Vertices);
 
             var bbmaterial = new GenericMaterial();
+            bbmaterial.Roughness = 0;
+            bbmaterial.DiffuseColor = Vector3.Zero;
+            bbmaterial.SpecularColor = Vector3.One;
 
             var lucy = Mesh3d.Create(lucyobj, bbmaterial);
             lucy.ClearInstances();
@@ -24,22 +27,28 @@ namespace ShadowsTester
             Commons.PickedMesh = lucy;
             Commons.Picked = null;
 
-            int cnt = 0, din = 64;
+            int cnt = 0, din = 256;
             Renderer pp = new Renderer(din, din, 1);
+            pp.GraphicsSettings.UseDeferred = true;
+            pp.GraphicsSettings.UseRSM = false;
+            pp.GraphicsSettings.UseVDAO = true;
+            pp.GraphicsSettings.UseFog = false;
+            pp.GraphicsSettings.UseBloom = false;
+            pp.GraphicsSettings.UseCubeMapGI = false;
             Game.DisplayAdapter.MainRenderer.CubeMaps.Clear();
-
-            for(float x = -10; x < 10; x += 2.0f)
+            
+            for(float x = -10; x < 13; x += 4.0f)
             {
-                for(float y = 0.2f; y < 13.3f; y += 5.0f)
+                for(float y = 0.2f; y < 15.3f; y += 6.0f)
                 {
-                    for(float z = -3; z < 3; z += 2.0f)
+                    for(float z = -3; z < 3.5; z += 3.0f)
                     {
                         CubeMapFramebuffer cubens = new CubeMapFramebuffer(din, din);
                         var tex = new CubeMapTexture(cubens.TexColor);
 
-                        cubens.SetPosition(x, y, z);
+                        cubens.SetPosition(x*0.98f - 0.35f, y, z - 0.25f);
 
-                        lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.02f), "cubemap-marker-" + cnt.ToString()));
+                        lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.1f), "cubemap-marker-" + cnt.ToString()));
                         Game.DisplayAdapter.MainRenderer.CubeMaps.Add(new Renderer.CubeMapInfo()
                         {
                             FalloffScale = 1.0f,
@@ -51,6 +60,7 @@ namespace ShadowsTester
                 }
             }
             
+
             int index = 0;
             bool livemode = false;
             Game.OnKeyUp += (xa, eargs) =>

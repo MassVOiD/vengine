@@ -27,11 +27,7 @@ namespace VEngine
 
                     shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
                     Camera.Current.SetUniforms();
-
-
-                    shader.SetUniform("UseVDAO", Game.GraphicsSettings.UseVDAO);
-                    shader.SetUniform("UseHBAO", Game.GraphicsSettings.UseHBAO);
-                    shader.SetUniform("UseFog", Game.GraphicsSettings.UseFog);
+                    
                     shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
                     shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
                     shader.SetUniform("DisablePostEffects", Renderer.DisablePostEffects);

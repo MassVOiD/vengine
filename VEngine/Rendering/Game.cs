@@ -12,7 +12,6 @@ namespace VEngine
     public class Game
     {
         static public AbsDisplayAdapter DisplayAdapter;
-        static public GraphicsSettings GraphicsSettings = new GraphicsSettings();
         static public Size Resolution;
         static public DateTime StartTime;
         static public World World;
@@ -59,12 +58,12 @@ namespace VEngine
                 SetCurrentThreadCores(2);
                 DisplayAdapter = new VEngineWindowAdapter("VEngine App", resolution.Width, resolution.Height, flags);
 
-                GraphicsSettings.UseDeferred = true;
-                GraphicsSettings.UseRSM = false;
-                GraphicsSettings.UseVDAO = false;
-                GraphicsSettings.UseFog = false;
-                GraphicsSettings.UseBloom = false;
-                GraphicsSettings.UseLightPoints = true;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseDeferred = true;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseRSM = false;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseVDAO = false;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseFog = false;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseBloom = false;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseCubeMapGI = false;
 
                 DisplayAdapter.CursorVisible = false;
 

@@ -217,6 +217,7 @@ namespace ShadowsTester
                 }
 
                 //DynamicCubeMapController.Create();
+                DynamicCubeMapController.Create();
                 GenericMaterial.UpdateMaterialsBuffer();
             });
         }

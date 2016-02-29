@@ -49,7 +49,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float centerDepthDistance = abs((centerDepth) - (depthfocus));
     //float centerDepth = texture(texDepth, UV).r;
     float focus = length(reconstructCameraSpace(vec2(0.5)));
-    float cc = texture(distanceTex, UV).r;
+    float cc = textureMSAA(normalsDistancetex, UV, 0).a;
     for(float x = 0; x < mPI2; x+=0.2){ 
         for(float y=0.1;y<1.0;y+= 0.08){  
             
@@ -62,9 +62,10 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
             coord = clamp(coord, 0.0, 1.0);
             //coord.x = clamp(abs(coord.x), 0.0, 1.0);
             //coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            float depth = texture(distanceTex, coord).r;
+            float depth = textureMSAA(normalsDistancetex, coord, 0).a;
             vec3 texel = texture(deferredTex, coord).rgb;
             texel += texture(ssRefTex, coord).rgb;
+			if(depth < 0.001) texel = vec3(1);
             float w = length(texel) + 0.1;
             float dd = length(crd * 0.1 * amount)/0.125;
             
@@ -99,7 +100,7 @@ float avgdepth(vec2 buv){
     //
             //vec2 gauss = buv + vec2(sin(g + g2)*ratio, cos(g + g2)) * (g2 * 0.05);
             //gauss = clamp(gauss, 0.0, 0.90);
-            float adepth = texture(distanceTex, buv).r;
+            float adepth = textureMSAA(normalsDistancetex, buv, 0).a;
             //if(adepth < fDepth) adepth = fDepth + (fDepth - adepth);
             //float avdepth = clamp(pow(abs(depth - focus), 0.9) * 53.0 * LensBlurAmount, 0.0, 4.5 * LensBlurAmount);        
             float f = InputFocalLength;
@@ -132,7 +133,7 @@ vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 vec3 lookupSSR(vec2 fuv, float radius){
     vec3 outc = vec3(0);
     int counter = 0;
-    float depthCenter = texture(distanceTex, fuv).r;
+    float depthCenter = textureMSAA(normalsDistancetex, fuv, 0).a;
 	vec3 normalcenter = textureMSAAFull(normalsDistancetex, fuv).rgb;
     for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO*0.5)
     {
@@ -140,7 +141,7 @@ vec3 lookupSSR(vec2 fuv, float radius){
         {
             vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.0001 * radius);
             vec3 color = texture(ssRefTex, fuv + gauss).rgb;
-            float depthThere = texture(distanceTex, fuv + gauss).r;
+            float depthThere = textureMSAA(normalsDistancetex, fuv + gauss, 0).a;
 			vec3 normalthere = textureMSAAFull(normalsDistancetex, fuv).rgb;
             if(abs(depthThere - depthCenter) < 0.1 && dot(normalthere, normalcenter) > 0.9){
                 outc += color;
@@ -154,18 +155,18 @@ vec3 lookupSSR(vec2 fuv, float radius){
 vec3 lookupSSRLowPass(vec2 fuv, float radius){
     vec3 outc = vec3(0);
     int counter = 0;
-    float depthCenter = texture(distanceTex, fuv).r;
+    float depthCenter = textureMSAA(normalsDistancetex, fuv, 0).a;
 	vec3 normalcenter = textureMSAAFull(normalsDistancetex, fuv).rgb;
 	float lastLum = 0;
     for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO*0.5)
     {
         for(float g2 = 0; g2 < 1.0; g2+=0.1)
         {
-            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.002 * radius);
+            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.007 * radius);
             vec3 color = texture(ssRefTex, fuv + gauss).rgb;
-            float depthThere = texture(distanceTex, fuv + gauss).r;
+            float depthThere = textureMSAA(normalsDistancetex, fuv + gauss, 0).a;
 			vec3 normalthere = textureMSAAFull(normalsDistancetex, fuv).rgb;
-            if(abs(depthThere - depthCenter) < 0.1){
+            if(abs(depthThere - depthCenter) < 0.05){
 				float difference = abs(lastLum - length(color))*12;
 				lastLum = length(color);
                 outc += (1.0 / (difference + 1)) * color;
@@ -179,11 +180,11 @@ vec3 lookupSSRLowPass(vec2 fuv, float radius){
 void main()
 {
     vec4 color1 = texture(deferredTex, UV);
-    vec3 srdata = lookupSSRLowPass(UV, 1.0);
-    //vec3 srdata = texture(ssRefTex, UV).rgb;
-    //color1 += srdata.rgbb;
-	//color1.rgb = texture(distanceTex, UV).rrr;
-    if(texture(distanceTex, UV).r < 0.01)color1.rgb = vec3(0);
+	if(UseSSReflections){
+		vec3 srdata = lookupSSRLowPass(UV, 1.0);
+		color1 += srdata.rgbb;
+	}
+    if(textureMSAAFull(normalsDistancetex, UV).a < 0.001)color1.rgb = vec3(3);
     //color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
@@ -192,7 +193,7 @@ void main()
     //vec4 color1 = vec4(0,0,0,1);
     if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
-        float adepth = texture(distanceTex, vec2(0.5)).r;
+        float adepth = textureMSAA(normalsDistancetex, vec2(0.5), 0).a;
         //float fDepth = reverseLog(CameraCurrentDepth);
 
         color1.xyz = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
@@ -214,5 +215,7 @@ void main()
 		pow(color1.g, gamma.g),
 		pow(color1.b, gamma.b));
 	}
-    outColor = clamp(vec4(color1.rgb, toLogDepthEx(texture(distanceTex, UV).r, 1000)), 0.0, 10000.0);
+	
+	//if(DisablePostEffects == 1) color1.rgb = vec3(texture(distanceTex, UV).r);
+    outColor = clamp(vec4(color1.rgb, toLogDepthEx(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
 }

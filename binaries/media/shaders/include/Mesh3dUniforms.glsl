@@ -102,3 +102,13 @@ uniform float Brightness;
 
 uniform vec2 resolution;
 float ratio = resolution.y/resolution.x;
+
+uniform int UseVDAO;
+uniform int UseHBAO;
+uniform int UseFog;
+uniform int UseBloom;
+uniform int UseDeferred;
+uniform int UseDepth;
+uniform int UseCubeMapGI;
+uniform int UseRSM;
+uniform int UseSSReflections;

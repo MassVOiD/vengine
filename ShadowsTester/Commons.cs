@@ -33,7 +33,7 @@ namespace ShadowsTester
             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
             {
                 LightColor = new Vector3(1, 0.84f, 0.93f)*1,
-                IsStatic = false
+                IsStatic = true
             });
             Picked = RedLight[0];
             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
@@ -411,24 +411,25 @@ namespace ShadowsTester
                 {
                    // Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
                 }
+                var settings = Game.DisplayAdapter.MainRenderer.GraphicsSettings;
                 if(e.Key == OpenTK.Input.Key.Number0)
-                    Game.GraphicsSettings.UseVDAO = !Game.GraphicsSettings.UseVDAO;
+                    settings.UseVDAO = !settings.UseVDAO;
                 if(e.Key == OpenTK.Input.Key.Number9)
-                    Game.GraphicsSettings.UseBloom = !Game.GraphicsSettings.UseBloom;
+                    settings.UseBloom = !settings.UseBloom;
                 if(e.Key == OpenTK.Input.Key.Number8)
-                    Game.GraphicsSettings.UseDeferred = !Game.GraphicsSettings.UseDeferred;
+                    settings.UseDeferred = !settings.UseDeferred;
                 if(e.Key == OpenTK.Input.Key.Number7)
-                    Game.GraphicsSettings.UseDepth = !Game.GraphicsSettings.UseDepth;
+                    settings.UseDepth = !settings.UseDepth;
                 if(e.Key == OpenTK.Input.Key.Number6)
-                    Game.GraphicsSettings.UseFog = !Game.GraphicsSettings.UseFog;
+                    settings.UseFog = !settings.UseFog;
                 if(e.Key == OpenTK.Input.Key.Number5)
-                    Game.GraphicsSettings.UseLightPoints = !Game.GraphicsSettings.UseLightPoints;
+                    settings.UseCubeMapGI = !settings.UseCubeMapGI;
                 if(e.Key == OpenTK.Input.Key.Number4)
-                    Game.GraphicsSettings.UseRSM = !Game.GraphicsSettings.UseRSM;
+                    settings.UseRSM = !settings.UseRSM;
                 if(e.Key == OpenTK.Input.Key.Number3)
-                    Game.GraphicsSettings.UseSSReflections = !Game.GraphicsSettings.UseSSReflections;
+                    settings.UseSSReflections = !settings.UseSSReflections;
                 if(e.Key == OpenTK.Input.Key.Number2)
-                    Game.GraphicsSettings.UseHBAO = !Game.GraphicsSettings.UseHBAO;
+                    settings.UseHBAO = !settings.UseHBAO;
             };
         }
 
