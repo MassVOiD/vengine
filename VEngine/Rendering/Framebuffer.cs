@@ -110,6 +110,11 @@ namespace VEngine
             }
         }
 
+        public void BindWithPurpose(FramebufferTarget purpose)
+        {
+            GL.BindFramebuffer(purpose, FBO);
+        }
+
         public void UseTexture(int startIndex)
         {
             if(DepthOnly)

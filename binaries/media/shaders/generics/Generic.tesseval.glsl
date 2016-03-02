@@ -69,6 +69,13 @@ float getPlanetSurface(){
 	return factor * 1;
 }
 
+uniform int IsTessellatedTerrain;
+uniform float TessellationMultiplier;
+
+float GetTerrainHeight(vec2 uv){
+	return texture(bumpTex, uv).r * getCurrentMaterial().roughnessAndParallaxHeight.g; 
+}
+
 void main()
 {
 	// Interpolate the attributes of the output vertex using the barycentric coordinates
@@ -87,7 +94,7 @@ void main()
 	//Output.WorldPos += getwater(UV);
 	//Output.WorldPos += normalize(normal) * 11*sns(UV, 0.1, 1.0);
 	//Output.WorldPos += normalize(normal) * sns(UV, 2.1, 0.1);
-	Output.WorldPos += normalize(normal) * 11*sns(UV, 22.1, 0.1);
+	Output.WorldPos += normalize(normal) * GetTerrainHeight(UV);
 	
 	gl_Position = VPMatrix * vec4(Output.WorldPos, 1.0);
 }

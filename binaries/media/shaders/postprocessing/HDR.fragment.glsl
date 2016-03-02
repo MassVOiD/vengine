@@ -177,6 +177,22 @@ vec3 lookupSSRLowPass(vec2 fuv, float radius){
     return counter == 0 ? texture(ssRefTex, fuv).rgb : outc / counter;
 }
 
+// THATS FROM PANDA 3d! Thanks tobspr
+const float SRGB_ALPHA = 0.055;
+float linear_to_srgb(float channel) {
+    if(channel <= 0.0031308)
+        return 12.92 * channel;
+    else
+        return (1.0 + SRGB_ALPHA) * pow(channel, 1.0/2.4) - SRGB_ALPHA;
+}
+vec3 rgb_to_srgb(vec3 rgb) {
+    return vec3(
+        linear_to_srgb(rgb.r),
+        linear_to_srgb(rgb.g),
+        linear_to_srgb(rgb.b)
+    );
+}
+
 void main()
 {
     vec4 color1 = texture(deferredTex, UV);
@@ -184,7 +200,6 @@ void main()
 		vec3 srdata = lookupSSRLowPass(UV, 1.0);
 		color1 += srdata.rgbb;
 	}
-    if(textureMSAAFull(normalsDistancetex, UV).a < 0.001)color1.rgb = vec3(3);
     //color1.rgb = funnybloom(UV);
     //vec3 avg = getAverageOfAdjacent(UV);
    // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
@@ -202,18 +217,19 @@ void main()
     
     //if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
     //if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
-    //if(DisablePostEffects == 0)color1.rgb = ExecutePostProcessing(color1.rgb, UV);
         
 	//color1.rgb += SSIL();
 	
 	//color1.rgb += vec3pow(texture(normalsTex, UV).rgb, 2);
 	
 	//color1.rgb = texture(distanceTex, UV).rrr * 0.1;
+	//if(UV.x > 0.5) 
 	if(DisablePostEffects == 0){
-		vec3 gamma = vec3(1.0/2.2, 1.0/2.2, 1.0/2.2);
-		color1.rgb = vec3(pow(color1.r, gamma.r),
-		pow(color1.g, gamma.g),
-		pow(color1.b, gamma.b));
+		color1.rgb += texture(bloomPassSource, UV).rgb * 0.2;
+        color1.rgb = ExecutePostProcessing(color1.rgb, UV);
+		//color1.rgb = color1.rgb / (1 + color1.rgb);
+		float gamma = 1.0/2.2;
+		color1.rgb = rgb_to_srgb(color1.rgb);
 	}
 	
 	//if(DisablePostEffects == 1) color1.rgb = vec3(texture(distanceTex, UV).r);

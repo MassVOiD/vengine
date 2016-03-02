@@ -3,8 +3,9 @@
 float lookupDepthFromLight(uint i, vec2 uvi, float comparison){
     float distance1 = 0.0;
     vec3 uv = vec3(uvi, float(i));
-    distance1 = texture(shadowMapsArray, uv).r;
-    return step(comparison, distance1);
+	vec4 compres = textureGather(shadowMapsArray, uv, comparison);
+    return (compres.r+compres.g+compres.b+compres.a) * 0.25;
+    //return step(comparison, distance1);
 }
 #define mPI (3.14159265)
 #define mPI2 (2.0*3.14159265)
@@ -43,6 +44,25 @@ float LastProbeDistance = 0.0;
 float rand2d(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
+vec2 shadowmapSamples[] = vec2[](
+vec2(0.5, 0.5),
+vec2(0.25, 0.5),
+vec2(0.75, 0.5),
+vec2(0.5, 0.25),
+vec2(0.5, 0.75),
+vec2(0.25, 0.25),
+vec2(0.75, 0.75),
+vec2(0.75, 0.25),
+vec2(0.75, 0.25),
+vec2(0.33, 0.5),
+vec2(0.66, 0.5),
+vec2(0.5, 0.33),
+vec2(0.5, 0.66),
+vec2(0.33, 0.33),
+vec2(0.66, 0.66),
+vec2(0.66, 0.33),
+vec2(0.66, 0.33)
+);
 float getShadowPercent(vec2 uv, vec3 pos, uint i){
     float accum = 0.0;
     
@@ -62,17 +82,19 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     //return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
     float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
     //return lookupDepthFromLight(i, uv, distance3 - 0.000004);
-    for(float x = 0; x < 1.0; x+=0.3){ 
-		fakeUV = uv + (vec2(rand2s(uv + vec2(x,0)), rand2s(uv + vec2(0,x))) * 2.0 - 1.0) * distance2 * 0.00005 * LightsBlurFactors[i];
-		accum += lookupDepthFromLight(i, fakeUV, distance3 + 0.00003);
-
-		//if(distance3 -  distance1 > 0.000015) accum += 1.0 ;
-		counter+=1;
-	
-    }
-
+	float iter = 0;
+	for(int ix=0;ix<3;ix++){
+		float rot = rand2d(uv + iter) * 3.1415 * 2;
+		iter += 1.0;
+		mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
+		
+		for(int id = 0; id < shadowmapSamples.length(); id++){ 
+			fakeUV = uv + (RM * shadowmapSamples[id]) * distance2 * 0.0005 * LightsBlurFactors[i];
+			accum += lookupDepthFromLight(i, fakeUV, distance3 + 0.00006);
+		}	
+	}
     
     //LastProbeDistance = LastProbeDistance / counter;
-    float rs = 1.0 - (accum / counter);
+    float rs = 1.0 - (accum / (shadowmapSamples.length() * iter));
     return rs;//return smoothstep(0.0, 0.9, rs);
 }

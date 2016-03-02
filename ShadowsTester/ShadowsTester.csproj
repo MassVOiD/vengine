@@ -73,6 +73,12 @@
     <Compile Include="BigTerrainScene.cs" />
     <Compile Include="DynamicCubeMapController.cs" />
     <Compile Include="HotelScene.cs" />
+    <Compile Include="ItemSelector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ItemSelector.Designer.cs">
+      <DependentUpon>ItemSelector.cs</DependentUpon>
+    </Compile>
     <Compile Include="LightningTestScene.cs" />
     <Compile Include="OldCityScene.cs" />
     <Compile Include="KeyboardHandler.cs" />
@@ -92,6 +98,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ItemSelector.resx">
+      <DependentUpon>ItemSelector.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

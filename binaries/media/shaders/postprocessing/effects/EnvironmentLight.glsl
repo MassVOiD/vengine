@@ -28,20 +28,42 @@ vec3 MMALNoPrcDiffuse(vec3 visdis, float dist, vec3 normal, float roughness){
     return precentage * result;
 }
 
+mat3 rotationMatrix(vec3 axis, float angle)
+{
+	axis = normalize(axis);
+	float s = sin(angle);
+	float c = cos(angle);
+	float oc = 1.0 - c;
+	
+	return mat3(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s, 
+	oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s, 
+	oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
+}
+
+vec3 getTangent(vec3 v){
+	return normalize(v) == vec3(0,1,0) ? vec3(1,0,0) : normalize(cross(vec3(0,1,0), v));
+}
+vec3 getBiTangent(vec3 v){
+	return normalize(v) == vec3(1,0,0) ? vec3(0,0,1) : normalize(cross(vec3(1,0,0), v));
+}
+
 #define rlg(a) reverseLogEx(a,1000)
 #define tld(a) toLogDepthEx(a,1000)
 float MMALGetShadowforFuckSake(float dists, vec3 wpos, vec3 dir){
 	float dist = toLogDepthEx(dists, 1000);
 	float aaprc = 0.0;
 	float count = 0.0;
+	float rdiz = 1.654221;
+	vec3 tang = getTangent(dir);
+	vec3 bitang = getBiTangent(dir);
 	for(int x = 0; x < 11; x++){
 		//rd=rd.wxyz;
-		vec3 rd = vec3(
-			rand2s(x+currentFragment.worldPos.xy), 
-			rand2s(x+currentFragment.worldPos.zx), 
-			rand2s(x+currentFragment.worldPos.yz)
+		vec2 rd = vec2(
+			rand2s(x + currentFragment.worldPos.xy),
+			rand2s(x + currentFragment.worldPos.yz)
 		) *2-1;
-		float dst = texture(cube, normalize(dir + rd * 0.04)).a;
+		vec3 displace = tang * rd.x + bitang * rd.y;
+		float dst = texture(cube, normalize(dir + displace * 0.04)).a;
 		float prc = max(0.0, 1.0 - step(0.001, dist - dst)); 
 		aaprc += prc;
 	}
@@ -73,15 +95,15 @@ vec3 MMAL(vec3 visdis, float dist, vec3 normal, vec3 reflected, float roughness)
 
 uniform int CurrentlyRenderedCubeMap;
 uniform vec3 MapPosition;
+uniform float CubeCutOff;
 vec3 EnvironmentLight(FragmentData data)
 {       
     vec3 dir = normalize(reflect(data.cameraPos, data.normal));
     vec3 vdir = normalize(data.cameraPos);
 	vec3 reflected = vec3(0);
 	vec3 diffused = vec3(0);
-	#define CUT 7.0
-	if(distance(data.worldPos, MapPosition) < CUT) {
-		float fv = 1.0 - smoothstep(0.0, CUT, distance(data.worldPos, MapPosition));
+	if(distance(data.worldPos, MapPosition) < CubeCutOff) {
+		float fv = 1.0 - smoothstep(0.0, CubeCutOff, distance(data.worldPos, MapPosition));
 		vec3 dirvis = normalize(data.worldPos - MapPosition);
 
 		precentage = MMALGetShadowforFuckSake(distance(data.worldPos, MapPosition), currentFragment.worldPos, dirvis);
@@ -95,14 +117,13 @@ vec3 EnvironmentLight(FragmentData data)
 	vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, MapPosition, diffused, 1.0, true) * (data.roughness + 1.0);
 	//return vec3(vdir);
     //return (radiance + difradiance) * 0.5;
-    return (reflected + diffused) * 1;
+    return (reflected + diffused) * 0.5;
 }
 vec3 EnvironmentLightShadowsOnly(FragmentData data)
 {       
 	vec3 reflected = vec3(0);
-	#define CUT 7.0
-	if(distance(data.worldPos, MapPosition) < CUT) {
-		float fv = 1.0 - smoothstep(0.0, CUT, distance(data.worldPos, MapPosition));
+	if(distance(data.worldPos, MapPosition) < CubeCutOff) {
+		float fv = 1.0 - smoothstep(0.0, CubeCutOff, distance(data.worldPos, MapPosition));
 		vec3 dirvis = normalize(data.worldPos - MapPosition);
 
 		precentage = MMALGetShadowforFuckSake(distance(data.worldPos, MapPosition), currentFragment.worldPos, dirvis);

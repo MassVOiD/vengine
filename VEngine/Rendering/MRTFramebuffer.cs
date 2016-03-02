@@ -88,8 +88,8 @@ namespace VEngine
                 GL.TexImage2DMultisample(TextureTargetMultisample.Texture2DMultisample, MSAASamples, pif, Width, Height, true);
             else
                 GL.TexImage2D(TextureTarget.Texture2D, 0, pif, Width, Height, 0, pf, pt, IntPtr.Zero);
-            GL.TexParameter(ttarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
-            GL.TexParameter(ttarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
+            GL.TexParameter(ttarget, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(ttarget, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
             GL.TexParameter(ttarget, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
             GL.TexParameter(ttarget, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 

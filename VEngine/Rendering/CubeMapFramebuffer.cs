@@ -17,9 +17,10 @@ namespace VEngine
         public int DrawBufferIndex = 0;
         public bool Generated;
         public int Resolution;
-        public int TexColor, TexDepth;
+        private int TexColor, TexDepth;
         public TransformationManager Transformation;
         private long BindlessHandle;
+        public CubeMapTexture Texture;
 
         public int Width, Height;
 
@@ -33,6 +34,7 @@ namespace VEngine
             Generated = false;
             Width = width;
             Height = height;
+            Texture = new CubeMapTexture(0);
         }
 
         public void GenerateMipMaps()
@@ -114,7 +116,9 @@ namespace VEngine
         {
             Generated = true;
             TexColor = GL.GenTexture();
-            
+            Texture.Handle = TexColor;
+
+
             GL.BindTexture(TextureTarget.TextureCubeMap, TexColor);
             GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, PixelInternalFormat.Rgba16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
             GL.TexImage2D(TextureTarget.TextureCubeMapPositiveY, 0, PixelInternalFormat.Rgba16f, Width, Height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);

@@ -24,7 +24,7 @@ namespace VEngine
 
         public float Alpha = 1.0f;
 
-        public float TesselationMultiplier = 1.0f;
+        public float TessellationMultiplier = 1.0f;
 
         public MaterialType Type;
 
@@ -77,23 +77,13 @@ namespace VEngine
 
         public enum MaterialType
         {
-            Diffuse,
-            RandomlyDisplaced,
+            Generic,
             Water,
-            Sky,
-            WetDrops,
             Grass,
             PlanetSurface,
             TessellatedTerrain,
-            Flag,
-
-            Plastic,
-            Metal,
-
-            Parallax,
-
-            DropsSystem,
-            OptimizedSpheres
+            AdvancedParallax,
+            Flag
         }
         
         public ShaderProgram GetShaderProgram()
@@ -103,7 +93,7 @@ namespace VEngine
                 return pack.Geometry96iTriangles;
             if(Type == MaterialType.TessellatedTerrain)
                 return pack.TesselatedProgram;
-            if(Type == MaterialType.Parallax)
+            if(Type == MaterialType.AdvancedParallax)
                 return pack.Geometry96iTriangles;
             return Type == MaterialType.Water || Type == MaterialType.PlanetSurface ||
                Type == MaterialType.TessellatedTerrain || Type == MaterialType.Grass ? pack.TesselatedProgram : pack.Program;
@@ -148,7 +138,9 @@ namespace VEngine
             ShaderProgram.SwitchResult res = prg.Use();
 
             prg.SetUniform("MaterialIndex", BufferOffset);
-            
+            prg.SetUniform("IsTessellatedTerrain", Type == MaterialType.TessellatedTerrain);
+            prg.SetUniform("TessellationMultiplier", TessellationMultiplier);
+
             return true;
         }
     }

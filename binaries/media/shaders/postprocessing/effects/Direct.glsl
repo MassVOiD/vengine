@@ -72,6 +72,8 @@ vec3 makeFog(FragmentData data){
     return vec3(raymarchFog(CameraPosition, fragmentPosWorld3d));
 }
 
+
+
 vec3 DirectLight(FragmentData data){
     vec3 color1 = vec3(0);
     

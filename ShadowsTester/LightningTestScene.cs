@@ -55,7 +55,7 @@ namespace ShadowsTester
                 scene.Add(red);
 
                 scene.Add(lucy);*/
-
+                /*
                 var cubeMaterial = new GenericMaterial(new Vector3(1, 0, 0));
                 var cubeObj3d = new Object3dInfo(Object3dGenerator.CreateCube(new Vector3(1), new Vector2(1)).Vertices);
                 //var cubeObj3d = new Object3dInfo(Object3dGenerator.CreateGround(new Vector2(-1), new Vector2(1), new Vector2(1), Vector3.UnitY).Vertices);
@@ -72,6 +72,16 @@ namespace ShadowsTester
                 cubes.UpdateMatrix();
 
                 scene.Add(cubes);
+                */
+
+                var terrain = new Object3dInfo( Object3dGenerator.CreateTerrain(new Vector2(-10000, -10000), new Vector2(10000, 10000), new Vector2(1, -1), Vector3.UnitY, 512, (x,y) => 0).Vertices );
+                var terrainMaterial = new GenericMaterial();
+                terrainMaterial.Type = GenericMaterial.MaterialType.TessellatedTerrain;
+                terrainMaterial.TessellationMultiplier = 1.0f;
+                terrainMaterial.ParallaxHeightMultiplier = 200.0f;
+                terrainMaterial.SetBumpTexture("ee.png");
+                var terrainMesh = Mesh3d.Create(terrain, terrainMaterial);
+                scene.Add(terrainMesh);
 
                 GenericMaterial.UpdateMaterialsBuffer();
             });

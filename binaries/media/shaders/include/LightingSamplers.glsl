@@ -1,5 +1,5 @@
 // let get it done well this time
-layout(binding = 0) uniform sampler2DArray shadowMapsArray;
+layout(binding = 0) uniform sampler2DArrayShadow shadowMapsArray;
 #ifdef USE_MSAA
 layout(binding = 1) uniform sampler2DMS albedoRoughnessTex;
 layout(binding = 2) uniform sampler2DMS normalsDistancetex;
@@ -19,6 +19,8 @@ layout(binding = 7) uniform sampler2D deferredTex;
 
 layout(binding = 9) uniform sampler2D ssRefTex;
 layout(binding = 10) uniform sampler2D envLightTex;
+
+layout(binding = 11) uniform sampler2D bloomPassSource;
 
 //layout(binding = 8) uniform sampler2D distanceTex;
 

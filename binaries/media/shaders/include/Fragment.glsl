@@ -34,6 +34,8 @@ vec3 examineBumpMap(){
 	return normalize(vec3(0,0,1) + bdx * tang + bdy * bitan);
 }
 
+uniform int IsTessellatedTerrain;
+
 void main(){
 	//outColor = vec4(1.0);
 	//return;
@@ -51,7 +53,7 @@ void main(){
 	);	
 	
 	vec2 UV = Input.TexCoord;
-	if(UseBumpTex) {
+	if(UseBumpTex && IsTessellatedTerrain == 0) {
         UV = adjustParallaxUV();
     }
 	

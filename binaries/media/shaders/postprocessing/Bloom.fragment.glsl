@@ -1,10 +1,9 @@
 #version 430 core
-/*uniform int Pass;
+uniform int Pass;
 
 in vec2 UV;// let get it done well this time
 out vec4 outColor;
 #include LightingSamplers.glsl
-
 
 float kern[] = float[](
 	0.02547,
@@ -36,37 +35,40 @@ float ncos(float a){
 }
 vec3 sampletex(vec2 uv)
 {
-	vec3 r = Pass == 0 ? textureMSAA(albedoRoughnessTex, uv, 0).rgb : texture(bloomMidPassTex, uv).rgb;
-	//r = r*r*r;
-	return r;
+	vec3 r = texture(bloomPassSource, uv).rgb;
+	return r * smoothstep(0.0, length(vec3(1)), length(clamp(r, 0.0, 1.0)));
 }
 
 float getpix()
 {
-	return Pass == 0 ? (1.0 / txsize.x) : (1.0 / textureSize(bloomMidPassTex, 0).y);
+	return Pass == 0 ? (1.0 / textureSize(bloomPassSource, 0).x) : (1.0 / textureSize(bloomPassSource, 0).y);
 }
-#define samples 164
+//#define samples 16
 float getkern(float factor){
-	return 1.0 - (cos(factor*3.1415)*0.5+0.5);
+	return (cos(factor*3.1415)*0.5+0.5);
 }
-vec3 gauss(){
+vec3 gauss(int samples, float power){
 	vec2 lookup = Pass == 0 ? vec2(1, 0) : vec2(0, 1);
 	vec3 accum = vec3(0);
 	float pix = getpix();
 	float pixx = 0;
 	for(int i=0;i<samples;++i) {
-		accum += sampletex(UV + pixx * lookup) * getkern(1.0 - float(i)/samples);
+		accum += power * sampletex(UV + pixx * lookup) * getkern(float(i)/samples);
 		pixx += pix;
 	}
 	pixx = pix;
 	for(int i=1;i<samples;++i) {
-		accum += sampletex(UV - pixx * lookup) * getkern(1.0 - float(i)/samples);
+		accum += power * sampletex(UV - pixx * lookup) * getkern(float(i)/samples);
 		pixx += pix;
 	}
-	return accum / samples;
+	return accum / (samples * 2 - 1);
 }
 
 void main()
 {
-    outColor = vec4(gauss(), 1.0);
-}*/
+	vec3 res = gauss(16, 2);
+	res += gauss(48, 5) * vec3(0.90, 0.95, 1);
+	res += gauss(96, 9) * vec3(0.7, 0.7, 1);
+	res *= 0.3333;
+    outColor = vec4(res, 1.0);
+}

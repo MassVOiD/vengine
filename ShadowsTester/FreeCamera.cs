@@ -104,7 +104,7 @@ namespace ShadowsTester
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ControlLeft))
             {
-                speed *= 0.03f;
+                speed *= 300f;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.LBracket))
             {
