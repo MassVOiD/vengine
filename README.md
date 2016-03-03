@@ -5,7 +5,7 @@ Shaders are here: https://github.com/achlubek/vengine/tree/master/binaries/media
 
 - Where is post process routine?
 
-It is here: https://github.com/achlubek/vengine/blob/master/VEngine/Rendering/PostProcessing.cs
+It is here: https://github.com/achlubek/vengine/blob/master/VEngine/Rendering/Renderer.cs
 
 - Where is PBR?
 
