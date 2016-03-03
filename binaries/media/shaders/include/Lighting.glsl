@@ -83,13 +83,13 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
     //return lookupDepthFromLight(i, uv, distance3 - 0.000004);
 	float iter = 0;
-	for(int ix=0;ix<3;ix++){
+	for(int ix=0;ix<1;ix++){
 		float rot = rand2d(uv + iter) * 3.1415 * 2;
 		iter += 1.0;
 		mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
 		
 		for(int id = 0; id < shadowmapSamples.length(); id++){ 
-			fakeUV = uv + (RM * shadowmapSamples[id]) * distance2 * 0.0005 * LightsBlurFactors[i];
+			fakeUV = uv + (RM * shadowmapSamples[id]) * distance2 * 0.00005 * LightsBlurFactors[i];
 			accum += lookupDepthFromLight(i, fakeUV, distance3 + 0.00006);
 		}	
 	}

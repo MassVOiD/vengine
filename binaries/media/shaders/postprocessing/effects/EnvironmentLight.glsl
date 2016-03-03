@@ -102,8 +102,8 @@ vec3 EnvironmentLight(FragmentData data)
     vec3 vdir = normalize(data.cameraPos);
 	vec3 reflected = vec3(0);
 	vec3 diffused = vec3(0);
-	if(distance(data.worldPos, MapPosition) < CubeCutOff) {
-		float fv = 1.0 - smoothstep(0.0, CubeCutOff, distance(data.worldPos, MapPosition));
+	if(distance(data.worldPos, MapPosition) < CubeCutOff || CubeCutOff > 4000.0) {
+		float fv = CubeCutOff > 4000.0 ? 1.0 : 1.0 - smoothstep(0.0, CubeCutOff, distance(data.worldPos, MapPosition));
 		vec3 dirvis = normalize(data.worldPos - MapPosition);
 
 		precentage = MMALGetShadowforFuckSake(distance(data.worldPos, MapPosition), currentFragment.worldPos, dirvis);

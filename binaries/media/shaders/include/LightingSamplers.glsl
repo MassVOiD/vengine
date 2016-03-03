@@ -22,6 +22,8 @@ layout(binding = 10) uniform sampler2D envLightTex;
 
 layout(binding = 11) uniform sampler2D bloomPassSource;
 
+layout(binding = 12) uniform sampler2D glareTex;
+
 //layout(binding = 8) uniform sampler2D distanceTex;
 
 uniform int CubeMapsCount;

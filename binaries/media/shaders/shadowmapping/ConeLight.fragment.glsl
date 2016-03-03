@@ -10,27 +10,7 @@ in Data {
 #include Shade.glsl
 
 uniform vec3 LightColor;
-// change cubeMapTex to your cubemap name
-uniform samplerCube cubeMapTex;
-#define MMAL_LOD_REGULATOR 512
-vec3 MMAL(vec3 normal, vec3 reflected, float roughness){
-    float levels = float(textureQueryLevels(cubeMapTex)) - 1;
-    float mx = log2(roughness*MMAL_LOD_REGULATOR+1)/log2(MMAL_LOD_REGULATOR);
-    vec3 result = textureLod(cubeMapTex, mix(reflected, normal, roughness), mx * levels).rgb;
-    return result;
-}
 
-
-vec3 EnvironmentLight(vec3 cameraSpace, vec3 normal, vec3 specularColor, vec3 diffuseColor, float roughness)
-{       
-    vec3 dir = normalize(reflect(cameraSpace, normal));
-    vec3 vdir = normalize(cameraSpace);
-	
-    vec3 reflected = MMAL(normal, dir, roughness) * specularColor;
-    vec3 diffused = MMAL(normal, dir, 1.0) * diffuseColor;
-	    
-    return makeFresnel(1.0 - max(0, dot(normal, vdir)), reflected + diffused);
-}
 vec3 getSimpleLighting(){
 	vec3 diffuse = DiffuseColor;
 	if(UseDiffuseTex) diffuse = texture(diffuseTex, Input.TexCoord).rgb;
@@ -50,8 +30,12 @@ vec3 getSimpleLighting(){
 
 void main()
 {
+	float alph = 1.0;
+	if(UseAlphaTex) alph = texture(alphaTex, Input.TexCoord).r; 
+	if(alph < 0.01) discard;
 	float dist = distance(CameraPosition, Input.WorldPos);
 	outDiffuseColorDistance = vec4(getSimpleLighting(), dist);
-	outNormals = vec4((RotationMatrixes[Input.instanceId] * vec4(normalize(Input.Normal), 0)).rgb, dist);
+	
+	outNormals = vec4(quat_mul_vec(ModelInfos[Input.instanceId].Rotation, normalize(Input.Normal)), dist);
 	
 }

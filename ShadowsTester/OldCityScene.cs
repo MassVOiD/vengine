@@ -25,6 +25,17 @@ namespace ShadowsTester
                     m = a;
             return m;
         }
+        Mesh3d CreateDiffuseModelFromRaw(string obj, Vector3 color)
+        {
+            var terrain3dManager = Object3dManager.LoadFromRaw(Media.Get(obj));
+            var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
+            var terrainMaterial = new GenericMaterial();
+            terrainMaterial.DiffuseColor = color;
+            terrainMaterial.SpecularColor = color;
+            terrainMaterial.Roughness = 0.1f;
+            var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
+            return terrainMesh;
+        }
         public OldCityScene()
         {
             /*  var scene = Object3dInfo.LoadSceneFromObj(Media.Get("desertcity.obj"), Media.Get("desertcity.mtl"), 1.0f);
@@ -111,6 +122,13 @@ namespace ShadowsTester
                 GenericMaterial.UpdateMaterialsBuffer();
             });
 
+            var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
+            Game.World.Scene.Add(lucy);
+            lucy.GetInstance(0).Scale(0.3f);
+            Game.OnBeforeDraw += (x, z) =>
+            {
+                lucy.GetInstance(0).Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, 0.005f));
+            };
 
             //   var sss = Object3dManager.LoadSceneFromObj("sintel.obj", "sintel.mtl");
             //  sss.ForEach((a) => Game.World.Scene.Add(a));

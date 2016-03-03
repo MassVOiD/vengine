@@ -58,18 +58,28 @@ Material getCurrentMaterial(){
 
 Material currentMaterial = getCurrentMaterial();
 
+struct ModelInfo{
+	vec4 Rotation;
+	vec3 Translation;
+	uint Id;
+	vec4 Scale;
+};
+
 layout (std430, binding = 0) buffer MMBuffer
 {
-  mat4 ModelMatrixes[]; 
+  ModelInfo ModelInfos[]; 
 }; 
-layout (std430, binding = 1) buffer RMBuffer
-{
-  mat4 RotationMatrixes[]; 
-}; 
-layout (std430, binding = 2) buffer IDMBuffer
-{
-  uint InstancedIds[]; 
-}; 
+
+#include Quaternions.glsl
+
+vec3 transform_vertex(int info, vec3 vertex){
+	vec3 result = vertex;
+	result *= ModelInfos[info].Scale.xyz;
+	result = quat_mul_vec(ModelInfos[info].Rotation, result);
+	result += ModelInfos[info].Translation.xyz;
+	return result;
+}
+
 uniform vec3 CameraPosition;
 //uniform vec3 CameraDirection;
 uniform float Time;
@@ -94,7 +104,6 @@ uniform float Brightness;
 #define normalsTex sampler2D(currentMaterial.normalAddr)
 #define specularTex sampler2D(currentMaterial.specularAddr)
 #define roughnessTex sampler2D(currentMaterial.roughnessAddr)
-
 
 #define Roughness currentMaterial.roughnessAndParallaxHeight.x
 #define ParallaxHeightMultiplier currentMaterial.roughnessAndParallaxHeight.y

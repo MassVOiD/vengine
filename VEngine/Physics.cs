@@ -99,7 +99,6 @@ namespace VEngine
             if(ActiveBodies.Count == 0 || World == null)
             {
                 System.Threading.Thread.Sleep(100);
-                Console.Write("lal");
                 return;
             }
             if(AddBodyQueue.Count > 0)

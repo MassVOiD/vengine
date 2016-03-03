@@ -12,7 +12,7 @@ namespace VEngine
         public Object3dInfo Info3d;
         public GenericMaterial Material;
 
-        private const int matbsize = 16 * 4;
+        private const int matbsize = 12 * 4;
 
         private const int uintbsize = 4;
 
@@ -20,13 +20,9 @@ namespace VEngine
 
         private int InstancesFiltered = 0;
 
-        private byte[] Matrix = new byte[0];
+        private byte[] ModelInfosData = new byte[0];
 
-        private byte[] MeshColoredID = new byte[0];
-
-        private ShaderStorageBuffer ModelMatricesBuffer, RotationMatricesBuffer, Ids;
-
-        private byte[] RotationMatrix = new byte[0];
+        private ShaderStorageBuffer ModelInfosBuffer;
 
         public LodLevel(Object3dInfo o3i, GenericMaterial gm, float distStart, float distEnd)
         {
@@ -34,9 +30,7 @@ namespace VEngine
             DistanceEnd = distEnd;
             Info3d = o3i;
             Material = gm;
-            ModelMatricesBuffer = new ShaderStorageBuffer();
-            RotationMatricesBuffer = new ShaderStorageBuffer();
-            Ids = new ShaderStorageBuffer();
+            ModelInfosBuffer = new ShaderStorageBuffer();
         }
 
         public void Draw(Mesh3d container, int instances)
@@ -69,10 +63,15 @@ namespace VEngine
             }*/
             Material.Use();
             container.SetUniforms();
-            ModelMatricesBuffer.Use(0);
-            RotationMatricesBuffer.Use(1);
-            Ids.Use(2);
+            ModelInfosBuffer.Use(0);
+
+            if(Material.AlphaTexture != null)
+                GL.Disable(EnableCap.CullFace);
+
             Info3d.DrawInstanced(InstancesFiltered);
+
+            if(Material.AlphaTexture != null)
+                GL.Enable(EnableCap.CullFace);
         }
         
         public void UpdateMatrix(List<Mesh3dInstance> instances, bool instantRebuffer = false)
@@ -85,18 +84,15 @@ namespace VEngine
                 float dst = (instances[i].GetPosition() - cameraPos).Length;
                 if(dst >= DistanceStart && dst < DistanceEnd)
                 {
-                    if(Matrix.Length < instances.Count * matbsize)
+                    if(ModelInfosData.Length < instances.Count * matbsize)
                     {
-                        Matrix = new byte[instances.Count * matbsize];
-                        RotationMatrix = new byte[instances.Count * matbsize];
-                        MeshColoredID = new byte[instances.Count * uintbsize];
+                        ModelInfosData = new byte[instances.Count * matbsize];
                     }
                     // MeshColoredID[instancesFiltered] = (instances[i].Id);
                     var rot = Matrix4.CreateFromQuaternion(instances[i].GetOrientation());
-                    memset(ref RotationMatrix, rot, instancesFiltered * matbsize);
-                    memset(ref Matrix, (Matrix4.CreateScale(instances[i].GetScale()) * rot * Matrix4.CreateTranslation(instances[i].GetPosition())), instancesFiltered * matbsize);
-                    memset(ref MeshColoredID, instances[i].Id, instancesFiltered * uintbsize);
-                    // Matrix[instancesFiltered] = (Matrix4.CreateScale(instances[i].GetScale()) * RotationMatrix[instancesFiltered] * Matrix4.CreateTranslation(instances[i].GetPosition()));
+                    
+                    memset(ref ModelInfosData, instances[i].GetOrientation(), instances[i].GetPosition(), instances[i].Id, instances[i].GetScale(), instancesFiltered * matbsize);
+
                     instancesFiltered++;
                 }
             }
@@ -105,9 +101,7 @@ namespace VEngine
                 Game.Invoke(() =>
                 {
                     //GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
-                    ModelMatricesBuffer.MapData(Matrix);
-                    RotationMatricesBuffer.MapData(RotationMatrix);
-                    Ids.MapData(MeshColoredID);
+                    ModelInfosBuffer.MapData(ModelInfosData);
                     //GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
                     //GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
                     InstancesFiltered = instancesFiltered;
@@ -116,9 +110,7 @@ namespace VEngine
             else
             {
                 GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
-                ModelMatricesBuffer.MapData(Matrix);
-                RotationMatricesBuffer.MapData(RotationMatrix);
-                Ids.MapData(MeshColoredID);
+                ModelInfosBuffer.MapData(ModelInfosData);
                 GL.FenceSync(SyncCondition.SyncGpuCommandsComplete, WaitSyncFlags.None);
                 GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
                 InstancesFiltered = instancesFiltered;
@@ -173,6 +165,39 @@ namespace VEngine
         private static void memset(ref byte[] array, uint value, int starti)
         {
             bset(BitConverter.GetBytes(value), ref array, starti, 4);
+        }
+
+        private static void memset(ref byte[] array, Quaternion rotation, Vector3 translation, uint Id, Vector3 scale, int starti)
+        {
+            int ind = starti;
+
+            bset(BitConverter.GetBytes(rotation.X), ref array, ind, 4);
+            ind += 4;
+            bset(BitConverter.GetBytes(rotation.Y), ref array, ind, 4);
+            ind += 4;
+            bset(BitConverter.GetBytes(rotation.Z), ref array, ind, 4);
+            ind += 4;
+            bset(BitConverter.GetBytes(rotation.W), ref array, ind, 4);
+            ind += 4;
+
+            bset(BitConverter.GetBytes(translation.X), ref array, ind, 4);
+            ind += 4;
+            bset(BitConverter.GetBytes(translation.Y), ref array, ind, 4);
+            ind += 4;
+            bset(BitConverter.GetBytes(translation.Z), ref array, ind, 4);
+            ind += 4;
+
+            bset(BitConverter.GetBytes(Id), ref array, ind, 4);
+            ind += 4;
+
+            bset(BitConverter.GetBytes(scale.X), ref array, ind, 4);
+            ind += 4;
+            bset(BitConverter.GetBytes(scale.Y), ref array, ind, 4);
+            ind += 4;
+            bset(BitConverter.GetBytes(scale.Z), ref array, ind, 4);
+            ind += 4;
+            bset(BitConverter.GetBytes(0.0f), ref array, ind, 4);
+            //ind += 4;
         }
     }
 }

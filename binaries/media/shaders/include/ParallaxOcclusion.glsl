@@ -3,8 +3,8 @@ float newParallaxHeight = 0;
 float parallaxScale = 0.02 * ParallaxHeightMultiplier;
 vec2 adjustParallaxUV(){
     
-    vec3 twpos =  (RotationMatrixes[Input.instanceId] * vec4(normalize(Input.Tangent.xyz), 0)).xyz;
-    vec3 nwpos =  (RotationMatrixes[Input.instanceId] * vec4(normalize(Input.Normal), 0)).xyz;
+    vec3 twpos = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, normalize(Input.Tangent.xyz));
+    vec3 nwpos = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, normalize(Input.Normal));
     vec3 bwpos =  normalize(cross(twpos, nwpos)) * Input.Tangent.w;
      
     vec3 eyevec = ((CameraPosition - Input.WorldPos));

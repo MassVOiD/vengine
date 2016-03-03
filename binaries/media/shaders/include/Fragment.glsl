@@ -76,14 +76,14 @@ void main(){
 		currentFragment.normal = TBN * examineBumpMap();
 	}
 	if(UseRoughnessTex) currentFragment.roughness = max(0.07, texture(roughnessTex, UV).r);
-	if(UseAlphaTex) currentFragment.alpha = texture(alphaTex, UV).r; 
 	if(UseDiffuseTex) currentFragment.diffuseColor = texture(diffuseTex, UV).rgb; 
 	//if(UseDiffuseTex && !UseAlphaTex)currentFragment.alpha = texture(diffuseTex, UV).r; 
 	if(UseSpecularTex) currentFragment.specularColor = texture(specularTex, UV).rgb; 
 	if(UseBumpTex) currentFragment.bump = texture(bumpTex, UV).r; 
+	if(UseAlphaTex) currentFragment.alpha = texture(alphaTex, UV).r; 
 	if(currentFragment.alpha < 0.01) discard;
 	
-	currentFragment.normal = (RotationMatrixes[Input.instanceId] * vec4(currentFragment.normal, 0)).xyz;
+	currentFragment.normal = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, currentFragment.normal);
 	
 
 	outAlbedoRoughness = vec4(currentFragment.diffuseColor, currentFragment.roughness);

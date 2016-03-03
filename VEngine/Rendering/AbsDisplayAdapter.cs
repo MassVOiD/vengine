@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
@@ -16,7 +17,7 @@ namespace VEngine
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(new ColorFormat(8, 8, 8, 8), 8, 0, 1), title, flags,
-                DisplayDevice.Default, 4, 4,
+                DisplayDevice.Default, 4, 5,
                 GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
             Game.DisplayAdapter = this;
@@ -38,10 +39,11 @@ namespace VEngine
             GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
 
             GL.Disable(EnableCap.Blend);
-           // GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
-          //  {
-          //      Console.WriteLine("{0} {1} {2} {3} {4} {5} {6}", source, type, id, severity, length, message, userParam);
-          //  }, (IntPtr)0);
+            GL.DebugMessageCallback((source, type, id, severity, length, message, userParam) =>
+            {
+                string msg = Marshal.PtrToStringAnsi(message);
+                Console.WriteLine("{0} {1} {2} {3} {4} {5} {6}", source, type, id, severity, length, msg, userParam);
+            }, (IntPtr)0);
 
             MouseMove += Mouse_Move;
             KeyPress += VEngineWindowAdapter_KeyPress;

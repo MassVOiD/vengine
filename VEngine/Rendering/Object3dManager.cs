@@ -120,6 +120,14 @@ namespace VEngine
             Vertices = vertices;
         }
 
+        public Object3dInfo AsObject3dInfo()
+        {
+            return new Object3dInfo(this.Vertices)
+            {
+                Manager = this
+            };
+        }
+
         public enum NormalRecalculationType
         {
             Flat,

@@ -56,6 +56,8 @@ namespace VEngine
 
         private Object3dInfo CubeMapSphere;
 
+        private Texture GlareTexture;
+
         public void Resize(int initialWidth, int initialHeight)
         {
             DistanceFramebuffer.FreeGPU();
@@ -113,6 +115,8 @@ namespace VEngine
 
         public Renderer(int initialWidth, int initialHeight, int samples)
         {
+            GlareTexture = new Texture(Media.Get("glaretex.png"));
+
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
             var cubeMapTexDefault = new CubeMapTexture(Media.Get("posx.jpg"), Media.Get("posy.jpg"), Media.Get("posz.jpg"),
@@ -120,7 +124,7 @@ namespace VEngine
             CubeMaps.Add(new CubeMapInfo()
             {
                 Texture = cubeMapTexDefault,
-                FalloffScale = 99999.0f,
+                FalloffScale = 99999999.0f,
                 Position = Vector3.Zero
             });
 
@@ -266,7 +270,7 @@ namespace VEngine
             MRT.UseTextures(1, 2, 3);
 
             DeferredFramebuffer.UseTexture(7);
-            DistanceFramebuffer.UseTexture(8);
+           // DistanceFramebuffer.UseTexture(8);
             //ScreenSpaceReflectionsFramebuffer.GenerateMipMaps();
             ScreenSpaceReflectionsFramebuffer.UseTexture(9);
             EnvLightFramebuffer.UseTexture(10);
@@ -351,6 +355,7 @@ namespace VEngine
             Game.World.Scene.SetLightingUniforms(DeferredShader);
             Game.World.Scene.MapLightsSSBOToShader(DeferredShader);
             DeferredFramebuffer.Use();
+            GlareTexture.Use(TextureUnit.Texture12);
             DrawPPMesh();
             Game.CheckErrors("Deferred pass");
         }
@@ -366,10 +371,10 @@ namespace VEngine
             {
                 if(i == Game.World.CurrentlyRenderedCubeMap)
                     continue;
-                Matrix4 mat = Matrix4.CreateScale(CubeMaps[i].FalloffScale) * Matrix4.CreateTranslation(CubeMaps[i].Position);
+                Matrix4 mat = Matrix4.CreateScale(CubeMaps[i].FalloffScale) * Matrix4.CreateTranslation(CubeMaps[i].FalloffScale > 99999.0f ? Camera.MainDisplayCamera.GetPosition() : CubeMaps[i].Position);
                 CubeMaps[i].Texture.Use(TextureUnit.Texture12);
                 EnvLightShader.SetUniform("ModelMatrix", mat);
-                EnvLightShader.SetUniform("MapPosition", CubeMaps[i].Position);
+                EnvLightShader.SetUniform("MapPosition", CubeMaps[i].FalloffScale > 99999.0f ? Camera.MainDisplayCamera.GetPosition() : CubeMaps[i].Position);
                 EnvLightShader.SetUniform("CubeCutOff", CubeMaps[i].FalloffScale);
                 CubeMapSphere.Draw();
             }
@@ -434,7 +439,7 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
             //CubeMap.Use(TextureUnit.Texture8);
-            DistanceFramebuffer.UseTexture(8);
+            //DistanceFramebuffer.UseTexture(8);
             //EnableBlending();
             GL.ColorMask(true, true, true, true);
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;

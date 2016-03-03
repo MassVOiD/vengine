@@ -143,6 +143,26 @@ namespace VEngine
             FireOnUpdate();
         }
 
+        public TransformationManager(Vector3 pos, float scale)
+        {
+            Position = pos;
+            Orientation = Quaternion.Identity;
+            ScaleValue = new Vector3(scale, scale, scale);
+            BeenModified = true;
+            LastUpdated = DateTime.Now;
+            FireOnUpdate();
+        }
+
+        public TransformationManager(Vector3 pos, Vector3 scale)
+        {
+            Position = pos;
+            Orientation = Quaternion.Identity;
+            ScaleValue = scale;
+            BeenModified = true;
+            LastUpdated = DateTime.Now;
+            FireOnUpdate();
+        }
+
         public TransformationManager(Vector3 pos, Vector3 axis, float angle, float scale)
         {
             Position = pos;

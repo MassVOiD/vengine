@@ -86,7 +86,7 @@ namespace VEngine.Generators
             };
             return new Object3dManager(VertexInfo.FromFloatArray(VBO));
         }
-
+        
         public static Object3dManager CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<float, float, float> heightGenerator)
         {
             var VBO = new List<float>();

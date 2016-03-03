@@ -73,7 +73,7 @@ namespace ShadowsTester
                 lucy.AddInstance(new Mesh3dInstance(new TransformationManager(cubens.GetPosition(), Quaternion.Identity, 0.1f), "cubemap-marker-" + cnt.ToString()));
                 var info = new Renderer.CubeMapInfo()
                 {
-                    FalloffScale = 8.0f,
+                    FalloffScale = 100.0f,
                     Texture = cubens.Texture,
                     Position = cubens.GetPosition()
                 };
@@ -127,7 +127,7 @@ namespace ShadowsTester
                         for(int y = 0; y < 10; y++)
                         {
                             int i = y + x * 10;
-                            lucy.GetInstance(i).SetPosition(cpos + new Vector3(x - 5, 0, y - 5) * 2 );
+                            lucy.GetInstance(i).SetPosition(cpos + new Vector3(x - 5, 0, y - 5) * 52 );
                         }
 
                 }
