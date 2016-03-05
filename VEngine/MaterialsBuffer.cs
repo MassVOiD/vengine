@@ -26,10 +26,10 @@ namespace VEngine
         {
             byte[] bytes = new byte[96 * materials.Count];
             int cursor = 0, cursor2 = 0;
-            foreach(var mat in materials) {
-                bset(SerializeMaterial(mat), ref bytes, cursor, 96);
+            for(int i=0;i< materials.Count;i++) {
+                bset(SerializeMaterial(materials[i]), ref bytes, cursor, 96);
                 cursor += 96;
-                mat.BufferOffset = cursor2;
+                materials[i].BufferOffset = cursor2;
                 cursor2++;
             }
             Buffer.MapData(bytes);

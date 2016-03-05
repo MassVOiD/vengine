@@ -79,6 +79,7 @@
     <Compile Include="ItemSelector.Designer.cs">
       <DependentUpon>ItemSelector.cs</DependentUpon>
     </Compile>
+    <Compile Include="PhysicsTest.cs" />
     <Compile Include="LightningTestScene.cs" />
     <Compile Include="OldCityScene.cs" />
     <Compile Include="KeyboardHandler.cs" />

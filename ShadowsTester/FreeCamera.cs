@@ -55,23 +55,34 @@ namespace ShadowsTester
 
         private void OnMouseMove(object sender, OpenTK.Input.MouseMoveEventArgs e)
         {
-            if(Freeze)
+            /*
+            if(Freeze || (e.XDelta == 0 && e.YDelta == 0))
                 return;
-            Cam.Pitch += (float)e.XDelta / 100.0f;
-            if(Cam.Pitch > MathHelper.TwoPi)
-                Cam.Pitch -= MathHelper.TwoPi;
 
-            Cam.Roll += (float)e.YDelta / 100.0f;
-            if(Cam.Roll > MathHelper.Pi / 2)
-                Cam.Roll = MathHelper.Pi / 2;
-            if(Cam.Roll < -MathHelper.Pi / 2)
-                Cam.Roll = -MathHelper.Pi / 2;
+            float newPitch = Cam.Pitch + (float)e.XDelta / 100.0f;
+            if(newPitch > MathHelper.TwoPi)
+                newPitch -= MathHelper.TwoPi;
+
+            float newRoll = Cam.Roll + (float)e.YDelta / 100.0f;
+            if(newRoll > MathHelper.Pi / 2)
+                newRoll = MathHelper.Pi / 2;
+            else if(newRoll < -MathHelper.Pi / 2)
+                newRoll = -MathHelper.Pi / 2;
+
+            if(newRoll != Cam.Roll)
+                Cam.Roll = newRoll;
+            if(newPitch != Cam.Pitch)
+                Cam.Pitch = newPitch;
+
+            Console.WriteLine("{0}, {1}", Cam.Pitch, Cam.Roll);*/
 
             //Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
-
-            Cam.UpdateFromRollPitch();
-            Cam.Transformation.ClearModifiedFlag();
+            //Cam.Transformation.ClearModifiedFlag();
+            //Game.Invoke(() => Cam.UpdateFromRollPitch());
+            
         }
+
+        float mousespeedX = 0.0f, mousespeedY = 0.0f; 
         
         private void UpdateSterring(object o, OpenTK.FrameEventArgs e)
         {
@@ -90,10 +101,47 @@ namespace ShadowsTester
             var currentPosition = Cam.GetPosition();
             if(Game.DisplayAdapter.IsCursorVisible)
                 return;
-            var keyboard = OpenTK.Input.Keyboard.GetState();
-            KeyboardHandler.Process();
 
-            float speed = (float)time;
+            var mouse = OpenTK.Input.Mouse.GetCursorState();
+            
+
+            var p = Game.DisplayAdapter.PointToScreen(new System.Drawing.Point(Game.Resolution.Width / 2, Game.Resolution.Height / 2));
+            var p3 = (new System.Drawing.Point(Game.Resolution.Width / 2, Game.Resolution.Height / 2));
+            var p2 =  (new System.Drawing.Point(mouse.X, mouse.Y));
+            Console.WriteLine(p2);
+            int deltaX = p2.X - p.X;
+            int deltaY = p2.Y - p.Y;
+            System.Windows.Forms.Cursor.Position = p;
+
+            mousespeedX += (float)deltaX / 200.0f;
+            mousespeedX *= 0.7f;
+            mousespeedY += (float)deltaY / 200.0f;
+            mousespeedY *= 0.7f;
+
+            if(!Freeze)
+            {
+
+                float newPitch = Cam.Pitch + mousespeedX;
+                if(newPitch > MathHelper.TwoPi)
+                    newPitch -= MathHelper.TwoPi;
+
+                float newRoll = Cam.Roll + mousespeedY;
+                if(newRoll > MathHelper.Pi / 2)
+                    newRoll = MathHelper.Pi / 2;
+                else if(newRoll < -MathHelper.Pi / 2)
+                    newRoll = -MathHelper.Pi / 2;
+
+                if(newRoll != Cam.Roll)
+                    Cam.Roll = newRoll;
+                if(newPitch != Cam.Pitch)
+                    Cam.Pitch = newPitch;
+            }
+
+
+            var keyboard = OpenTK.Input.Keyboard.GetState(0);
+            //KeyboardHandler.Process();
+
+            float speed = 0.01f;
             if(keyboard.IsKeyDown(OpenTK.Input.Key.ShiftLeft))
             {
                 speed *= 7f;
@@ -114,6 +162,8 @@ namespace ShadowsTester
             {
                 Camera.MainDisplayCamera.Brightness += 0.003f;
             }
+            
+            bool needsUpdate = false;
 
             if(keyboard.IsKeyDown(OpenTK.Input.Key.W))
             {
@@ -124,6 +174,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
                 currentPosition -= direction.Xyz * speed;
+                needsUpdate = true;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.S))
             {
@@ -134,6 +185,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
                 currentPosition -= direction.Xyz * speed;
+                needsUpdate = true;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.A))
             {
@@ -144,6 +196,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
                 currentPosition -= direction.Xyz * speed;
+                needsUpdate = true;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.D))
             {
@@ -154,6 +207,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
                 currentPosition -= direction.Xyz * speed;
+                needsUpdate = true;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.Space))
             {
@@ -163,18 +217,21 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 currentPosition -= direction.Xyz * speed;
+                needsUpdate = true;
             }
 
             // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f,
             // rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
-            if(Cam.Transformation.GetPosition() != currentPosition)
-            {
+           // if(needsUpdate)
+           // {
                 Cam.Transformation.SetPosition(currentPosition);
-                Cam.Transformation.MarkAsModified();
-            }
+                Cam.Transformation.ClearModifiedFlag();
+               // Cam.Update();
+          //  }
+            Cam.UpdateFromRollPitch(); 
 
             //Cam.UpdateFromRollPitch();
-            Cam.Update();
+            //Cam.Update();
         }
     }
 }

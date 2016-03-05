@@ -203,19 +203,24 @@ namespace VEngine
 
         public void UpdateFromRollPitch()
         {
-            var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, Pitch);
-            var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, Roll);
-            Transformation.SetOrientation(Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted()));
-            RotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
-            ViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
-
-            if(cone == null)
+            lock (Transformation)
             {
-                var tcone = FrustumCone.Create(Transformation.GetPosition(), ViewMatrix, ProjectionMatrix);
-                cone = tcone;
+                var rotationX = Quaternion.FromAxisAngle(Vector3.UnitY, Pitch);
+                var rotationY = Quaternion.FromAxisAngle(Vector3.UnitX, Roll);
+                Transformation.SetOrientation(Quaternion.Multiply(rotationX.Inverted(), rotationY.Inverted()));
+                var tRotationMatrix = Matrix4.CreateFromQuaternion(rotationX) * Matrix4.CreateFromQuaternion(rotationY);
+                var tViewMatrix = Matrix4.CreateTranslation(-Transformation.GetPosition()) * RotationMatrix;
+
+                if(cone == null)
+                {
+                    var tcone = FrustumCone.Create(Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
+                    cone = tcone;
+                }
+                else
+                    FrustumCone.Update(cone, Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
+                RotationMatrix = tRotationMatrix;
+                ViewMatrix = tViewMatrix;
             }
-            else
-                FrustumCone.Update(cone, Transformation.GetPosition(), ViewMatrix, ProjectionMatrix);
         }
 
         public void UpdateInverse()

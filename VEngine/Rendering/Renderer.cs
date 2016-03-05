@@ -258,6 +258,8 @@ namespace VEngine
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             HDR();
         }
+
+        private Matrix4 LastViewMatrix = Matrix4.Identity;
         
         public void SetUniformsShared()
         {
@@ -265,6 +267,9 @@ namespace VEngine
             //shader.SetUniform("ViewMatrix", Camera.Current.GetViewMatrix());
             //shader.SetUniform("ProjectionMatrix", Camera.Current.GetProjectionMatrix());
             shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
+            shader.SetUniform("ProjectionMatrix", Camera.Current.GetProjectionMatrix());
+            shader.SetUniform("CurrentViewMatrix", Camera.Current.GetViewMatrix());
+            shader.SetUniform("LastViewMatrix", LastViewMatrix);
             Camera.Current.SetUniforms();
 
             MRT.UseTextures(1, 2, 3);
@@ -394,6 +399,7 @@ namespace VEngine
             }
             DrawPPMesh();
             Game.CheckErrors("HDR pass");
+            LastViewMatrix = Camera.Current.GetViewMatrix();
         }
         private void ScreenSpaceReflections()
         {
@@ -451,7 +457,8 @@ namespace VEngine
             Deferred();
             if(GraphicsSettings.UseSSReflections)
                 ScreenSpaceReflections();
-            Bloom();
+            if(GraphicsSettings.UseBloom)
+                Bloom();
         }
 
         private void SwitchToFB(Framebuffer buffer)

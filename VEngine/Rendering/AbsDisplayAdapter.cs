@@ -85,6 +85,8 @@ namespace VEngine
             VSync = VSyncMode.Off;
             TargetRenderFrequency = 3000;
             TargetUpdateFrequency = 3000;
+            this.Context.ErrorChecking = true;
+            
             //this.Context.
 
             var s = GL.GetString(StringName.Version);
@@ -113,8 +115,8 @@ namespace VEngine
         {
             if(Game.Resolution.Width != this.Width || Game.Resolution.Height != this.Height)
                 Game.InvokeOnResize(e);
-            Interpolator.StepAll();
-            TransformationJoint.Resolve();
+            //Interpolator.StepAll();
+            //TransformationJoint.Resolve();
 
             Game.CurrentFrameTime = (float)( e.Time * 1000.0 );
 
@@ -158,10 +160,7 @@ namespace VEngine
             {
                 if(!CursorVisible)
                 {
-                    var p = this.PointToScreen(new System.Drawing.Point(Width / 2, Height / 2));
-                    var p2 = this.PointToScreen(new System.Drawing.Point(e.X, e.Y));
-                    Game.InvokeOnMouseMove(new OpenTK.Input.MouseMoveEventArgs(e.X, e.Y, p2.X - p.X, p2.Y - p.Y));
-                    System.Windows.Forms.Cursor.Position = p;
+                    Game.InvokeOnMouseMove(e);
                 }
                 else
                 {

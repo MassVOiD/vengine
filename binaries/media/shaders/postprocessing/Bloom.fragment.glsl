@@ -129,9 +129,9 @@ vec3 makeGlare(vec2 uv, int samples, float power){
 
 void main()
 {
-	vec3 res = gauss(UV, 16, 3);
-	res += gauss(UV, 32, 3) * vec3(0.7, 0.8, 1);
-	res += gauss(UV, 96, 3) * vec3(0.5, 0.6, 1);
+	vec3 res = gauss(UV, 32, 3);
+	res += gauss(UV, 48, 3) * vec3(0.7, 0.8, 1);
+	res += gauss(UV, 64, 3) * vec3(0.5, 0.6, 1);
 	res *= 0.25;
 	// res += gauss((1.0 - UV), 16, 1) * vec3(0.5, 0.6, 1);
 	// res += makeGlare(UV, 32, 2) * 0.1;

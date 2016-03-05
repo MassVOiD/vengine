@@ -66,7 +66,6 @@ namespace ShadowsTester
             Game.Invoke(() =>
             {
                 PassiveVoxelizer vox = new PassiveVoxelizer();
-                List<VoxelGI.VoxelContainer> containers = new List<VoxelGI.VoxelContainer>();
                 Random rand = new Random();
 
                 for(var i = 0; i < cnt; i++)
@@ -118,17 +117,14 @@ namespace ShadowsTester
                 {
                   //  gi.UpdateGI();
                 };
-                DynamicCubeMapController.Create();
+                var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
+                Game.World.Scene.Add(lucy);
+                lucy.GetInstance(0).Scale(0.3f);
+                
+                //DynamicCubeMapController.Create();
                 GenericMaterial.UpdateMaterialsBuffer();
             });
 
-            var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
-            Game.World.Scene.Add(lucy);
-            lucy.GetInstance(0).Scale(0.3f);
-            Game.OnBeforeDraw += (x, z) =>
-            {
-                lucy.GetInstance(0).Rotate(Quaternion.FromAxisAngle(Vector3.UnitY, 0.005f));
-            };
 
             //   var sss = Object3dManager.LoadSceneFromObj("sintel.obj", "sintel.mtl");
             //  sss.ForEach((a) => Game.World.Scene.Add(a));

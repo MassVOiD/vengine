@@ -90,7 +90,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 		
 		for(int id = 0; id < shadowmapSamples.length(); id++){ 
 			fakeUV = uv + (RM * shadowmapSamples[id]) * distance2 * 0.00005 * LightsBlurFactors[i];
-			accum += lookupDepthFromLight(i, fakeUV, distance3 + 0.00006);
+			accum += lookupDepthFromLight(i, clamp(fakeUV, 0.001, 0.999), distance3 + 0.00006);
 		}	
 	}
     

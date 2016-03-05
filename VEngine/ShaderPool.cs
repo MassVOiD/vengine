@@ -16,11 +16,11 @@ namespace VEngine
                 Geometry1iTriangles,
                 Geometry96iTriangles;
 
-            public List<ShaderProgram> ProgramsList;
+            public ShaderProgram[] ProgramsList;
 
             public ShaderPack(string fs = null)
             {
-                ProgramsList = new List<ShaderProgram>();
+                ProgramsList = new ShaderProgram[4];
                 if(Program == null)
                     Program = ShaderProgram.Compile("Generic.vertex.glsl",
                        fs);
@@ -33,28 +33,26 @@ namespace VEngine
                 if(Geometry96iTriangles == null)
                     Geometry96iTriangles = ShaderProgram.Compile("Generic.vertex.glsl",
                         fs, "Generic.geometry96iTriangles.geometry.glsl");
-                ProgramsList.AddRange(new ShaderProgram[] {
-                    Program,
-                    TesselatedProgram,
-                    Geometry1iTriangles,
-                    Geometry96iTriangles,
-                });
-            }
-            public void SetGlobal(string name, string value)
-            {
-                ProgramsList.ForEach((a) => a.SetGlobal(name, value));
+
+                ProgramsList[0] = Program;
+                ProgramsList[1] = TesselatedProgram;
+                ProgramsList[2] = Geometry1iTriangles;
+                ProgramsList[3] = Geometry96iTriangles;
+
             }
         }
         private ShaderPack DepthOnly, GenericMaterial, DistanceOnly;
 
+        private ShaderPack[] Packs;
+
         public ShaderPack[] GetPacks()
         {
-            return new ShaderPack[] { DepthOnly, GenericMaterial, DistanceOnly };
+            return Packs;
         }
-        
+
         public ShaderPack ChooseShaderGenericMaterial()
         {
-        return GenericMaterial;
+            return GenericMaterial;
         }
         public ShaderPack ChooseShaderDepth()
         {
@@ -72,6 +70,8 @@ namespace VEngine
             GenericMaterial = new ShaderPack("Generic.fragment.glsl");
 
             DistanceOnly = new ShaderPack("DistanceOnly.fragment.glsl");
+
+            Packs = new ShaderPack[] { DepthOnly, GenericMaterial, DistanceOnly };
         }
     }
 }

@@ -59,6 +59,7 @@ void main()
         color += ApplyLighting(currentFragment);
     }
     color /= samples;
-    if(textureMSAAFull(normalsDistancetex, UV).a < 0.001)color.rgb = vec3(0.0);
+	//color = textureMSAA(albedoRoughnessTex, UV, 0).rgb;
+    if(textureMSAAFull(normalsDistancetex, UV).a < 0.001)color.rgb = vec3(1.0, 0, 0);
     outColor = clamp(vec4(color, 1.0), 0.0, 10000.0);
 }

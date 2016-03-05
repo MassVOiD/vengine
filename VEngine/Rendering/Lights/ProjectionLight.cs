@@ -33,7 +33,7 @@ namespace VEngine
             FBO.DepthPixelFormat = PixelFormat.DepthComponent;
             FBO.DepthPixelType = PixelType.Float;
         }
-        
+
         public Vector3 GetColor()
         {
             return LightColor;
@@ -83,14 +83,15 @@ namespace VEngine
             Camera.Current = camera;
             FBO.Use();
 
-            Game.ShaderPool.ChooseShaderDepth().ProgramsList.ForEach((shader) =>
+            for(int i = 0; i < Game.ShaderPool.ChooseShaderDepth().ProgramsList.Length; i++)
             {
-                if(!shader.Compiled)
-                    return;
-                shader.Use();
+                if(!Game.ShaderPool.ChooseShaderDepth().ProgramsList[i].Compiled)
+                    continue;
+                Game.ShaderPool.ChooseShaderDepth().ProgramsList[i].Use();
                 ShaderProgram.Current.SetUniform("LightPosition", camera.Transformation.GetPosition());
                 ShaderProgram.Current.SetUniform("LightColor", LightColor);
-            });
+            }
+
 
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDepth();
             InternalRenderingState.PassState = InternalRenderingState.State.ShadowMapPass;
@@ -98,9 +99,6 @@ namespace VEngine
             Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
-            //if(Skybox.Current != null)
-            //    Skybox.Current.Draw();
-            //ParticleSystem.DrawAll(true);
             Camera.Current = last;
             NeedsRefreshing = false;
         }
@@ -117,11 +115,11 @@ namespace VEngine
             camera.Transformation.SetOrientation(orientation);
             camera.Update();
         }
-        
+
         public void UpdateInverse()
         {
             camera.UpdateInverse();
         }
-        
+
     }
 }

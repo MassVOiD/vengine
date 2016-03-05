@@ -333,16 +333,16 @@ namespace VEngine
             return SwitchResult.Switched;
         }
 
-        private static int GetUniformLocation(string name)
+        private int GetUniformLocation(string name)
         {
-            if(Current.Handle == -1)
+            if(Handle == -1)
                 return -1;
-            if(Current.UniformLocationsCache.ContainsKey(name))
-                return Current.UniformLocationsCache[name];
-            int location = GL.GetUniformLocation(Current.Handle, name);
+            if(UniformLocationsCache.ContainsKey(name))
+                return UniformLocationsCache[name];
+            int location = GL.GetUniformLocation(Handle, name);
             Game.CheckErrors("Locating " + name);
             //if(!Lock)
-            Current.UniformLocationsCache.Add(name, location);
+            UniformLocationsCache.Add(name, location);
             //if(Lock && name == "Time")
             //    return -1;
             return location;

@@ -14,7 +14,7 @@ namespace VEngine
 {
     public class Object3dInfo
     {
-        public bool DrawGridInsteadOfTriangles = false;
+        public PrimitiveType DrawMode = PrimitiveType.Triangles;
 
         private float[] VBO;
 
@@ -51,7 +51,7 @@ namespace VEngine
         {
             DrawPrepare();
             Game.CheckErrors();
-            GL.DrawArrays(ShaderProgram.Current.UsingTessellation ? PrimitiveType.Patches : (DrawGridInsteadOfTriangles == false ? PrimitiveType.Triangles : PrimitiveType.Lines), 0, IndicesCount);
+            GL.DrawArrays(ShaderProgram.Current.UsingTessellation ? PrimitiveType.Patches : DrawMode, 0, IndicesCount);
             //Game.CheckErrors();
         }
 
@@ -60,13 +60,22 @@ namespace VEngine
             if(count == 0)
                 return;
             DrawPrepare();
-            GL.DrawArraysInstanced(ShaderProgram.Current.UsingTessellation ? PrimitiveType.Patches : (DrawGridInsteadOfTriangles == false ? PrimitiveType.Triangles : PrimitiveType.Lines), 0, IndicesCount,
+            GL.DrawArraysInstanced(ShaderProgram.Current.UsingTessellation ? PrimitiveType.Patches : DrawMode, 0, IndicesCount,
                      count);
             //Game.CheckErrors();
         }
         
         public void UpdateTangents()
         {
+            if(IndicesCount == 1)
+            {
+                Array.Resize(ref VBO, 12);
+                VBO[ 8] = 0;
+                VBO[ 9] = 1;
+                VBO[ 10] = 0;
+                VBO[ 11] = 1;
+                return;
+            }
             var floats = new List<float>();
             for(int i = 0; i < IndicesCount; i += 3)
             {
@@ -198,7 +207,6 @@ namespace VEngine
             
             GL.BindVertexArray(0);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
             
             AreBuffersGenerated = true;
             //Draw();

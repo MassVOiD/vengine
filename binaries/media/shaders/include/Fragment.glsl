@@ -3,7 +3,6 @@ layout(location = 1) out vec4 outNormalsDistance;
 layout(location = 2) out vec4 outSpecularBump;
 
 
-//vec2 UV = gl_FragCoord.xy / textureSize(distanceTex, 0);
 
 uniform int DisablePostEffects;
 uniform float VDAOGlobalMultiplier;
@@ -17,6 +16,7 @@ uniform float VDAOGlobalMultiplier;
 uniform float NormalMapScale;
 
 uniform int InvertNormalMap;
+//vec2 UVx = gl_FragCoord.xy / resolution.xy;
 
 vec2 getTexel(sampler2D t){
 	return 1.0 / vec2(textureSize(t, 0));
@@ -84,7 +84,6 @@ void main(){
 	if(currentFragment.alpha < 0.01) discard;
 	
 	currentFragment.normal = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, currentFragment.normal);
-	
 
 	outAlbedoRoughness = vec4(currentFragment.diffuseColor, currentFragment.roughness);
 	outNormalsDistance = vec4(currentFragment.normal, currentFragment.cameraDistance);

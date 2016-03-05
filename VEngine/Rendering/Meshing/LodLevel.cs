@@ -65,7 +65,7 @@ namespace VEngine
             container.SetUniforms();
             ModelInfosBuffer.Use(0);
 
-            if(Material.AlphaTexture != null)
+            //if(Material.AlphaTexture != null)
                 GL.Disable(EnableCap.CullFace);
 
             Info3d.DrawInstanced(InstancesFiltered);

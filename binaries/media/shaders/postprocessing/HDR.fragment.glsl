@@ -193,45 +193,60 @@ vec3 rgb_to_srgb(vec3 rgb) {
     );
 }
 
+uniform mat4 CurrentViewMatrix;
+uniform mat4 LastViewMatrix;
+uniform mat4 ProjectionMatrix;
+
+vec2 projectMotion(vec3 pos){
+    vec4 tmp = (ProjectionMatrix * vec4(pos, 1.0));
+    return (tmp.xy / tmp.w) * 0.5 + 0.5;
+}
+
+vec3 makeMotion(vec2 uv){
+	vec4 normalsDistanceData = textureMSAA(normalsDistancetex, uv, 0);
+	vec3 camSpacePos = reconstructCameraSpaceDistance(uv, normalsDistanceData.a);
+	vec3 worldPos = FromCameraSpace(camSpacePos);
+	
+	vec3 pos1 = (CurrentViewMatrix * vec4(worldPos, 1.0)).xyz;
+	vec3 pos2 = (LastViewMatrix * vec4(worldPos, 1.0)).xyz;
+	float dist = distance(pos1, pos2);
+	vec2 displace = (projectMotion(pos2) - projectMotion(pos1));
+	vec2 direction = (projectMotion(pos2) - projectMotion(pos1));
+	
+	float st = (1.0 / resolution.x) * dist * 20.0;
+	vec2 lookup = uv + direction * 0.1;
+	
+	vec3 color = vec3(0);
+	for(int i=0;i<10;i++){
+		color += texture(deferredTex, lookup).rgb;
+		lookup += direction * 0.1;;
+	}
+	
+	return color / 10.0;
+}
+
 void main()
 {
-    vec4 color1 = texture(deferredTex, UV);
+    vec3 color = makeMotion(UV);
 	if(UseSSReflections){
 		vec3 srdata = lookupSSRLowPass(UV, 1.0);
-		color1 += srdata.rgbb;
+		color += srdata.rgb;
 	}
-    //color1.rgb = funnybloom(UV);
-    //vec3 avg = getAverageOfAdjacent(UV);
-   // if(distance(getAverageOfAdjacent(UV), texture(currentTex, UV).rgb) > 0.6) color1.rgb = avg;
-    //vec4 color1 = vec4(edgeDetect(UV), 1.0);
-    //if(ShowSelected == 1) color1.rgb += lookupSelected(UV, 0.02);
-    //vec4 color1 = vec4(0,0,0,1);
+
     if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
         float adepth = textureMSAA(normalsDistancetex, vec2(0.5), 0).a;
-        //float fDepth = reverseLog(CameraCurrentDepth);
 
-        color1.xyz = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
+        color = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
     }
-	
-    
-    //if(UseBloom == 1 && DisablePostEffects == 0) color1.xyz += lookupBloomBlurred(UV, 0.1).rgb;  
-    //if(DisablePostEffects == 0)color1.xyz = hdr(color1.xyz, UV);
-        
-	//color1.rgb += SSIL();
-	
-	//color1.rgb += vec3pow(texture(normalsTex, UV).rgb, 2);
-	
-	//color1.rgb = texture(distanceTex, UV).rrr * 0.1;
-	//if(UV.x > 0.5) 
+
 	if(DisablePostEffects == 0){
-		color1.rgb += texture(bloomPassSource, UV).rgb * 0.2;
-        color1.rgb = ExecutePostProcessing(color1.rgb, UV);
-		//color1.rgb = color1.rgb / (1 + color1.rgb);
+		if(UseBloom == 1) color += texture(bloomPassSource, UV).rgb * 0.2;
+        color = ExecutePostProcessing(color, UV);
+		//color = color / (1 + color);
 		float gamma = 1.0/2.2;
-		color1.rgb = rgb_to_srgb(color1.rgb);
+		color = rgb_to_srgb(color);
 	}
 	
-	//if(DisablePostEffects == 1) color1.rgb = vec3(texture(distanceTex, UV).r);
-    outColor = clamp(vec4(color1.rgb, toLogDepthEx(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
+    outColor = clamp(vec4(color, toLogDepthEx(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
 }

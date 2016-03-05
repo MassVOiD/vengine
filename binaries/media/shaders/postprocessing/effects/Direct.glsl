@@ -16,7 +16,7 @@ vec3 raymarchFog(vec3 start, vec3 end){
     vec3 color1 = vec3(0);
 
     //vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;    
-    
+    float distbetween = distance(start, end);
     bool foundSun = false;
     for(int i=0;i<LightsCount;i++){
     
@@ -28,7 +28,7 @@ vec3 raymarchFog(vec3 start, vec3 end){
         float fogMultiplier = 111.0;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
         vec3 lastPos = start - mix(start, end, 0.01);
-        const float stepr = 0.009;
+        float stepr = mix(0.029, 0.001, distbetween / 100);
         float samples = 1.0 / stepr;
         float stepsize = distance(start, end) / samples;
 		float rd = rand2s(UV);
@@ -56,7 +56,7 @@ vec3 raymarchFog(vec3 start, vec3 end){
 		
 			float culler = 1;//clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
 			//float fogNoise = 1.0;
-			fogDensity += diff * (idle + 1.0 / 20.0 * culler * fogNoise * fogMultiplier * att * distanceMult) * smoothstep(0.0, 11.0, distance(pos, LightsPos[i].rgb));
+			fogDensity += diff * (idle + 1.0 / 20.0 * culler * fogNoise * fogMultiplier * att * distanceMult) * smoothstep(0.0, 1.0, distance(pos, LightsPos[i].rgb));
             
         }
         color1 += LightsColors[i].xyz * fogDensity;
@@ -67,9 +67,10 @@ vec3 raymarchFog(vec3 start, vec3 end){
 
 vec3 makeFog(FragmentData data){
     vec3 cspaceEnd = data.cameraPos;
-    if(length(cspaceEnd) > 280) cspaceEnd = normalize(cspaceEnd) * 280;
-    vec3 fragmentPosWorld3d = data.worldPos;
-    return vec3(raymarchFog(CameraPosition, fragmentPosWorld3d));
+    if(length(cspaceEnd) > 100) cspaceEnd = normalize(cspaceEnd) * 100;
+	float dst1 = textureMSAA(normalsDistancetex, UV, 0).a;
+	if(dst1 < 0.0001) cspaceEnd = reconstructCameraSpaceDistance(UV, 100);
+    return vec3(raymarchFog(CameraPosition, CameraPosition + cspaceEnd));
 }
 
 vec2 projectDL(vec3 pos){
@@ -80,17 +81,21 @@ vec2 projectDL(vec3 pos){
 
 vec3 makeLightPoint(vec3 point, vec3 color){
 	vec2 tc = projectDL(point);
+    float rot = (tc.x + tc.y) * 12;
+    mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
 	vec3 res = vec3(0);
 	vec3 camdir = reconstructCameraSpaceDistance(UV, 1.0);
 	vec2 ratiocorrection = vec2(1, ratio);
 	float x = distance(UV * ratiocorrection, tc * ratiocorrection);
-	vec2 diffvector = (UV * ratiocorrection - tc * ratiocorrection) * 5.0;
+	vec2 diffvector = RM * (UV * ratiocorrection - tc * ratiocorrection) * 5.0;
 	float dim = 1.0 - min(1.0, length(diffvector));
 	diffvector = diffvector * 0.5 + 0.5;
 	vec3 glarecolor = textureLod(glareTex, clamp(diffvector, 0.0, 1.0), 0).rgb;
 
+	float dst1 = textureMSAA(normalsDistancetex, tc, 0).a;
+	dst1 += (1.0 - step(0.0001, dst1)) * 99999.0;
 	float mod1 = step(0, dot(point - CameraPosition, camdir));
-	float mod2 = mod1 * step(0, textureMSAA(normalsDistancetex, tc, 0).a - distance(CameraPosition, point));
+	float mod2 = mod1 * step(0, dst1 - distance(CameraPosition, point));
 	res += glarecolor*1.2 * color * dim * mod2;
 	
 	return res;

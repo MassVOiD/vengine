@@ -243,7 +243,7 @@ float AO(
 
 float AmbientOcclusion(FragmentData data){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AO(data.worldPos, data.normal, data.roughness, 0.5, 4);
+    ao = AO(data.worldPos, data.normal, data.roughness, 2.5, 4);
    // ao *= pow(AO(data.worldPos, data.normal, data.roughness, 8.0, 4), 5);
-    return pow(ao, 2.5);
+    return pow(ao, 7.5);
 }

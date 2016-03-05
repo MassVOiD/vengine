@@ -9,7 +9,7 @@ namespace VEngine
     public class GenericMaterial
     {
         public static ShaderPool.ShaderPack OverrideShaderPack = null;
-        
+
         public string Name;
 
         public Texture DiffuseTexture, SpecularTexture, NormalsTexture, BumpTexture, RoughnessTexture, AlphaTexture;
@@ -33,10 +33,12 @@ namespace VEngine
         private static List<GenericMaterial> AllMaterialsPool = new List<GenericMaterial>();
         private static MaterialsBuffer Buffer = new MaterialsBuffer();
 
+        public ShaderProgram CustomShaderProgram = null;
+
         public GenericMaterial()
         {
             AllMaterialsPool.Add(this);
-          //  Buffer.Update(AllMaterialsPool);
+            //  Buffer.Update(AllMaterialsPool);
         }
 
         ~GenericMaterial()
@@ -58,13 +60,13 @@ namespace VEngine
         public GenericMaterial(Vector3 color)
         {
             AllMaterialsPool.Add(this);
-          //  Buffer.Update(AllMaterialsPool);
+            //  Buffer.Update(AllMaterialsPool);
         }
 
         public GenericMaterial(Color color)
         {
             AllMaterialsPool.Add(this);
-           // Buffer.Update(AllMaterialsPool);
+            // Buffer.Update(AllMaterialsPool);
         }
 
         public enum DrawMode
@@ -85,9 +87,11 @@ namespace VEngine
             AdvancedParallax,
             Flag
         }
-        
+
         public ShaderProgram GetShaderProgram()
         {
+            if(CustomShaderProgram != null)
+                return CustomShaderProgram;
             var pack = OverrideShaderPack != null ? OverrideShaderPack : Game.ShaderPool.ChooseShaderGenericMaterial();
             if(Type == MaterialType.Grass || Type == MaterialType.Flag)
                 return pack.Geometry96iTriangles;
@@ -128,7 +132,7 @@ namespace VEngine
         {
             RoughnessTexture = new Texture(Media.Get(key));
         }
-                
+
         public bool Use()
         {
             var prg = GetShaderProgram();
