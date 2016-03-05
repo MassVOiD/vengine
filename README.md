@@ -5,7 +5,7 @@ Shaders are here: https://github.com/achlubek/vengine/tree/master/binaries/media
 
 - Where is post process routine?
 
-It is here: https://github.com/achlubek/vengine/blob/master/VEngine/Rendering/PostProcessing.cs
+It is here: https://github.com/achlubek/vengine/blob/master/VEngine/Rendering/Renderer.cs
 
 - Where is PBR?
 
@@ -17,7 +17,13 @@ OpenGL engine for writing robust and threaded graphical applications in C#.
 If you want to check out how does it behave - Run Tester project binaries with correct Media path in Config.cs.
 
 The software is licensed under MIT license - so do what you want.
+
+![A screenshot](http://i.imgur.com/WKgLcO3.jpg "Screenshot")
+![A screenshot](http://i.imgur.com/UkP5wnX.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/WKzLA1x.jpg "Screenshot")
+![A screenshot](http://i.imgur.com/DixDN6k.jpgw "Screenshot")
+![A screenshot](http://i.imgur.com/UEu5xp2.jpg "Screenshot")
+
 ![A screenshot](http://i.imgur.com/2BXZ6I9.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/pfxFfLG.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/iKJyArl.jpg "Screenshot")
