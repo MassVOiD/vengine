@@ -204,6 +204,7 @@ vec2 projectMotion(vec3 pos){
 
 vec3 makeMotion(vec2 uv){
 	vec4 normalsDistanceData = textureMSAA(normalsDistancetex, uv, 0);
+	normalsDistanceData.a += (1.0 - step(0.001, normalsDistanceData.a)) * 10000.0;
 	vec3 camSpacePos = reconstructCameraSpaceDistance(uv, normalsDistanceData.a);
 	vec3 worldPos = FromCameraSpace(camSpacePos);
 	
@@ -214,15 +215,15 @@ vec3 makeMotion(vec2 uv){
 	vec2 direction = (projectMotion(pos2) - projectMotion(pos1));
 	
 	float st = (1.0 / resolution.x) * dist * 20.0;
-	vec2 lookup = uv + direction * 0.1;
+	vec2 lookup = uv + direction * 0.05;
 	
 	vec3 color = vec3(0);
-	for(int i=0;i<10;i++){
+	for(int i=0;i<20;i++){
 		color += texture(deferredTex, lookup).rgb;
-		lookup += direction * 0.1;;
+		lookup += direction * 0.05;
 	}
 	
-	return color / 10.0;
+	return color / 20.0;
 }
 
 void main()

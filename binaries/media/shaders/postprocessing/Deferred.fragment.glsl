@@ -56,10 +56,11 @@ void main()
             specularBumpData.a
         );	
         
+        float stepsky = step(0.001, currentFragment.cameraDistance);
+        color += stepsky * ApplyLighting(currentFragment) + (1.0 - stepsky) * vec3(1.0);
         color += ApplyLighting(currentFragment);
     }
     color /= samples;
 	//color = textureMSAA(albedoRoughnessTex, UV, 0).rgb;
-    if(textureMSAAFull(normalsDistancetex, UV).a < 0.001)color.rgb = vec3(1.0, 0, 0);
     outColor = clamp(vec4(color, 1.0), 0.0, 10000.0);
 }
