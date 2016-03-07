@@ -428,8 +428,6 @@ namespace VEngine
                 globalsString.AppendLine("#define " + g.Key + " " + g.Value);
             }
            
-
-
             string fullsrc = Regex.Replace(source, @"\#version (.+)\r\n", "#version $1\r\n" + globalsString);
 
             GL.ShaderSource(shader, fullsrc);

@@ -82,7 +82,8 @@ namespace ShadowsTester
             
         }
 
-        float mousespeedX = 0.0f, mousespeedY = 0.0f; 
+        float mousespeedX = 0.0f, mousespeedY = 0.0f;
+        Vector3 camvelocity = Vector3.Zero;
         
         private void UpdateSterring(object o, OpenTK.FrameEventArgs e)
         {
@@ -173,7 +174,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
-                currentPosition -= direction.Xyz * speed;
+                camvelocity -= direction.Xyz * speed;
                 needsUpdate = true;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.S))
@@ -184,7 +185,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
-                currentPosition -= direction.Xyz * speed;
+                camvelocity -= direction.Xyz * speed;
                 needsUpdate = true;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.A))
@@ -195,7 +196,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
-                currentPosition -= direction.Xyz * speed;
+                camvelocity -= direction.Xyz * speed;
                 needsUpdate = true;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.D))
@@ -206,7 +207,7 @@ namespace ShadowsTester
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
                 //direction.Y = 0.0f;
-                currentPosition -= direction.Xyz * speed;
+                camvelocity -= direction.Xyz * speed;
                 needsUpdate = true;
             }
             if(keyboard.IsKeyDown(OpenTK.Input.Key.Space))
@@ -216,15 +217,18 @@ namespace ShadowsTester
                 Vector4 direction = -Vector4.UnitY;
                 direction = Vector4.Transform(direction, rotationY);
                 direction = Vector4.Transform(direction, rotationX);
-                currentPosition -= direction.Xyz * speed;
+                camvelocity -= direction.Xyz * speed;
                 needsUpdate = true;
             }
 
+            currentPosition += camvelocity * 0.1f;
+            camvelocity *= 0.93f;
+
             // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f,
             // rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
-           // if(needsUpdate)
-           // {
-                Cam.Transformation.SetPosition(currentPosition);
+            // if(needsUpdate)
+            // {
+            Cam.Transformation.SetPosition(currentPosition);
                 Cam.Transformation.ClearModifiedFlag();
                // Cam.Update();
           //  }

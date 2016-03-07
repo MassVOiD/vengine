@@ -224,10 +224,10 @@ float AO(
     float factor = 1.0 / xaon;
     vec2 multiplier = vec2(ratio, 1) * 0.09 * hemisphereSize * factor;
 	vec3 posc = ToCameraSpace(position);
-    float rot = rand2s(UV + sin(Time)) * PI * 2;
+    float rot = rand2s(UV) * PI * 2;
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
     for(int g=0;g < xsamples.length();g+=quality){
-		vec2 nuv = UV + RM * (xsamples[g] * multiplier);
+		vec2 nuv = UV + (xsamples[g] * multiplier);
         float aon = textureMSAA(normalsDistancetex, nuv, 0).a;
 		vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * nuv.x + FrustumConeBottomLeftToTopLeft * nuv.y));
 		vec3 dupa = dir * aon;
@@ -243,7 +243,7 @@ float AO(
 
 float AmbientOcclusion(FragmentData data){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AO(data.worldPos, data.normal, data.roughness, 2.5, 4);
+    ao = AO(data.worldPos, data.normal, data.roughness, 3.5, 5);
    // ao *= pow(AO(data.worldPos, data.normal, data.roughness, 8.0, 4), 5);
-    return pow(ao, 7.5);
+    return pow(ao, 4.5);
 }

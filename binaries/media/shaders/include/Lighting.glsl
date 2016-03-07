@@ -4,9 +4,31 @@ float lookupDepthFromLight(uint i, vec2 uvi, float comparison){
     float distance1 = 0.0;
     vec3 uv = vec3(uvi, float(i));
 	vec4 compres = textureGather(shadowMapsArray, uv, comparison);
-    return (compres.r+compres.g+compres.b+compres.a) * 0.25;
+    //return (compres.r+compres.g+compres.b+compres.a) * 0.25;
     //return step(comparison, distance1);
+	//return texture(shadowMapsArray, vec4(uv, comparison));
+	vec2 f = fract( uvi.xy * vec2(textureSize(shadowMapsArray, 0)) );
+	vec2 mx = mix( compres.xz, compres.yw, f.x );
+	return mix( mx.x, mx.y, f.y );
 }
+
+#define KERNEL 8
+#define PCFEDGE 1
+float PCF(uint i, vec2 uvi, float comparison){
+
+    float shadow = 0.0;
+    float pixSize = 1.0 / textureSize(shadowMapsArray,0).x;
+    float bound = KERNEL * 0.5 - 0.5;
+    bound *= PCFEDGE;
+    for (float y = -bound; y <= bound; y += PCFEDGE){
+        for (float x = -bound; x <= bound; x += PCFEDGE){
+			vec3 uv = vec3(uvi+ vec2(x,y)* pixSize, float(i));
+            shadow += texture(shadowMapsArray, vec4(uv, comparison));
+        }
+    }
+	return shadow / (KERNEL * KERNEL);
+}
+
 #define mPI (3.14159265)
 #define mPI2 (2.0*3.14159265)
 #define GOLDEN_RATIO (1.6180339)
@@ -81,7 +103,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     float counter = 0;
     //return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
     float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
-    //return lookupDepthFromLight(i, uv, distance3 - 0.000004);
+    return 1.0 - PCF(i, uv, distance3 + 0.0001);
 	float iter = 0;
 	for(int ix=0;ix<1;ix++){
 		float rot = rand2d(uv + iter) * 3.1415 * 2;

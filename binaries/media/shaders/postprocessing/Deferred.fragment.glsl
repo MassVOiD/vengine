@@ -19,13 +19,37 @@ FragmentData currentFragment;
 
 float AOValue = 1.0;
 
-vec3 ApplyLighting(FragmentData data){
-	if(UseHBAO == 1) AOValue = AmbientOcclusion(data);
+float lookupAO(vec2 fuv, float radius, int samp){
+    float outc = 0;
+    float counter = 0;
+    float depthCenter = textureMSAA(normalsDistancetex, fuv, samp).a;
+	vec3 normalcenter = textureMSAA(normalsDistancetex, fuv, samp).rgb;
+    for(float g = 0; g < mPI2; g+=0.8)
+    {
+        for(float g2 = 0; g2 < 1.0; g2+=0.33)
+        {
+            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.008 * radius);
+            float color = textureLod(aoTex, fuv + gauss, 0).r;
+            float depthThere = textureMSAA(normalsDistancetex, fuv + gauss, samp).a;
+			vec3 normalthere = textureMSAA(normalsDistancetex, fuv + gauss, samp).rgb;
+			float weight = pow(max(0, dot(normalthere, normalcenter)), 32);
+			outc += color * weight;
+			counter+=weight;
+            
+        }
+    }
+    return counter == 0 ? textureLod(aoTex, fuv, 0).r : outc / counter;
+}
+
+vec3 ApplyLighting(FragmentData data, int samp){
 	vec3 result = vec3(0);
+	if(UseHBAO == 1 && samp == 0) AOValue = lookupAO(UV, 1.0, samp);
 	if(UseDeferred == 1) result += DirectLight(data);
 	if(UseVDAO == 1) result += AOValue * texture(envLightTex, UV).rgb;
 	if(UseRSM == 1) result += AOValue * RSM(data);
+	if(UseFog == 1) result += texture(fogTex, UV).rgb;
 	if(UseDepth == 1) result = mix(result, vec3(1), 1.0 - CalculateFallof(data.cameraDistance*0.1));
+	if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) result = vec3(AOValue * 0.5);
 	return result;
 }
 
@@ -57,8 +81,7 @@ void main()
         );	
         
         float stepsky = step(0.001, currentFragment.cameraDistance);
-        color += stepsky * ApplyLighting(currentFragment) + (1.0 - stepsky) * vec3(1.0);
-        color += ApplyLighting(currentFragment);
+        color += stepsky * ApplyLighting(currentFragment, i) + (1.0 - stepsky) * vec3(1.0);
     }
     color /= samples;
 	//color = textureMSAA(albedoRoughnessTex, UV, 0).rgb;

@@ -32,7 +32,7 @@ namespace ShadowsTester
             var terrainMaterial = new GenericMaterial();
             terrainMaterial.DiffuseColor = color;
             terrainMaterial.SpecularColor = color;
-            terrainMaterial.Roughness = 0.1f;
+            terrainMaterial.Roughness = 0.9f;
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             return terrainMesh;
         }
