@@ -114,7 +114,7 @@ namespace VEngine
             AmbientOcclusionShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
                 AmbientOcclusionShader.SetGlobal("USE_MSAA", "");
-
+            
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
             FogShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
@@ -443,7 +443,7 @@ namespace VEngine
             PostProcessingMesh.Draw();
             // here y has 2 pass data
         }
-
+        
         private void RenderPrepareToBlit()
         {
             Game.World.SetUniforms(this);

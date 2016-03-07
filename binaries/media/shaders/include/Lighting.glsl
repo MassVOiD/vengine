@@ -6,13 +6,13 @@ float lookupDepthFromLight(uint i, vec2 uvi, float comparison){
 	vec4 compres = textureGather(shadowMapsArray, uv, comparison);
     //return (compres.r+compres.g+compres.b+compres.a) * 0.25;
     //return step(comparison, distance1);
-	//return texture(shadowMapsArray, vec4(uv, comparison));
-	vec2 f = fract( uvi.xy * vec2(textureSize(shadowMapsArray, 0)) );
-	vec2 mx = mix( compres.xz, compres.yw, f.x );
-	return mix( mx.x, mx.y, f.y );
+	return texture(shadowMapsArray, vec4(uv, comparison));
+	//vec2 f = fract( uvi.xy * vec2(textureSize(shadowMapsArray, 0)) );
+	//vec2 mx = mix( compres.xz, compres.yw, f.x );
+	//return mix( mx.x, mx.y, f.y );
 }
 
-#define KERNEL 8
+#define KERNEL 6
 #define PCFEDGE 1
 float PCF(uint i, vec2 uvi, float comparison){
 

@@ -20,7 +20,7 @@ namespace ShadowsTester
         [STAThread]
         private static void Main(string[] args)
         {
-            Game.Initialize(new Size(Config.Width, Config.Height),2, Config.MediaPath, GameWindowFlags.Default);
+            Game.Initialize(new Size(Config.Width, Config.Height),1, Config.MediaPath, GameWindowFlags.Default);
 
             var freeCamera = Commons.SetUpFreeCamera();
             //System.Threading.Thread.Sleep(1100);

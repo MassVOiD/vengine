@@ -38,11 +38,60 @@ uniform int UnbiasedIntegrateRenderMode;
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
+
+
+vec2 dofsamplesSpeed[] = vec2[](
+vec2(0.5, 0.5),
+
+vec2(0.25, 0.5),
+vec2(0.75, 0.5),
+
+vec2(0.5, 0.25),
+vec2(0.5, 0.75),
+
+vec2(0.25, 0.25),
+vec2(0.75, 0.75),
+
+vec2(0.75, 0.25),
+vec2(0.75, 0.25),
+
+
+vec2(0.33, 0.5),
+vec2(0.66, 0.5),
+
+vec2(0.5, 0.33),
+vec2(0.5, 0.66),
+
+vec2(0.33, 0.33),
+vec2(0.66, 0.66),
+
+vec2(0.66, 0.33),
+vec2(0.66, 0.33)
+);
+
+uniform float InputFocalLength;
+float getAmountForDistance(float focus, float dist){
+
+	float f = InputFocalLength;
+	float d = focus*1000.0; //focal plane in mm
+	float o = dist*1000.0; //depth in mm
+	
+	float fstop = 64.0 / LensBlurAmount;
+	float CoC = 1.0;
+	float a = (o*f)/(o-f); 
+	float b = (d*f)/(d-f); 
+	float c = (d-f)/(d*fstop*CoC); 
+	
+	float blur = abs(a-b)*c;
+	return blur;
+}
+
 vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     vec3 finalColor = vec3(0);  
     float weight = 0.0;//vec4(0.,0.,0.,0.);  
     if(amount < 0.05) amount = 0.05;
     amount -= 0.05;
+	amount = min(amount, 0.6);
     //amount = max(0, amount - 0.1);
     //return textureLod(currentTex, UV, amount*2).rgb;
     float radius = max_radius;  
@@ -50,33 +99,41 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     //float centerDepth = texture(texDepth, UV).r;
     float focus = length(reconstructCameraSpace(vec2(0.5)));
     float cc = textureMSAA(normalsDistancetex, UV, 0).a;
-    for(float x = 0; x < mPI2; x+=0.2){ 
-        for(float y=0.1;y<1.0;y+= 0.08){  
-            
-            //ngon
-            
-            vec2 crd = vec2(sin(x + y*5) * ratio, cos(x + y*5)) * y;
-            //float alpha = texture(alphaMaskTex, crd*1.41421).r;
-            //if(length(crd) > 1.0) continue;
-            vec2 coord = UV+crd * 0.02 * amount;  
-            coord = clamp(coord, 0.0, 1.0);
-            //coord.x = clamp(abs(coord.x), 0.0, 1.0);
-            //coord.y = clamp(abs(coord.y), 0.0, 1.0);
-            float depth = textureMSAA(normalsDistancetex, coord, 0).a;
-            vec3 texel = texture(deferredTex, coord).rgb;
-            texel += texture(ssRefTex, coord).rgb;
+	
+	float iter = 1.0;
+	for(int ix=0;ix<3;ix++){
+		float rot = rand2d(UV + iter) * 3.1415 * 2;
+		iter += 1.0;
+		mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
+		for(int i=0;i<dofsamplesSpeed.length();i++){ 
+				
+			
+			vec2 crd = RM * (dofsamplesSpeed[i] * 2 - 1) * vec2(ratio, 1.0);
+			//float alpha = texture(alphaMaskTex, crd*1.41421).r;
+			//if(length(crd) > 1.0) continue;
+			vec2 coord = UV+crd * 0.02 * amount;  
+			coord = clamp(coord, 0.0, 1.0);
+			//coord.x = clamp(abs(coord.x), 0.0, 1.0);
+			//coord.y = clamp(abs(coord.y), 0.0, 1.0);
+			float depth = textureMSAA(normalsDistancetex, coord, 0).a;
+			
+			float amountForIt = min(0.6, getAmountForDistance(focus, depth));
+			
+			vec3 texel = texture(deferredTex, coord).rgb;
+			texel += texture(ssRefTex, coord).rgb;
 			if(depth < 0.001) texel = vec3(1);
-            float w = length(texel) + 0.1;
-            float dd = length(crd * 0.1 * amount)/0.125;
-            
-            w += (smoothstep(0.1, 0.0, abs(y - 0.9)));
-			w *= clamp(1.0 - smoothstep(0.0, 6.7 * amount, abs(depth - cc)) + step(amount, 2.0) * step(0, depth - cc) + 
-			(1.0 - ( step(0.1, focus - depth) * 
-			(step(0.1, focus - cc)))), 0.0, 1.0);
-            weight+=w;
-            finalColor += texel * w;
-            
-        }
+			float w = length(texel) + 0.1;
+			
+			// if 
+			//w *= 
+			float blurdif = abs(amount - amountForIt);
+			float fact2 = 1.0 - blurdif * 5;
+			
+			w *= clamp(fact2, 0.001, 1.0);
+			
+			finalColor += texel * w;
+			weight += w;
+		}
     }
     return weight == 0.0 ? vec3(0.0) : finalColor/weight;
 }
@@ -92,7 +149,6 @@ vec3 vec3pow(vec3 inputx, float po){
 
 #include noise3D.glsl
 
-uniform float InputFocalLength;
 float avgdepth(vec2 buv){
     float outc = float(0);
     float counter = 0;
@@ -241,6 +297,10 @@ void main()
         color = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
     }
 
+	//color = texture(dofFarTex, UV).aaa;
+	//color = texture(dofNearTex, UV).rgb;	
+	
+	
 	if(DisablePostEffects == 0){
 		if(UseBloom == 1) color += texture(bloomPassSource, UV).rgb * 0.2;
         color = ExecutePostProcessing(color, UV);
@@ -248,6 +308,5 @@ void main()
 		float gamma = 1.0/2.2;
 		color = rgb_to_srgb(color);
 	}
-	
     outColor = clamp(vec4(color, toLogDepthEx(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
 }

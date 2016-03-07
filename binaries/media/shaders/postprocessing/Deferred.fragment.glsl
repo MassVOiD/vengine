@@ -40,6 +40,23 @@ float lookupAO(vec2 fuv, float radius, int samp){
     }
     return counter == 0 ? textureLod(aoTex, fuv, 0).r : outc / counter;
 }
+vec3 lookupFog(vec2 fuv, float radius, int samp){
+    vec3 outc =  textureLod(fogTex, fuv, 0).rgb;
+    float counter = 1;
+    for(float g = 0; g < mPI2; g+=0.8)
+    {
+        for(float g2 = 0.05; g2 < 1.0; g2+=0.14)
+        {
+            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.012 * radius);
+            vec3 color = textureLod(fogTex, fuv + gauss, 0).rgb;
+			float w = 1.0 - smoothstep(0.0, 1.0, g2);
+			outc += color * w;
+			counter+=w;
+            
+        }
+    }
+    return outc / counter;
+}
 
 vec3 ApplyLighting(FragmentData data, int samp){
 	vec3 result = vec3(0);
@@ -47,7 +64,7 @@ vec3 ApplyLighting(FragmentData data, int samp){
 	if(UseDeferred == 1) result += DirectLight(data);
 	if(UseVDAO == 1) result += AOValue * texture(envLightTex, UV).rgb;
 	if(UseRSM == 1) result += AOValue * RSM(data);
-	if(UseFog == 1) result += texture(fogTex, UV).rgb;
+	if(UseFog == 1) result += lookupFog(UV, 1.0, samp);
 	if(UseDepth == 1) result = mix(result, vec3(1), 1.0 - CalculateFallof(data.cameraDistance*0.1));
 	if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) result = vec3(AOValue * 0.5);
 	return result;

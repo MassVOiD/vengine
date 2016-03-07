@@ -14,13 +14,13 @@ vec3 raymarchFog(vec3 start, vec3 end){
         float fogMultiplier = 111.0;
         vec2 fuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
         vec3 lastPos = start - mix(start, end, 0.01);
-        float stepr = mix(0.029, 0.001, distbetween / 100);
+        float stepr = mix(0.009, 0.001, distbetween / 100);
         float samples = 1.0 / stepr;
         float stepsize = distance(start, end) / samples;
 		float rd = rand2s(UV);
         for(float m = 0.0; m< 1.0;m+= stepr){
 			rd += 1.432135647;
-            vec3 pos = mix(start, end, m + fract(rd) * stepsize);
+            vec3 pos = mix(start, end, m );
             float distanceMult = stepsize;
             //float distanceMult = 5;
             lastPos = pos;
