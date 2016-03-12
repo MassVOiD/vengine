@@ -18,6 +18,14 @@ uniform vec4 LightsConeLB2BR[MAX_LIGHTS];
 uniform vec4 LightsConeLB2TL[MAX_LIGHTS];
 
 
+const int MAX_SUN_CASCADES = 10;
+uniform vec3 SunColor;
+uniform vec3 SunDirection;
+uniform int SunCascadeCount;
+uniform mat4 SunMatricesP[MAX_SUN_CASCADES];
+uniform mat4 SunMatricesV[MAX_SUN_CASCADES];
+
+
 uniform int Instances;
 
 struct Material{

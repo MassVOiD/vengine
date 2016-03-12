@@ -27,11 +27,8 @@ namespace VEngine
         public ProjectionLight(Vector3 position, Quaternion rotation, int mapwidth, int mapheight, float fov, float near, float far)
         {
             camera = new Camera(position, Vector3.Zero, Vector3.UnitY, mapwidth / mapheight, fov, near, far);
-            camera.LookAt(Vector3.Zero);
-            FBO = new Framebuffer(mapwidth, mapheight, false);
-            FBO.DepthInternalFormat = PixelInternalFormat.DepthComponent32f;
-            FBO.DepthPixelFormat = PixelFormat.DepthComponent;
-            FBO.DepthPixelType = PixelType.Float;
+            camera.SetOrientation(rotation);
+            FBO = new Framebuffer();
         }
 
         public Vector3 GetColor()

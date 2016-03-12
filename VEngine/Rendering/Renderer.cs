@@ -175,7 +175,7 @@ namespace VEngine
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.HalfFloat
             };
-            AmbientOcclusionFramebuffer = new Framebuffer(Width / 2, Height / 2)
+            AmbientOcclusionFramebuffer = new Framebuffer(Width / 1, Height / 1)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.R8,
@@ -353,6 +353,9 @@ namespace VEngine
             Game.World.Scene.MapLightsSSBOToShader(DeferredShader);
             DeferredFramebuffer.Use();
             GlareTexture.Use(TextureUnit.Texture12);
+
+            Game.CascadeShadowMaps.SetUniforms();
+
             DrawPPMesh();
             Game.CheckErrors("Deferred pass");
         }
@@ -364,6 +367,7 @@ namespace VEngine
             SetUniformsShared();
             EnableAdditiveBlending();
             GL.CullFace(CullFaceMode.Front);
+            GL.Enable(EnableCap.TextureCubeMapSeamless);
             for(int i = 0; i < CubeMaps.Count; i++)
             {
                 if(i == Game.World.CurrentlyRenderedCubeMap)

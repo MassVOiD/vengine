@@ -35,6 +35,17 @@ namespace ShadowsTester
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             return terrainMesh;
         }
+        Mesh3d CreateDiffuseModelFromObj(string obj, Vector3 color)
+        {
+            var terrain3dManager = Object3dManager.LoadFromObjSingle(Media.Get(obj));
+            var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
+            var terrainMaterial = new GenericMaterial();
+            terrainMaterial.DiffuseColor = color;
+            terrainMaterial.SpecularColor = color;
+            terrainMaterial.Roughness = 1f;
+            var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
+            return terrainMesh;
+        }
         static Random rdz = new Random();
         static float rand(float min, float max)
         {
@@ -54,13 +65,17 @@ namespace ShadowsTester
                 red.GetInstance(0).Translate(15, 0, 0);
 
                 var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
+                var terra = CreateDiffuseModelFromObj("terratest.obj", new Vector3(1));
+                terra.GetInstance(0).Scale(100);
+                scene.Add(terra);
+                // scene.Add(ground);
+                //scene.Add(green);
+                //scene.Add(red);
 
-                scene.Add(ground);
-                scene.Add(green);
-                scene.Add(red);
-
-                scene.Add(lucy);
+                Game.CascadeShadowMaps.SetDirection(Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(-25)));
                 /*
+                scene.Add(lucy);
+                
                 var trootobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("tree2r.obj")).Vertices);
                 var tleavobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("tree2l.obj")).Vertices);
                 var rootmaterial = new GenericMaterial()
@@ -88,17 +103,17 @@ namespace ShadowsTester
 
 
 
-                for(int i = 0; i < 100000; i++)
+                for(int i = 0; i < 100; i++)
                 {
-                    var pos = new Vector3(rand(-1000, 1000), 0, rand(-1000, 1000));
+                    var pos = new Vector3(rand(-100, 100), 0, rand(-100, 100));
                     float uniscale = rand(0.7f, 1.5f);
                     var scale = new Vector3(uniscale, rand(0.7f, 3.0f), uniscale);
                     trm.AddInstance(new TransformationManager(pos, scale));
                     tlm.AddInstance(new TransformationManager(pos, scale));
                 }
                 trm.UpdateMatrix();
-                tlm.UpdateMatrix();*/
-
+                tlm.UpdateMatrix();
+                */
                 /*
                 var cubeMaterial = new GenericMaterial(new Vector3(1, 0, 0));
                 var cubeObj3d = new Object3dInfo(Object3dGenerator.CreateCube(new Vector3(1), new Vector2(1)).Vertices);

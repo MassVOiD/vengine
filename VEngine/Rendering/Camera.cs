@@ -65,8 +65,6 @@ namespace VEngine
         {
             Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
             Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
-            ProjectionMatrix[2, 2] = near / (near - far);
-            ProjectionMatrix[3, 2] = ProjectionMatrix[2, 2] == 0 ? near : (far * near / (far - near));
             Far = far;
             if(Current == null)
                 Current = this;
@@ -81,8 +79,38 @@ namespace VEngine
         public void UpdatePerspective(float aspectRatio, float fov, float near, float far)
         {
             Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
-            ProjectionMatrix[2, 2] = near / (near - far);
-            ProjectionMatrix[3, 2] = ProjectionMatrix[2, 2] == 0 ? near : (far * near / (far - near));
+            Far = far;
+        }
+
+        public static void CreateOrthographicOffCenter(float left, float right, float bottom, float top, float zNear, float zFar, out Matrix4 result)
+        {
+            result = Matrix4.Identity;
+
+            result.Row0.X = 2.0f / (right - left);
+            result.Row1.Y = 2.0f / (top - bottom);
+            result.Row2.Z = 2.0f / (zFar - zNear);
+
+            result.Row3.X = -(right + left) / (right - left);
+            result.Row3.Y = -(top + bottom) / (top - bottom);
+            result.Row3.Z = -(zFar + zNear) / (zFar - zNear);
+
+            /*
+            float invRL = 1.0f / (right - left);
+            float invTB = 1.0f / (top - bottom);
+            float invFN = 1.0f / (zFar - zNear);
+
+            result.Row0.X = 2 * invRL;
+            result.Row1.Y = 2 * invTB;
+            result.Row2.Z = -2 * invFN;
+
+            result.Row3.X = -(right + left) * invRL;
+            result.Row3.Y = -(top + bottom) * invTB;
+            result.Row3.Z = -(zFar + zNear) * invFN;*/
+        }
+
+        public void UpdatePerspectiveOrtho(float left, float right, float bottom, float top, float near, float far)
+        {
+            CreateOrthographicOffCenter(left, right, bottom, top, near, far, out ProjectionMatrix);
             Far = far;
         }
 

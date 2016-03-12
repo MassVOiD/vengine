@@ -29,12 +29,12 @@ namespace VEngine
             GL.Enable(EnableCap.Multisample);
 
             GL.Enable(EnableCap.DepthTest);
-            GL.DepthFunc(DepthFunction.Gequal);
-            GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
+            GL.DepthFunc(DepthFunction.Lequal);
+           // GL.ClipControl(ClipOrigin.LowerLeft, ClipDepthMode.ZeroToOne);
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             GL.ClearColor(0, 0, 0, 0);
-            GL.ClearDepth(0);
+            GL.ClearDepth(1);
 
             GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
 

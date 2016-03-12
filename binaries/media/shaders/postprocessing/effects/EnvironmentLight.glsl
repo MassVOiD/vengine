@@ -92,6 +92,13 @@ vec3 MMAL(vec3 visdis, float dist, vec3 normal, vec3 reflected, float roughness)
     return (result) * (1.0 - ncos(roughness));
 }
 
+vec3 MMALSkybox(vec3 normal, vec3 reflected, float roughness){
+	
+    float levels = float(textureQueryLevels(cube));
+    float mx = log2(roughness*MMAL_LOD_REGULATOR+1)/log2(MMAL_LOD_REGULATOR);
+    return textureLod(cube, mix(reflected, normal, roughness), mx * levels).rgb;
+}
+
 
 uniform int CurrentlyRenderedCubeMap;
 uniform vec3 MapPosition;
@@ -117,6 +124,20 @@ vec3 EnvironmentLight(FragmentData data)
 	vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, MapPosition, diffused, 1.0, true) * (data.roughness + 1.0);
 	//return vec3(vdir);
     //return (radiance + difradiance) * 0.5;
+    return (reflected + diffused) * 0.5;
+}
+vec3 EnvironmentLightSkybox(FragmentData data)
+{       
+    vec3 dir = normalize(reflect(data.cameraPos, data.normal));
+    vec3 vdir = normalize(data.cameraPos);
+	vec3 reflected = vec3(0);
+	vec3 diffused = vec3(0);
+	
+	reflected += MMALSkybox(data.normal, dir, data.roughness) * data.specularColor;
+	
+	diffused += MMALSkybox(data.normal, dir, 1.0) * data.diffuseColor;
+
+	
     return (reflected + diffused) * 0.5;
 }
 vec3 EnvironmentLightShadowsOnly(FragmentData data)

@@ -85,7 +85,7 @@ void main(){
 	
 	currentFragment.normal = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, currentFragment.normal);
 
-	outAlbedoRoughness = vec4(currentFragment.diffuseColor, currentFragment.roughness);
+	outAlbedoRoughness = vec4(currentFragment.diffuseColor, max(0.09, currentFragment.roughness));
 	outNormalsDistance = vec4(currentFragment.normal, currentFragment.cameraDistance);
 	outSpecularBump = vec4(currentFragment.specularColor, currentFragment.bump);
 }

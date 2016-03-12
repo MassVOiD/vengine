@@ -28,6 +28,9 @@ layout(binding = 13) uniform sampler2D fogTex;
 
 layout(binding = 14) uniform sampler2D aoTex;
 
+
+layout(binding = 22) uniform sampler2DArrayShadow sunCascadesArray;
+
 //layout(binding = 8) uniform sampler2D distanceTex;
 
 uniform int CubeMapsCount;

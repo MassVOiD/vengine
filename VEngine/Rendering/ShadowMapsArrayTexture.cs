@@ -15,11 +15,14 @@ namespace VEngine
         private int Levels;
         private int Width, Height;
 
-        public ShadowMapsArrayTexture(int width, int height)
+        private bool RSMReady;
+
+        public ShadowMapsArrayTexture(int width, int height, bool useRSM = true)
         {
             Width = width;
             Height = height;
             Levels = 0;
+            RSMReady = useRSM;
         }
 
         private void FreeGPU()
@@ -45,39 +48,57 @@ namespace VEngine
             GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
             GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
 
-            HandleColors = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2DArray, HandleColors);
-            //GL.TexStorage3D(TextureTarget3d.Texture2DArray, 1, SizedInternalFormat.R32f, Width, Height, levels);
-            GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba16f, Width, Height, levels, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
-            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
-            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
+            if(RSMReady)
+            {
+                HandleColors = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2DArray, HandleColors);
+                //GL.TexStorage3D(TextureTarget3d.Texture2DArray, 1, SizedInternalFormat.R32f, Width, Height, levels);
+                GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba16f, Width, Height, levels, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
+                GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
+                GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
 
-            HandleNormals = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2DArray, HandleNormals);
-            //GL.TexStorage3D(TextureTarget3d.Texture2DArray, 1, SizedInternalFormat.R32f, Width, Height, levels);
-            GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba16f, Width, Height, levels, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
-            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
-            GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
+                HandleNormals = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2DArray, HandleNormals);
+                //GL.TexStorage3D(TextureTarget3d.Texture2DArray, 1, SizedInternalFormat.R32f, Width, Height, levels);
+                GL.TexImage3D(TextureTarget.Texture2DArray, 0, PixelInternalFormat.Rgba16f, Width, Height, levels, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
+                GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToBorder);
+                GL.TexParameter(TextureTarget.Texture2DArray, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToBorder);
+            }
             Levels = levels;
         }
 
         private void AttachLayer(int level)
         {
-            GL.FramebufferTextureLayer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, HandleColors, 0, level);
-            GL.FramebufferTextureLayer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, HandleNormals, 0, level);
+            if(RSMReady)
+            {
+                GL.FramebufferTextureLayer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, HandleColors, 0, level);
+                GL.FramebufferTextureLayer(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, HandleNormals, 0, level);
+            }
             GL.FramebufferTextureLayer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, HandleDepths, 0, level);
-            GL.DrawBuffers(2, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1 });
+            if(RSMReady)
+            {
+                GL.DrawBuffers(2, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1 });
+            }
+            else
+            {
+                GL.DrawBuffers(0, new DrawBuffersEnum[] { });
+            }
         }
 
         public void UpdateFromLightsList(List<ProjectionLight> lights)
         {
-            if(lights.Count != Levels)
-                Reallocate(lights.Count);
-            for(int i = 0; i < lights.Count; i++)
+            UpdateFromLightsList(lights.ToArray());
+        }
+
+        public void UpdateFromLightsList(ProjectionLight[] lights)
+        {
+            if(lights.Length != Levels)
+                Reallocate(lights.Length);
+            for(int i = 0; i < lights.Length; i++)
             {
                 lights[i].FBO.Use();
                 lights[i].FBO.Width = Width;
@@ -89,12 +110,21 @@ namespace VEngine
 
         public void Bind(int colorsloc, int normalsloc, int depthloc)
         {
-            GL.ActiveTexture(TextureUnit.Texture0 + colorsloc);
-            GL.BindTexture(TextureTarget.Texture2DArray, HandleColors);
+            if(RSMReady)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + colorsloc);
+                GL.BindTexture(TextureTarget.Texture2DArray, HandleColors);
 
-            GL.ActiveTexture(TextureUnit.Texture0 + normalsloc);
-            GL.BindTexture(TextureTarget.Texture2DArray, HandleNormals);
+                GL.ActiveTexture(TextureUnit.Texture0 + normalsloc);
+                GL.BindTexture(TextureTarget.Texture2DArray, HandleNormals);
+            }
 
+            GL.ActiveTexture(TextureUnit.Texture0 + depthloc);
+            GL.BindTexture(TextureTarget.Texture2DArray, HandleDepths);
+        }
+
+        public void Bind(int depthloc)
+        {
             GL.ActiveTexture(TextureUnit.Texture0 + depthloc);
             GL.BindTexture(TextureTarget.Texture2DArray, HandleDepths);
         }

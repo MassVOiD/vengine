@@ -41,6 +41,52 @@ vec3 makeLightPoint(vec3 point, vec3 color){
 	return res;
 }
 
+#define KERNEL 6
+#define PCFEDGE 1
+float PCFSun(int i, vec2 uvi, float comparison){
+
+    float shadow = 0.0;
+    float pixSize = 1.0 / textureSize(sunCascadesArray,0).x;
+    float bound = KERNEL * 0.5 - 0.5;
+    bound *= PCFEDGE;
+    for (float y = -bound; y <= bound; y += PCFEDGE){
+        for (float x = -bound; x <= bound; x += PCFEDGE){
+			vec3 uv = vec3(clamp(uvi+ vec2(x,y)* pixSize, 0.0 + pixSize, 1.0 - pixSize), float(i));
+            shadow += texture(sunCascadesArray, vec4(uv, comparison));
+        }
+    }
+	return shadow / (KERNEL * KERNEL);
+}
+
+vec3 SunLight(FragmentData data){
+	int chosenCascade = 0;
+	vec2 texcoord = vec2(0);
+	float comparison = 0;
+	float tolerance = 0.0;
+	for(int i = SunCascadeCount - 1; i >= 0; i--){
+		vec4 lightClipSpace = (SunMatricesP[i] * SunMatricesV[i]) * vec4(data.worldPos, 1.0);
+        vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;   
+		float depth = ((lightClipSpace.z / lightClipSpace.w) * 0.5 + 0.5);
+
+        if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0  && depth > 0.0 && depth < 1.0) {
+            chosenCascade = i;
+			texcoord = lightScreenSpace;
+			comparison = depth;
+			tolerance = 0.0001 + float(i) * 0.0005;
+        }
+	}
+	float percent = PCFSun(chosenCascade, texcoord, comparison - tolerance);
+	//mat4 mat = SunMatrices[chosenCascade];
+	vec3 lightPos = data.worldPos - SunDirection;
+	
+	vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, lightPos, SunColor, data.roughness, false) * (data.roughness);
+	
+	vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, lightPos, SunColor, 1.0, false) * (data.roughness + 1.0);
+	
+    //return vec3(comparison);
+    return (radiance + difradiance) * 0.5 * percent;
+}
+
 vec3 DirectLight(FragmentData data){
     vec3 color1 = vec3(0);
     
@@ -53,6 +99,7 @@ vec3 DirectLight(FragmentData data){
 
         mat4 lightPV = (LightsPs[i] * LightsVs[i]);
         vec4 lightClipSpace = lightPV * vec4(data.worldPos, 1.0);
+		color1 += makeLightPoint(LightsPos[i], LightsColors[i].rgb);
         if(lightClipSpace.z <= 0.0) continue;
         vec2 lightScreenSpace = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;   
 
@@ -64,7 +111,6 @@ vec3 DirectLight(FragmentData data){
         vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightsPos[i], LightsColors[i].rgb, data.roughness, false) * (data.roughness);
 		vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightsPos[i], LightsColors[i].rgb, 1.0, false) * (data.roughness + 1.0);
         color1 += (radiance + difradiance) * 0.5 * percent;
-		color1 += makeLightPoint(LightsPos[i], LightsColors[i].rgb);
     }/*
     for(int i=0;i<SimpleLightsCount;i++){
         vec3 pos = simpleLights[i].Position.xyz;
@@ -78,5 +124,8 @@ vec3 DirectLight(FragmentData data){
     }*/
 	
     if(DisablePostEffects == 1) color1 *= smoothstep(0.0, 0.1, data.cameraDistance);
+	
+	if(SunCascadeCount > 0) color1 += SunLight(data);
+	
     return color1;
 }

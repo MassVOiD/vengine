@@ -30,9 +30,9 @@ namespace ShadowsTester
             var terrain3dManager = Object3dManager.LoadFromRaw(Media.Get(obj));
             var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
             var terrainMaterial = new GenericMaterial();
-            terrainMaterial.DiffuseColor = color;
-            terrainMaterial.SpecularColor = color;
-            terrainMaterial.Roughness = 0.9f;
+            terrainMaterial.DiffuseColor = new Vector3(0);
+            terrainMaterial.SpecularColor = new Vector3(1);
+            terrainMaterial.Roughness = 0.5f;
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             return terrainMesh;
         }

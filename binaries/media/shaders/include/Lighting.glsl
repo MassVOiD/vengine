@@ -95,7 +95,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 	
     vec4 lightClipSpace = (lightPV) * vec4(pos, 1.0);
     vec3 lightScreenSpace = lightClipSpace.xyz / lightClipSpace.w;
-    float distance3 = (lightScreenSpace.z);
+    float distance3 = (lightScreenSpace.z * 0.5 + 0.5);
 
     float distance1 = 0.0;
     vec2 fakeUV = vec2(0.0);
@@ -103,7 +103,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     float counter = 0;
     //return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
     float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
-    return 1.0 - PCF(i, uv, distance3 + 0.0001);
+    return PCF(i, uv, distance3 - 0.0001);
 	float iter = 0;
 	for(int ix=0;ix<1;ix++){
 		float rot = rand2d(uv + iter) * 3.1415 * 2;
@@ -112,11 +112,11 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
 		
 		for(int id = 0; id < shadowmapSamples.length(); id++){ 
 			fakeUV = uv + (RM * shadowmapSamples[id]) * distance2 * 0.00005 * LightsBlurFactors[i];
-			accum += lookupDepthFromLight(i, clamp(fakeUV, 0.001, 0.999), distance3 + 0.00006);
+			accum += lookupDepthFromLight(i, clamp(fakeUV, 0.001, 0.999), distance3 - 0.00006);
 		}	
 	}
     
     //LastProbeDistance = LastProbeDistance / counter;
-    float rs = 1.0 - (accum / (shadowmapSamples.length() * iter));
+    float rs =  (accum / (shadowmapSamples.length() * iter));
     return rs;//return smoothstep(0.0, 0.9, rs);
 }

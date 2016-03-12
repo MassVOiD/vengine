@@ -101,7 +101,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
     float cc = textureMSAA(normalsDistancetex, UV, 0).a;
 	
 	float iter = 1.0;
-	for(int ix=0;ix<3;ix++){
+	for(int ix=0;ix<4;ix++){
 		float rot = rand2d(UV + iter) * 3.1415 * 2;
 		iter += 1.0;
 		mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
@@ -267,7 +267,6 @@ vec3 makeMotion(vec2 uv){
 	vec3 pos1 = (CurrentViewMatrix * vec4(worldPos, 1.0)).xyz;
 	vec3 pos2 = (LastViewMatrix * vec4(worldPos, 1.0)).xyz;
 	float dist = distance(pos1, pos2);
-	vec2 displace = (projectMotion(pos2) - projectMotion(pos1));
 	vec2 direction = (projectMotion(pos2) - projectMotion(pos1));
 	
 	float st = (1.0 / resolution.x) * dist * 20.0;

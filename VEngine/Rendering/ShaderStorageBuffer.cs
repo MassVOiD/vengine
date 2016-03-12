@@ -11,7 +11,7 @@ namespace VEngine
         public BufferUsageHint Type = BufferUsageHint.DynamicDraw;
         public BufferTarget Target;
 
-        private bool Generated;
+        private bool Generated = false;
 
         private int Handle = -1;
 
@@ -52,6 +52,36 @@ namespace VEngine
 
                 return arr;
             }
+        }
+
+        public class BufferPointer
+        {
+            private IntPtr Pointer;
+
+            public BufferPointer(IntPtr pointer)
+            {
+                Pointer = pointer;
+            }
+
+            public void Write(byte[] source, int sourceIndex, int length, int destinationIndex)
+            {
+                unsafe
+                {
+                    byte* ptr = (byte*)Pointer.ToPointer();
+
+                    for(int i = 0; i < length; i++)
+                    {
+                        ptr[i + destinationIndex] = source[i + sourceIndex];
+                    }
+                }
+            }
+        }
+
+        public BufferPointer MapPersistently(int bytesSize)
+        {
+            GL.BindBuffer(Target, Handle);
+            GL.BufferStorage(Target, bytesSize, IntPtr.Zero, BufferStorageFlags.MapCoherentBit | BufferStorageFlags.MapPersistentBit | BufferStorageFlags.MapWriteBit);
+            return new BufferPointer(GL.MapBufferRange(Target, IntPtr.Zero, bytesSize, BufferAccessMask.MapPersistentBit | BufferAccessMask.MapCoherentBit | BufferAccessMask.MapWriteBit));
         }
 
         public void MapData(byte[] buffer)
