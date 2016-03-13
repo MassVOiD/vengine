@@ -4,10 +4,12 @@ layout(binding = 0) uniform sampler2DArrayShadow shadowMapsArray;
 layout(binding = 1) uniform sampler2DMS albedoRoughnessTex;
 layout(binding = 2) uniform sampler2DMS normalsDistancetex;
 layout(binding = 3) uniform sampler2DMS specularBumpTex;
+layout(binding = 15) uniform sampler2DMS originalNormalsTex;
 #else
 layout(binding = 1) uniform sampler2D albedoRoughnessTex;
 layout(binding = 2) uniform sampler2D normalsDistancetex;
 layout(binding = 3) uniform sampler2D specularBumpTex;
+layout(binding = 15) uniform sampler2D originalNormalsTex;
 #endif
 
 layout(binding = 4) uniform sampler2D lastStageResultTex;
@@ -27,6 +29,9 @@ layout(binding = 12) uniform sampler2D glareTex;
 layout(binding = 13) uniform sampler2D fogTex;
 
 layout(binding = 14) uniform sampler2D aoTex;
+
+layout(binding = 17) uniform sampler2D forwardPassBuffer;
+layout(binding = 18) uniform sampler2D forwardPassBufferDepth;
 
 
 layout(binding = 22) uniform sampler2DArrayShadow sunCascadesArray;

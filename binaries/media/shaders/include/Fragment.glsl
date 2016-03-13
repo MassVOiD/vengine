@@ -1,6 +1,7 @@
 layout(location = 0) out vec4 outAlbedoRoughness;
 layout(location = 1) out vec4 outNormalsDistance;
 layout(location = 2) out vec4 outSpecularBump;
+layout(location = 3) out vec4 outOriginalNormal;
 
 
 
@@ -39,10 +40,12 @@ uniform int IsTessellatedTerrain;
 void main(){
 	//outColor = vec4(1.0);
 	//return;
+	vec3 norm = normalize(Input.Normal);
+	norm = faceforward(norm, norm, normalize(ToCameraSpace(Input.WorldPos)));
 	FragmentData currentFragment = FragmentData(
 		DiffuseColor,
 		SpecularColor,
-		normalize(Input.Normal),
+		norm,
 		normalize(Input.Tangent.xyz),
 		Input.WorldPos,
 		ToCameraSpace(Input.WorldPos),
@@ -88,4 +91,5 @@ void main(){
 	outAlbedoRoughness = vec4(currentFragment.diffuseColor, max(0.09, currentFragment.roughness));
 	outNormalsDistance = vec4(currentFragment.normal, currentFragment.cameraDistance);
 	outSpecularBump = vec4(currentFragment.specularColor, currentFragment.bump);
+	outOriginalNormal = vec4(quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal), currentFragment.cameraDistance);
 }

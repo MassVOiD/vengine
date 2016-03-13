@@ -211,6 +211,34 @@ vec2(0.6217795, 0.5868691),
 vec2(0.749605, 0.583603)
 );
 
+vec2 aoSamplesSpeed[] = vec2[](
+vec2(0.5, 0.5),
+
+vec2(0.25, 0.5),
+vec2(0.75, 0.5),
+
+vec2(0.5, 0.25),
+vec2(0.5, 0.75),
+
+vec2(0.25, 0.25),
+vec2(0.75, 0.75),
+
+vec2(0.75, 0.25),
+vec2(0.75, 0.25),
+
+
+vec2(0.33, 0.5),
+vec2(0.66, 0.5),
+
+vec2(0.5, 0.33),
+vec2(0.5, 0.66),
+
+vec2(0.33, 0.33),
+vec2(0.66, 0.66),
+
+vec2(0.66, 0.33),
+vec2(0.66, 0.33)
+);
 vec2 projectvdao(vec3 pos){
     vec4 tmp = (VPMatrix * vec4(pos, 1.0));
     return (tmp.xy / tmp.w) * 0.5 + 0.5;
@@ -231,128 +259,38 @@ float AO(
     vec2 multiplier = vec2(ratio, 1) * 0.09 * hemisphereSize * factor;
 	vec3 posc = ToCameraSpace(position);
     float rot = rand2s(UV) * PI * 2;
-    vec3 dirref = normalize(reflect(camerapos, normal));
 	
-	vec3 normal2 = normalize(mix(dirref, normal, roughness));
-	
-	vec2 refproj = UV - normalize(UV - projectvdao(position + dirref * 0.1));
+	vec3 normalcenter = textureMSAA(originalNormalsTex, UV, 0).rgb;
 	
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
     for(int g=0;g < xsamples.length();g+=quality){
 		vec2 nuv = UV + (xsamples[g] * multiplier);
-        vec4 aondata = textureMSAA(normalsDistancetex, nuv, 0).rgba;
-        float aon = aondata.a;
+		//if(nuv.x > 1.0 || nuv.x < 0.0 || nuv.y > 1.0 || nuv.y<0.0) continue;
+        float aondata = textureMSAA(originalNormalsTex, nuv, 0).a;
+        vec3 normdata = textureMSAA(originalNormalsTex, nuv, 0).rgb;
 		
-		float indirectAmount = 1.0 - abs(dot(aondata.rgb, normal));
+		float indirectAmount = 1.0 - abs(dot(normdata.rgb, normalcenter));
 		
 		vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * nuv.x + FrustumConeBottomLeftToTopLeft * nuv.y));
-		vec3 dupa = dir * aon;
-        float dt = max(0, dot(normal2, normalize(dupa - posc)) - 0.05);
-		//dt = 1.0 - pow(1.0 - dt*0.4, 3.0);
-		float fact = 1.0 - clamp(distance(dupa, posc) - 0.3, 0.0, 1.0);
-		//outc += dt * fact;
-		outc += mix(dt * fact, 0.0, indirectAmount);
-		//counter += 1.0;
+		vec3 dupa = dir * aondata;
+		
+		float shadowing = clamp(dot(normdata.xyz, normalize(dupa - posc)), 0.0, 1.0);
+		shadowing = smoothstep(0.0, 0.4, shadowing);
+		
+		float fact = 1.0 - clamp(abs(aondata - xaon) - 0.3, 0.0, 1.0);
+		outc += shadowing * fact;
     
     }
     return clamp(1.0 - max(0, (outc / (xsamples.length()/quality))), 0.0, 1.0);
   //  return 1.0 - outc / (xsamples.length()/quality);
 }
 
-float hash( float n )
-{
-    return fract(sin(n)*758.5453);
-}
-
-float VDAO(FragmentData data, float hemisize){
-	float ao = 0.0;
-	float uvrand = rand2s(UV);
-	float rd = 1.1232 + uvrand;
-	float rd2 = 2.3545 + uvrand;
-	float rd3 = 1.76812 + uvrand;
-	float importancer = (1.0 - data.roughness) * 0.9;
-	float importancer2 = 1.0 - importancer;
-	for(int i=0;i<64;i++){
-		vec3 rdir = vec3(
-			hash(rd),
-			hash(rd2),
-			hash(rd3)
-		) * 2.0 - 1.0;
-		rd += 1.3432;
-		rd2 += 0.9235;
-		rd3 += 1.321;
-		rdir = faceforward(rdir, -rdir, vec3(0,1,0));
-		float dt = dot(data.normal, rdir) * (importancer) + importancer2;
-		rdir = normalize(mix(rdir, data.normal, 0));
-		vec2 proj = projectvdao(data.worldPos + rdir * hemisize);
-		float thisao = 1.0;
-		float interpolator = 0.20;
-		float dst = distance(CameraPosition, data.worldPos + rdir * 0.3);
-		for(int x=1;x<5;x++){
-			float read = textureMSAA(normalsDistancetex, mix(UV, proj, interpolator), 0).a;
-			thisao -= 0.25 * step(0.001, dst - read) * (1.0 - step(hemisize, dst - read));
-			interpolator += 0.20;
-		}
-		ao += thisao;
-	}
-	return ao / 64.0;
-}
-
-float AmbientOcclusionSingle(FragmentData data, float hemisize){
-    //vec2 pixelSize = vec2(length(dFdx(position)), length(dFdy(position)));
-    vec3 posc = data.cameraPos;
-    vec3 vdir = normalize(posc);
-    vec3 tangent = getTangentPlane(data.normal);
-    //normal = normalize(cross((dFdx(position) - position), (dFdy(position) - position))); 
-	float uvrand = rand2s(UV);
-	float rd = 1.1232 + uvrand;
-	float rd2 = 2.3545 + uvrand;
-	float rd3 = 1.76812 + uvrand;
-    
-    mat3 TBN = inverse(transpose(mat3(
-    tangent,
-    cross(data.normal, tangent),
-    data.normal
-    )));
-    
-    float buf = 0.0;
-    vec3 dir = normalize(reflect(posc, data.normal));
-    float samples = mix(6, 32, data.roughness);
-    float stepsize = PI*2 / samples;
-    float ringsize = min(length(posc), hemisize);
-    float roughness = 1.0 - data.roughness;
-	//float rd = rand2s(UV);
-    for(float g = 0.0; g < PI*2; g+=stepsize)
-    {
-      //  rd = (rd+g*12.75753);
-       // vec3 zx = vec3(sin(g), cos(g), rd);
-	   vec3 rdir = vec3(
-			hash(rd),
-			hash(rd2),
-			hash(rd3)
-		) * 2.0 - 1.0;
-		rd += 1.3432;
-		rd2 += 0.9235;
-		rd3 += 1.321;
-		rdir = faceforward(rdir, -rdir, data.normal);
-        
-        vec3 displace = normalize(mix(TBN * normalize(rdir), dir, roughness)) * ringsize;
-        
-        vec2 gauss = mix(UV, projectvdao(data.worldPos + displace), fract(rd));
-        //if(gauss.x < 0.0 || gauss.x > 1.0 || gauss.y < 0.0 || gauss.y > 1.0) continue;
-        vec3 pos = reconstructCameraSpace(gauss);
-        float dt = max(0, dot(data.normal, normalize(pos - posc)));
-        dt = 1.0 - pow(1.0 - dt, 21.0);
-        buf += dt * ((ringsize - min(length(pos - posc), ringsize))/ringsize);
-    }
-    return clamp(pow(1.0 - (buf/samples), 6), 0.0, 1.0);
-}
 
 float AmbientOcclusion(FragmentData data){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AO(data.worldPos, data.cameraPos, data.normal, data.roughness, 3.5, 5);
-    ao *= AO(data.worldPos, data.cameraPos, data.normal, data.roughness, 1.0, 5);
+    ao = AO(data.worldPos, data.cameraPos, vec3(0,1,0), data.roughness, 3.5, 1);
+    //ao *= AO(data.worldPos, data.cameraPos, data.normal, data.roughness, 1.0, 5);
    // ao *= pow(AO(data.worldPos, data.normal, data.roughness, 8.0, 4), 5);
-    return pow(ao, 4.5);
+    return pow(ao, 2.5);
 	//return AmbientOcclusionSingle(data, 0.5);
 }

@@ -50,28 +50,24 @@ namespace VEngine
             {
                 if(Material.SupportTransparency)
                     return;
-            }
+            }*/
             if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardOpaquePass)
             {
-                if(Material.SupportTransparency)
+                if(Material.UseForwardRenderer)
                     return;
             }
-            if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentPass)
+            if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentPass || InternalRenderingState.PassState == InternalRenderingState.State.EarlyZPass)
             {
-                if(!Material.SupportTransparency)
+                if(!Material.UseForwardRenderer)
                     return;
-            }*/
+            }
             Material.Use();
             container.SetUniforms();
+            ShaderProgram.Current.SetUniform("ForwardPass", InternalRenderingState.PassState == InternalRenderingState.State.EarlyZPass ? 0 : 1);
             ModelInfosBuffer.Use(0);
 
-            //if(Material.AlphaTexture != null)
-                GL.Disable(EnableCap.CullFace);
-
             Info3d.DrawInstanced(InstancesFiltered);
-
-            if(Material.AlphaTexture != null)
-                GL.Enable(EnableCap.CullFace);
+            
         }
         
         public void UpdateMatrix(List<Mesh3dInstance> instances, bool instantRebuffer = false)

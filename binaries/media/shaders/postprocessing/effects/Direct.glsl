@@ -58,6 +58,12 @@ float PCFSun(int i, vec2 uvi, float comparison){
 	return shadow / (KERNEL * KERNEL);
 }
 
+float toLogDept2h(float depth, float far){
+	//float badass_depth = log(LogEnchacer*depth + 1.0f) / log(LogEnchacer*far + 1.0f);
+    float badass_depth = log2(max(1e-6, 1.0 + depth*far)) / (log2(far));
+    //float badass_depth = log2(1.0 + depth) / log2(far+1.0);
+	return badass_depth;
+}
 vec3 SunLight(FragmentData data){
 	int chosenCascade = 0;
 	vec2 texcoord = vec2(0);
@@ -72,9 +78,10 @@ vec3 SunLight(FragmentData data){
             chosenCascade = i;
 			texcoord = lightScreenSpace;
 			comparison = depth;
-			tolerance = 0.0001 + float(i) * 0.0005;
+			tolerance = 0.00001 ;
         }
 	}
+	comparison = toLogDept2h(comparison, 10000);
 	float percent = PCFSun(chosenCascade, texcoord, comparison - tolerance);
 	//mat4 mat = SunMatrices[chosenCascade];
 	vec3 lightPos = data.worldPos - SunDirection;
@@ -92,7 +99,7 @@ vec3 DirectLight(FragmentData data){
     
     //float parallax = step(100.0, metalness);
     //metalness = fract(metalness);
-	
+	/*
 	float rr = 0.5;
     
     for(int i=0;i<LightsCount;i++){
@@ -111,20 +118,9 @@ vec3 DirectLight(FragmentData data){
         vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightsPos[i], LightsColors[i].rgb, data.roughness, false) * (data.roughness);
 		vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightsPos[i], LightsColors[i].rgb, 1.0, false) * (data.roughness + 1.0);
         color1 += (radiance + difradiance) * 0.5 * percent;
-    }/*
-    for(int i=0;i<SimpleLightsCount;i++){
-        vec3 pos = simpleLights[i].Position.xyz;
-        vec3 n = simpleLights[i].Direction.xyz;
-        float angle = cos(simpleLights[i].Color.a);
-        float dt = dot(normalize(position - pos), n);
-        float factor = smoothstep(angle, 1.0, dt);
-        //float cosangle = 
-        vec3 col = simpleLights[i].Color.rgb;
-        color1 += shade(CameraPosition, albedo, normal, position, pos, col, roughness, false) * AOValue;
-    }*/
-	
+    }
     if(DisablePostEffects == 1) color1 *= smoothstep(0.0, 0.1, data.cameraDistance);
-	
+	*/
 	if(SunCascadeCount > 0) color1 += SunLight(data);
 	
     return color1;

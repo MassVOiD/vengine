@@ -44,6 +44,7 @@ namespace VEngine
             EnvLightFramebuffer,
             DeferredFramebuffer,
             AmbientOcclusionFramebuffer,
+            ForwardPassFramebuffer,
             FogFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
@@ -69,6 +70,7 @@ namespace VEngine
             BloomYPass.FreeGPU();
             EnvLightFramebuffer.FreeGPU();
             AmbientOcclusionFramebuffer.FreeGPU();
+            ForwardPassFramebuffer.FreeGPU();
             FogFramebuffer.FreeGPU();
 
             MRT.FreeGPU();
@@ -114,7 +116,7 @@ namespace VEngine
             AmbientOcclusionShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
                 AmbientOcclusionShader.SetGlobal("USE_MSAA", "");
-            
+
             FogShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Fog.fragment.glsl");
             FogShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
@@ -139,7 +141,7 @@ namespace VEngine
         {
 
             MRT = new MRTFramebuffer(Width, Height, Samples);
-            
+
             ScreenSpaceReflectionsFramebuffer = new Framebuffer(Width / 2, Height / 2)
             {
                 ColorOnly = true,
@@ -153,6 +155,13 @@ namespace VEngine
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
                 ColorPixelFormat = PixelFormat.Rgba,
                 ColorPixelType = PixelType.HalfFloat
+            };
+            ForwardPassFramebuffer = new Framebuffer(Width / 1, Height / 1)
+            {
+                ColorOnly = false,
+                ColorInternalFormat = PixelInternalFormat.Rgba8,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.UnsignedByte
             };
             EnvLightFramebuffer = new Framebuffer(Width / 1, Height / 1)
             {
@@ -219,7 +228,7 @@ namespace VEngine
             ColorAndDepth
         }
 
-        private void BlitFramebuffers(Framebuffer source, Framebuffer destination)
+        private void BlitFramebuffers(Framebuffer source, Framebuffer destination, BlitMode mode)
         {
             source.BindWithPurpose(FramebufferTarget.ReadFramebuffer);
             GL.FramebufferTexture2D(FramebufferTarget.ReadFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, source.TexColor, 0);
@@ -229,7 +238,42 @@ namespace VEngine
             GL.FramebufferTexture2D(FramebufferTarget.DrawFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, destination.TexColor, 0);
             GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
-            GL.BlitFramebuffer(0, 0, source.Width, source.Height, 0, 0, destination.Width, destination.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
+            if(mode == BlitMode.Color)
+            {
+                GL.BlitFramebuffer(0, 0, source.Width, source.Height, 0, 0, destination.Width, destination.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
+            }
+            else if(mode == BlitMode.Depth)
+            {
+                GL.BlitFramebuffer(0, 0, source.Width, source.Height, 0, 0, destination.Width, destination.Height, ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Linear);
+            }
+            else if(mode == BlitMode.ColorAndDepth)
+            {
+                GL.BlitFramebuffer(0, 0, source.Width, source.Height, 0, 0, destination.Width, destination.Height, ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Linear);
+            }
+        }
+
+        private void BlitFramebuffers(MRTFramebuffer source, Framebuffer destination, BlitMode mode)
+        {
+            source.BindWithPurpose(FramebufferTarget.ReadFramebuffer);
+            //GL.FramebufferTexture2D(FramebufferTarget.ReadFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, source.DepthRenderBuffer, 0);
+            GL.ReadBuffer(ReadBufferMode.None);
+
+            destination.BindWithPurpose(FramebufferTarget.DrawFramebuffer);
+            //GL.FramebufferTexture2D(FramebufferTarget.DrawFramebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, destination.TexColor, 0);
+            GL.DrawBuffer(DrawBufferMode.None);
+
+            if(mode == BlitMode.Color)
+            {
+                GL.BlitFramebuffer(0, 0, source.Width, source.Height, 0, 0, destination.Width, destination.Height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Linear);
+            }
+            else if(mode == BlitMode.Depth)
+            {
+                GL.BlitFramebuffer(0, 0, source.Width, source.Height, 0, 0, destination.Width, destination.Height, ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Linear);
+            }
+            else if(mode == BlitMode.ColorAndDepth)
+            {
+                GL.BlitFramebuffer(0, 0, source.Width, source.Height, 0, 0, destination.Width, destination.Height, ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit, BlitFramebufferFilter.Linear);
+            }
         }
 
         public void RenderToFramebuffer(Framebuffer framebuffer)
@@ -249,7 +293,7 @@ namespace VEngine
         }
 
         private Matrix4 LastViewMatrix = Matrix4.Identity;
-        
+
         public void SetUniformsShared()
         {
             var shader = ShaderProgram.Current;
@@ -261,10 +305,10 @@ namespace VEngine
             shader.SetUniform("LastViewMatrix", LastViewMatrix);
             Camera.Current.SetUniforms();
 
-            MRT.UseTextures(1, 2, 3);
+            MRT.UseTextures(1, 2, 3, 15);
 
             DeferredFramebuffer.UseTexture(7);
-           // DistanceFramebuffer.UseTexture(8);
+            // DistanceFramebuffer.UseTexture(8);
             //ScreenSpaceReflectionsFramebuffer.GenerateMipMaps();
             ScreenSpaceReflectionsFramebuffer.UseTexture(9);
             EnvLightFramebuffer.UseTexture(10);
@@ -393,6 +437,7 @@ namespace VEngine
                 HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
                 HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
+            ForwardPassFramebuffer.UseTexture(17);
             DrawPPMesh();
             Game.CheckErrors("HDR pass");
             LastViewMatrix = Camera.Current.GetViewMatrix();
@@ -429,7 +474,7 @@ namespace VEngine
             BloomYPass.Use();
             BloomXPass.Use();
 
-            BlitFramebuffers(DeferredFramebuffer, BloomYPass);
+            BlitFramebuffers(DeferredFramebuffer, BloomYPass, BlitMode.Color);
             // here Y has deferred data, X is empty
             BloomShader.Use();
             SetUniformsShared();
@@ -447,7 +492,7 @@ namespace VEngine
             PostProcessingMesh.Draw();
             // here y has 2 pass data
         }
-        
+
         private void RenderPrepareToBlit()
         {
             Game.World.SetUniforms(this);
@@ -478,6 +523,28 @@ namespace VEngine
                 ScreenSpaceReflections();
             if(GraphicsSettings.UseBloom)
                 Bloom();
+            ForwardPass();
+        }
+
+        private void ForwardPass()
+        {
+            //GL.ClearColor(0, 1, 0, 0.5f);
+            ForwardPassFramebuffer.Use(true, true);
+            //Framebuffer.Default.Use();
+
+            //BlitFramebuffers(MRT, ForwardPassFramebuffer, BlitMode.Depth);
+            //ForwardPassFramebuffer.Use(true, false);
+
+            GL.Disable(EnableCap.CullFace);
+            InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
+            DisableBlending();
+            Game.World.Draw();
+            InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
+            EnableBlending();
+            Game.World.Draw();
+            InternalRenderingState.PassState = InternalRenderingState.State.Idle;
+            DisableBlending();
+            GL.Enable(EnableCap.CullFace);
         }
 
         private void SwitchToFB(Framebuffer buffer)

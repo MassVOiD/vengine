@@ -65,17 +65,34 @@ namespace ShadowsTester
                 red.GetInstance(0).Translate(15, 0, 0);
 
                 var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
-                var terra = CreateDiffuseModelFromObj("terratest.obj", new Vector3(1));
-                terra.GetInstance(0).Scale(100);
-                scene.Add(terra);
-                // scene.Add(ground);
+                 scene.Add(ground);
                 //scene.Add(green);
                 //scene.Add(red);
 
                 Game.CascadeShadowMaps.SetDirection(Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(-25)));
-                /*
-                scene.Add(lucy);
                 
+                scene.Add(lucy);
+
+                var billboardObj = Object3dManager.LoadFromObjSingle(Media.Get("simplebillboard.obj")).AsObject3dInfo();
+                var billboardMaterial = new GenericMaterial();
+                billboardMaterial.UseForwardRenderer = true;
+                billboardMaterial.SetDiffuseTexture("alphatest.png");
+
+                var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
+                billboardMesh.ClearInstances();
+
+                for(int i = 0; i < 1000000; i++)
+                {
+                    var pos = new Vector3(rand(-10000, 10000), 0, rand(-10000, 10000));
+                    float uniscale = rand(0.7f, 1.5f);
+                    var scale = new Vector3(uniscale, rand(0.7f, 3.0f), uniscale);
+                    billboardMesh.AddInstance(new TransformationManager(pos, scale));
+                }
+                billboardMesh.UpdateMatrix();
+
+                scene.Add(billboardMesh);
+
+                /*
                 var trootobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("tree2r.obj")).Vertices);
                 var tleavobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("tree2l.obj")).Vertices);
                 var rootmaterial = new GenericMaterial()
@@ -133,7 +150,10 @@ namespace ShadowsTester
                 scene.Add(cubes);*/
 
                 /*
-                var cityObj = Object3dManager.LoadFromObjSingle(Media.Get("somecity.obj")).AsObject3dInfo();
+                var cityMgr = Object3dManager.LoadFromObjSingle(Media.Get("somecity.obj"));
+                cityMgr.TryToFixVertexWinding();
+                cityMgr.RecalulateNormals(Object3dManager.NormalRecalculationType.Flat);
+                var cityObj = cityMgr.AsObject3dInfo();
                 var cityMat = new GenericMaterial()
                 {
                     DiffuseColor = new Vector3(1, 0.89f, 0.97f),

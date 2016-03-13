@@ -8,9 +8,10 @@ namespace VEngine
     {
         public bool Generated;
 
-        public int TexAlbedoRoughness, TexNormalsDistance, TexSpecularBump, DepthRenderBuffer;
+        public int TexAlbedoRoughness, TexNormalsDistance, TexOriginalNormal, TexSpecularBump, DepthRenderBuffer;
 
-        private int FBO, Width, Height, MSAASamples = 1;
+        private int FBO, MSAASamples = 1;
+        public int Width, Height;
 
         public MRTFramebuffer(int width, int height, int samples)
         {
@@ -36,7 +37,12 @@ namespace VEngine
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-        public void UseTextures(int indexAlbedoRoughness, int indexNormalsDistance, int indexSpecularBump)
+        public void BindWithPurpose(FramebufferTarget purpose)
+        {
+            GL.BindFramebuffer(purpose, FBO);
+        }
+
+        public void UseTextures(int indexAlbedoRoughness, int indexNormalsDistance, int indexSpecularBump, int indexOriginalNormal)
         {
             GL.ActiveTexture(TextureUnit.Texture0 + indexAlbedoRoughness);
             GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexAlbedoRoughness);
@@ -46,6 +52,9 @@ namespace VEngine
 
             GL.ActiveTexture(TextureUnit.Texture0 + indexSpecularBump);
             GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexSpecularBump);
+
+            GL.ActiveTexture(TextureUnit.Texture0 + indexOriginalNormal);
+            GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexOriginalNormal);
 
             GL.ActiveTexture(TextureUnit.Texture0);
         }
@@ -59,6 +68,9 @@ namespace VEngine
             GL.GenerateMipmap(MSAASamples > 1 ? GenerateMipmapTarget.Texture2DMultisample : GenerateMipmapTarget.Texture2D);
 
             GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexSpecularBump);
+            GL.GenerateMipmap(MSAASamples > 1 ? GenerateMipmapTarget.Texture2DMultisample : GenerateMipmapTarget.Texture2D);
+
+            GL.BindTexture(MSAASamples > 1 ? TextureTarget.Texture2DMultisample : TextureTarget.Texture2D, TexOriginalNormal);
             GL.GenerateMipmap(MSAASamples > 1 ? GenerateMipmapTarget.Texture2DMultisample : GenerateMipmapTarget.Texture2D);
 
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -105,6 +117,7 @@ namespace VEngine
             TexAlbedoRoughness = GenerateSingleTexture(PixelInternalFormat.Rgba8, PixelFormat.Rgba, PixelType.UnsignedByte);
             TexNormalsDistance = GenerateSingleTexture(PixelInternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float);
             TexSpecularBump = GenerateSingleTexture(PixelInternalFormat.Rgba8, PixelFormat.Rgba, PixelType.UnsignedByte);
+            TexOriginalNormal = GenerateSingleTexture(PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.HalfFloat);
 
             // generating rbo for depth
             DepthRenderBuffer = GL.GenRenderbuffer();
@@ -118,9 +131,10 @@ namespace VEngine
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TexAlbedoRoughness, 0);
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TexNormalsDistance, 0);
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment2, TexSpecularBump, 0);
+            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment3, TexOriginalNormal, 0);
             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, DepthRenderBuffer);
 
-            GL.DrawBuffers(3, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2 });
+            GL.DrawBuffers(4, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2, DrawBuffersEnum.ColorAttachment3 });
 
             // check for fuckups
             var err = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);

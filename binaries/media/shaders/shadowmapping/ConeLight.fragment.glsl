@@ -7,6 +7,7 @@ in Data {
 } Input;
 #include Mesh3dUniforms.glsl
 #include LightingSamplers.glsl
+#include UsefulIncludes.glsl
 #include Shade.glsl
 
 uniform vec3 LightColor;
@@ -35,6 +36,8 @@ void main()
 	if(alph < 0.01) discard;
 	float dist = distance(CameraPosition, Input.WorldPos);
 	outDiffuseColorDistance = vec4(getSimpleLighting(), dist);
+	
+	gl_FragDepth = toLogDepth(Input.Data.y, 10000);
 	
 	outNormals = vec4(quat_mul_vec(ModelInfos[Input.instanceId].Rotation, normalize(Input.Normal)), dist);
 	

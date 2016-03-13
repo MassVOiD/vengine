@@ -103,6 +103,7 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     float counter = 0;
     //return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
     float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
+	//float dst = toLogDepth(distance3, 10000);
     return PCF(i, uv, distance3 - 0.0001);
 	float iter = 0;
 	for(int ix=0;ix<1;ix++){

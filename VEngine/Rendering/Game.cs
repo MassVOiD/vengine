@@ -48,8 +48,8 @@ namespace VEngine
             World = new World();
             Media.SearchPath = mediapath;
             Media.LoadFileMap();
-            ShadowMaps = new ShadowMapsArrayTexture(1024, 1024);
-            CascadeShadowMaps = new CascadeShadows(Vector3.One, new float[] { 10, 25, 50, 150, 300, 500, 1000, 4000 }, 1000);
+            ShadowMaps = new ShadowMapsArrayTexture(2048, 2048);
+            CascadeShadowMaps = new CascadeShadows(Vector3.One, new float[] { 10, 25, 50, 500, 1000, 10000 }, 10000);
             Resolution = resolution;
             SetCurrentThreadCores(1);
 

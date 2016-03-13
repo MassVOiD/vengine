@@ -29,7 +29,7 @@ void main()
 		normalsDistanceData.rgb,
 		vec3(1,0,0),
 		worldPos,
-		camSpacePos,
+		camSpacePos,	
 		normalsDistanceData.a,
 		1.0,
 		albedoRoughnessData.a,

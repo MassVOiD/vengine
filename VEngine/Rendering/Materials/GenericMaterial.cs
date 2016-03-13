@@ -24,6 +24,8 @@ namespace VEngine
 
         public float Alpha = 1.0f;
 
+        public bool UseForwardRenderer = false;
+
         public float TessellationMultiplier = 1.0f;
 
         public MaterialType Type;
@@ -92,7 +94,7 @@ namespace VEngine
         {
             if(CustomShaderProgram != null)
                 return CustomShaderProgram;
-            var pack = OverrideShaderPack != null ? OverrideShaderPack : Game.ShaderPool.ChooseShaderGenericMaterial();
+            var pack = OverrideShaderPack != null ? OverrideShaderPack : Game.ShaderPool.ChooseShaderGenericMaterial(UseForwardRenderer);
             if(Type == MaterialType.Grass || Type == MaterialType.Flag)
                 return pack.Geometry96iTriangles;
             if(Type == MaterialType.TessellatedTerrain)

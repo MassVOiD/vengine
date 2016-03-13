@@ -41,7 +41,7 @@ namespace VEngine
 
             }
         }
-        private ShaderPack DepthOnly, GenericMaterial, DistanceOnly;
+        private ShaderPack DepthOnly, GenericMaterial, ForwardMaterial, DistanceOnly;
 
         private ShaderPack[] Packs;
 
@@ -50,9 +50,9 @@ namespace VEngine
             return Packs;
         }
 
-        public ShaderPack ChooseShaderGenericMaterial()
+        public ShaderPack ChooseShaderGenericMaterial(bool isForward)
         {
-            return GenericMaterial;
+            return isForward ? ForwardMaterial : GenericMaterial;
         }
         public ShaderPack ChooseShaderDepth()
         {
@@ -69,9 +69,11 @@ namespace VEngine
 
             GenericMaterial = new ShaderPack("Generic.fragment.glsl");
 
+            ForwardMaterial = new ShaderPack("Forward.fragment.glsl");
+
             DistanceOnly = new ShaderPack("DistanceOnly.fragment.glsl");
 
-            Packs = new ShaderPack[] { DepthOnly, GenericMaterial, DistanceOnly };
+            Packs = new ShaderPack[] { DepthOnly, GenericMaterial, ForwardMaterial, DistanceOnly };
         }
     }
 }

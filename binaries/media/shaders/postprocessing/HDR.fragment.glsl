@@ -268,6 +268,7 @@ vec3 makeMotion(vec2 uv){
 	vec3 pos2 = (LastViewMatrix * vec4(worldPos, 1.0)).xyz;
 	float dist = distance(pos1, pos2);
 	vec2 direction = (projectMotion(pos2) - projectMotion(pos1));
+	if(length(direction) < (1.0/resolution.x)) return texture(deferredTex, uv).rgb;
 	
 	float st = (1.0 / resolution.x) * dist * 20.0;
 	vec2 lookup = uv + direction * 0.05;
@@ -307,5 +308,12 @@ void main()
 		float gamma = 1.0/2.2;
 		color = rgb_to_srgb(color);
 	}
-    outColor = clamp(vec4(color, toLogDepthEx(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
+	
+	vec4 forward = texture(forwardPassBuffer, UV).rgba;
+	float forwardDepth = texture(forwardPassBufferDepth, UV).r;
+	float targetDepth = toLogDepth2(textureMSAAFull(normalsDistancetex, UV).a, 10000);
+	if(targetDepth >= forwardDepth || targetDepth < 0.0001) color = mix(color, forward.rgb, forward.a);
+	//color = vec3(forwardDepth);
+	
+    outColor = clamp(vec4(color, toLogDepth(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
 }

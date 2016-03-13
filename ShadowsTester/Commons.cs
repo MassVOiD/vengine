@@ -38,21 +38,21 @@ namespace ShadowsTester
             Picked = RedLight[0];
             RedLight[0].camera.UpdatePerspectiveOrtho(-50, 50, -50, 50, 120, -120);*/
             //RedLight[0].camera.UpdatePerspective(1, MathHelper.DegreesToRadians(90), 0.01f, 100);
-           /* RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
-            {
-                LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
-                IsStatic = true
-            });
-            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
-            {
-                LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
-                IsStatic = true
-            });
-            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
-            {
-                LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
-                IsStatic = true
-            });*/
+            /* RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
+             {
+                 LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
+                 IsStatic = true
+             });
+             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
+             {
+                 LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
+                 IsStatic = true
+             });
+             RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
+             {
+                 LightColor = new Vector3(1, 0.84f, 0.93f) * 25,
+                 IsStatic = true
+             });*/
             //redConeLight.BuildOrthographicProjection(600, 600, -150, 150);
 
             Game.OnKeyUp += (o, e) =>
@@ -116,7 +116,7 @@ namespace ShadowsTester
             Game.OnBeforeDraw += (o, e) =>
             {
                 //.ToString(System.Globalization.CultureInfo.InvariantCulture)
-                
+
                 //SettingsController.Instance.UpdatePerformance();
                 /*var jpad = OpenTK.Input.GamePad.GetState(0);
                 float deadzone = 0.15f;
@@ -180,6 +180,20 @@ namespace ShadowsTester
                             }
                         }*/
                     }
+                }
+
+                if(kb.IsKeyDown(OpenTK.Input.Key.Plus))
+                {
+                    var dir = Game.CascadeShadowMaps.GetDirection();
+                    dir = Quaternion.Multiply(Quaternion.FromAxisAngle(Vector3.UnitX, -0.01f), dir);
+                    Game.CascadeShadowMaps.SetDirection(dir);
+                }
+
+                if(kb.IsKeyDown(OpenTK.Input.Key.Minus))
+                {
+                    var dir = Game.CascadeShadowMaps.GetDirection();
+                    dir = Quaternion.Multiply(Quaternion.FromAxisAngle(Vector3.UnitX, 0.01f), dir);
+                    Game.CascadeShadowMaps.SetDirection(dir);
                 }
 
                 if(kb.IsKeyDown(OpenTK.Input.Key.T) && Picked != null)
@@ -283,7 +297,7 @@ namespace ShadowsTester
             FreeCam = freeCamera;
             PickingResult = new ShaderStorageBuffer();
             MousePicker = new ComputeShader("MousePicker.compute.glsl");
-           
+
             return freeCamera;
         }
 
@@ -344,7 +358,7 @@ namespace ShadowsTester
                             PickedMesh.GetLodLevel(0).Material.Roughness = 1;
                     }
                 }
-                                
+
                 if(e.Key == OpenTK.Input.Key.T)
                 {
                     /*if(PickedMesh != null)
@@ -363,7 +377,7 @@ namespace ShadowsTester
                             PickedMesh.GetLodLevel(0).Material.ParallaxHeightMultiplier = 24;
                     }
                 }
-               
+
                 if(e.Key == OpenTK.Input.Key.Pause)
                 {
                     ShaderProgram.RecompileAll();
@@ -371,7 +385,7 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.R)
                 {
-                   // Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode = !Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode;
+                    // Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode = !Game.DisplayAdapter.Pipeline.PostProcessor.UnbiasedIntegrateRenderMode;
                 }
                 if(e.Key == OpenTK.Input.Key.LBracket)
                 {
@@ -411,7 +425,7 @@ namespace ShadowsTester
                 }
                 if(e.Key == OpenTK.Input.Key.Tilde)
                 {
-                   // Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
+                    // Interpolator.Interpolate<Vector3>(RedLight.GetTransformationManager().Position, RedLight.GetTransformationManager().Position.R, FreeCam.Cam.GetPosition(), 8.0f, Interpolator.Easing.EaseInOut);
                 }
                 var settings = Game.DisplayAdapter.MainRenderer.GraphicsSettings;
                 if(e.Key == OpenTK.Input.Key.Number0)

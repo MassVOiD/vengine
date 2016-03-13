@@ -54,11 +54,18 @@ namespace VEngine
             Direction = -1 * (direction.ToDirection());
         }
 
+        public Quaternion GetDirection()
+        {
+            return Mappers[0].camera.GetOrientation();
+        }
+
         private void OnBeforeDraw(object sender, FrameEventArgs e)
         {
             for(int i = 0; i < Mappers.Length; i++)
             {
-                Mappers[i].camera.SetPosition(Camera.MainDisplayCamera.GetPosition());
+                var vec = Camera.MainDisplayCamera.GetPosition();
+                vec.Y = 0;
+                Mappers[i].camera.SetPosition(vec);
                 Mappers[i].camera.Update();
                 Mappers[i].Map();
             }

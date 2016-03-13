@@ -47,10 +47,10 @@ vec3 getBiTangent(vec3 v){
 	return normalize(v) == vec3(1,0,0) ? vec3(0,0,1) : normalize(cross(vec3(1,0,0), v));
 }
 
-#define rlg(a) reverseLogEx(a,1000)
-#define tld(a) toLogDepthEx(a,1000)
+#define rlg(a) reverseLog(a,1000)
+#define tld(a) toLogDepth(a,1000)
 float MMALGetShadowforFuckSake(float dists, vec3 wpos, vec3 dir){
-	float dist = toLogDepthEx(dists, 1000);
+	float dist = toLogDepth(dists, 1000);
 	float aaprc = 0.0;
 	float count = 0.0;
 	float rdiz = 1.654221;
