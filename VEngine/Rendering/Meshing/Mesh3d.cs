@@ -20,6 +20,23 @@ namespace VEngine
             Instances = new List<Mesh3dInstance>();
         }
 
+        public void IterationSortInstancesByDistanceFrom(Vector3 point)
+        {
+            Mesh3dInstance tmp = null;
+            var cnt = Instances.Count - 1;// this is ok
+            for(int i = 0; i < cnt; i++)
+            {
+                float dst1 = (Instances[i].Transformation.Position - point).Length;
+                float dst2 = (Instances[i+1].Transformation.Position - point).Length;
+                if(dst1 > dst2)
+                {
+                    tmp = Instances[i];
+                    Instances[i] = Instances[i + 1];
+                    Instances[i + 1] = tmp;
+                }
+            }
+        }
+
         public static Mesh3d Empty
         {
             get

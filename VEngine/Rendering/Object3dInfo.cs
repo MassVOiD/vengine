@@ -67,16 +67,24 @@ namespace VEngine
         
         public void UpdateTangents()
         {
-            if(IndicesCount == 1)
+            var floats = new List<float>();
+            if(DrawMode != PrimitiveType.Triangles)
             {
-                Array.Resize(ref VBO, 12);
-                VBO[ 8] = 0;
-                VBO[ 9] = 1;
-                VBO[ 10] = 0;
-                VBO[ 11] = 1;
+                for(int i = 0; i < IndicesCount; i ++)
+                {
+                    int vboIndex1 = (int)i * 8;
+                    var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
+                    var uv1 = new Vector2(VBO[vboIndex1 + 3], VBO[vboIndex1 + 4]);
+                    var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
+
+                    var tan1 = Vector4.Zero;
+                    floats.AddRange(new float[]{
+                        pos1.X, pos1.Y, pos1.Z, uv1.X, uv1.Y, nor1.X, nor1.Y, nor1.Z, tan1.X, tan1.Y, tan1.Z, tan1.W
+                    });
+                }
+                VBO = floats.ToArray();
                 return;
             }
-            var floats = new List<float>();
             for(int i = 0; i < IndicesCount; i += 3)
             {
                 int vboIndex1 = (int)i * 8;

@@ -16,7 +16,7 @@ vec3 makeFresnel(float V2Ncos, vec3 reflected)
 
 float G1V(float dotNV, float k)
 {
-    return 1.0f/(dotNV*(1.0f-k)+k);
+    return 1.0/(dotNV*(1.0-k)+k);
 }
 
 vec3 LightingFuncGGX_REF(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
@@ -25,33 +25,32 @@ vec3 LightingFuncGGX_REF(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
 
     vec3 H = normalize(V+L);
 
-    float dotNL = max(0, dot(N,L));
-    float dotNV = max(0, dot(N,V));
-    float dotNH = max(0, dot(N,H));
-    float dotLH = max(0, dot(L,H));
+    float dotNL = max(0.0, dot(N,L));
+    float dotNV = max(0.0, dot(N,V));
+    float dotNH = max(0.0, dot(N,H));
+    float dotLH = max(0.0, dot(L,H));
 
     vec3 F;
     float D, vis;
 
     // D
     float alphaSqr = alpha*alpha;
-    float pi = 3.14159f;
-    float denom = dotNH * dotNH *(alphaSqr-1.0) + 1.0f;
+    float pi = 3.14159;
+    float denom = dotNH * dotNH *(alphaSqr-1.0) + 1.0;
     D = alphaSqr/(pi * denom * denom);
 
     // F
-    float dotLH5 = pow(1.0f-dotLH,5);
+    float dotLH5 = pow(1.0-dotLH,5.0);
     F = F0 + (1.0-F0)*(dotLH5);
 
     // V
-    float k = alpha/2.0f;
+    float k = alpha/2.0;
     vis = G1V(dotNL,k)*G1V(dotNV,k);
 
     vec3 specular = dotNL * D * F * vis;
     return specular;
 }
 
-/*
 vec2 LightingFuncGGX_FV(float dotLH, float roughness)
 {
     float alpha = roughness*roughness;
@@ -97,7 +96,14 @@ vec3 LightingFuncGGX_OPT3(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
     vec3 specular = dotNL * D * FV;
 
     return specular;
-}*/
+	
+}
+
+vec3 lutLookup(vec3 normal, vec3 camSpace, vec3 lightSpace, float roughness, vec3 color){
+	vec3 dir = normalize(mix(reflect(-camSpace, normal), normal, roughness));
+	float dt = max(0, dot(lightSpace, dir));
+	return step(0.01, dt) * texture(brdfLut, vec2(dt, 0.01)).r * color;
+}
 
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
@@ -121,10 +127,6 @@ vec3 shade(
     
     vec3 cameraRelativeToVPos = -normalize(fragmentPosition - camera);
     
-    float distanceToLight = distance(fragmentPosition, lightPosition);
-    float att = ignoreAtt ? 1 : (CalculateFallof(distanceToLight));
-	//att = mix(1.0, att, roughness);
-  
     vec3 specularComponent = LightingFuncGGX_REF(
         normal,
         cameraRelativeToVPos,
@@ -132,12 +134,9 @@ vec3 shade(
         clamp(roughness, 0.005, 0.99),
         lightColor
         );
+		
+		
     
-    float diffuseComponent = 0*max(0, dot(lightRelativeToVPos, normal));
-
-    vec3 cc = lightColor*albedo;
-    vec3 difcolor = cc * diffuseComponent * att;
-	
     return specularComponent * albedo;
 }vec3 shadeDiffuse(
     vec3 camera,

@@ -53,14 +53,13 @@ namespace VEngine
                 -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
                 -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-                -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f
+                1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
             };
 
         private Object3dInfo CubeMapSphere;
 
         private Texture GlareTexture;
+        private Texture BRDFLutTexture;
 
         public void Resize(int initialWidth, int initialHeight)
         {
@@ -84,6 +83,8 @@ namespace VEngine
         public Renderer(int initialWidth, int initialHeight, int samples)
         {
             GlareTexture = new Texture(Media.Get("glaretex.png"));
+
+            BRDFLutTexture = new Texture(Media.Get("roughness_lut.png"));
 
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
@@ -135,6 +136,7 @@ namespace VEngine
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
 
             PostProcessingMesh = new Object3dInfo(VertexInfo.FromFloatArray(postProcessingPlaneVertices));
+            PostProcessingMesh.DrawMode = PrimitiveType.TriangleStrip;
         }
 
         private void CreateBuffers()
@@ -159,9 +161,9 @@ namespace VEngine
             ForwardPassFramebuffer = new Framebuffer(Width / 1, Height / 1)
             {
                 ColorOnly = false,
-                ColorInternalFormat = PixelInternalFormat.Rgba8,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
                 ColorPixelFormat = PixelFormat.Rgba,
-                ColorPixelType = PixelType.UnsignedByte
+                ColorPixelType = PixelType.HalfFloat
             };
             EnvLightFramebuffer = new Framebuffer(Width / 1, Height / 1)
             {
@@ -362,7 +364,7 @@ namespace VEngine
         private void EnableBlending()
         {
             GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
             GL.DepthMask(false);
             //GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
@@ -393,11 +395,12 @@ namespace VEngine
         private void Deferred()
         {
             DeferredShader.Use();
-            Game.World.Scene.SetLightingUniforms(DeferredShader);
-            Game.World.Scene.MapLightsSSBOToShader(DeferredShader);
             DeferredFramebuffer.Use();
             GlareTexture.Use(TextureUnit.Texture12);
+            BRDFLutTexture.Use(TextureUnit.Texture19);
 
+            Game.World.Scene.SetLightingUniforms(DeferredShader);
+            Game.World.Scene.MapLightsSSBOToShader(DeferredShader);
             Game.CascadeShadowMaps.SetUniforms();
 
             DrawPPMesh();
@@ -534,6 +537,18 @@ namespace VEngine
 
             //BlitFramebuffers(MRT, ForwardPassFramebuffer, BlitMode.Depth);
             //ForwardPassFramebuffer.Use(true, false);
+            GlareTexture.Use(TextureUnit.Texture12);
+            BRDFLutTexture.Use(TextureUnit.Texture19);
+
+            var programs = Game.ShaderPool.ChooseShaderGenericMaterial(true).ProgramsList;
+            for(int i = 0; i < programs.Length; i++)
+            {
+                programs[i].Use();
+                Game.World.Scene.SetLightingUniforms(programs[i]);
+                Game.World.Scene.MapLightsSSBOToShader(programs[i]);
+                Game.CascadeShadowMaps.SetUniforms();
+            }
+
 
             GL.Disable(EnableCap.CullFace);
             InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
@@ -541,7 +556,9 @@ namespace VEngine
             Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
             EnableBlending();
+            GL.DepthFunc(DepthFunction.Always);
             Game.World.Draw();
+            GL.DepthFunc(DepthFunction.Lequal);
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             DisableBlending();
             GL.Enable(EnableCap.CullFace);

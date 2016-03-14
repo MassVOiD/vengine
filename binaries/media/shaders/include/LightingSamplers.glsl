@@ -32,6 +32,7 @@ layout(binding = 14) uniform sampler2D aoTex;
 
 layout(binding = 17) uniform sampler2D forwardPassBuffer;
 layout(binding = 18) uniform sampler2D forwardPassBufferDepth;
+layout(binding = 19) uniform sampler2D brdfLut;
 
 
 layout(binding = 22) uniform sampler2DArrayShadow sunCascadesArray;

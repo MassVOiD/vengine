@@ -57,6 +57,14 @@ float PCFSun(int i, vec2 uvi, float comparison){
     }
 	return shadow / (KERNEL * KERNEL);
 }
+float RawSun(int i, vec2 uvi, float comparison){
+
+    float shadow = 0.0;
+	vec3 uv = vec3(uvi, float(i));
+	shadow += texture(sunCascadesArray, vec4(uv, comparison));
+   
+	return shadow;
+}
 
 float toLogDept2h(float depth, float far){
 	//float badass_depth = log(LogEnchacer*depth + 1.0f) / log(LogEnchacer*far + 1.0f);
@@ -78,11 +86,11 @@ vec3 SunLight(FragmentData data){
             chosenCascade = i;
 			texcoord = lightScreenSpace;
 			comparison = depth;
-			tolerance = 0.00001 ;
+			tolerance = 0.00001 + float(i) * 0.00001;
         }
 	}
 	comparison = toLogDept2h(comparison, 10000);
-	float percent = PCFSun(chosenCascade, texcoord, comparison - tolerance);
+	float percent = chosenCascade < 2 ? PCFSun(chosenCascade, texcoord, comparison - tolerance) : RawSun(chosenCascade, texcoord, comparison - tolerance);
 	//mat4 mat = SunMatrices[chosenCascade];
 	vec3 lightPos = data.worldPos - SunDirection;
 	

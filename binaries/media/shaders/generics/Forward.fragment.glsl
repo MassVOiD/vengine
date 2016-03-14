@@ -67,8 +67,8 @@ vec3 lookupFog(vec2 fuv, float radius, int samp){
 
 vec3 ApplyLighting(FragmentData data){
 	vec3 result = vec3(0);
-	if(UseDeferred == 1) result += DirectLight(data);
-	//if(UseVDAO == 1) result += EnvironmentLightSkybox(data);
+	 result += DirectLight(data);
+	result += EnvironmentLightSkybox(data);
 	//if(UseRSM == 1) result += RSM(data);
 	//if(UseFog == 1) result += lookupFog(UV, 1.0, 0);
 	if(UseDepth == 1) result = mix(result, vec3(1), 1.0 - CalculateFallof(data.cameraDistance*0.1));
@@ -128,13 +128,13 @@ void main(){
 	if(UseBumpTex) currentFragment.bump = texture(bumpTex, UVx).r; 
 	if(UseAlphaTex) currentFragment.alpha = texture(alphaTex, UVx).r;
 	
-	if(ForwardPass == 0 && currentFragment.alpha <= 0.99) discard;
-	if(ForwardPass == 1 && currentFragment.alpha > 0.99) discard;
+	if(textureMSAAFull(normalsDistancetex, UV).a < currentFragment.cameraDistance || ForwardPass == 0 && currentFragment.alpha < 0.01) discard;
+	//if(ForwardPass == 1 && currentFragment.alpha > 0.99) discard;
 	
 	gl_FragDepth = toLogDepth2(distance(CameraPosition, Input.WorldPos), 10000);
 	
 	currentFragment.normal = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, currentFragment.normal);
 
 	//outColor = vec4(ApplyLighting(currentFragment), currentFragment.alpha);
-	outColor = vec4(currentFragment.diffuseColor, currentFragment.alpha);
+	outColor = vec4(currentFragment.diffuseColor * currentFragment.alpha, currentFragment.alpha);
 }

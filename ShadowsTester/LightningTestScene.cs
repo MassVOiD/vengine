@@ -31,7 +31,7 @@ namespace ShadowsTester
             var terrainMaterial = new GenericMaterial();
             terrainMaterial.DiffuseColor = color;
             terrainMaterial.SpecularColor = color;
-            terrainMaterial.Roughness = 0.1f;
+            terrainMaterial.Roughness = 0.0f;
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             return terrainMesh;
         }
@@ -76,19 +76,28 @@ namespace ShadowsTester
                 var billboardObj = Object3dManager.LoadFromObjSingle(Media.Get("simplebillboard.obj")).AsObject3dInfo();
                 var billboardMaterial = new GenericMaterial();
                 billboardMaterial.UseForwardRenderer = true;
-                billboardMaterial.SetDiffuseTexture("alphatest.png");
+                billboardMaterial.SetDiffuseTexture("fieldgrassobj01.dds");
+                //billboardMaterial.SetNormalsTexture("alphatest_n.png");
+                billboardMaterial.Roughness = 0.8f;
+                billboardMaterial.InvertUVy = true;
 
                 var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
                 billboardMesh.ClearInstances();
 
-                for(int i = 0; i < 1000000; i++)
+                for(int i = 0; i < 100000; i++)
                 {
-                    var pos = new Vector3(rand(-10000, 10000), 0, rand(-10000, 10000));
+                    var pos = new Vector3(rand(-400, 400), 0, rand(-400, 400));
                     float uniscale = rand(0.7f, 1.5f);
-                    var scale = new Vector3(uniscale, rand(0.7f, 3.0f), uniscale);
-                    billboardMesh.AddInstance(new TransformationManager(pos, scale));
+                    var scale = new Vector3(uniscale, rand(0.3f, 0.4f), uniscale);
+                    billboardMesh.AddInstance(new TransformationManager(pos, Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegreesToRadians(rand(0, 90))), scale));
                 }
                 billboardMesh.UpdateMatrix();
+                Game.OnBeforeDraw += (i, x) =>
+                {
+                    billboardMesh.IterationSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position);
+                    billboardMesh.UpdateMatrix(true);
+
+                };
 
                 scene.Add(billboardMesh);
 

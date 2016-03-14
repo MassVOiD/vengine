@@ -26,6 +26,8 @@ namespace VEngine
 
         public bool UseForwardRenderer = false;
 
+        public bool InvertUVy = false;
+
         public float TessellationMultiplier = 1.0f;
 
         public MaterialType Type;
@@ -146,6 +148,7 @@ namespace VEngine
             prg.SetUniform("MaterialIndex", BufferOffset);
             prg.SetUniform("IsTessellatedTerrain", Type == MaterialType.TessellatedTerrain);
             prg.SetUniform("TessellationMultiplier", TessellationMultiplier);
+            prg.SetUniform("InvertUVy", InvertUVy);
 
             return true;
         }

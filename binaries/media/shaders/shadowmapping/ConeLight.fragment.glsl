@@ -33,7 +33,9 @@ void main()
 {
 	float alph = 1.0;
 	if(UseAlphaTex) alph = texture(alphaTex, Input.TexCoord).r; 
-	if(alph < 0.01) discard;
+	
+	if(UseDiffuseTex && !UseAlphaTex)alph = texture(diffuseTex, Input.TexCoord).a; 
+	if(alph < 0.99) discard;
 	float dist = distance(CameraPosition, Input.WorldPos);
 	outDiffuseColorDistance = vec4(getSimpleLighting(), dist);
 	

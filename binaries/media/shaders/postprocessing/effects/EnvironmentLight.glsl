@@ -96,7 +96,9 @@ vec3 MMALSkybox(vec3 normal, vec3 reflected, float roughness){
 	
     float levels = float(textureQueryLevels(cube));
     float mx = log2(roughness*MMAL_LOD_REGULATOR+1)/log2(MMAL_LOD_REGULATOR);
-    return textureLod(cube, mix(reflected, normal, roughness), mx * levels).rgb;
+    vec3 result = textureLod(cube, mix(reflected, normal, roughness), mx * levels).rgb;
+	
+	return vec3pow(result*1.5, 6.0);
 }
 
 
