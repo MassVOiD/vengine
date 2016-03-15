@@ -128,10 +128,12 @@ void main(){
 	if(UseBumpTex) currentFragment.bump = texture(bumpTex, UVx).r; 
 	if(UseAlphaTex) currentFragment.alpha = texture(alphaTex, UVx).r;
 	
-	if(textureMSAAFull(normalsDistancetex, UV).a < currentFragment.cameraDistance || ForwardPass == 0 && currentFragment.alpha < 0.01) discard;
+	float texdst = textureMSAAFull(normalsDistancetex, UV).a;
+	if(texdst > 0.001 && texdst < currentFragment.cameraDistance) discard;
+	//if(ForwardPass == 0 && currentFragment.alpha < 0.99) discard;
 	//if(ForwardPass == 1 && currentFragment.alpha > 0.99) discard;
 	
-	gl_FragDepth = toLogDepth2(distance(CameraPosition, Input.WorldPos), 10000);
+	//gl_FragDepth = toLogDepth2(distance(CameraPosition, Input.WorldPos), 10000);
 	
 	currentFragment.normal = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, currentFragment.normal);
 

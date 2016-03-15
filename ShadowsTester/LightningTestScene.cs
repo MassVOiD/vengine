@@ -73,33 +73,52 @@ namespace ShadowsTester
                 
                 scene.Add(lucy);
 
-                var billboardObj = Object3dManager.LoadFromObjSingle(Media.Get("simplebillboard.obj")).AsObject3dInfo();
-                var billboardMaterial = new GenericMaterial();
-                billboardMaterial.UseForwardRenderer = true;
-                billboardMaterial.SetDiffuseTexture("fieldgrassobj01.dds");
-                //billboardMaterial.SetNormalsTexture("alphatest_n.png");
-                billboardMaterial.Roughness = 0.8f;
-                billboardMaterial.InvertUVy = true;
-
-                var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
-                billboardMesh.ClearInstances();
-
-                for(int i = 0; i < 100000; i++)
-                {
-                    var pos = new Vector3(rand(-400, 400), 0, rand(-400, 400));
-                    float uniscale = rand(0.7f, 1.5f);
-                    var scale = new Vector3(uniscale, rand(0.3f, 0.4f), uniscale);
-                    billboardMesh.AddInstance(new TransformationManager(pos, Quaternion.FromAxisAngle(Vector3.UnitY, MathHelper.DegreesToRadians(rand(0, 90))), scale));
-                }
-                billboardMesh.UpdateMatrix();
-                Game.OnBeforeDraw += (i, x) =>
-                {
-                    billboardMesh.IterationSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position);
-                    billboardMesh.UpdateMatrix(true);
-
+                float[] billboardfloats = {
+                    -1.0f, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                    1.0f, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                    -1.0f, 1.0f, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                    1.0f, 1.0f, 0, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
                 };
 
-                scene.Add(billboardMesh);
+                var billboardObj = new Object3dManager(VertexInfo.FromFloatArray(billboardfloats)).AsObject3dInfo();
+                billboardObj.DrawMode = OpenTK.Graphics.OpenGL4.PrimitiveType.TriangleStrip;
+                string[] vegs = new string[] { "alphatest.png" };
+                for(int id = 0; id < 1; id++)
+                {
+                    var billboardMaterial = new GenericMaterial();
+                    billboardMaterial.UseForwardRenderer = true;
+                    billboardMaterial.IsBillboard = true;
+                    billboardMaterial.SetDiffuseTexture(vegs[id]);
+                    //billboardMaterial.SetNormalsTexture("alphatest_n.png");
+                    billboardMaterial.Roughness = 0.8f;
+                    //billboardMaterial.InvertUVy = true;
+
+                    var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
+                    billboardMesh.ClearInstances();
+
+                    for(int i = 0; i < 150000; i++)
+                    {
+                        var pos = new Vector3(rand(-100, 100), 0, rand(-100, 100));
+                        float uniscale = rand(0.7f, 1.5f);
+                        var scale = new Vector3(uniscale, rand(5.3f, 5.4f), uniscale);
+                        billboardMesh.AddInstance(new TransformationManager(pos, scale));
+                    }
+                    billboardMesh.UpdateMatrix();
+
+                    Game.CreateThread(() =>
+                    {
+                        while(true)
+                        {
+                            //billboardMesh.IterationSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position, 50);
+                            billboardMesh.FullSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position);
+                            billboardMesh.UpdateMatrix(false);
+                        }
+                    });
+
+                    
+
+                    scene.Add(billboardMesh);
+                }
 
                 /*
                 var trootobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("tree2r.obj")).Vertices);

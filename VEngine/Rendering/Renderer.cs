@@ -364,7 +364,8 @@ namespace VEngine
         private void EnableBlending()
         {
             GL.Enable(EnableCap.Blend);
-            GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
+           // GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             GL.DepthMask(false);
             //GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
@@ -551,14 +552,14 @@ namespace VEngine
 
 
             GL.Disable(EnableCap.CullFace);
-            InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
-            DisableBlending();
-            Game.World.Draw();
+            //InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
+            //DisableBlending();
+            //Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
             EnableBlending();
-            GL.DepthFunc(DepthFunction.Always);
+            GL.Disable(EnableCap.DepthTest);
             Game.World.Draw();
-            GL.DepthFunc(DepthFunction.Lequal);
+            GL.Enable(EnableCap.DepthTest);
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             DisableBlending();
             GL.Enable(EnableCap.CullFace);

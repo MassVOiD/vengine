@@ -20,21 +20,41 @@ namespace VEngine
             Instances = new List<Mesh3dInstance>();
         }
 
-        public void IterationSortInstancesByDistanceFrom(Vector3 point)
+        public void IterationSortInstancesByDistanceFrom(Vector3 point, int iterations)
         {
             Mesh3dInstance tmp = null;
             var cnt = Instances.Count - 1;// this is ok
-            for(int i = 0; i < cnt; i++)
+            for(int x = 0; x < iterations; x++)
             {
-                float dst1 = (Instances[i].Transformation.Position - point).Length;
-                float dst2 = (Instances[i+1].Transformation.Position - point).Length;
-                if(dst1 > dst2)
+                for(int i = 0; i < cnt; i++)
                 {
-                    tmp = Instances[i];
-                    Instances[i] = Instances[i + 1];
-                    Instances[i + 1] = tmp;
+                    float dst1 = (Instances[i].Transformation.Position - point).Length;
+                    float dst2 = (Instances[i + 1].Transformation.Position - point).Length;
+                    if(dst1 < dst2)
+                    {
+                        tmp = Instances[i];
+                        Instances[i] = Instances[i + 1];
+                        Instances[i + 1] = tmp;
+                    }
                 }
             }
+        }
+
+        public void FullSortInstancesByDistanceFrom(Vector3 point)
+        {
+            Instances.Sort((a, b) =>
+            {
+                float dst1 = (a.Transformation.Position - point).Length;
+                float dst2 = (b.Transformation.Position - point).Length;
+                if(dst1 < dst2)
+                {
+                    return 1;
+                }
+                else
+                    return -1;
+            });
+
+
         }
 
         public static Mesh3d Empty

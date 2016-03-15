@@ -28,6 +28,8 @@ namespace VEngine
 
         public bool InvertUVy = false;
 
+        public bool IsBillboard = false;
+
         public float TessellationMultiplier = 1.0f;
 
         public MaterialType Type;
@@ -149,6 +151,7 @@ namespace VEngine
             prg.SetUniform("IsTessellatedTerrain", Type == MaterialType.TessellatedTerrain);
             prg.SetUniform("TessellationMultiplier", TessellationMultiplier);
             prg.SetUniform("InvertUVy", InvertUVy);
+            prg.SetUniform("IsBillboard", IsBillboard);
 
             return true;
         }

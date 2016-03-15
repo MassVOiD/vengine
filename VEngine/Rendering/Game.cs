@@ -110,6 +110,10 @@ namespace VEngine
             t.Elapsed += (o, e) => func.Invoke();
             return t;
         }
+        static public Task CreateThread(Action func)
+        {
+            return Task.Factory.StartNew(func);
+        }
 
         static public void Invoke(Action action)
         {

@@ -312,7 +312,7 @@ void main()
 	vec4 forward = texture(forwardPassBuffer, UV).rgba;
 	float forwardDepth = texture(forwardPassBufferDepth, UV).r;
 	float targetDepth = toLogDepth2(textureMSAAFull(normalsDistancetex, UV).a, 10000);
-	if(forwardDepth < 1) color = vec3(forward.rgb / forward.a);
+	color = mix(color, forward.rgb, forward.a);
 	
 	
     outColor = clamp(vec4(color, toLogDepth(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
