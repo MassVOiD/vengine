@@ -94,10 +94,10 @@ namespace VEngine
             Game.World.SetUniforms(Game.DisplayAdapter.MainRenderer);
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;
             Game.World.Draw();
-            InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
-            GL.Disable(EnableCap.CullFace);
-            Game.World.Draw();
-            GL.Enable(EnableCap.CullFace);
+            //InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
+            //GL.Disable(EnableCap.CullFace);
+            //Game.World.Draw();
+            //GL.Enable(EnableCap.CullFace);
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
             Camera.Current = last;

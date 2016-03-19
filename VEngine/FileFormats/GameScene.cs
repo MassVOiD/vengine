@@ -231,7 +231,7 @@ namespace VEngine.FileFormats
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMesh.GetLodLevel(0).Info3d.Manager.ScaleUV(x, y);
                         var obj = tempMesh.GetLodLevel(0).Info3d.Manager;
-                        tempMesh.GetLodLevel(0).Info3d = new Object3dInfo(tempMesh.GetLodLevel(0).Info3d.Manager.Vertices);
+                        tempMesh.GetLodLevel(0).SetInfo3d(new Object3dInfo(tempMesh.GetLodLevel(0).Info3d.Manager.Vertices));
                         tempMesh.GetLodLevel(0).Info3d.Manager = obj;
                         break;
                     }

@@ -65,6 +65,8 @@ namespace VEngine
             Renderables.Add(e);
         }
 
+        public int LastDrawnObjectsCount = 0;
+
         public void Draw()
         {
             // var cpos = Camera.MainDisplayCamera.GetPosition();
@@ -81,8 +83,18 @@ namespace VEngine
                 else
                     return 0;
             });*/
+            LastDrawnObjectsCount = 0;
             for(int i = 0; i < Renderables.Count; i++)
-                Renderables[i].Draw();
+                if(Renderables[i].Draw())
+                    LastDrawnObjectsCount++;
+        }
+
+        public void RunOcclusionQueries()
+        {
+            for(int i = 0; i < Renderables.Count; i++)
+                if(Renderables[i] is Mesh3d)
+                    (Renderables[i] as Mesh3d).RunOcclusionQuery();
+
         }
 
         public List<IRenderable> GetFlatRenderableList()

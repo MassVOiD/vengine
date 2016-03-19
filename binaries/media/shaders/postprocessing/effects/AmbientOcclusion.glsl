@@ -269,16 +269,19 @@ float AO(
         float aondata = textureMSAA(originalNormalsTex, nuv, 0).a;
         vec3 normdata = textureMSAA(originalNormalsTex, nuv, 0).rgb;
 		
-		float indirectAmount = 1.0 - abs(dot(normdata.rgb, normalcenter));
+		float indirectAmount = abs(dot(normdata.rgb, normalcenter));
 		
 		vec3 dir = normalize((FrustumConeLeftBottom + FrustumConeBottomLeftToBottomRight * nuv.x + FrustumConeBottomLeftToTopLeft * nuv.y));
 		vec3 dupa = dir * aondata;
 		
 		float shadowing = clamp(dot(normdata.xyz, normalize(dupa - posc)), 0.0, 1.0);
-		shadowing = smoothstep(0.0, 0.4, shadowing);
+		shadowing = smoothstep(0.0, 0.9, shadowing);
+		//shadowing = mix(0.0, shadowing, indirectAmount);
+		//float occ = mix(0.0, max(0, dot(normalize(dupa- posc), normalcenter)), indirectAmount);
+		float occ = max(0, dot(normalize(dupa- posc), normalcenter));
 		
 		float fact = 1.0 - clamp(abs(aondata - xaon) - 0.3, 0.0, 1.0);
-		outc += shadowing * fact;
+		outc += occ * fact;
     
     }
     return clamp(1.0 - max(0, (outc / (xsamples.length()/quality))), 0.0, 1.0);

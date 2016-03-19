@@ -60,6 +60,53 @@ namespace VEngine.Generators
             }
             return new Object3dManager(VertexInfo.FromFloatArray(VBO));
         }
+        public static Object3dManager CreateCube(Vector3 min, Vector3 max, Vector2 uvScale)
+        {
+            float[] VBO = new float[288]{
+             min.X, max.Y, min.Z, 0.333333f,  0,  -1,  0,  0,
+             min.X, min.Y, min.Z, 0.666667f,  0,  -1,  0,  0,
+             min.X, min.Y, max.Z, 0.666667f,  0.333333f,  -1,  0,  0,
+             max.X, max.Y, min.Z, 0,  0.333333f,  0,  0,  -1,
+             max.X, min.Y, min.Z, 0.333333f,  0.333333f,  0,  0,  -1,
+             min.X, min.Y, min.Z, 0.333333f,  0.666667f,  0,  0,  -1,
+             max.X, max.Y, max.Z, 0,  0,  1,  0,  0,
+             max.X, min.Y, max.Z, 0.333333f,  0,  1,  0,  0,
+             max.X, min.Y, min.Z, 0.333333f,  0.333333f,  1,  0,  0,
+             min.X, max.Y, max.Z, 0.666667f,  0.333333f,  0,  0,  1,
+             min.X, min.Y, max.Z, 0.666667f,  0.666667f,  0,  0,  1,
+             max.X, min.Y, max.Z, 0.333333f,  0.666667f,  0,  0,  1,
+             min.X, min.Y, min.Z, 1,  0.333333f,  0,  -1,  0,
+             max.X, min.Y, min.Z, 0.666667f,  0.333333f,  0,  -1,  0,
+             max.X, min.Y, max.Z, 0.666667f,  0,  0,  -1,  0,
+             max.X, max.Y, min.Z, 0.333333f,  0.666667f,  0,  1,  0,
+             min.X, max.Y, min.Z, 0.333333f,  1,  0,  1,  0,
+             min.X, max.Y, max.Z, 0,  1,  0,  1,  0,
+             min.X, max.Y, max.Z, 0.333333f,  0.333333f,  -1,  0,  0,
+             min.X, max.Y, min.Z, 0.333333f,  0,  -1,  0,  0,
+             min.X, min.Y, max.Z, 0.666667f,  0.333333f,  -1,  0,  0,
+             min.X, max.Y, min.Z, 0,  0.666667f,  0,  0,  -1,
+             max.X, max.Y, min.Z, 0,  0.333333f,  0,  0,  -1,
+             min.X, min.Y, min.Z, 0.333333f,  0.666667f,  0,  0,  -1,
+             max.X, max.Y, min.Z, 0,  0.333333f,  1,  0,  0,
+             max.X, max.Y, max.Z, 0,  0,  1,  0,  0,
+             max.X, min.Y, min.Z, 0.333333f,  0.333333f,  1,  0,  0,
+             max.X, max.Y, max.Z, 0.333333f,  0.333333f,  0,  0,  1,
+             min.X, max.Y, max.Z, 0.666667f,  0.333333f,  0,  0,  1,
+             max.X, min.Y, max.Z, 0.333333f,  0.666667f,  0,  0,  1,
+             min.X, min.Y, max.Z, 1,  0,  0,  -1,  0,
+             min.X, min.Y, min.Z, 1,  0.333333f,  0,  -1,  0,
+             max.X, min.Y, max.Z, 0.666667f,  0,  0,  -1,  0,
+             max.X, max.Y, max.Z, 0,  0.666667f,  0,  1,  0,
+             max.X, max.Y, min.Z, 0.333333f,  0.666667f,  0,  1,  0,
+             min.X, max.Y, max.Z, 0, 1, 0, 1, 0
+            };
+            for(int i = 0; i < VBO.Length; i += 8)
+            {
+                VBO[i + 3] *= uvScale.X;
+                VBO[i + 4] *= uvScale.Y;
+            }
+            return new Object3dManager(VertexInfo.FromFloatArray(VBO));
+        }
 
         public static Object3dManager CreateGround(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal)
         {
@@ -86,7 +133,7 @@ namespace VEngine.Generators
             };
             return new Object3dManager(VertexInfo.FromFloatArray(VBO));
         }
-        
+
         public static Object3dManager CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<float, float, float> heightGenerator)
         {
             var VBO = new List<float>();
@@ -199,7 +246,7 @@ namespace VEngine.Generators
                     }
             }
 
-            for(int i = 0; i < VBOParts.Count; i+=4)
+            for(int i = 0; i < VBOParts.Count; i += 4)
             {
                 VBO.AddRange(VBOParts[i]);
                 VBO.AddRange(VBOParts[i + 1]);
@@ -215,7 +262,7 @@ namespace VEngine.Generators
 
             return finalObject;
         }
-        
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector3 GetNormal(float[] VBOPart)
@@ -227,7 +274,7 @@ namespace VEngine.Generators
         private static float[] GetTerrainVertex(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, float partx, float party, Func<float, float, float> heightGenerator)
         {
             var h = heightGenerator.Invoke(
-                start.X + ((end.X - start.X) * partx), 
+                start.X + ((end.X - start.X) * partx),
                 start.Y + ((end.Y - start.Y) * party));
 
             return new float[]{
@@ -244,6 +291,6 @@ namespace VEngine.Generators
         {
             return new Vector3(VBOPart[0], VBOPart[1], VBOPart[2]);
         }
-        
+
     }
 }

@@ -46,5 +46,11 @@ namespace VEngine
             GenericMaterial.UseBuffer(7);
             Scene.Draw();
         }
+
+        public void RunOcclusionQueries()
+        {
+            GenericMaterial.UseBuffer(7);
+            Scene.RunOcclusionQueries();
+        }
     }
 }

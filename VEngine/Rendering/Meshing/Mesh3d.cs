@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using OpenTK;
+using OpenTK.Graphics;
+using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
@@ -13,6 +15,8 @@ namespace VEngine
         private List<LodLevel> LodLevels;
 
         public bool AutoRecalculateMatrixForOver16Instances = false;
+
+        private int QueryId = -1;
 
         private Mesh3d()
         {
@@ -107,10 +111,48 @@ namespace VEngine
             LodLevels.Clear();
         }
 
-        public void Draw()
+        private uint SamplesPassed = 1;
+        public bool Draw()
         {
-            for(int i = 0; i < LodLevels.Count; i++)
-                LodLevels[i].Draw(this, Instances.Count);
+            if(SamplesPassed >= 1)
+            {
+                for(int i = 0; i < LodLevels.Count; i++)
+                    LodLevels[i].Draw(this, Instances.Count);
+                return true;
+            }
+            return false;
+        }
+
+        public void RunOcclusionQuery()
+        {
+            uint ready = 0;
+            bool restart = false;
+            if(QueryId != -1)
+            {
+                GL.GetQueryObject((uint)QueryId, GetQueryObjectParam.QueryResultAvailable, out ready);
+                if(ready > 0)
+                    GL.GetQueryObject((uint)QueryId, GetQueryObjectParam.QueryResult, out SamplesPassed);
+                Console.WriteLine("ready " + ready);
+                Console.WriteLine("samples " + SamplesPassed);
+            }
+            if(QueryId == -1)
+            {
+                QueryId = GL.GenQuery();
+                restart = true;
+            }
+            if(ready > 0 || restart)
+            {
+                GL.BeginQuery(QueryTarget.SamplesPassed, QueryId);
+                GL.DepthMask(false);
+                GL.ColorMask(false, false, false, false);
+                GL.Disable(EnableCap.CullFace);
+                for(int i = 0; i < LodLevels.Count; i++)
+                    LodLevels[i].Draw(this, Instances.Count);
+                GL.Enable(EnableCap.CullFace);
+                GL.DepthMask(true);
+                GL.ColorMask(true, true, true, true);
+                GL.EndQuery(QueryTarget.SamplesPassed);
+            }
         }
 
         public Mesh3dInstance GetInstance(int i)

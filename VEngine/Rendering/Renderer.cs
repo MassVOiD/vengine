@@ -366,14 +366,14 @@ namespace VEngine
             GL.Enable(EnableCap.Blend);
            // GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-            GL.DepthMask(false);
+            GL.DepthMask(true);
             //GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
         private void EnableAdditiveBlending()
         {
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
-            GL.DepthMask(false);
+            GL.DepthMask(true);
             //GL.BlendEquation(BlendEquationMode.FuncAdd);
         }
 
@@ -504,7 +504,6 @@ namespace VEngine
             //DistanceFramebuffer.GenerateMipMaps();
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDepth();
             GL.ColorMask(false, false, false, false);
-            InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
             // Game.World.Draw();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             GenericMaterial.OverrideShaderPack = null;
@@ -515,6 +514,7 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;
             DisableBlending();
             Game.World.Draw();
+            Game.World.RunOcclusionQueries();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             if(GraphicsSettings.UseCubeMapGI || GraphicsSettings.UseVDAO)
                 EnvLight();
@@ -552,14 +552,17 @@ namespace VEngine
 
 
             GL.Disable(EnableCap.CullFace);
-            //InternalRenderingState.PassState = InternalRenderingState.State.EarlyZPass;
-            //DisableBlending();
-            //Game.World.Draw();
-            InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
+            GL.DepthFunc(DepthFunction.Always);
+
+            InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentBlendingAlphaPass;
             EnableBlending();
-            GL.Disable(EnableCap.DepthTest);
             Game.World.Draw();
-            GL.Enable(EnableCap.DepthTest);
+
+            InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentBlendingAdditivePass;
+            EnableAdditiveBlending();
+            Game.World.Draw();
+
+            GL.DepthFunc(DepthFunction.Lequal);
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             DisableBlending();
             GL.Enable(EnableCap.CullFace);

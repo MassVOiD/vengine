@@ -10,6 +10,7 @@ namespace VEngine
     {
         public float DistanceStart, DistanceEnd;
         public Object3dInfo Info3d;
+        public Object3dInfo BoundingBoxInfo3d;
         public GenericMaterial Material;
 
         private const int matbsize = 12 * 4;
@@ -29,41 +30,52 @@ namespace VEngine
             DistanceStart = distStart;
             DistanceEnd = distEnd;
             Info3d = o3i;
+            if(Info3d != null)
+                BoundingBoxInfo3d = Generators.Object3dGenerator.CreateCube(o3i.BoundingBoxMin, o3i.BoundingBoxMax, Vector2.One).AsObject3dInfo();
+            else
+                BoundingBoxInfo3d = Object3dInfo.Empty;
             Material = gm;
             ModelInfosBuffer = new ShaderStorageBuffer();
         }
 
+        public void SetInfo3d(Object3dInfo o3i)
+        {
+            Info3d = o3i;
+            BoundingBoxInfo3d = Generators.Object3dGenerator.CreateCube(o3i.BoundingBoxMin, o3i.BoundingBoxMax, Vector2.One).AsObject3dInfo();
+        }
+
+        public void DrawBoundingBoxes(Mesh3d container, int instances)
+        {
+            Material.Use();
+            container.SetUniforms();
+            ShaderProgram.Current.SetUniform("ForwardPass", InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAlphaPass ? 0 : 1);
+            ModelInfosBuffer.Use(0);
+
+            BoundingBoxInfo3d.DrawInstanced(InstancesFiltered);
+        }
+
         public void Draw(Mesh3d container, int instances)
         {
-            /*
-            if(InternalRenderingState.PassState == InternalRenderingState.State.ShadowMapPass)
-            {
-                if(!Material.CastShadows)
-                    return;
-            }
-            if(InternalRenderingState.PassState == InternalRenderingState.State.EarlyZPass)
-            {
-                if(Material.SupportTransparency)
-                    return;
-            }
-            if(InternalRenderingState.PassState == InternalRenderingState.State.DistancePass)
-            {
-                if(Material.SupportTransparency)
-                    return;
-            }*/
             if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardOpaquePass)
             {
                 if(Material.UseForwardRenderer)
                     return;
             }
-            if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentPass || InternalRenderingState.PassState == InternalRenderingState.State.EarlyZPass)
+            if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAdditivePass
+                || InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAlphaPass)
             {
                 if(!Material.UseForwardRenderer)
                     return;
             }
+            if(Material.Blending == GenericMaterial.BlendingEnum.Alpha
+                && InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAdditivePass)
+                return;
+            if(Material.Blending == GenericMaterial.BlendingEnum.AdditiveNormalized
+                && InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAlphaPass)
+                return;
             Material.Use();
             container.SetUniforms();
-            ShaderProgram.Current.SetUniform("ForwardPass", InternalRenderingState.PassState == InternalRenderingState.State.EarlyZPass ? 0 : 1);
+            ShaderProgram.Current.SetUniform("ForwardPass", InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAlphaPass ? 0 : 1);
             ModelInfosBuffer.Use(0);
 
             Info3d.DrawInstanced(InstancesFiltered);

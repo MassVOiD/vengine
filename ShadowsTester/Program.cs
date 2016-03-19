@@ -12,9 +12,9 @@ namespace ShadowsTester
     {
         private class Config
         {
-            public static int Width = 1920;
+            public static int Width = 1366;
             public static string MediaPath = "media";
-            public static int Height = 1020;
+            public static int Height = 768;
         }
 
         [STAThread]
@@ -27,9 +27,9 @@ namespace ShadowsTester
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
-            //new OldCityScene();
+            new OldCityScene();
             //new PhysicsTest();
-            new LightningTestScene();
+            //new LightningTestScene();
             //new HotelScene();
 
             //new DragonScene();

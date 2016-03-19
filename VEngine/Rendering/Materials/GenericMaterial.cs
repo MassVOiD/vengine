@@ -41,6 +41,14 @@ namespace VEngine
 
         public ShaderProgram CustomShaderProgram = null;
 
+        public enum BlendingEnum
+        {
+            AdditiveNormalized,
+            Alpha
+        }
+
+        public BlendingEnum Blending = GenericMaterial.BlendingEnum.Alpha;
+
         public GenericMaterial()
         {
             AllMaterialsPool.Add(this);

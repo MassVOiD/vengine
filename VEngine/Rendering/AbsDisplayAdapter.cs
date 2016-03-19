@@ -18,7 +18,7 @@ namespace VEngine
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(new ColorFormat(8, 8, 8, 8), 8, 0, 1), title, flags,
                 DisplayDevice.Default, 4, 5,
-                GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
+                GraphicsContextFlags.Debug)
         {
             Game.DisplayAdapter = this;
             Game.Resolution = new Size(Width, Height);

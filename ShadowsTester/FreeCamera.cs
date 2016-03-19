@@ -95,7 +95,7 @@ namespace ShadowsTester
             var mem = (double)GC.GetTotalMemory(false) / 1024.0 / 1024.0;
             float MBmemory = (float)Math.Round(mem, 2);
             StringBuilder newTitle = new StringBuilder();
-            newTitle.Append(string.Format("VEngine App | FPS: {0} | FrameTime: {1} ms | Memory: {2} megabytes", fps.ToString(System.Globalization.CultureInfo.InvariantCulture), ft.ToString(System.Globalization.CultureInfo.InvariantCulture), MBmemory.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            newTitle.Append(string.Format("VEngine App | FPS: {0} | FrameTime: {1} ms | Memory: {2} megabytes | Drawn {3} ", fps.ToString(System.Globalization.CultureInfo.InvariantCulture), ft.ToString(System.Globalization.CultureInfo.InvariantCulture), MBmemory.ToString(System.Globalization.CultureInfo.InvariantCulture), Game.World.Scene.LastDrawnObjectsCount));
             while(newTitle.Length < 71)
                 newTitle.Append(" ");
             newTitle.Append("$>");

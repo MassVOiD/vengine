@@ -25,20 +25,74 @@ namespace VEngine
         public Object3dManager Manager = Object3dManager.Empty;
 
         private int VertexBuffer, VAOHandle, IndicesCount = 0;
+
+        public Vector3 BoundingBoxMin = Vector3.Zero, BoundingBoxMax = Vector3.Zero;
         
 
         public Object3dInfo(VertexInfo[] vbo)
         {
             VBO = VertexInfo.ToFloatList(vbo).ToArray();
             IndicesCount = VBO.Length / 8;
+            if(vbo.Length > 0)
+            {
+                var a = vbo[0].Position;
+                var b = vbo[0].Position;
+                foreach(var v in vbo)
+                {
+                    a = Min(a, v.Position);
+                    b = Max(b, v.Position);
+                }
+                BoundingBoxMin = a;
+                BoundingBoxMax = b;
+            }
         }
 
         public Object3dInfo(List<VertexInfo> vbo)
         {
             VBO = VertexInfo.ToFloatList(vbo).ToArray();
             IndicesCount = VBO.Length / 8;
+            if(vbo.Count > 0)
+            {
+                var a = vbo[0].Position;
+                var b = vbo[0].Position;
+                foreach(var v in vbo)
+                {
+                    a = Min(a, v.Position);
+                    b = Max(b, v.Position);
+                }
+                BoundingBoxMin = a;
+                BoundingBoxMax = b;
+            }
         }
 
+        private static float Max(float a, float b)
+        {
+            return a > b ? a : b;
+        }
+
+        private static Vector3 Max(Vector3 a, Vector3 b)
+        {
+            return new Vector3(
+                Max(a.X, b.X),
+                Max(a.Y, b.Y),
+                Max(a.Z, b.Z)
+            );
+        }
+
+        private static float Min(float a, float b)
+        {
+            return a < b ? a : b;
+        }
+
+        private static Vector3 Min(Vector3 a, Vector3 b)
+        {
+            return new Vector3(
+                Min(a.X, b.X),
+                Min(a.Y, b.Y),
+                Min(a.Z, b.Z)
+            );
+        }
+        
         public static Object3dInfo Empty
         {
             get

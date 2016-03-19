@@ -39,7 +39,7 @@ namespace VEngine
 
     public interface IRenderable
     {
-        void Draw();
+        bool Draw();
     }
 
     public interface IShadowMapableLight

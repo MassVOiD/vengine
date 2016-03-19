@@ -51,7 +51,7 @@ namespace ShadowsTester
         {
             return ((float)rdz.NextDouble()) * (max - min) + min; 
         }
-
+        
         public LightningTestScene()
         {
             var scene = Game.World.Scene;
@@ -82,25 +82,25 @@ namespace ShadowsTester
 
                 var billboardObj = new Object3dManager(VertexInfo.FromFloatArray(billboardfloats)).AsObject3dInfo();
                 billboardObj.DrawMode = OpenTK.Graphics.OpenGL4.PrimitiveType.TriangleStrip;
-                string[] vegs = new string[] { "alphatest.png" };
+                string[] trees = new string[] { "vurt_PineSnowy.dds" };
                 for(int id = 0; id < 1; id++)
                 {
                     var billboardMaterial = new GenericMaterial();
                     billboardMaterial.UseForwardRenderer = true;
                     billboardMaterial.IsBillboard = true;
-                    billboardMaterial.SetDiffuseTexture(vegs[id]);
+                    billboardMaterial.SetDiffuseTexture(trees[id]);
                     //billboardMaterial.SetNormalsTexture("alphatest_n.png");
                     billboardMaterial.Roughness = 0.8f;
-                    //billboardMaterial.InvertUVy = true;
+                    billboardMaterial.InvertUVy = true;
 
                     var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
                     billboardMesh.ClearInstances();
 
-                    for(int i = 0; i < 150000; i++)
+                    for(int i = 0; i < 30000; i++)
                     {
-                        var pos = new Vector3(rand(-100, 100), 0, rand(-100, 100));
-                        float uniscale = rand(0.7f, 1.5f);
-                        var scale = new Vector3(uniscale, rand(5.3f, 5.4f), uniscale);
+                        var pos = new Vector3(rand(-1000, 1000), 0, rand(-1000, 1000));
+                        float uniscale = rand(1.7f, 2.5f);
+                        var scale = new Vector3(uniscale, rand(12.3f, 12.4f), uniscale);
                         billboardMesh.AddInstance(new TransformationManager(pos, scale));
                     }
                     billboardMesh.UpdateMatrix();
@@ -115,7 +115,45 @@ namespace ShadowsTester
                         }
                     });
 
-                    
+
+
+                    scene.Add(billboardMesh);
+                }
+                string[] vegs = new string[] { "fieldgrassobj01.dds", "vurt_brownplants.dds" };
+                for(int id = 0; id < 1; id++)
+                {
+                    var billboardMaterial = new GenericMaterial();
+                    billboardMaterial.UseForwardRenderer = true;
+                    billboardMaterial.IsBillboard = true;
+                    billboardMaterial.SetDiffuseTexture(vegs[id]);
+                    //billboardMaterial.SetNormalsTexture("alphatest_n.png");
+                    billboardMaterial.Roughness = 0.8f;
+                    billboardMaterial.InvertUVy = true;
+                    billboardMaterial.Blending = GenericMaterial.BlendingEnum.Alpha;
+
+                    var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
+                    billboardMesh.ClearInstances();
+
+                    for(int i = 0; i < 3000000; i++)
+                    {
+                        var pos = new Vector3(rand(-1000, 1000), 0, rand(-1000, 1000));
+                        float uniscale = rand(1.7f, 2.5f);
+                        var scale = new Vector3(uniscale, rand(2.3f, 2.4f), uniscale);
+                        billboardMesh.AddInstance(new TransformationManager(pos, scale));
+                    }
+                    billboardMesh.UpdateMatrix();
+
+                    Game.CreateThread(() =>
+                    {
+                        while(true)
+                        {
+                            //billboardMesh.IterationSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position, 50);
+                            billboardMesh.FullSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position);
+                            billboardMesh.UpdateMatrix(false);
+                        }
+                    });
+
+
 
                     scene.Add(billboardMesh);
                 }

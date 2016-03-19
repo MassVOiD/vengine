@@ -10,11 +10,11 @@ namespace VEngine
     {
         public enum State
         {
-            DistancePass,
-            EarlyZPass,
             ForwardOpaquePass,
-            ForwardTransparentPass,
+            ForwardTransparentBlendingAdditivePass,
+            ForwardTransparentBlendingAlphaPass,
             ShadowMapPass,
+
             Idle
         }
         public static State PassState = State.Idle;
