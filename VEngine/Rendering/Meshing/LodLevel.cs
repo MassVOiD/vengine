@@ -23,6 +23,10 @@ namespace VEngine
 
         private byte[] ModelInfosData = new byte[0];
 
+        public bool ForceFrustumCull = false;
+
+        public bool DisableFaceCulling = false;
+
         private ShaderStorageBuffer ModelInfosBuffer;
 
         public LodLevel(Object3dInfo o3i, GenericMaterial gm, float distStart, float distEnd)
@@ -48,14 +52,32 @@ namespace VEngine
         {
             Material.Use();
             container.SetUniforms();
-            ShaderProgram.Current.SetUniform("ForwardPass", InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAlphaPass ? 0 : 1);
+            //ShaderProgram.Current.SetUniform("ForwardPass", InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAlphaPass ? 0 : 1);
             ModelInfosBuffer.Use(0);
 
-            BoundingBoxInfo3d.DrawInstanced(InstancesFiltered);
+            //BoundingBoxInfo3d.DrawInstanced(InstancesFiltered);
+            if(DisableFaceCulling)
+                GL.Disable(EnableCap.CullFace);
+            Info3d.DrawInstanced(InstancesFiltered);
+            if(DisableFaceCulling)
+                GL.Enable(EnableCap.CullFace);
         }
 
         public void Draw(Mesh3d container, int instances)
         {
+            /*if(instances < 3 || ForceFrustumCull) // special case optimization
+            {
+                var inst = container.GetInstances();
+                bool visibility = true;
+                for(int i = 0; i < instances; i++)
+                {
+                    var pos = inst[i].Transformation.Position;
+                    visibility = visibility && Camera.Current.IsAABBVisible(Info3d.BoundingBoxMin + pos, Info3d.BoundingBoxMax + pos);
+                }
+                if(!visibility)
+                    return;
+            }*/
+
             if(InternalRenderingState.PassState == InternalRenderingState.State.ForwardOpaquePass)
             {
                 if(Material.UseForwardRenderer)
@@ -78,8 +100,11 @@ namespace VEngine
             ShaderProgram.Current.SetUniform("ForwardPass", InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAlphaPass ? 0 : 1);
             ModelInfosBuffer.Use(0);
 
+            if(DisableFaceCulling)
+                GL.Disable(EnableCap.CullFace);
             Info3d.DrawInstanced(InstancesFiltered);
-            
+            if(DisableFaceCulling)
+                GL.Enable(EnableCap.CullFace);
         }
         
         public void UpdateMatrix(List<Mesh3dInstance> instances, bool instantRebuffer = false)

@@ -34,3 +34,4 @@ bool intersectPoint(vec3 origin, vec3 direction, vec3 position, float radius){
     float cosine = calculateAngleOccupied(distance(position, origin), radius);
     return angle <= cosine;
 }
+

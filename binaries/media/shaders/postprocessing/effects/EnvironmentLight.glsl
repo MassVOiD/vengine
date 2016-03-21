@@ -79,7 +79,7 @@ vec3 MMAL(vec3 visdis, float dist, vec3 normal, vec3 reflected, float roughness)
 	float aaprc = 0;
 	float aafw = 0;
 	
-	float fw = 0.2;//CubeMapsFalloffs[i].x * CalculateFallof(length((currentFragment.worldPos - CubeMapsPositions[i].xyz)));
+	float fw = 1;//CubeMapsFalloffs[i].x * CalculateFallof(length((currentFragment.worldPos - CubeMapsPositions[i].xyz)));
 	//precentage = MMALGetShadowforFuckSake(dist, currentFragment.worldPos, visdis);
 
 	result += precentage * ( textureLod(cube, mix(reflected, normal, roughness), mx * levels).rgb);

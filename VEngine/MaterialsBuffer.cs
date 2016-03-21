@@ -91,9 +91,9 @@ namespace VEngine
             cursor += 4;
             bset(BitConverter.GetBytes(mat.ParallaxHeightMultiplier), ref bytes, cursor, 4);
             cursor += 4;
-            bset(BitConverter.GetBytes(mat.Roughness), ref bytes, cursor, 4);
+            bset(BitConverter.GetBytes(mat.Alpha), ref bytes, cursor, 4);
             cursor += 4;
-            bset(BitConverter.GetBytes(mat.Roughness), ref bytes, cursor, 4);
+            bset(BitConverter.GetBytes(mat.Alpha), ref bytes, cursor, 4);
             cursor += 4;
 
             if(mat.DiffuseTexture != null)

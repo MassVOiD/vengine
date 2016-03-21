@@ -18,7 +18,7 @@ namespace ShadowsTester
             var terrainMaterial = new GenericMaterial();
             terrainMaterial.DiffuseColor = color;
             terrainMaterial.SpecularColor = Vector3.Zero;
-            terrainMaterial.Roughness = 1.0f;
+            terrainMaterial.Roughness = 0f;
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             terrainMesh.GetInstance(0).Rotate(rotation);
             return terrainMesh;
@@ -49,9 +49,9 @@ namespace ShadowsTester
         static Random rdz = new Random();
         static float rand(float min, float max)
         {
-            return ((float)rdz.NextDouble()) * (max - min) + min; 
+            return ((float)rdz.NextDouble()) * (max - min) + min;
         }
-        
+
         public LightningTestScene()
         {
             var scene = Game.World.Scene;
@@ -59,104 +59,112 @@ namespace ShadowsTester
             Game.Invoke(() =>
             {
                 var ground = CreateWall(new Vector2(-1000), new Vector2(1000), Quaternion.Identity, Vector3.Zero, new Vector3(0.1f, 0.4f, 1));
-                var green = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(0.2f, 1, 0.3f));
-                var red = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(1, 0.2f, 0.2f));
-                green.GetInstance(0).Translate(0, 0, -15);
-                red.GetInstance(0).Translate(15, 0, 0);
+                scene.Add(ground);
 
-                var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
-                 scene.Add(ground);
-                //scene.Add(green);
-                //scene.Add(red);
-
-                Game.CascadeShadowMaps.SetDirection(Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(-25)));
-                
-                scene.Add(lucy);
-
-                float[] billboardfloats = {
-                    -1.0f, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                    1.0f, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                    -1.0f, 1.0f, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-                    1.0f, 1.0f, 0, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
-                };
-
-                var billboardObj = new Object3dManager(VertexInfo.FromFloatArray(billboardfloats)).AsObject3dInfo();
-                billboardObj.DrawMode = OpenTK.Graphics.OpenGL4.PrimitiveType.TriangleStrip;
-                string[] trees = new string[] { "vurt_PineSnowy.dds" };
-                for(int id = 0; id < 1; id++)
+                var fiatmeshes = Object3dManager.LoadSceneFromObj("somevilla.obj", "somevilla.obj", 1);
+                fiatmeshes.ForEach((a) =>
                 {
-                    var billboardMaterial = new GenericMaterial();
-                    billboardMaterial.UseForwardRenderer = true;
-                    billboardMaterial.IsBillboard = true;
-                    billboardMaterial.SetDiffuseTexture(trees[id]);
-                    //billboardMaterial.SetNormalsTexture("alphatest_n.png");
-                    billboardMaterial.Roughness = 0.8f;
-                    billboardMaterial.InvertUVy = true;
+                    a.GetLodLevel(0).DisableFaceCulling = true;
+                    scene.Add(a);
+                });
 
-                    var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
-                    billboardMesh.ClearInstances();
+                /* var green = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(0.2f, 1, 0.3f));
+                 var red = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(1, 0.2f, 0.2f));
+                 green.GetInstance(0).Translate(0, 0, -15);
+                 red.GetInstance(0).Translate(15, 0, 0);
 
-                    for(int i = 0; i < 30000; i++)
-                    {
-                        var pos = new Vector3(rand(-1000, 1000), 0, rand(-1000, 1000));
-                        float uniscale = rand(1.7f, 2.5f);
-                        var scale = new Vector3(uniscale, rand(12.3f, 12.4f), uniscale);
-                        billboardMesh.AddInstance(new TransformationManager(pos, scale));
-                    }
-                    billboardMesh.UpdateMatrix();
+                 var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
+                 //scene.Add(green);
+                 //scene.Add(red);
 
-                    Game.CreateThread(() =>
-                    {
-                        while(true)
-                        {
-                            //billboardMesh.IterationSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position, 50);
-                            billboardMesh.FullSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position);
-                            billboardMesh.UpdateMatrix(false);
-                        }
-                    });
+                 Game.CascadeShadowMaps.SetDirection(Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(-25)));
 
+                 scene.Add(lucy);
 
+                 float[] billboardfloats = {
+                     -1.0f, 0, 0, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                     1.0f, 0, 0, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+                     -1.0f, 1.0f, 0, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+                     1.0f, 1.0f, 0, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f
+                 };
 
-                    scene.Add(billboardMesh);
-                }
-                string[] vegs = new string[] { "fieldgrassobj01.dds", "vurt_brownplants.dds" };
-                for(int id = 0; id < 1; id++)
-                {
-                    var billboardMaterial = new GenericMaterial();
-                    billboardMaterial.UseForwardRenderer = true;
-                    billboardMaterial.IsBillboard = true;
-                    billboardMaterial.SetDiffuseTexture(vegs[id]);
-                    //billboardMaterial.SetNormalsTexture("alphatest_n.png");
-                    billboardMaterial.Roughness = 0.8f;
-                    billboardMaterial.InvertUVy = true;
-                    billboardMaterial.Blending = GenericMaterial.BlendingEnum.Alpha;
+                 var billboardObj = new Object3dManager(VertexInfo.FromFloatArray(billboardfloats)).AsObject3dInfo();
+                 billboardObj.DrawMode = OpenTK.Graphics.OpenGL4.PrimitiveType.TriangleStrip;
+                 string[] trees = new string[] { "vurt_PineSnowy.dds" };
+                 for(int id = 0; id < 1; id++)
+                 {
+                     var billboardMaterial = new GenericMaterial();
+                     billboardMaterial.UseForwardRenderer = true;
+                     billboardMaterial.IsBillboard = true;
+                     billboardMaterial.SetDiffuseTexture(trees[id]);
+                     //billboardMaterial.SetNormalsTexture("alphatest_n.png");
+                     billboardMaterial.Roughness = 0.8f;
+                     billboardMaterial.InvertUVy = true;
 
-                    var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
-                    billboardMesh.ClearInstances();
+                     var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
+                     billboardMesh.ClearInstances();
 
-                    for(int i = 0; i < 3000000; i++)
-                    {
-                        var pos = new Vector3(rand(-1000, 1000), 0, rand(-1000, 1000));
-                        float uniscale = rand(1.7f, 2.5f);
-                        var scale = new Vector3(uniscale, rand(2.3f, 2.4f), uniscale);
-                        billboardMesh.AddInstance(new TransformationManager(pos, scale));
-                    }
-                    billboardMesh.UpdateMatrix();
+                     for(int i = 0; i < 30000; i++)
+                     {
+                         var pos = new Vector3(rand(-1000, 1000), 0, rand(-1000, 1000));
+                         float uniscale = rand(1.7f, 2.5f);
+                         var scale = new Vector3(uniscale, rand(12.3f, 12.4f), uniscale);
+                         billboardMesh.AddInstance(new TransformationManager(pos, scale));
+                     }
+                     billboardMesh.UpdateMatrix();
 
-                    Game.CreateThread(() =>
-                    {
-                        while(true)
-                        {
-                            //billboardMesh.IterationSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position, 50);
-                            billboardMesh.FullSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position);
-                            billboardMesh.UpdateMatrix(false);
-                        }
-                    });
+                     Game.CreateThread(() =>
+                     {
+                         while(true)
+                         {
+                             //billboardMesh.IterationSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position, 50);
+                             billboardMesh.FullSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position);
+                             billboardMesh.UpdateMatrix(false);
+                         }
+                     });
 
 
 
-                    scene.Add(billboardMesh);
-                }
+                     scene.Add(billboardMesh);
+                 }
+                 string[] vegs = new string[] { "fieldgrassobj01.dds", "vurt_brownplants.dds" };
+                 for(int id = 0; id < 1; id++)
+                 {
+                     var billboardMaterial = new GenericMaterial();
+                     billboardMaterial.UseForwardRenderer = true;
+                     billboardMaterial.IsBillboard = true;
+                     billboardMaterial.SetDiffuseTexture(vegs[id]);
+                     //billboardMaterial.SetNormalsTexture("alphatest_n.png");
+                     billboardMaterial.Roughness = 0.8f;
+                     billboardMaterial.InvertUVy = true;
+                     billboardMaterial.Blending = GenericMaterial.BlendingEnum.Alpha;
+
+                     var billboardMesh = Mesh3d.Create(billboardObj, billboardMaterial);
+                     billboardMesh.ClearInstances();
+
+                     for(int i = 0; i < 3000000; i++)
+                     {
+                         var pos = new Vector3(rand(-1000, 1000), 0, rand(-1000, 1000));
+                         float uniscale = rand(1.7f, 2.5f);
+                         var scale = new Vector3(uniscale, rand(2.3f, 2.4f), uniscale);
+                         billboardMesh.AddInstance(new TransformationManager(pos, scale));
+                     }
+                     billboardMesh.UpdateMatrix();
+
+                     Game.CreateThread(() =>
+                     {
+                         while(true)
+                         {
+                             //billboardMesh.IterationSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position, 50);
+                             billboardMesh.FullSortInstancesByDistanceFrom(Camera.MainDisplayCamera.Transformation.Position);
+                             billboardMesh.UpdateMatrix(false);
+                         }
+                     });
+
+
+
+                     scene.Add(billboardMesh);
+                 }*/
 
                 /*
                 var trootobj = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("tree2r.obj")).Vertices);

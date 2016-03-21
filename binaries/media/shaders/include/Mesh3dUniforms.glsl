@@ -31,7 +31,7 @@ uniform int Instances;
 struct Material{
 	vec4 diffuseColor;
 	vec4 specularColor;
-	vec4 roughnessAndParallaxHeight;
+	vec4 roughnessAndParallaxHeightAndAlpha;
 	
 	uvec2 diffuseAddr;
 	uvec2 specularAddr;
@@ -52,7 +52,7 @@ Material getCurrentMaterial(){
 	Material mat = Material(
 		Materials[MaterialIndex].diffuseColor,
 		Materials[MaterialIndex].specularColor,
-		Materials[MaterialIndex].roughnessAndParallaxHeight,
+		Materials[MaterialIndex].roughnessAndParallaxHeightAndAlpha,
 		
 		Materials[MaterialIndex].diffuseAddr,
 		Materials[MaterialIndex].specularAddr,
@@ -113,8 +113,9 @@ uniform float Brightness;
 #define specularTex sampler2D(currentMaterial.specularAddr)
 #define roughnessTex sampler2D(currentMaterial.roughnessAddr)
 
-#define Roughness currentMaterial.roughnessAndParallaxHeight.x
-#define ParallaxHeightMultiplier currentMaterial.roughnessAndParallaxHeight.y
+#define Roughness currentMaterial.roughnessAndParallaxHeightAndAlpha.x
+#define ParallaxHeightMultiplier currentMaterial.roughnessAndParallaxHeightAndAlpha.y
+#define Alpha currentMaterial.roughnessAndParallaxHeightAndAlpha.z
 //uniform float Metalness;
 
 uniform vec2 resolution;

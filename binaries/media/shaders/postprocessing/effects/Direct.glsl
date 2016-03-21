@@ -86,7 +86,7 @@ vec3 SunLight(FragmentData data){
             chosenCascade = i;
 			texcoord = lightScreenSpace;
 			comparison = depth;
-			tolerance = 0.00001 + float(i) * 0.00001;
+			tolerance = 0.000001 + float(i) * 0.000001;
         }
 	}
 	comparison = toLogDept2h(comparison, 10000);
@@ -107,7 +107,7 @@ vec3 DirectLight(FragmentData data){
     
     //float parallax = step(100.0, metalness);
     //metalness = fract(metalness);
-	/*
+	
 	float rr = 0.5;
     
     for(int i=0;i<LightsCount;i++){
@@ -128,7 +128,7 @@ vec3 DirectLight(FragmentData data){
         color1 += (radiance + difradiance) * 0.5 * percent;
     }
     if(DisablePostEffects == 1) color1 *= smoothstep(0.0, 0.1, data.cameraDistance);
-	*/
+	
 	if(SunCascadeCount > 0) color1 += SunLight(data);
 	
     return color1;

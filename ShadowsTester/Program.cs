@@ -27,7 +27,7 @@ namespace ShadowsTester
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 
-            new OldCityScene();
+            new VictorianHouseScene();
             //new PhysicsTest();
             //new LightningTestScene();
             //new HotelScene();

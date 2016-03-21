@@ -36,6 +36,6 @@ void main()
 		specularBumpData.a
 	);	
 	
-	vec4 color = EnvironmentLightSkybox(currentFragment).rgbb;
+	vec4 color = EnvironmentLight(currentFragment).rgbb*2;
     outColor = clamp(color, 0.0, 10000.0);
 }

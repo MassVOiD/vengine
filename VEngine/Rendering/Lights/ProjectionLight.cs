@@ -92,7 +92,7 @@ namespace VEngine
 
             GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderDepth();
             Game.World.SetUniforms(Game.DisplayAdapter.MainRenderer);
-            InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;
+            InternalRenderingState.PassState = InternalRenderingState.State.ShadowMapPass;
             Game.World.Draw();
             //InternalRenderingState.PassState = InternalRenderingState.State.ForwardTransparentPass;
             //GL.Disable(EnableCap.CullFace);

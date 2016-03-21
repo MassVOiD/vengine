@@ -91,10 +91,14 @@ namespace VEngine
 
         public void RunOcclusionQueries()
         {
+            GenericMaterial.OverrideShaderPack = Game.ShaderPool.ChooseShaderNoFragment();
+            Game.World.SetUniforms(Game.DisplayAdapter.MainRenderer);
+
             for(int i = 0; i < Renderables.Count; i++)
                 if(Renderables[i] is Mesh3d)
                     (Renderables[i] as Mesh3d).RunOcclusionQuery();
 
+            GenericMaterial.OverrideShaderPack = null;
         }
 
         public List<IRenderable> GetFlatRenderableList()

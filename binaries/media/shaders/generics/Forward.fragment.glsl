@@ -82,20 +82,6 @@ vec3 ApplyLighting(FragmentData data){
 uniform int ForwardPass;
 
 void main(){
-	//outColor = vec4(1.0);
-	//return;
-	vec4 simplest = texture(diffuseTex, Input.TexCoord).rgba; 	
-	float texdst = textureMSAAFull(normalsDistancetex, UV).a;
-	//if(texdst > 0.001 && texdst < currentFragment.cameraDistance) discard;
-	if(simplest.a< 0.001 || (texdst > 0.001 && texdst < distance(CameraPosition, Input.WorldPos))) {
-		discard;
-		gl_FragDepth = 1.0;
-	} else {
-		if(ForwardPass == 0) outColor = vec4(simplest.rgb, simplest.a);
-		else if(ForwardPass == 1) outColor = vec4(simplest.rgb * simplest.a, -simplest.a);
-		gl_FragDepth = toLogDepth2(distance(CameraPosition, Input.WorldPos), 10000);
-	}
-	/*
 	vec3 norm = normalize(Input.Normal);
 	norm = faceforward(norm, norm, normalize(ToCameraSpace(Input.WorldPos)));
 	currentFragment = FragmentData(
@@ -153,5 +139,5 @@ void main(){
 	currentFragment.normal = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, currentFragment.normal);
 
 	//outColor = vec4(ApplyLighting(currentFragment), currentFragment.alpha);
-	outColor = vec4(currentFragment.diffuseColor * currentFragment.alpha, currentFragment.alpha);*/
+	outColor = vec4(currentFragment.diffuseColor, 0.2);
 }

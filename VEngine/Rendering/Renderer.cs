@@ -32,6 +32,7 @@ namespace VEngine
             EnvLightShader,
             DeferredShader,
             AmbientOcclusionShader,
+            LensDistortionShader,
             FogShader;
 
         // public VoxelGI VXGI;
@@ -45,6 +46,7 @@ namespace VEngine
             DeferredFramebuffer,
             AmbientOcclusionFramebuffer,
             ForwardPassFramebuffer,
+            HelperFramebuffer,
             FogFramebuffer;
 
         private Object3dInfo PostProcessingMesh;
@@ -99,6 +101,8 @@ namespace VEngine
 
             Width = initialWidth;
             Height = initialHeight;
+
+
             Samples = samples;
 
             CreateBuffers();
@@ -133,6 +137,11 @@ namespace VEngine
             if(samples > 1)
                 EnvLightShader.SetGlobal("USE_MSAA", "");
 
+            LensDistortionShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "LensDistortion.fragment.glsl");
+            LensDistortionShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
+            if(samples > 1)
+                LensDistortionShader.SetGlobal("USE_MSAA", "");
+
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
 
             PostProcessingMesh = new Object3dInfo(VertexInfo.FromFloatArray(postProcessingPlaneVertices));
@@ -144,7 +153,7 @@ namespace VEngine
 
             MRT = new MRTFramebuffer(Width, Height, Samples);
 
-            ScreenSpaceReflectionsFramebuffer = new Framebuffer(Width / 2, Height / 2)
+            ScreenSpaceReflectionsFramebuffer = new Framebuffer(Width / 1, Height / 1)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -152,6 +161,13 @@ namespace VEngine
                 ColorPixelType = PixelType.HalfFloat
             };
             DeferredFramebuffer = new Framebuffer(Width / 1, Height / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+            HelperFramebuffer = new Framebuffer(Width / 1, Height / 1)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -301,7 +317,7 @@ namespace VEngine
             var shader = ShaderProgram.Current;
             //shader.SetUniform("ViewMatrix", Camera.Current.GetViewMatrix());
             //shader.SetUniform("ProjectionMatrix", Camera.Current.GetProjectionMatrix());
-            shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
+            shader.SetUniform("VPMatrix", Camera.Current.GetVPMatrix());
             shader.SetUniform("ProjectionMatrix", Camera.Current.GetProjectionMatrix());
             shader.SetUniform("CurrentViewMatrix", Camera.Current.GetViewMatrix());
             shader.SetUniform("LastViewMatrix", LastViewMatrix);
@@ -434,6 +450,7 @@ namespace VEngine
 
         private void HDR()
         {
+            //HelperFramebuffer.Use();
             HDRShader.Use();
             HDRShader.SetUniform("InputFocalLength", Camera.Current.FocalLength);
             if(Camera.MainDisplayCamera != null)
@@ -445,6 +462,14 @@ namespace VEngine
             DrawPPMesh();
             Game.CheckErrors("HDR pass");
             LastViewMatrix = Camera.Current.GetViewMatrix();
+        }
+
+        private void LensDistortion()
+        {
+            LensDistortionShader.Use();
+            HelperFramebuffer.UseTexture(4);
+            DrawPPMesh();
+            Game.CheckErrors("Lens Distort pass");
         }
 
         private void ScreenSpaceReflections()
@@ -514,7 +539,7 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;
             DisableBlending();
             Game.World.Draw();
-            Game.World.RunOcclusionQueries();
+            //Game.World.RunOcclusionQueries();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             if(GraphicsSettings.UseCubeMapGI || GraphicsSettings.UseVDAO)
                 EnvLight();
@@ -522,12 +547,13 @@ namespace VEngine
                 Fog();
             if(GraphicsSettings.UseHBAO)
                 AmbientOcclusion();
+            ForwardPass();
             Deferred();
             if(GraphicsSettings.UseSSReflections)
                 ScreenSpaceReflections();
             if(GraphicsSettings.UseBloom)
                 Bloom();
-            ForwardPass();
+           // HDR();
         }
 
         private void ForwardPass()

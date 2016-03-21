@@ -31,14 +31,14 @@ vec3 raymarchFog(vec3 start, vec3 end){
             float fogNoise = 1.0;
     
             vec2 frfuv = ((lightClipSpace.xyz / lightClipSpace.w).xy + 1.0) / 2.0;
-            float frfuvz = (lightClipSpace.z / lightClipSpace.w);
+            float frfuvz = (lightClipSpace.z / lightClipSpace.w) * 0.5 + 0.5;
             //float idle = 1.0 / 1000.0 * fogNoise * fogMultiplier * distanceMult;
             float idle = 0.0;
             if(lightClipSpace.z < 0.0 || frfuv.x < 0.0 || frfuv.x > 1.0 || frfuv.y < 0.0 || frfuv.y > 1.0){ 
                 fogDensity += idle;
                 continue;
             }
-            float diff =1.0 - (lookupDepthFromLight(i, frfuv, frfuvz));
+            float diff =(lookupDepthFromLight(i, frfuv, toLogDepth(frfuvz, 10000)));
 		
 			float culler = 1;//clamp(1.0 - distance(frfuv, vec2(0.5)) * 2.0, 0.0, 1.0);
 			//float fogNoise = 1.0;

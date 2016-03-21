@@ -28,7 +28,7 @@ namespace VEngine
                         continue;
                     shader.Use();
 
-                    shader.SetUniform("VPMatrix", Matrix4.Mult(Camera.Current.GetViewMatrix(), Camera.Current.GetProjectionMatrix()));
+                    shader.SetUniform("VPMatrix", Camera.Current.GetVPMatrix());
                     Camera.Current.SetUniforms();
                     shader.SetUniform("Time", (float)(DateTime.Now - Game.StartTime).TotalMilliseconds / 1000);
                     shader.SetUniform("resolution", new Vector2(renderer.Width, renderer.Height));

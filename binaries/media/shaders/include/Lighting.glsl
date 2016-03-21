@@ -1,5 +1,8 @@
 #include_once LightingSamplers.glsl
 
+#include LogDepth2.glsl
+
+
 float lookupDepthFromLight(uint i, vec2 uvi, float comparison){
     float distance1 = 0.0;
     vec3 uv = vec3(uvi, float(i));
@@ -104,20 +107,6 @@ float getShadowPercent(vec2 uv, vec3 pos, uint i){
     //return lookupDepthFromLight(i, uv) - distance3 > 0.000015 ? 0.0 : 1.0;
     float pssblur = 0;//max(0, (getBlurAmount(uv, i, distance2, distance3)) - 0.1) * 1.1;
 	//float dst = toLogDepth(distance3, 10000);
-    return PCF(i, uv, distance3 - 0.0001);
-	float iter = 0;
-	for(int ix=0;ix<1;ix++){
-		float rot = rand2d(uv + iter) * 3.1415 * 2;
-		iter += 1.0;
-		mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
-		
-		for(int id = 0; id < shadowmapSamples.length(); id++){ 
-			fakeUV = uv + (RM * shadowmapSamples[id]) * distance2 * 0.00005 * LightsBlurFactors[i];
-			accum += lookupDepthFromLight(i, clamp(fakeUV, 0.001, 0.999), distance3 - 0.00006);
-		}	
-	}
-    
-    //LastProbeDistance = LastProbeDistance / counter;
-    float rs =  (accum / (shadowmapSamples.length() * iter));
-    return rs;//return smoothstep(0.0, 0.9, rs);
+    return PCF(i, uv, toLogDepth(distance3, 10000) - 0.00001);
+	
 }

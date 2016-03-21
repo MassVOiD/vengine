@@ -114,13 +114,13 @@ namespace VEngine
         private uint SamplesPassed = 1;
         public bool Draw()
         {
-            if(SamplesPassed >= 1)
-            {
+            //if(SamplesPassed >= 1 || InternalRenderingState.PassState == InternalRenderingState.State.ShadowMapPass)
+           // {
                 for(int i = 0; i < LodLevels.Count; i++)
                     LodLevels[i].Draw(this, Instances.Count);
                 return true;
-            }
-            return false;
+           // }
+           // return false;
         }
 
         public void RunOcclusionQuery()
@@ -132,8 +132,8 @@ namespace VEngine
                 GL.GetQueryObject((uint)QueryId, GetQueryObjectParam.QueryResultAvailable, out ready);
                 if(ready > 0)
                     GL.GetQueryObject((uint)QueryId, GetQueryObjectParam.QueryResult, out SamplesPassed);
-                Console.WriteLine("ready " + ready);
-                Console.WriteLine("samples " + SamplesPassed);
+                //Console.WriteLine("ready " + ready);
+                //Console.WriteLine("samples " + SamplesPassed);
             }
             if(QueryId == -1)
             {
@@ -147,7 +147,7 @@ namespace VEngine
                 GL.ColorMask(false, false, false, false);
                 GL.Disable(EnableCap.CullFace);
                 for(int i = 0; i < LodLevels.Count; i++)
-                    LodLevels[i].Draw(this, Instances.Count);
+                    LodLevels[i].DrawBoundingBoxes(this, Instances.Count);
                 GL.Enable(EnableCap.CullFace);
                 GL.DepthMask(true);
                 GL.ColorMask(true, true, true, true);

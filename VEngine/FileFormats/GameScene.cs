@@ -142,6 +142,7 @@ namespace VEngine.FileFormats
             var obj = Object3dManager.LoadFromRaw(Media.Get(vbo));
             mesh.GetLodLevel(0).Info3d = new Object3dInfo(obj.Vertices);
             mesh.GetLodLevel(0).Info3d.Manager = obj;
+            mesh.GetLodLevel(0).Info3d.Manager.Name = vbo;
         }
 
         private void LoadFromString(string[] lines)
@@ -459,16 +460,14 @@ namespace VEngine.FileFormats
                         if(tempMaterial == null)
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         string[] literals = data.Split(' ');
-                        if(literals.Length != 4)
+                        if(literals.Length != 3)
                             throw new ArgumentException("Invalid line in scene string: " + l);
-                        float x, y, z, a;
+                        float x, y, z;
                         if(!float.TryParse(literals[0], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out x))
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out y))
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         if(!float.TryParse(literals[2], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out z))
-                            throw new ArgumentException("Invalid line in scene string: " + l);
-                        if(!float.TryParse(literals[3], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out a))
                             throw new ArgumentException("Invalid line in scene string: " + l);
                         tempMaterial.DiffuseColor = new Vector3(x, y, z);
                         break;

@@ -73,7 +73,7 @@ uniform int IsTessellatedTerrain;
 uniform float TessellationMultiplier;
 
 float GetTerrainHeight(vec2 uv){
-	return texture(bumpTex, uv).r * getCurrentMaterial().roughnessAndParallaxHeight.g; 
+	return texture(bumpTex, uv).r * getCurrentMaterial().roughnessAndParallaxHeightAndAlpha.g; 
 }
 
 void main()

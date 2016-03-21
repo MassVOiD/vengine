@@ -274,7 +274,6 @@ namespace VEngine
 
         public void SaveRaw(string outfile)
         {
-
             MemoryStream vboStream = new MemoryStream();
 
             foreach(var v in Vertices)
@@ -389,12 +388,12 @@ namespace VEngine
             Dictionary<Color, GenericMaterial> colorCache = new Dictionary<Color, GenericMaterial>();
             Dictionary<GenericMaterial, MaterialInfo> mInfos = new Dictionary<GenericMaterial, MaterialInfo>();
             Dictionary<GenericMaterial, List<Object3dManager>> linkCache = new Dictionary<GenericMaterial, List<Object3dManager>>();
-            var colorPink = new GenericMaterial(Color.Pink);
+            var colorPink = new GenericMaterial(Color.White);
             mInfos = new Dictionary<GenericMaterial, MaterialInfo>();
             foreach(var obj in objs)
             {
-                var mat = mtllib.ContainsKey(obj.MaterialName) ? mtllib[obj.MaterialName] : null;
-                GenericMaterial material = null;
+                var mat = mtllib.ContainsKey(obj.MaterialName) ? mtllib[obj.MaterialName] : new MaterialInfo();
+                GenericMaterial material = colorPink;
                 if(mat != null && mat.TextureName.Length > 0)
                 {
                     if(texCache.ContainsKey(mat.TextureName + mat.AlphaMask))

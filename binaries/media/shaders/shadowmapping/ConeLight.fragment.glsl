@@ -9,6 +9,7 @@ in Data {
 #include LightingSamplers.glsl
 #include UsefulIncludes.glsl
 #include Shade.glsl
+#include LogDepth2.glsl
 
 uniform vec3 LightColor;
 
@@ -31,7 +32,7 @@ vec3 getSimpleLighting(){
 
 void main()
 {
-	float alph = 1.0;
+	float alph = Alpha;
 	if(UseAlphaTex) alph = texture(alphaTex, Input.TexCoord).r; 
 	
 	if(UseDiffuseTex && !UseAlphaTex)alph = texture(diffuseTex, Input.TexCoord).a; 

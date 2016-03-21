@@ -22,7 +22,7 @@ namespace VEngine
 
         private FrustumCone cone;
 
-        private Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix;
+        private Matrix4 ViewMatrix, RotationMatrix, ProjectionMatrix, VPMatrix;
 
         private class FrustumCone
         {
@@ -74,6 +74,32 @@ namespace VEngine
             Roll = 0.0f;
             Transformation.SetOrientation(Matrix4.LookAt(Vector3.Zero, lookAt, up).ExtractRotation().Inverted());
             Update();
+        }
+
+        public bool IsPointVisible(Vector3 point)
+        {
+            Vector4 clip = Vector4.Transform(new Vector4(point, 1.0f), VPMatrix);
+            if(clip.Z <= 0)
+                return false;
+            Vector2 UV = clip.Xy / clip.W;
+            if(UV.X <= -1 || UV.X >= 1 || UV.Y < -1 || UV.Y > 1)
+                return false;
+            return true;
+        }
+
+        public bool IsAABBVisible(Vector3 min, Vector3 max)
+        {
+            return
+                IsPointVisible(min) ||
+                IsPointVisible(max) ||
+
+                IsPointVisible(new Vector3(min.X, min.Y, max.Z)) ||
+                IsPointVisible(new Vector3(min.X, max.Y, max.Z)) ||
+                IsPointVisible(new Vector3(min.X, max.Y, min.Z)) ||
+
+                IsPointVisible(new Vector3(max.X, min.Y, min.Z)) ||
+                IsPointVisible(new Vector3(max.X, min.Y, min.Z)) ||
+                IsPointVisible(new Vector3(max.X, min.Y, max.Z));
         }
 
         public void UpdatePerspective(float aspectRatio, float fov, float near, float far)
@@ -157,12 +183,18 @@ namespace VEngine
             return ViewMatrix;
         }
 
+        public Matrix4 GetVPMatrix()
+        {
+            return VPMatrix;
+        }
+
         public void LookAt(Vector3 location)
         {
             RotationMatrix = Matrix4.CreateFromQuaternion(Matrix4.LookAt(Vector3.Zero, -(location - Transformation.GetPosition()).Normalized(), new Vector3(0, 1, 0)).ExtractRotation());
             ViewMatrix = RotationMatrix * Matrix4.CreateTranslation(-Transformation.GetPosition());
             Transformation.SetOrientation(RotationMatrix.ExtractRotation());
             Transformation.ClearModifiedFlag();
+            VPMatrix = Matrix4.Mult(ViewMatrix, ProjectionMatrix);
         }
 
         public void ProcessKeyboardState(OpenTK.Input.KeyboardState keys)
@@ -226,6 +258,7 @@ namespace VEngine
 
                 RotationMatrix = tRotationMatrix;
                 ViewMatrix = tViewMatrix;
+                VPMatrix = Matrix4.Mult(ViewMatrix, ProjectionMatrix);
             }
         }
 
@@ -248,6 +281,7 @@ namespace VEngine
                     FrustumCone.Update(cone, Transformation.GetPosition(), tViewMatrix, ProjectionMatrix);
                 RotationMatrix = tRotationMatrix;
                 ViewMatrix = tViewMatrix;
+                VPMatrix = Matrix4.Mult(ViewMatrix, ProjectionMatrix);
             }
         }
 
@@ -255,6 +289,7 @@ namespace VEngine
         {
             RotationMatrix = Matrix4.CreateFromQuaternion(Transformation.GetOrientation());
             ViewMatrix = RotationMatrix * Matrix4.CreateTranslation(Transformation.GetPosition());
+            VPMatrix = Matrix4.Mult(ViewMatrix, ProjectionMatrix);
         }
     }
 }

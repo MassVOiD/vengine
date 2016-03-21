@@ -101,6 +101,8 @@ void main()
         color += stepsky * ApplyLighting(currentFragment, i) + (1.0 - stepsky) * vec3(1.0);
     }
     color /= samples;
+	vec4 forward = texture(forwardPassBuffer, UV).rgba;
+	color = mix(color, forward.rgb, min(forward.a*12, 1.0));
 	//color = vec3(abs(textureMSAA(normalsDistancetex, UV, 0).rgb));
     outColor = clamp(vec4(color, 1.0), 0.0, 10000.0);
 }
