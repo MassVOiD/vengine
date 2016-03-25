@@ -28,6 +28,8 @@ namespace VEngine
         {
             camera = new Camera(position, Vector3.Zero, Vector3.UnitY, mapwidth / mapheight, fov, near, far);
             camera.SetOrientation(rotation);
+            camera.SetPosition(position);
+            camera.Update();
             FBO = new Framebuffer();
         }
 

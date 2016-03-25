@@ -2,6 +2,7 @@ layout(location = 0) out vec4 outAlbedoRoughness;
 layout(location = 1) out vec4 outNormalsDistance;
 layout(location = 2) out vec4 outSpecularBump;
 layout(location = 3) out vec4 outOriginalNormal;
+layout(location = 4) out uint outId;
 
 
 
@@ -92,4 +93,5 @@ void main(){
 	outNormalsDistance = vec4(currentFragment.normal, currentFragment.cameraDistance);
 	outSpecularBump = vec4(currentFragment.specularColor, currentFragment.bump);
 	outOriginalNormal = vec4(quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal), currentFragment.cameraDistance);
+	outId = ModelInfos[Input.instanceId].Id;
 }

@@ -30,12 +30,14 @@ namespace ShadowsTester
         {
             float fovdegree = 90;
             RedLight = new List<ProjectionLight>();
-            RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
+            RedLight.Add(new ProjectionLight(new Vector3(0, 5, 0), Quaternion.FromAxisAngle(new Vector3(1, 0, 0), MathHelper.DegreesToRadians(-110)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 10000.0f)
             {
                 LightColor = new Vector3(1, 0.84f, 0.93f)*1,
                 IsStatic = false
             });
             Picked = RedLight[0];
+            RedLight[0].camera.Update();
+            RedLight[0].NeedsRefreshing = true;
             //RedLight[0].camera.UpdatePerspective(1, MathHelper.DegreesToRadians(90), 0.01f, 100);
             /* RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
              {

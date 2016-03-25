@@ -8,7 +8,7 @@ namespace VEngine
     {
         public bool Generated;
 
-        public int TexAlbedoRoughness, TexNormalsDistance, TexOriginalNormal, TexSpecularBump, DepthRenderBuffer;
+        public int TexAlbedoRoughness, TexNormalsDistance, TexOriginalNormal, TexSpecularBump, TexMeshIds, DepthRenderBuffer;
 
         private int FBO, MSAASamples = 1;
         public int Width, Height;
@@ -85,6 +85,8 @@ namespace VEngine
                 GL.DeleteTexture(TexNormalsDistance);
             if(TexSpecularBump > -1)
                 GL.DeleteTexture(TexSpecularBump);
+            if(TexMeshIds > -1)
+                GL.DeleteTexture(TexMeshIds);
             if(DepthRenderBuffer > -1)
                 GL.DeleteRenderbuffer(DepthRenderBuffer);
             if(FBO > 0)
@@ -118,6 +120,7 @@ namespace VEngine
             TexNormalsDistance = GenerateSingleTexture(PixelInternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float);
             TexSpecularBump = GenerateSingleTexture(PixelInternalFormat.Rgba8, PixelFormat.Rgba, PixelType.UnsignedByte);
             TexOriginalNormal = GenerateSingleTexture(PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.HalfFloat);
+            TexMeshIds = GenerateSingleTexture(PixelInternalFormat.R32ui, PixelFormat.RedInteger, PixelType.UnsignedInt);
 
             // generating rbo for depth
             DepthRenderBuffer = GL.GenRenderbuffer();
@@ -132,9 +135,10 @@ namespace VEngine
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TexNormalsDistance, 0);
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment2, TexSpecularBump, 0);
             GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment3, TexOriginalNormal, 0);
+            GL.FramebufferTexture(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment4, TexMeshIds, 0);
             GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, DepthRenderBuffer);
 
-            GL.DrawBuffers(4, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2, DrawBuffersEnum.ColorAttachment3 });
+            GL.DrawBuffers(5, new DrawBuffersEnum[] { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1, DrawBuffersEnum.ColorAttachment2, DrawBuffersEnum.ColorAttachment3, DrawBuffersEnum.ColorAttachment4 });
 
             // check for fuckups
             var err = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);

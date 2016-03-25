@@ -61,7 +61,6 @@ namespace VEngine
         private Object3dInfo CubeMapSphere;
 
         private Texture GlareTexture;
-        private Texture BRDFLutTexture;
 
         public void Resize(int initialWidth, int initialHeight)
         {
@@ -85,8 +84,6 @@ namespace VEngine
         public Renderer(int initialWidth, int initialHeight, int samples)
         {
             GlareTexture = new Texture(Media.Get("glaretex.png"));
-
-            BRDFLutTexture = new Texture(Media.Get("roughness_lut.png"));
 
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
@@ -414,7 +411,6 @@ namespace VEngine
             DeferredShader.Use();
             DeferredFramebuffer.Use();
             GlareTexture.Use(TextureUnit.Texture12);
-            BRDFLutTexture.Use(TextureUnit.Texture19);
 
             Game.World.Scene.SetLightingUniforms(DeferredShader);
             Game.World.Scene.MapLightsSSBOToShader(DeferredShader);
@@ -565,7 +561,6 @@ namespace VEngine
             //BlitFramebuffers(MRT, ForwardPassFramebuffer, BlitMode.Depth);
             //ForwardPassFramebuffer.Use(true, false);
             GlareTexture.Use(TextureUnit.Texture12);
-            BRDFLutTexture.Use(TextureUnit.Texture19);
 
             var programs = Game.ShaderPool.ChooseShaderGenericMaterial(true).ProgramsList;
             for(int i = 0; i < programs.Length; i++)

@@ -62,7 +62,7 @@ vec3 ApplyLighting(FragmentData data, int samp){
 	vec3 result = vec3(0);
 	if(UseHBAO == 1 && samp == 0) AOValue = lookupAO(UV, 1.0, samp);
 	if(UseDeferred == 1) result += DirectLight(data);
-	if(UseVDAO == 1) result += AOValue * texture(envLightTex, UV).rgb;
+	if(UseVDAO == 1) result += AOValue * texture(envLightTex, UV).rgb * 0.07;
 	if(UseRSM == 1) result += AOValue * RSM(data);
 	if(UseFog == 1) result += lookupFog(UV, 1.0, samp);
 	if(UseDepth == 1) result = mix(result, vec3(1), 1.0 - CalculateFallof(data.cameraDistance*0.1));
