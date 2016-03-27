@@ -94,7 +94,7 @@ vec3 SunLight(FragmentData data){
 	//mat4 mat = SunMatrices[chosenCascade];
 	vec3 lightPos = data.worldPos - SunDirection;
 	
-	vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, lightPos, SunColor, data.roughness, false) * (data.roughness);
+	vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, lightPos, SunColor, max(0.05, data.roughness), false) * (data.roughness);
 	
 	vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, lightPos, SunColor, 1.0, false) * (data.roughness + 1.0);
 	

@@ -28,10 +28,11 @@ namespace ShadowsTester
         Mesh3d CreateDiffuseModelFromRaw(string obj, Vector3 color)
         {
             var terrain3dManager = Object3dManager.LoadFromRaw(Media.Get(obj));
+            terrain3dManager.ScaleUV(20);
             var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
             var terrainMaterial = new GenericMaterial();
-            terrainMaterial.DiffuseColor = new Vector3(0);
-            terrainMaterial.SpecularColor = new Vector3(1);
+            terrainMaterial.DiffuseColor = new Vector3(0.7f);
+            terrainMaterial.SpecularColor = new Vector3(0.7f);
             terrainMaterial.Roughness = 0.5f;
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             return terrainMesh;
@@ -120,7 +121,8 @@ namespace ShadowsTester
                 var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
                 Game.World.Scene.Add(lucy);
                 lucy.GetInstance(0).Scale(0.3f);
-                
+                lucy.GetLodLevel(0).Material.SetNormalsTexture("stonew_n.jpg");
+
                 //DynamicCubeMapController.Create();
                 GenericMaterial.UpdateMaterialsBuffer();
             });

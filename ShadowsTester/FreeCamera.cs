@@ -18,7 +18,7 @@ namespace ShadowsTester
         public FreeCamera(float aspectRatio, float fov)
         {
             float fovdegree = 90;
-            Cam = new Camera(new Vector3(0, 5, 0), new Vector3(0, 0, 1), Vector3.UnitY, aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.1f, 10000.0f);
+            Cam = new Camera(new Vector3(0, 5, 0), new Vector3(0, 0, 1), Vector3.UnitY, aspectRatio, MathHelper.DegreesToRadians(fovdegree), 0.01f, 10000.0f);
             Cam.FocalLength = (float)(43.266f / (2.0f * Math.Tan(Math.PI * fovdegree / 360.0f))) / 1.5f;
             Camera.MainDisplayCamera = Cam;
             Camera.Current = Cam;

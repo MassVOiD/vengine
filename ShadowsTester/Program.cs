@@ -28,9 +28,9 @@ namespace ShadowsTester
             Commons.SetUpInputBehaviours();
 
             //new VictorianHouseScene();
-            new OldCityScene();
+           // new OldCityScene();
             //new PhysicsTest();
-            //new LightningTestScene();
+            new LightningTestScene();
             //new HotelScene();
 
             //new DragonScene();

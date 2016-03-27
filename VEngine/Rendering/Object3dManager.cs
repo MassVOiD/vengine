@@ -84,23 +84,24 @@ namespace VEngine
         {
             public string AlphaMask;
 
-            public Color DiffuseColor, SpecularColor, AmbientColor;
+            public Vector3 DiffuseColor, SpecularColor, AmbientColor;
 
-            public string TextureName, BumpMapName, NormapMapName, SpecularMapName;
+            public string TextureName, BumpMapName, NormapMapName, SpecularMapName, RoughnessMapName;
 
             public float Transparency, SpecularStrength;
 
             public MaterialInfo()
             {
-                DiffuseColor = Color.White;
-                SpecularColor = Color.White;
-                AmbientColor = Color.White;
+                DiffuseColor = Vector3.One;
+                SpecularColor = Vector3.One;
+                AmbientColor = Vector3.One;
                 Transparency = 1.0f;
                 SpecularStrength = 1.0f;
                 TextureName = "";
                 BumpMapName = "";
                 NormapMapName = "";
                 SpecularMapName = "";
+                RoughnessMapName = "";
                 AlphaMask = "";
             }
         }
@@ -307,7 +308,7 @@ namespace VEngine
                 {
                     match = Regex.Match(line, @"Ns ([0-9.-]+)");
                     float val = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
-                    //currentMaterial.SpecularStrength = val;
+                    currentMaterial.SpecularStrength = val > 1.0f ? 1.0f : val;
                 }
                 if(line.StartsWith("d"))
                 {
@@ -332,45 +333,48 @@ namespace VEngine
                 if(line.StartsWith("Kd"))
                 {
                     match = Regex.Match(line, @"Kd ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
-                    int r = (int)(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
-                    int g = (int)(float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
-                    int b = (int)(float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
-                    if(r > 255)
-                        r = 255;
-                    if(g > 255)
-                        g = 255;
-                    if(b > 255)
-                        b = 255;
-                    currentMaterial.DiffuseColor = Color.FromArgb(r, g, b);
+                    float r = (float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture));
+                    float g = (float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture));
+                    float b = (float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture));
+                    currentMaterial.DiffuseColor = new Vector3(r, g, b);
                 }
                 if(line.StartsWith("Ks"))
                 {
                     match = Regex.Match(line, @"Ks ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
-                    int r = (int)(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
-                    int g = (int)(float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
-                    int b = (int)(float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
-                    if(r > 255)
-                        r = 255;
-                    if(g > 255)
-                        g = 255;
-                    if(b > 255)
-                        b = 255;
-                    //currentMaterial.SpecularColor = Color.FromArgb(r, g, b);
+                    float r = (float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture));
+                    float g = (float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture));
+                    float b = (float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture));
+                    currentMaterial.SpecularColor = new Vector3(r, g, b);
                 }
                 if(line.StartsWith("map_Kd"))
                 {
                     match = Regex.Match(line, @"map_Kd (.+)");
                     currentMaterial.TextureName = Path.GetFileName(match.Groups[1].Value);
                 }
+                if(line.StartsWith("map_Ks"))
+                {
+                    match = Regex.Match(line, @"map_Ks (.+)");
+                    currentMaterial.SpecularMapName = Path.GetFileName(match.Groups[1].Value);
+                }
                 if(line.StartsWith("map_d"))
                 {
                     match = Regex.Match(line, @"map_d (.+)");
                     currentMaterial.AlphaMask = Path.GetFileName(match.Groups[1].Value);
                 }
+                if(line.StartsWith("map_n"))
+                {
+                    match = Regex.Match(line, @"map_n (.+)");
+                    currentMaterial.NormapMapName = Path.GetFileName(match.Groups[1].Value);
+                }
                 if(line.StartsWith("map_Bump"))
                 {
                     match = Regex.Match(line, @"map_Bump (.+)");
                     currentMaterial.BumpMapName = Path.GetFileName(match.Groups[1].Value);
+                }
+                if(line.StartsWith("map_Roughness"))
+                {
+                    match = Regex.Match(line, @"map_Roughness (.+)");
+                    currentMaterial.RoughnessMapName = Path.GetFileName(match.Groups[1].Value);
                 }
             }
             if(currentName != "")
@@ -385,7 +389,7 @@ namespace VEngine
             var mtllib = LoadMaterialsFromMtl(Media.Get(mtlfile));
             List<Mesh3d> meshes = new List<Mesh3d>();
             Dictionary<string, GenericMaterial> texCache = new Dictionary<string, GenericMaterial>();
-            Dictionary<Color, GenericMaterial> colorCache = new Dictionary<Color, GenericMaterial>();
+            Dictionary<Vector3, GenericMaterial> colorCache = new Dictionary<Vector3, GenericMaterial>();
             Dictionary<GenericMaterial, MaterialInfo> mInfos = new Dictionary<GenericMaterial, MaterialInfo>();
             Dictionary<GenericMaterial, List<Object3dManager>> linkCache = new Dictionary<GenericMaterial, List<Object3dManager>>();
             var colorPink = new GenericMaterial(Color.White);
@@ -465,7 +469,9 @@ namespace VEngine
                 oi.Manager = o3di;
                 Mesh3d mesh = Mesh3d.Create(oi, kv.Key);
                 //kv.Key.SpecularComponent = 1.0f - mInfos[kv.Key].SpecularStrength + 0.01f;
-                kv.Key.Roughness = (1);
+                kv.Key.Roughness = mInfos[kv.Key].SpecularStrength;
+                kv.Key.DiffuseColor = mInfos[kv.Key].DiffuseColor;
+                kv.Key.SpecularColor = mInfos[kv.Key].SpecularColor;
                 // kv.Key.ReflectionStrength = 1.0f - (mInfos[kv.Key].SpecularStrength);
                 //kv.Key.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
                 var kva = kv.Key;
@@ -473,6 +479,12 @@ namespace VEngine
                     kva = mInfos.Keys.First();
                 if(mInfos[kva].BumpMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetBumpTexture(mInfos[kv.Key].BumpMapName);
+                if(mInfos[kva].RoughnessMapName.Length > 1)
+                    ((GenericMaterial)kv.Key).SetRoughnessTexture(mInfos[kv.Key].RoughnessMapName);
+                if(mInfos[kva].NormapMapName.Length > 1)
+                    ((GenericMaterial)kv.Key).SetNormalsTexture(mInfos[kv.Key].NormapMapName);
+                if(mInfos[kva].TextureName.Length > 1)
+                    ((GenericMaterial)kv.Key).SetDiffuseTexture(mInfos[kv.Key].TextureName);
                 // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 //  mesh.GetInstance(0).Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(),

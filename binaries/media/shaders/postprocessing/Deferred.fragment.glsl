@@ -24,11 +24,14 @@ uniform float LightAngle;
 uniform int LightUseShadowMap;
 uniform int LightShadowMapType;
 uniform mat4 LightVPMatrix;
+uniform float LightCutOffDistance;
 
 
 layout(binding = 20) uniform sampler2DShadow shadowMapSingle;
+layout(binding = 24) uniform sampler2D shadowMapSingleValued;
 
 layout(binding = 21) uniform samplerCubeShadow shadowMapCube;
+layout(binding = 25) uniform samplerCube shadowMapCubeValued;
 
 #define KERNEL 6
 #define PCFEDGE 1
@@ -46,10 +49,57 @@ float PCFDeferred(vec2 uvi, float comparison){
     }
 	return shadow / (KERNEL * KERNEL);
 }
+float PCFDeferredValueSubSurf(vec2 uvi, float comparison){
+
+    float shadow = 0.0;
+    float pixSize = 1.0 / textureSize(shadowMapSingle,0).x;
+    float bound = KERNEL * 0.5 - 0.5;
+    bound *= PCFEDGE;
+    for (float y = -bound; y <= bound; y += PCFEDGE){
+        for (float x = -bound; x <= bound; x += PCFEDGE){
+			vec2 uv = vec2(uvi+ vec2(x,y)* pixSize);
+            float v = reverseLog(texture(shadowMapSingleValued, uv).r, 10000);
+            float factor = pow(abs(comparison - v), 5);
+            float subsurfv = 1.0 - smoothstep(0.0, 0.0001, factor);
+            shadow += max(0, 0.1 - factor);
+        }
+    }
+	return shadow / (KERNEL * KERNEL);
+}
+
+vec3 getTangent(vec3 v){
+	return normalize(v) == vec3(0,1,0) ? vec3(1,0,0) : normalize(cross(vec3(0,1,0), v));
+}
+vec3 getBiTangent(vec3 v){
+	return normalize(v) == vec3(1,0,0) ? vec3(0,0,1) : normalize(cross(vec3(1,0,0), v));
+}
+
+float CubeMapShadows(vec3 dir, float comparison){
+	float aaprc = 0.0;
+	vec3 tang = getTangent(dir);
+	vec3 bitang = getBiTangent(dir);
+	for(int x = 0; x < 11; x++){
+		//rd=rd.wxyz;
+		vec2 rd = vec2(
+			rand2s(x + currentFragment.worldPos.xy),
+			rand2s(x + currentFragment.worldPos.yz)
+		) *2-1;
+		vec3 displace = tang * rd.x + bitang * rd.y;
+        float prc = texture(shadowMapCube, vec4(normalize(dir + displace * 0.04), comparison));
+		aaprc += prc;
+	}
+	return aaprc / 11;
+}
 
 vec3 ApplyLighting(FragmentData data, int samp)
 {
 	vec3 result = vec3(0);
+    float fresnel = fresnel_again(data.normal, data.cameraPos);
+    
+    vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, max(0.02, data.roughness), false);
+    
+    vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
+    
 	if(LightUseShadowMap == 1){
 		if(LightShadowMapType == 0){
 			vec4 lightClipSpace = LightVPMatrix * vec4(data.worldPos, 1.0);
@@ -58,28 +108,29 @@ vec3 ApplyLighting(FragmentData data, int samp)
 
 				float percent = 0;
 				if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0) {
-					percent = PCFDeferred(lightScreenSpace.xy, toLogDepth2(distance(data.worldPos, LightPosition), 10000) - 0.00001);
+					percent = PCFDeferred(lightScreenSpace.xy, toLogDepth2(distance(data.worldPos, LightPosition), 10000) - 0.001);
 				}
-				vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, data.roughness, false) * (data.roughness);
-				vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
 				result += (radiance + difradiance) * 0.5 * percent;
+                
+                //subsurf
+               /* float subsurfv = PCFDeferredValueSubSurf(lightScreenSpace.xy, distance(data.worldPos, LightPosition));
+                
+                result += subsurfv * data.diffuseColor;*/
+                
 			}
 		} else if(LightShadowMapType == 1){
 			
 			vec3 checkdir = normalize(data.worldPos - LightPosition);
-			float percent = texture(shadowMapCube, vec4(checkdir, toLogDepth2(distance(data.worldPos, LightPosition), 10000) - 0.001));
-			
-			vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, data.roughness, false) * (data.roughness);
-			vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
+			float percent = CubeMapShadows(checkdir, toLogDepth2(distance(data.worldPos, LightPosition), 10000) - 0.001);
+		
 			result += (radiance + difradiance) * 0.5 * percent;
 		
 		} 
 	} else if(LightUseShadowMap == 0){
-		vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, data.roughness, false) * (data.roughness);
-		vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
 		result += (radiance + difradiance) * 0.5;
 	}
-	return result;
+    result = fresnel * result;
+	return result * (1.0 - smoothstep(0.0, LightCutOffDistance, distance(LightPosition, data.worldPos)));
 }
 
 void main()

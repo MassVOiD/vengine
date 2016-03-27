@@ -61,12 +61,19 @@ namespace ShadowsTester
                 var ground = CreateWall(new Vector2(-1000), new Vector2(1000), Quaternion.Identity, Vector3.Zero, new Vector3(0.1f, 0.4f, 1));
                 scene.Add(ground);
 
-                var fiatmeshes = Object3dManager.LoadSceneFromObj("somevilla.obj", "somevilla.obj", 1);
+                var fiatmeshes = Object3dManager.LoadSceneFromObj("yen.obj", "yen.mtl", 1);
                 fiatmeshes.ForEach((a) =>
                 {
                     a.GetLodLevel(0).DisableFaceCulling = true;
                     scene.Add(a);
                 });
+                
+                /*
+                var m = CreateDiffuseModelFromObj("hipolysphere.obj", new Vector3(1));
+                m.GetLodLevel(0).Material.SpecularColor = new Vector3(1.0f);
+                m.GetLodLevel(0).Material.DiffuseColor= new Vector3(0.0f);
+                m.GetLodLevel(0).Material.Roughness = 0.9f;
+                scene.Add(m);*/
 
                 /* var green = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitX, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(0.2f, 1, 0.3f));
                  var red = CreateWall(new Vector2(-100), new Vector2(100), Quaternion.FromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(90)), Vector3.Zero, new Vector3(1, 0.2f, 0.2f));

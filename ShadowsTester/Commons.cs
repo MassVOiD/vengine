@@ -34,10 +34,37 @@ namespace ShadowsTester
             {
                 Color = new Vector3(1, 0.84f, 0.93f) * 1,
                 ShadowMappingEnabled = true,
-                ShadowMapType = Light.ShadowMapTypeEnum.Cubemap
+                ShadowMapType = Light.ShadowMapTypeEnum.Single
             });
             Picked = RedLight[0];
-            
+            /*
+            //crazyiness
+            var tmp = new List<Light>();
+            for(int i = 0; i < 10; i++)
+            {
+                for(int g = 0; g < 4; g++)
+                {
+                    var l = new Light(new TransformationManager(new Vector3((i - 5) * 1.6f, 1 + g * 2, 0)));
+                    tmp.Add(l);
+                    //l.Color = (new Vector3((float)Math.Sin(i), 1.0f - (float)Math.Sin(i), (float)Math.Cos(i)) * 0.5f + new Vector3(0.5f)) * 0.3f;
+                    l.Color = new Vector3(1) * (0.05f * (g + 1));
+                    l.CutOffDistance = 30.0f;
+                    l.StaticShadowMap = true;
+                    l.ShadowMapType = Light.ShadowMapTypeEnum.Cubemap;
+                    l.ShadowsQuality = ShadowMapQuality.Low;
+                    l.ShadowMappingEnabled = true;
+                    Game.World.Scene.Add(l);
+                }
+            }
+            int ix = 0;
+            Game.OnBeforeDraw += (x, d) =>
+            {
+                tmp[ix].ShadowMapRefreshNeeded = true;
+                ix++;
+                if(ix >= tmp.Count)
+                    ix = 0;
+            };*/
+
             //RedLight[0].camera.UpdatePerspective(1, MathHelper.DegreesToRadians(90), 0.01f, 100);
             /* RedLight.Add(new ProjectionLight(new Vector3(65, 0, 65), Quaternion.FromAxisAngle(new Vector3(1, 0, -1), MathHelper.DegreesToRadians(fovdegree)), 1, 1, MathHelper.DegreesToRadians(45), 0.1f, 100.0f)
              {
@@ -348,6 +375,7 @@ namespace ShadowsTester
                         PickedMesh.GetLodLevel(0).Material.Roughness -= 0.05f;
                         if(PickedMesh.GetLodLevel(0).Material.Roughness < 0)
                             PickedMesh.GetLodLevel(0).Material.Roughness = 0;
+                        GenericMaterial.UpdateMaterialsBuffer();
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.Period)
@@ -357,6 +385,7 @@ namespace ShadowsTester
                         PickedMesh.GetLodLevel(0).Material.Roughness += 0.05f;
                         if(PickedMesh.GetLodLevel(0).Material.Roughness > 1)
                             PickedMesh.GetLodLevel(0).Material.Roughness = 1;
+                        GenericMaterial.UpdateMaterialsBuffer();
                     }
                 }
 

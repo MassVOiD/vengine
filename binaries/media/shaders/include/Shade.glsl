@@ -14,6 +14,14 @@ vec3 makeFresnel(float V2Ncos, vec3 reflected)
     return reflected + 0.5 * reflected * pow(1.0 - V2Ncos, 5.0);
 }
 
+float fresnel_again(vec3 normal, vec3 cameraspace){
+    vec3 dir = normalize(reflect(cameraspace, normal));
+	float fz = 0.6;
+    float base =  max(0, 1.0 - dot(normalize(normal), dir));
+    float fresnel = (fz + (1-fz)*(pow(base, 5.0)));
+    return fresnel;
+}
+
 float G1V(float dotNV, float k)
 {
     return 1.0/(dotNV*(1.0-k)+k);

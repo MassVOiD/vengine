@@ -92,13 +92,41 @@ vec3 MMAL(vec3 visdis, float dist, vec3 normal, vec3 reflected, float roughness)
     return (result) * (1.0 - ncos(roughness));
 }
 
+float hash( float n )
+{
+    return fract(sin(n)*758.5453);
+}
+
+vec3 stupidBRDF(vec3 dir, float level, float roughness){
+	vec3 aaprc = vec3(0.0);
+	vec3 tang = getTangent(dir);
+	vec3 bitang = getBiTangent(dir);
+    float xx=2;
+    float xx2=1;
+	for(int x = 0; x < 22; x++){
+		vec3 rd = vec3(
+			rand2s(vec2(xx, xx2)),
+			rand2s(vec2(-xx2, xx)),
+			rand2s(vec2(xx2, xx))
+		) *2-1;
+		vec3 displace = rd;
+        vec3 prc = textureLod(cube, dir + (displace * 0.6 * roughness), level).rgb;
+		aaprc += prc;
+        xx += 0.01;
+        xx2 -= 0.02123;
+	}
+	return aaprc / 22;
+}
+
+
 vec3 MMALSkybox(vec3 normal, vec3 reflected, float roughness){
-	
-    float levels = float(textureQueryLevels(cube));
+	//roughness = roughness * roughness;
+    float levels = max(0, float(textureQueryLevels(cube)) - 2);
     float mx = log2(roughness*MMAL_LOD_REGULATOR+1)/log2(MMAL_LOD_REGULATOR);
-    vec3 result = textureLod(cube, mix(reflected, normal, roughness), mx * levels).rgb;
+    vec3 result = stupidBRDF(mix(reflected, normal, roughness), mx * levels, roughness);
 	
-	return vec3pow(result*1.5, 6.0);
+	return result;
+	//return vec3pow(result*1.5, 6.0);
 }
 
 
@@ -131,16 +159,19 @@ vec3 EnvironmentLight(FragmentData data)
 vec3 EnvironmentLightSkybox(FragmentData data)
 {       
     vec3 dir = normalize(reflect(data.cameraPos, data.normal));
+    vec3 dir2 = mix(dir, data.normal, data.roughness);
     vec3 vdir = normalize(data.cameraPos);
 	vec3 reflected = vec3(0);
 	vec3 diffused = vec3(0);
 	
-	reflected += MMALSkybox(data.normal, dir, data.roughness) * data.specularColor;
+	reflected += MMALSkybox(data.normal, dir, data.roughness) * data.specularColor;// * (1.0 - data.roughness);
 	
-	diffused += MMALSkybox(data.normal, dir, 1.0) * data.diffuseColor;
+	diffused += MMALSkybox(data.normal, dir, 1.0) * data.diffuseColor * (data.roughness + 1.0);
 
-	
-    return (reflected + diffused) * 0.5;
+    float fresnel = fresnel_again(data.normal, data.cameraPos);
+    
+    //return fresnel * vec3(0.2);
+    return fresnel * reflected + diffused;
 }
 vec3 EnvironmentLightShadowsOnly(FragmentData data)
 {       

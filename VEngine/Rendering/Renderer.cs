@@ -428,7 +428,7 @@ namespace VEngine
                     DeferredShader.Use();
                     DeferredFramebuffer.Use(true, false);
 
-                    light.BindShadowMap(20, 21);
+                    light.BindShadowMap(20, 21, 24, 25);
 
                     EnableAdditiveBlending();
                     GL.CullFace(CullFaceMode.Front);
@@ -477,6 +477,7 @@ namespace VEngine
                 HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
             ForwardPassFramebuffer.UseTexture(17);
+            CubeMaps[0].Texture.Use(TextureUnit.Texture12);
             DrawPPMesh();
             Game.CheckErrors("HDR pass");
             LastViewMatrix = Camera.Current.GetViewMatrix();

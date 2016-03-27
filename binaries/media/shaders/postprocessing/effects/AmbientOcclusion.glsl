@@ -277,7 +277,7 @@ float AO(
 		float shadowing = dot(normdata.xyz, normalize(dupa - posc));
 		//shadowing = smoothstep(0.0, 0.9, shadowing);
 		//shadowing = mix(0.0, shadowing, indirectAmount);
-		float occ = mix(0.0, max(0, dot(normalize(dupa- posc), normalcenter)), indirectAmount);
+		float occ = mix(0.0, max(0, dot(normalize(dupa- posc), normalcenter) - 0.2), indirectAmount);
 		//float occ = max(0, dot(normalize(dupa- posc), normalcenter));
 		
 		float fact = 1.0 - clamp(abs(aondata - xaon) - 0.3, 0.0, 1.0);
@@ -291,8 +291,8 @@ float AO(
 
 float AmbientOcclusion(FragmentData data){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AO(data.worldPos, data.cameraPos, vec3(0,1,0), data.roughness, 2.0, 1);
-    //ao *= AO(data.worldPos, data.cameraPos, data.normal, data.roughness, 1.0, 5);
+    ao = AO(data.worldPos, data.cameraPos, vec3(0,1,0), data.roughness, 0.2, 4);
+    //ao *= AO(data.worldPos, data.cameraPos, data.normal, data.roughness, 0.3, 5);
    // ao *= pow(AO(data.worldPos, data.normal, data.roughness, 8.0, 4), 5);
     return pow(ao, 7.5);
 	//return AmbientOcclusionSingle(data, 0.5);
