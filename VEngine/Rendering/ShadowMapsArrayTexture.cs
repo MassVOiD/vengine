@@ -7,6 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
 {
+    /*
     public class ShadowMapsArrayTexture
     {
         private int HandleDepths = -1;
@@ -128,5 +129,5 @@ namespace VEngine
             GL.ActiveTexture(TextureUnit.Texture0 + depthloc);
             GL.BindTexture(TextureTarget.Texture2DArray, HandleDepths);
         }
-    }
+    }*/
 }

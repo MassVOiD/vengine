@@ -42,7 +42,6 @@ void main(){
 	//outColor = vec4(1.0);
 	//return;
 	vec3 norm = normalize(Input.Normal);
-	norm = faceforward(norm, norm, normalize(ToCameraSpace(Input.WorldPos)));
 	FragmentData currentFragment = FragmentData(
 		DiffuseColor,
 		SpecularColor,
@@ -92,6 +91,8 @@ void main(){
 	outAlbedoRoughness = vec4(currentFragment.diffuseColor, currentFragment.roughness);
 	outNormalsDistance = vec4(currentFragment.normal, currentFragment.cameraDistance);
 	outSpecularBump = vec4(currentFragment.specularColor, currentFragment.bump);
-	outOriginalNormal = vec4(quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal), currentFragment.cameraDistance);
+	norm = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal);
+	norm = faceforward(norm, norm, normalize(ToCameraSpace(Input.WorldPos)));
+	outOriginalNormal = vec4(norm, currentFragment.cameraDistance);
 	outId = ModelInfos[Input.instanceId].Id;
 }

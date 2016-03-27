@@ -124,7 +124,7 @@ namespace VEngine
             if(samples > 1)
                 FogShader.SetGlobal("USE_MSAA", "");
 
-            DeferredShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Deferred.fragment.glsl");
+            DeferredShader = ShaderProgram.Compile("PostProcessPerspective.vertex.glsl", "Deferred.fragment.glsl");
             DeferredShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
                 DeferredShader.SetGlobal("USE_MSAA", "");
@@ -217,7 +217,6 @@ namespace VEngine
 
         public void RenderToCubeMapFramebuffer(CubeMapFramebuffer framebuffer)
         {
-            Game.World.Scene.RecreateSimpleLightsSSBO();
             Width = framebuffer.Width;
             Height = framebuffer.Height;
 
@@ -295,7 +294,6 @@ namespace VEngine
         {
             if(Camera.Current == null)
                 return;
-            Game.World.Scene.RecreateSimpleLightsSSBO();
             Width = framebuffer.Width;
             Height = framebuffer.Height;
 
@@ -410,13 +408,37 @@ namespace VEngine
         {
             DeferredShader.Use();
             DeferredFramebuffer.Use();
-            GlareTexture.Use(TextureUnit.Texture12);
+            SetUniformsShared();
+            EnableAdditiveBlending();
+            GL.CullFace(CullFaceMode.Front);
 
-            Game.World.Scene.SetLightingUniforms(DeferredShader);
-            Game.World.Scene.MapLightsSSBOToShader(DeferredShader);
-            Game.CascadeShadowMaps.SetUniforms();
+            var lights = Game.World.Scene.GetLights();
+            for(int i = 0; i < lights.Count; i++)
+            {
+                var light = lights[i];
 
-            DrawPPMesh();
+                Matrix4 mat = Matrix4.CreateScale(light.CutOffDistance) * Matrix4.CreateTranslation(light.Transformation.Position);
+                if(light.ShadowMappingEnabled)
+                {
+                    DisableBlending();
+                    GL.CullFace(CullFaceMode.Back);
+
+                    light.UpdateShadowMap();
+
+                    DeferredShader.Use();
+                    DeferredFramebuffer.Use(true, false);
+
+                    light.BindShadowMap(20, 21);
+
+                    EnableAdditiveBlending();
+                    GL.CullFace(CullFaceMode.Front);
+                }
+                light.SetUniforms();
+                DeferredShader.SetUniform("ModelMatrix", mat);
+                CubeMapSphere.Draw();
+            }
+            GL.CullFace(CullFaceMode.Back);
+            DisableBlending();
             Game.CheckErrors("Deferred pass");
         }
 
@@ -481,7 +503,6 @@ namespace VEngine
         {
             FogShader.Use();
             FogFramebuffer.Use();
-            Game.World.Scene.SetLightingUniforms(FogShader);
             DrawPPMesh();
             Game.CheckErrors("Fog pass");
         }
@@ -566,9 +587,6 @@ namespace VEngine
             for(int i = 0; i < programs.Length; i++)
             {
                 programs[i].Use();
-                Game.World.Scene.SetLightingUniforms(programs[i]);
-                Game.World.Scene.MapLightsSSBOToShader(programs[i]);
-                Game.CascadeShadowMaps.SetUniforms();
             }
 
 

@@ -34,7 +34,7 @@ namespace VEngine
 
         private List<Matrix4> vmats = new List<Matrix4>();
 
-        private List<ILight> Lights = new List<ILight>();
+        private List<Light> Lights = new List<Light>();
 
         private List<IRenderable> Renderables = new List<IRenderable>();
 
@@ -49,15 +49,13 @@ namespace VEngine
             Renderables.AddRange(e.Renderables);
         }
 
-        public void Add(ILight e)
+        public void Add(Light e)
         {
             Lights.Add(e);
-            if(e is ProjectionLight)
-                Game.Invoke(() =>
-                    Game.ShadowMaps.UpdateFromLightsList(
-                        Lights
-                        .Where((a) => a is ProjectionLight)
-                        .Cast<ProjectionLight>().ToList()));
+        }
+        public List<Light> GetLights()
+        {
+            return Lights;
         }
 
         public void Add(IRenderable e)
@@ -111,51 +109,7 @@ namespace VEngine
             return o;
         }
 
-        public void MapLights()
-        {
-            for(int i = 0; i < Lights.Count; i++)
-            {
-                var e = Lights[i];
-                if(e is IShadowMapableLight)
-                {
-                    (e as IShadowMapableLight).Map();
-                }
-            }
-        }
-
-        public void MapLightsSSBOToShader(ShaderProgram sp)
-        {
-            SSBO.Use(6);
-            ShaderProgram.Current.SetUniform("SimpleLightsCount", SimpleLightsCount);
-        }
-
-        public void RecreateSimpleLightsSSBO()
-        {
-            Buffer = new List<byte>();
-            SimpleLightsCount = 0;
-            bool update = false;
-            foreach(var e in Lights)
-            {
-                if(e is SimplePointLight)
-                {
-                    if((e as SimplePointLight).Transformation.HasBeenModified())
-                        update = true;
-                    Buffer.AddRange(Bytes((e as SimplePointLight).Transformation.GetPosition()));
-                    Buffer.AddRange(Bytes((e as SimplePointLight).Transformation.GetOrientation().ToDirection()));
-                    Buffer.AddRange(Bytes(e.GetColor(), (e as SimplePointLight).Angle));
-                    Buffer.AddRange(Bytes(e.GetColor(), (e as SimplePointLight).Angle));
-
-                    SimpleLightsCount++;
-                }
-            }
-            // if(!update)
-            //      Buffer = new List<byte>();
-            //  else if(Buffer.Count == 0)
-            //       Buffer.Add(0);
-            SSBO.MapData(Buffer.ToArray());
-        }
-
-        public void Remove(ILight e)
+        public void Remove(Light e)
         {
             Lights.Remove(e);
         }
@@ -164,129 +118,6 @@ namespace VEngine
         {
             Renderables.Remove(e);
         }
-
-        public void SetLightingUniforms(ShaderProgram shader)
-        {
-            // MEMORY LEAK
-            pmats = new List<Matrix4>();
-            shadowmaplayers = new List<int>();
-            vmats = new List<Matrix4>();
-            poss = new List<Vector3>();
-            fplanes = new List<float>();
-            colors = new List<Vector4>();
-            mmodes = new List<int>();
-            exclgroups = new List<int>();
-            blurfactors = new List<float>();
-            var coneLB = new List<Vector4>();
-            var coneLB2BR = new List<Vector4>();
-            var coneLB2TL = new List<Vector4>();
-            ipointer = 0;
-
-            foreach(var e in Lights)
-                if(e is IShadowMapableLight)
-                {
-                    var l = e as IShadowMapableLight;
-                    var p = e as ILight;
-                    pmats.Add(l.GetPMatrix());
-                    vmats.Add(l.GetVMatrix());
-                    blurfactors.Add(l.GetBlurFactor());
-                    exclgroups.Add(l.GetExclusionGroup());
-                    shadowmaplayers.Add((l as ProjectionLight).ShadowMapArrayIndex);
-                    poss.Add(p.GetPosition());
-                    colors.Add(new Vector4(p.GetColor()));
-                    var cone = (l as ProjectionLight).camera.GetConeInfo();
-                    fplanes.Add((l as ProjectionLight).camera.Far);
-                    coneLB.Add(new Vector4(cone.FrustumConeLeftBottom, 0));
-                    coneLB2BR.Add(new Vector4(cone.FrustumConeBottomLeftToBottomRight, 0));
-                    coneLB2TL.Add(new Vector4(cone.FrustumConeBottomLeftToTopLeft, 0));
-                    ipointer++;
-                }
-            Game.ShadowMaps.Bind(5, 6, 0);
-            shader.SetUniformArray("LightsPs", pmats.ToArray());
-            shader.SetUniformArray("LightsVs", vmats.ToArray());
-            shader.SetUniformArray("LightsConeLB", coneLB.ToArray());
-            shader.SetUniformArray("LightsConeLB2BR", coneLB2BR.ToArray());
-            shader.SetUniformArray("LightsConeLB2TL", coneLB2TL.ToArray());
-            shader.SetUniformArray("LightsShadowMapsLayer", shadowmaplayers.ToArray());
-            shader.SetUniformArray("LightsPos", poss.ToArray());
-            shader.SetUniformArray("LightsFarPlane", fplanes.ToArray());
-            shader.SetUniformArray("LightsColors", colors.ToArray());
-            shader.SetUniformArray("LightsBlurFactors", blurfactors.ToArray());
-            shader.SetUniformArray("LightsExclusionGroups", exclgroups.ToArray());
-            shader.SetUniform("LightsCount", pmats.Count);
-            pmats = new List<Matrix4>();
-            vmats = new List<Matrix4>();
-            poss = new List<Vector3>();
-            fplanes = new List<float>();
-            colors = new List<Vector4>();
-            mmodes = new List<int>();
-            exclgroups = new List<int>();
-            blurfactors = new List<float>();
-        }
         
-        private static List<byte> Bytes(Vector4 vec)
-        {
-            var b = new List<byte>();
-            b.AddRange(BitConverter.GetBytes(vec.X));
-            b.AddRange(BitConverter.GetBytes(vec.Y));
-            b.AddRange(BitConverter.GetBytes(vec.Z));
-            b.AddRange(BitConverter.GetBytes(vec.W));
-            return b;
-        }
-
-        private static List<byte> Bytes(Vector3 vec, float additional = 0)
-        {
-            var b = new List<byte>();
-            b.AddRange(BitConverter.GetBytes(vec.X));
-            b.AddRange(BitConverter.GetBytes(vec.Y));
-            b.AddRange(BitConverter.GetBytes(vec.Z));
-            b.AddRange(BitConverter.GetBytes(additional));
-            return b;
-        }
-
-        private static List<byte> Bytes(Matrix4 v)
-        {
-            var b = new List<byte>();
-            b.AddRange(BitConverter.GetBytes(v.Row0.X));
-            b.AddRange(BitConverter.GetBytes(v.Row0.Y));
-            b.AddRange(BitConverter.GetBytes(v.Row0.Z));
-            b.AddRange(BitConverter.GetBytes(v.Row0.W));
-
-            b.AddRange(BitConverter.GetBytes(v.Row1.X));
-            b.AddRange(BitConverter.GetBytes(v.Row1.Y));
-            b.AddRange(BitConverter.GetBytes(v.Row1.Z));
-            b.AddRange(BitConverter.GetBytes(v.Row1.W));
-
-            b.AddRange(BitConverter.GetBytes(v.Row2.X));
-            b.AddRange(BitConverter.GetBytes(v.Row2.Y));
-            b.AddRange(BitConverter.GetBytes(v.Row2.Z));
-            b.AddRange(BitConverter.GetBytes(v.Row2.W));
-
-            b.AddRange(BitConverter.GetBytes(v.Row3.X));
-            b.AddRange(BitConverter.GetBytes(v.Row3.Y));
-            b.AddRange(BitConverter.GetBytes(v.Row3.Z));
-            b.AddRange(BitConverter.GetBytes(v.Row3.W));
-
-            return b;
-        }
-
-        private static List<byte> Bytes(float vec)
-        {
-            var b = new List<byte>();
-            b.AddRange(BitConverter.GetBytes(vec));
-            return b;
-        }
-
-        private static List<byte> Bytes(int vec)
-        {
-            var b = new List<byte>();
-            b.AddRange(BitConverter.GetBytes(vec));
-            return b;
-        }
-
-        private static Vector3 mul(Matrix4 mat, Vector3 vec)
-        {
-            return Vector4.Transform(new Vector4(vec, 1.0f), mat).Xyz;
-        }
     }
 }

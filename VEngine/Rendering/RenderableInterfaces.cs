@@ -22,14 +22,7 @@ namespace VEngine
     {
         void GetMass();
     }
-
-    public interface ILight
-    {
-        Vector3 GetColor();
-
-        Vector3 GetPosition();
-    }
-
+    
     public interface IPhysical
     {
         CollisionShape GetCollisionShape();
@@ -40,19 +33,6 @@ namespace VEngine
     public interface IRenderable
     {
         bool Draw();
-    }
-
-    public interface IShadowMapableLight
-    {
-        Matrix4 GetPMatrix();
-
-        Matrix4 GetVMatrix();
-
-        float GetBlurFactor();
-
-        int GetExclusionGroup();
-
-        void Map();
     }
 
     public interface ITransformable

@@ -34,8 +34,7 @@ namespace VEngine
         static public event EventHandler OnResize;
 
         static public ShaderPool ShaderPool;
-        static public ShadowMapsArrayTexture ShadowMaps;
-        static public CascadeShadows CascadeShadowMaps;
+        //static public CascadeShadows CascadeShadowMaps;
 
         static public int MSAASamples = 2;
 
@@ -48,9 +47,8 @@ namespace VEngine
             World = new World();
             Media.SearchPath = mediapath;
             Media.LoadFileMap();
-            ShadowMaps = new ShadowMapsArrayTexture(2048, 2048);
             //CascadeShadowMaps = new CascadeShadows(Vector3.One, new float[] { 10, 25, 50, 500, 1000, 10000 }, 10000);
-            CascadeShadowMaps = new CascadeShadows(Vector3.One, new float[] { }, 10000);
+            //CascadeShadowMaps = new CascadeShadows(Vector3.One, new float[] { }, 10000);
             Resolution = resolution;
             SetCurrentThreadCores(1);
 

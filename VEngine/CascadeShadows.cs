@@ -7,6 +7,7 @@ using OpenTK;
 
 namespace VEngine
 {
+    /*
     public class CascadeShadows
     {
         ShadowMapsArrayTexture MapsArray;
@@ -89,5 +90,5 @@ namespace VEngine
 
             MapsArray.Bind(22);
         }
-    }
+    }*/
 }

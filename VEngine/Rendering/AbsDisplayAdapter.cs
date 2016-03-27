@@ -122,16 +122,12 @@ namespace VEngine
 
             Game.InvokeQueue();
 
-            Game.World.Scene.MapLights();
-
-            //LightPool.UseTextures(2);
-            // this is here so you can issue draw calls from there if you want
             Game.InvokeOnBeforeDraw(e);
-            MainRenderer.RenderToFramebuffer(Framebuffer.Default);
-            //DrawAll();
-            Game.InvokeOnAfterDraw(e);
 
-            //Game.CheckErrors();
+            MainRenderer.RenderToFramebuffer(Framebuffer.Default);
+
+            Game.InvokeOnAfterDraw(e);
+            
             PhysicsNeedsUpdate = true;
 
             SwapBuffers();

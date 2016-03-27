@@ -12,7 +12,7 @@ namespace VEngine.FileFormats
     {
         public List<Camera> Cameras;
         public string FilePath;
-        public List<ILight> Lights;
+        public List<Light> Lights;
         public List<GenericMaterial> Materials;
         public List<Mesh3d> Meshes;
 
@@ -149,11 +149,11 @@ namespace VEngine.FileFormats
         {
             Materials = new List<GenericMaterial>();
             Meshes = new List<Mesh3d>();
-            Lights = new List<ILight>();
+            Lights = new List<Light>();
             Cameras = new List<Camera>();
             var regx = new Regex("(.+?)[ ]+(.+)");
             var currentMaterial = new GenericMaterial(Vector3.One);
-            ILight tempLight = null;
+            Light tempLight = null;
             GenericMaterial tempMaterial = null;
             Mesh3d tempMesh = null;
             Camera tempCamera = null;
@@ -308,10 +308,7 @@ namespace VEngine.FileFormats
                         }
                         if(tempLight != null)
                         {
-                            if(tempLight is SimplePointLight)
-                                (tempLight as SimplePointLight).Transformation.Translate(x, y, z);
-                            else if(tempLight is ProjectionLight)
-                                (tempLight as ProjectionLight).camera.Transformation.Translate(x, y, z);
+                            tempLight.Transformation.Translate(x, y, z);
                         }
                         break;
                     }
@@ -370,10 +367,7 @@ namespace VEngine.FileFormats
                         }
                         if(tempLight != null)
                         {
-                            if(tempLight is SimplePointLight)
-                                (tempLight as SimplePointLight).Transformation.Rotate(rot);
-                            else if(tempLight is ProjectionLight)
-                                (tempLight as ProjectionLight).camera.Transformation.Rotate(rot);
+                            tempLight.Transformation.Rotate(rot);
                         }
                         break;
                     }

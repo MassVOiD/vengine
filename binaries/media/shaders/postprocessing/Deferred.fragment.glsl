@@ -2,7 +2,6 @@
 
 layout(location = 0) out vec4 outColor;
 
-in vec2 UV;
 uniform int DisablePostEffects;
 uniform float VDAOGlobalMultiplier;
 
@@ -11,62 +10,75 @@ uniform float VDAOGlobalMultiplier;
 FragmentData currentFragment;
 
 #include Lighting.glsl
+vec2 UV = gl_FragCoord.xy / resolution;
 #include UsefulIncludes.glsl
 #include Shade.glsl
 #include Direct.glsl
 #include AmbientOcclusion.glsl
 #include RSM.glsl
 
-float AOValue = 1.0;
+uniform vec3 LightColor;
+uniform vec3 LightPosition;
+uniform vec4 LightOrientation;
+uniform float LightAngle;
+uniform int LightUseShadowMap;
+uniform int LightShadowMapType;
+uniform mat4 LightVPMatrix;
 
-float lookupAO(vec2 fuv, float radius, int samp){
-    float outc = 0;
-    float counter = 0;
-    float depthCenter = textureMSAA(originalNormalsTex, fuv, samp).a;
-	vec3 normalcenter = textureMSAA(originalNormalsTex, fuv, samp).rgb;
-    for(float g = 0; g < mPI2; g+=0.8)
-    {
-        for(float g2 = 0; g2 < 1.0; g2+=0.33)
-        {
-            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.012 * radius);
-            float color = textureLod(aoTex, fuv + gauss, 0).r;
-            float depthThere = textureMSAA(originalNormalsTex, fuv + gauss, samp).a;
-			vec3 normalthere = textureMSAA(originalNormalsTex, fuv + gauss, samp).rgb;
-			float weight = pow(max(0, dot(normalthere, normalcenter)), 32);
-			outc += color * weight;
-			counter+=weight;
-            
+
+layout(binding = 20) uniform sampler2DShadow shadowMapSingle;
+
+layout(binding = 21) uniform samplerCubeShadow shadowMapCube;
+
+#define KERNEL 6
+#define PCFEDGE 1
+float PCFDeferred(vec2 uvi, float comparison){
+
+    float shadow = 0.0;
+    float pixSize = 1.0 / textureSize(shadowMapSingle,0).x;
+    float bound = KERNEL * 0.5 - 0.5;
+    bound *= PCFEDGE;
+    for (float y = -bound; y <= bound; y += PCFEDGE){
+        for (float x = -bound; x <= bound; x += PCFEDGE){
+			vec2 uv = vec2(uvi+ vec2(x,y)* pixSize);
+            shadow += texture(shadowMapSingle, vec3(uv, comparison));
         }
     }
-    return counter == 0 ? textureLod(aoTex, fuv, 0).r : outc / counter;
-}
-vec3 lookupFog(vec2 fuv, float radius, int samp){
-    vec3 outc =  textureLod(fogTex, fuv, 0).rgb;
-    float counter = 1;
-    for(float g = 0; g < mPI2; g+=0.8)
-    {
-        for(float g2 = 0.05; g2 < 1.0; g2+=0.14)
-        {
-            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.012 * radius);
-            vec3 color = textureLod(fogTex, fuv + gauss, 0).rgb;
-			float w = 1.0 - smoothstep(0.0, 1.0, g2);
-			outc += color * w;
-			counter+=w;
-            
-        }
-    }
-    return outc / counter;
+	return shadow / (KERNEL * KERNEL);
 }
 
-vec3 ApplyLighting(FragmentData data, int samp){
+vec3 ApplyLighting(FragmentData data, int samp)
+{
 	vec3 result = vec3(0);
-	if(UseHBAO == 1 && samp == 0) AOValue = lookupAO(UV, 1.0, samp);
-	if(UseDeferred == 1) result += DirectLight(data);
-	if(UseVDAO == 1) result += AOValue * texture(envLightTex, UV).rgb * 0.07;
-	if(UseRSM == 1) result += AOValue * RSM(data);
-	if(UseFog == 1) result += lookupFog(UV, 1.0, samp);
-	if(UseDepth == 1) result = mix(result, vec3(1), 1.0 - CalculateFallof(data.cameraDistance*0.1));
-	if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) result = vec3(AOValue * 0.5);
+	if(LightUseShadowMap == 1){
+		if(LightShadowMapType == 0){
+			vec4 lightClipSpace = LightVPMatrix * vec4(data.worldPos, 1.0);
+			if(lightClipSpace.z > 0.0){
+				vec3 lightScreenSpace = (lightClipSpace.xyz / lightClipSpace.w) * 0.5 + 0.5;   
+
+				float percent = 0;
+				if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0) {
+					percent = PCFDeferred(lightScreenSpace.xy, toLogDepth2(distance(data.worldPos, LightPosition), 10000) - 0.00001);
+				}
+				vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, data.roughness, false) * (data.roughness);
+				vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
+				result += (radiance + difradiance) * 0.5 * percent;
+			}
+		} else if(LightShadowMapType == 1){
+			
+			vec3 checkdir = normalize(data.worldPos - LightPosition);
+			float percent = texture(shadowMapCube, vec4(checkdir, toLogDepth2(distance(data.worldPos, LightPosition), 10000) - 0.001));
+			
+			vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, data.roughness, false) * (data.roughness);
+			vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
+			result += (radiance + difradiance) * 0.5 * percent;
+		
+		} 
+	} else if(LightUseShadowMap == 0){
+		vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, data.roughness, false) * (data.roughness);
+		vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
+		result += (radiance + difradiance) * 0.5;
+	}
 	return result;
 }
 
@@ -98,11 +110,8 @@ void main()
         );	
         
         float stepsky = step(0.001, currentFragment.cameraDistance);
-        color += stepsky * ApplyLighting(currentFragment, i) + (1.0 - stepsky) * vec3(1.0);
+        color += stepsky * ApplyLighting(currentFragment, i);
     }
     color /= samples;
-	vec4 forward = texture(forwardPassBuffer, UV).rgba;
-	color = mix(color, forward.rgb, min(forward.a*12, 1.0));
-	//color = vec3(abs(textureMSAA(normalsDistancetex, UV, 0).rgb));
     outColor = clamp(vec4(color, 1.0), 0.0, 10000.0);
 }

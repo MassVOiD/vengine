@@ -112,9 +112,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Compile Include="Compute\ComputeShader.cs" />
+    <Compile Include="Rendering\CubeMapDepthFramebuffer.cs" />
     <Compile Include="Rendering\CubeMapFramebuffer.cs" />
     <Compile Include="Rendering\InternalRenderingState.cs" />
-    <Compile Include="Rendering\Lights\AreaLight.cs" />
+    <Compile Include="Rendering\Lights\Light.cs" />
     <Compile Include="Rendering\Materials\GenericMaterial.cs" />
     <Compile Include="Rendering\Meshing\LodLevel.cs" />
     <Compile Include="Rendering\Meshing\Mesh3dInstance.cs" />
@@ -122,19 +123,18 @@
     <Compile Include="Rendering\MRTFramebuffer.cs" />
     <Compile Include="Rendering\GraphicsSettings.cs" />
     <Compile Include="Internals\Interpolator.cs" />
-    <Compile Include="Rendering\Lights\ProjectionLight.cs" />
     <Compile Include="Rendering\Framebuffer.cs" />
     <Compile Include="Rendering\CubeMapTexture.cs" />
     <Compile Include="Rendering\Object3dManager.cs" />
     <Compile Include="Rendering\PassiveVoxelizer.cs" />
     <Compile Include="Rendering\ShadowMapsArrayTexture.cs" />
     <Compile Include="ShaderPool.cs" />
+    <Compile Include="ShadowMapper.cs" />
     <Compile Include="Texture3D.cs" />
     <Compile Include="UI\AbsUIElement.cs" />
     <Compile Include="UI\UIMLTree.cs" />
     <Compile Include="Utilities\Generators\Object3dGenerator.cs" />
     <Compile Include="Rendering\Game.cs" />
-    <Compile Include="Rendering\Lights\SimplePointLight.cs" />
     <Compile Include="Internals\MathExtensions.cs" />
     <Compile Include="Rendering\TransformationJoint.cs" />
     <Compile Include="Rendering\Renderer.cs" />
@@ -150,7 +150,6 @@
     <Compile Include="Rendering\VEngineInvisibleAdapter.cs" />
     <Compile Include="Rendering\World.cs" />
     <Compile Include="Rendering\ShaderProgram.cs" />
-    <Compile Include="Game\Sun.cs" />
     <Compile Include="Rendering\Texture.cs" />
     <Compile Include="Rendering\AbsDisplayAdapter.cs" />
     <Compile Include="Rendering\VEngineWindowAdapter.cs" />

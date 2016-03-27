@@ -184,6 +184,13 @@ namespace VEngine
                 GL.Uniform4(location, data);
         }
 
+        public void SetUniform(string name, Quaternion data)
+        {
+            int location = GetUniformLocation(name);
+            if(location >= 0 && CheckCache(name, data))
+                GL.Uniform4(location, data);
+        }
+
         public void SetUniform(string name, long data)
         {
             int location = GetUniformLocation(name);
