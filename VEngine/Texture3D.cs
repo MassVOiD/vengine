@@ -10,7 +10,7 @@ namespace VEngine
 
         private bool Generated;
 
-        private Vector3 Size;
+        public int SizeX, SizeY, SizeZ;
 
         public Texture3D(int handle)
         {
@@ -18,35 +18,58 @@ namespace VEngine
             Generated = true;
         }
 
-        public Texture3D(Vector3 size)
+        public Texture3D(int sizex, int sizey, int sizez)
         {
-            Size = size;
+            SizeX = sizex;
+            SizeY = sizey;
+            SizeZ = sizez;
             Generated = false;
         }
 
         public void Clear()
         {
-            GL.ClearTexImage(Handle, 0, PixelFormat.RedInteger, PixelType.UnsignedInt, new IntPtr(0));
+            GL.ClearTexImage(Handle, 0, ColorPixelFormat, ColorPixelType, IntPtr.Zero);
         }
 
+        public PixelInternalFormat ColorInternalFormat = PixelInternalFormat.R32ui;
+        public PixelFormat ColorPixelFormat = PixelFormat.RedInteger;
+        public PixelType ColorPixelType = PixelType.UnsignedInt;
+
         public void Use(TextureUnit unit)
+        {
+            Generate();
+            GL.ActiveTexture(unit);
+            GL.BindTexture(TextureTarget.Texture3D, Handle);
+        }
+        
+        public void BindImageUnit(int unit, TextureAccess access, SizedInternalFormat format)
+        {
+            Generate();
+            GL.BindImageTexture(unit, Handle, 0, true, 0, access, format);
+        }
+
+        public void FreeImageUnit(int unit)
+        {
+            GL.BindImageTexture(unit, 0, 0, false, 0, 0, 0);
+        }
+
+        private void Generate()
         {
             if(!Generated)
             {
                 Handle = GL.GenTexture();
                 GL.BindTexture(TextureTarget.Texture3D, Handle);
-
-                GL.TexImage3D(TextureTarget.Texture3D, 0, PixelInternalFormat.R32ui, (int)Size.X, (int)Size.Y, (int)Size.Z, 0, OpenTK.Graphics.OpenGL4.PixelFormat.RedInteger, PixelType.UnsignedInt, new IntPtr(0));
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-
+                
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapR, (int)TextureWrapMode.Repeat);
+
+                GL.TexImage3D(TextureTarget.Texture3D, 0, ColorInternalFormat, SizeX, SizeY, SizeZ, 0, ColorPixelFormat, ColorPixelType, IntPtr.Zero);
+                
                 Generated = true;
             }
-            GL.ActiveTexture(unit);
-            GL.BindTexture(TextureTarget.Texture3D, Handle);
         }
     }
 }

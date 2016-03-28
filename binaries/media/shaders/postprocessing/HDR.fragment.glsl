@@ -203,11 +203,70 @@ vec3 rgb_to_srgb(vec3 rgb) {
     );
 }
 
+uniform int Voxelize_GridSize;
+uniform float Voxelize_BoxSize;
+
+vec3 traceConeSpecular(){ 
+    //vec3 csp = reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a) / Voxelize_BoxSize;///Voxelize_BoxSize;
+    vec3 csp = FromCameraSpace(reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a)) / Voxelize_BoxSize;///Voxelize_BoxSize;
+    csp = clamp(csp * 0.5 + 0.5,0.0, 1.0);
+    vec3 center = csp;
+    vec3 dir = normalize(reflect(reconstructCameraSpace(UV), textureMSAA(normalsDistancetex, UV, 0).rgb));
+    float w = 0.5;
+    vec3 res = vec3(0);
+    float st = 0.0;
+    for(int i=0;i < 50;i++){
+        vec3 c = center + dir * (st * st + 0.02) * 0.3;
+        //float lv = mix(0.0, levels, st * 0.8);
+        res += w * textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0).rgb;
+        w -= length(res);
+        w = max(0, w);
+        st += 0.02;
+    }
+    
+    return res;
+}
+vec3 traceConeDiffuse(){ 
+    //vec3 csp = reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a) / Voxelize_BoxSize;///Voxelize_BoxSize;
+    vec3 csp = FromCameraSpace(reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a)) / Voxelize_BoxSize;///Voxelize_BoxSize;
+    csp = clamp(csp * 0.5 + 0.5,0.0, 1.0);
+    vec3 center = csp;
+    vec3 dir = normalize(reflect(reconstructCameraSpace(UV), textureMSAA(normalsDistancetex, UV, 0).rgb));
+    float w = 0.5;
+    vec3 res = vec3(0);
+    float st = 0.004;
+    for(int i=0;i < 10;i++){
+        vec3 c = center + dir * (st) * 1.0;
+        //float lv = mix(0.0, levels, st * 0.8);
+        if(i < 2) res += w * textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0).rgb;
+        else if(i < 4) res += w * textureLod(voxelsTex3, clamp(c, 0.0, 1.0), 0).rgb;
+        else if(i < 6) res += w * textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0).rgb;
+        else if(i < 8) res += w * textureLod(voxelsTex5, clamp(c, 0.0, 1.0), 0).rgb;
+        else if(i < 10) res += w * textureLod(voxelsTex6, clamp(c, 0.0, 1.0), 0).rgb;
+        //w -= length(res);
+       // w = max(0, w);
+        st += 0.007;
+    }
+    
+    return res;
+}
+float traceConeAO(){ 
+    //vec3 csp = reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a) / Voxelize_BoxSize;///Voxelize_BoxSize;
+    vec3 csp = FromCameraSpace(reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a)) / Voxelize_BoxSize;///Voxelize_BoxSize;
+    csp = clamp(csp * 0.5 + 0.5,0.0, 1.0);
+    vec3 center = csp;
+
+    
+    return max(0, 1.0 - (textureLod(voxelsTex3, center, 0).a * 0.1));
+}
+
 void main()
 {
     float AOValue = 1.0;
     int samp = 0;
     vec3 color = texture(lastStageResultTex, UV).rgb;
+    
+    
 
     if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
@@ -223,5 +282,13 @@ void main()
 		float gamma = 1.0/2.2;
 		color = rgb_to_srgb(color);
 	}
+    
+    //color = texture(voxelsTexTest, UV).rgb;
+    
+    //color = csp * 0.5 + 0.5;
+    
+    color = traceConeSpecular() + traceConeDiffuse() * traceConeAO();;
+   // color = vec3(0.5)
+    
     outColor = clamp(vec4(color, toLogDepth(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
 }

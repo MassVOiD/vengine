@@ -43,7 +43,7 @@ namespace VEngine
         public void Dispatch(int x, int y = 1, int z = 1)
         {
             GL.DispatchCompute(x, y, z);
-            GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
+           // GL.MemoryBarrier(MemoryBarrierFlags.ShaderStorageBarrierBit);
         }
 
         public void SetUniform(string name, Matrix4 data)

@@ -25,6 +25,8 @@ namespace VEngine
 
         public GraphicsSettings GraphicsSettings = new GraphicsSettings();
 
+        private Voxel3dTextureWriter Voxelizer;
+
         private ShaderProgram
             BloomShader,
             HDRShader,
@@ -87,6 +89,8 @@ namespace VEngine
         public Renderer(int initialWidth, int initialHeight, int samples)
         {
             GlareTexture = new Texture(Media.Get("glaretex.png"));
+
+            Voxelizer = new Voxel3dTextureWriter(256, 16);
 
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
@@ -488,8 +492,11 @@ namespace VEngine
                 HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
                 HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
+            Voxelizer.BindTexture(TextureUnit.Texture25);
+            Voxelizer.SetUniforms();
             CombinerFramebuffer.UseTexture(4);
             BloomYPass.UseTexture(11);
+            //Voxelizer.BindTextureTest(26);
             DrawPPMesh();
             Game.CheckErrors("HDR pass");
         }
@@ -600,6 +607,9 @@ namespace VEngine
             InternalRenderingState.PassState = InternalRenderingState.State.ForwardOpaquePass;
             DisableBlending();
             Game.World.Draw();
+
+            Voxelizer.Map();
+
             //Game.World.RunOcclusionQueries();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             if(GraphicsSettings.UseCubeMapGI || GraphicsSettings.UseVDAO)

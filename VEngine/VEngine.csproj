@@ -128,6 +128,7 @@
     <Compile Include="Rendering\Object3dManager.cs" />
     <Compile Include="Rendering\PassiveVoxelizer.cs" />
     <Compile Include="Rendering\ShadowMapsArrayTexture.cs" />
+    <Compile Include="Rendering\Voxel3dTextureWriter.cs" />
     <Compile Include="ShaderPool.cs" />
     <Compile Include="ShadowMapper.cs" />
     <Compile Include="Texture3D.cs" />

@@ -141,7 +141,7 @@ namespace ShadowsTester
             {
                 Camera.Current.LensBlurAmount -= e.Delta / 2.0f;
             };
-            Game.OnBeforeDraw += (o, e) =>
+            Game.OnAfterDraw += (o, e) =>
             {
                 //.ToString(System.Globalization.CultureInfo.InvariantCulture)
 
@@ -187,7 +187,8 @@ namespace ShadowsTester
                         MousePicker.SetUniform("Mouse", new Vector2(MouseX, Game.Resolution.Height - MouseY));
                         MousePicker.SetUniform("Resolution", new Vector2(Game.Resolution.Width, Game.Resolution.Height));
                         PickingResult.Use(0);
-                        GL.BindImageTexture(0, Game.DisplayAdapter.MainRenderer.MRT.TexMeshIds, 0, false, 0, TextureAccess.ReadOnly, SizedInternalFormat.R32ui);
+                        GL.ActiveTexture(TextureUnit.Texture29);
+                        GL.BindTexture(TextureTarget.Texture2D, Game.DisplayAdapter.MainRenderer.MRT.TexMeshIds);
                         MousePicker.Dispatch(1, 1, 1);
                         OpenTK.Graphics.OpenGL4.GL.MemoryBarrier(OpenTK.Graphics.OpenGL4.MemoryBarrierFlags.ShaderStorageBarrierBit);
                         byte[] result = PickingResult.Read(0, 4);

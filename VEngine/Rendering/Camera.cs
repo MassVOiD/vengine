@@ -66,13 +66,19 @@ namespace VEngine
             Transformation = new TransformationManager(position, Quaternion.Identity, 1.0f);
             Matrix4.CreatePerspectiveFieldOfView(fov, aspectRatio, near, far, out ProjectionMatrix);
             Far = far;
-            if(Current == null)
-                Current = this;
-            if(MainDisplayCamera == null)
-                MainDisplayCamera = this;
             Pitch = 0.0f;
             Roll = 0.0f;
             Transformation.SetOrientation(Matrix4.LookAt(Vector3.Zero, lookAt, up).ExtractRotation().Inverted());
+            Update();
+        }
+
+        public Camera()
+        {
+            Transformation = new TransformationManager(Vector3.Zero);
+            Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90.0f), 1.0f, 0.01f, 10000.0f, out ProjectionMatrix);
+            Far = 10000.0f;
+            Pitch = 0.0f;
+            Roll = 0.0f;
             Update();
         }
 
