@@ -1,3 +1,5 @@
+![A screenshot](http://i.imgur.com/jPEifJr.png "The awesome logo")
+
 FAQ:
 - Where are shaders?
 
