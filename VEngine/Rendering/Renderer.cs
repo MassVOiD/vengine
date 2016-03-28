@@ -32,7 +32,9 @@ namespace VEngine
             EnvLightShader,
             DeferredShader,
             AmbientOcclusionShader,
-            LensDistortionShader,
+            CombinerShader,
+            CombinerSecondShader,
+            MotionBlurShader,
             FogShader;
 
         // public VoxelGI VXGI;
@@ -46,6 +48,7 @@ namespace VEngine
             DeferredFramebuffer,
             AmbientOcclusionFramebuffer,
             ForwardPassFramebuffer,
+            CombinerFramebuffer,
             HelperFramebuffer,
             FogFramebuffer;
 
@@ -134,10 +137,20 @@ namespace VEngine
             if(samples > 1)
                 EnvLightShader.SetGlobal("USE_MSAA", "");
 
-            LensDistortionShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "LensDistortion.fragment.glsl");
-            LensDistortionShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
+            CombinerShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Combiner.fragment.glsl");
+            CombinerShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
-                LensDistortionShader.SetGlobal("USE_MSAA", "");
+                CombinerShader.SetGlobal("USE_MSAA", "");
+
+            CombinerSecondShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "CombinerSecond.fragment.glsl");
+            CombinerSecondShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
+            if(samples > 1)
+                CombinerSecondShader.SetGlobal("USE_MSAA", "");
+
+            MotionBlurShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "MotionBlur.fragment.glsl");
+            MotionBlurShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
+            if(samples > 1)
+                MotionBlurShader.SetGlobal("USE_MSAA", "");
 
             BloomShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "Bloom.fragment.glsl");
 
@@ -165,6 +178,13 @@ namespace VEngine
                 ColorPixelType = PixelType.HalfFloat
             };
             HelperFramebuffer = new Framebuffer(Width / 1, Height / 1)
+            {
+                ColorOnly = true,
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+            CombinerFramebuffer = new Framebuffer(Width / 1, Height / 1)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -320,16 +340,6 @@ namespace VEngine
 
             MRT.UseTextures(1, 2, 3, 15);
 
-            DeferredFramebuffer.UseTexture(7);
-            // DistanceFramebuffer.UseTexture(8);
-            //ScreenSpaceReflectionsFramebuffer.GenerateMipMaps();
-            ScreenSpaceReflectionsFramebuffer.UseTexture(9);
-            EnvLightFramebuffer.UseTexture(10);
-            BloomYPass.UseTexture(11);
-
-            FogFramebuffer.UseTexture(13);
-            AmbientOcclusionFramebuffer.UseTexture(14);
-
             GenericMaterial.UseBuffer(7);
 
             //SetCubemapsUniforms();
@@ -406,13 +416,26 @@ namespace VEngine
 
         private void Deferred()
         {
-            DeferredShader.Use();
-            DeferredFramebuffer.Use();
-            SetUniformsShared();
+            var lights = Game.World.Scene.GetLights();
+
+            DisableBlending();
+            GL.CullFace(CullFaceMode.Back);
+
+            for(int i = 0; i < lights.Count; i++)
+            {
+                var light = lights[i];
+                if(light.ShadowMappingEnabled)
+                {
+                    light.UpdateShadowMap();
+                }
+            }
             EnableAdditiveBlending();
             GL.CullFace(CullFaceMode.Front);
 
-            var lights = Game.World.Scene.GetLights();
+            DeferredShader.Use();
+            DeferredFramebuffer.Use();
+            SetUniformsShared();
+
             for(int i = 0; i < lights.Count; i++)
             {
                 var light = lights[i];
@@ -420,18 +443,7 @@ namespace VEngine
                 Matrix4 mat = Matrix4.CreateScale(light.CutOffDistance) * Matrix4.CreateTranslation(light.Transformation.Position);
                 if(light.ShadowMappingEnabled)
                 {
-                    DisableBlending();
-                    GL.CullFace(CullFaceMode.Back);
-
-                    light.UpdateShadowMap();
-
-                    DeferredShader.Use();
-                    DeferredFramebuffer.Use(true, false);
-
-                    light.BindShadowMap(20, 21, 24, 25);
-
-                    EnableAdditiveBlending();
-                    GL.CullFace(CullFaceMode.Front);
+                    light.BindShadowMap(20, 21);
                 }
                 light.SetUniforms();
                 DeferredShader.SetUniform("ModelMatrix", mat);
@@ -476,26 +488,57 @@ namespace VEngine
                 HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
                 HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
-            ForwardPassFramebuffer.UseTexture(17);
-            CubeMaps[0].Texture.Use(TextureUnit.Texture12);
+            CombinerFramebuffer.UseTexture(4);
+            BloomYPass.UseTexture(11);
             DrawPPMesh();
             Game.CheckErrors("HDR pass");
-            LastViewMatrix = Camera.Current.GetViewMatrix();
         }
 
-        private void LensDistortion()
+        private void Combine()
         {
-            LensDistortionShader.Use();
-            HelperFramebuffer.UseTexture(4);
+            CombinerShader.Use();
+            CombinerFramebuffer.Use();
+
+            DeferredFramebuffer.UseTexture(7);
+            EnvLightFramebuffer.UseTexture(10);
+            BloomYPass.UseTexture(11);
+            CubeMaps[0].Texture.Use(TextureUnit.Texture12);
+            FogFramebuffer.UseTexture(13);
+            AmbientOcclusionFramebuffer.UseTexture(14);
+
             DrawPPMesh();
-            Game.CheckErrors("Lens Distort pass");
+            Game.CheckErrors("Combine pass");
+        }
+
+        private void CombineSecond()
+        {
+            CombinerSecondShader.Use();
+            HelperFramebuffer.Use();
+
+            ScreenSpaceReflectionsFramebuffer.UseTexture(9);
+            CombinerFramebuffer.UseTexture(4);
+
+            DrawPPMesh();
+            Game.CheckErrors("Combine2 pass");
+        }
+
+        private void MotionBlur()
+        {
+            MotionBlurShader.Use();
+            CombinerFramebuffer.Use();
+            
+            HelperFramebuffer.UseTexture(4);
+
+            DrawPPMesh();
+            LastViewMatrix = Camera.Current.GetViewMatrix();
+            Game.CheckErrors("MotionB pass");
         }
 
         private void ScreenSpaceReflections()
         {
             ScreenSpaceReflectionsShader.Use();
             ScreenSpaceReflectionsFramebuffer.Use();
-            DeferredFramebuffer.UseTexture(7);
+            CombinerFramebuffer.UseTexture(4);
             DrawPPMesh();
             Game.CheckErrors("SSR pass");
         }
@@ -521,7 +564,7 @@ namespace VEngine
             BloomYPass.Use();
             BloomXPass.Use();
 
-            BlitFramebuffers(DeferredFramebuffer, BloomYPass, BlitMode.Color);
+            BlitFramebuffers(CombinerFramebuffer, BloomYPass, BlitMode.Color);
             // here Y has deferred data, X is empty
             BloomShader.Use();
             SetUniformsShared();
@@ -565,13 +608,15 @@ namespace VEngine
                 Fog();
             if(GraphicsSettings.UseHBAO)
                 AmbientOcclusion();
-            ForwardPass();
-            Deferred();
+            if(GraphicsSettings.UseDeferred)
+                Deferred();
+            Combine();
             if(GraphicsSettings.UseSSReflections)
                 ScreenSpaceReflections();
+            CombineSecond();
+            MotionBlur();
             if(GraphicsSettings.UseBloom)
                 Bloom();
-           // HDR();
         }
 
         private void ForwardPass()

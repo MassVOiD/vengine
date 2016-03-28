@@ -107,12 +107,6 @@ vec3 LightingFuncGGX_OPT3(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0)
 	
 }
 
-vec3 lutLookup(vec3 normal, vec3 camSpace, vec3 lightSpace, float roughness, vec3 color){
-	vec3 dir = normalize(mix(reflect(-camSpace, normal), normal, roughness));
-	float dt = max(0, dot(lightSpace, dir));
-	return step(0.01, dt) * texture(brdfLut, vec2(dt, 0.01)).r * color;
-}
-
 #define MaterialTypeSolid 0
 #define MaterialTypeRandomlyDisplaced 1
 #define MaterialTypeWater 2

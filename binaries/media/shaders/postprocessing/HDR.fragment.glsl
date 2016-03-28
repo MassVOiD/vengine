@@ -119,7 +119,7 @@ vec3 lensblur(float amount, float depthfocus, float max_radius, float samples){
 			
 			float amountForIt = min(2, getAmountForDistance(focus, depth));
 			
-			vec3 texel = texture(deferredTex, coord).rgb;
+			vec3 texel = texture(lastStageResultTex, coord).rgb;
 			//texel += texture(ssRefTex, coord).rgb;
 			if(depth < 0.001) texel = vec3(1);
 			float w = length(texel) + 0.1;
@@ -184,55 +184,7 @@ float avgdepth(vec2 buv){
 vec3 ExecutePostProcessing(vec3 color, vec2 uv){
 	float vignette = distance(vec2(0), vec2(0.5)) - distance(uv, vec2(0.5));
 	vignette = 0.1 + 0.9*smoothstep(0.0, 0.3, vignette);
-    return vec3pow(color.rgb, 1.0) * vignette * Brightness;
-}
-
-vec3 lookupSSR(vec2 fuv, float radius){
-    vec3 outc = vec3(0);
-    int counter = 0;
-    float depthCenter = textureMSAA(normalsDistancetex, fuv, 0).a;
-	vec3 normalcenter = textureMSAAFull(normalsDistancetex, fuv).rgb;
-    for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO*0.5)
-    {
-        for(float g2 = 0; g2 < 1.0; g2+=0.1)
-        {
-            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.0001 * radius);
-            vec3 color = texture(ssRefTex, fuv + gauss).rgb;
-            float depthThere = textureMSAA(normalsDistancetex, fuv + gauss, 0).a;
-			vec3 normalthere = textureMSAAFull(normalsDistancetex, fuv).rgb;
-            if(abs(depthThere - depthCenter) < 0.1 && dot(normalthere, normalcenter) > 0.9){
-                outc += color;
-                counter++;
-            }
-        }
-    }
-    return counter == 0 ? texture(ssRefTex, fuv).rgb : outc / counter;
-}
-
-vec3 lookupSSRLowPass(vec2 fuv, float radius){
-	return texture(ssRefTex, fuv).rgb;
-    vec3 outc = vec3(0);
-    int counter = 0;
-    float depthCenter = textureMSAA(normalsDistancetex, fuv, 0).a;
-	vec3 normalcenter = textureMSAAFull(normalsDistancetex, fuv).rgb;
-	float lastLum = 0;
-    for(float g = 0; g < mPI2 * 2; g+=GOLDEN_RATIO*0.5)
-    {
-        for(float g2 = 0; g2 < 1.0; g2+=0.1)
-        {
-            vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.007 * radius);
-            vec3 color = texture(ssRefTex, fuv + gauss).rgb;
-            float depthThere = textureMSAA(normalsDistancetex, fuv + gauss, 0).a;
-			vec3 normalthere = textureMSAAFull(normalsDistancetex, fuv).rgb;
-            if(abs(depthThere - depthCenter) < 0.05){
-				float difference = abs(lastLum - length(color))*12;
-				lastLum = length(color);
-                outc += (1.0 / (difference + 1)) * color;
-                counter++;
-            }
-        }
-    }
-    return counter == 0 ? texture(ssRefTex, fuv).rgb : outc / counter;
+    return vec3pow(color.rgb, 1.0) * vignette;
 }
 
 // THATS FROM PANDA 3d! Thanks tobspr
@@ -251,98 +203,11 @@ vec3 rgb_to_srgb(vec3 rgb) {
     );
 }
 
-uniform mat4 CurrentViewMatrix;
-uniform mat4 LastViewMatrix;
-uniform mat4 ProjectionMatrix;
-
-vec2 projectMotion(vec3 pos){
-    vec4 tmp = (ProjectionMatrix * vec4(pos, 1.0));
-    return (tmp.xy / tmp.w) * 0.5 + 0.5;
-}
-
-vec3 makeMotion(vec2 uv){
-	vec4 normalsDistanceData = textureMSAA(normalsDistancetex, uv, 0);
-	normalsDistanceData.a += (1.0 - step(0.001, normalsDistanceData.a)) * 10000.0;
-	vec3 camSpacePos = reconstructCameraSpaceDistance(uv, normalsDistanceData.a);
-	vec3 worldPos = FromCameraSpace(camSpacePos);
-	
-	vec3 pos1 = (CurrentViewMatrix * vec4(worldPos, 1.0)).xyz;
-	vec3 pos2 = (LastViewMatrix * vec4(worldPos, 1.0)).xyz;
-	vec2 direction = (projectMotion(pos2) - projectMotion(pos1));
-	if(length(direction) < (1.0/resolution.x)) return texture(deferredTex, uv).rgb;
-	
-	vec2 lookup = uv + direction * 0.05;
-	
-	vec3 color = vec3(0);
-	for(int i=0;i<20;i++){
-		color += texture(deferredTex, lookup).rgb;
-		lookup += direction * 0.05;
-	}
-	
-	return color / 20.0;
-}
-
-float lookupAO(vec2 fuv, float radius, int samp){
-     float outc = 0;
-     float counter = 0;
-     float depthCenter = textureMSAA(originalNormalsTex, fuv, samp).a;
- 	vec3 normalcenter = textureMSAA(originalNormalsTex, fuv, samp).rgb;
-     for(float g = 0; g < mPI2; g+=0.8)
-     {
-         for(float g2 = 0; g2 < 1.0; g2+=0.33)
-         {
-             vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.012 * radius);
-             float color = textureLod(aoTex, fuv + gauss, 0).r;
-             float depthThere = textureMSAA(originalNormalsTex, fuv + gauss, samp).a;
- 			vec3 normalthere = textureMSAA(originalNormalsTex, fuv + gauss, samp).rgb;
- 			float weight = pow(max(0, dot(normalthere, normalcenter)), 32);
- 			outc += color * weight;
- 			counter+=weight;
-             
-         }
-     }
-     return counter == 0 ? textureLod(aoTex, fuv, 0).r : outc / counter;
- }
- vec3 lookupFog(vec2 fuv, float radius, int samp){
-     vec3 outc =  textureLod(fogTex, fuv, 0).rgb;
-     float counter = 1;
-     for(float g = 0; g < mPI2; g+=0.8)
-     {
-         for(float g2 = 0.05; g2 < 1.0; g2+=0.14)
-         {
-             vec2 gauss = vec2(sin(g + g2*6)*ratio, cos(g + g2*6)) * (g2 * 0.012 * radius);
-             vec3 color = textureLod(fogTex, fuv + gauss, 0).rgb;
- 			float w = 1.0 - smoothstep(0.0, 1.0, g2);
- 			outc += color * w;
- 			counter+=w;
-             
- 
-         }
-     }
-     return outc / counter;
-}
-layout(binding = 12) uniform samplerCube cube;
-
-vec3 subsurfEnv(){
-    float AOValue = 1.0;
-    vec3 color = vec3(0);
-    if(UseHBAO == 1) AOValue = lookupAO(UV, 1.0, 0);
-    if(UseVDAO == 1) color = AOValue * texture(envLightTex, UV).rgb * 1;
-    return (1.0 - AOValue) * color;
-}
-
 void main()
 {
     float AOValue = 1.0;
     int samp = 0;
-    vec3 color = makeMotion(UV);
-    if(UseHBAO == 1 && samp == 0) AOValue = lookupAO(UV, 1.0, samp);
-    if(UseVDAO == 1) color += AOValue * texture(envLightTex, UV).rgb * 1;
-    if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) color = vec3(AOValue * 0.5);
-	if(UseSSReflections){
-		vec3 srdata = lookupSSRLowPass(UV, 1.0);
-		color += srdata.rgb;
-	}
+    vec3 color = texture(lastStageResultTex, UV).rgb;
 
     if(LensBlurAmount > 0.001 && DisablePostEffects == 0){
         float focus = CameraCurrentDepth;
@@ -350,14 +215,7 @@ void main()
 
         color = lensblur(avgdepth(UV), adepth, 0.99, 7.0);
     }
-
-	//color = texture(dofFarTex, UV).aaa;
-	//color = texture(dofNearTex, UV).rgb;	
-	
-	
-	if(textureMSAAFull(normalsDistancetex, UV).a == 0.0){
-        color = texture(cube, reconstructCameraSpaceDistance(UV, 1.0)).rgb;
-    }
+    
 	if(DisablePostEffects == 0){
 		if(UseBloom == 1) color += texture(bloomPassSource, UV).rgb * 0.2;
         color = ExecutePostProcessing(color, UV);
@@ -365,14 +223,5 @@ void main()
 		float gamma = 1.0/2.2;
 		color = rgb_to_srgb(color);
 	}
-	
-	float forwardDepth = texture(forwardPassBufferDepth, UV).r;
-	float targetDepth = toLogDepth2(textureMSAAFull(normalsDistancetex, UV).a, 10000);
-	/*if(forward.a < 0) {
-		vec3 normalized = forward.rgb / (-forward.a);
-		color = mix(color, normalized, -forward.a);
-	}*/
-	//if(forwardDepth < 1) color = vec3(forward.rgb / (-forward.a));
-	
     outColor = clamp(vec4(color, toLogDepth(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
 }

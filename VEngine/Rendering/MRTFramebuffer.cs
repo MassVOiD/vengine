@@ -119,7 +119,7 @@ namespace VEngine
             TexAlbedoRoughness = GenerateSingleTexture(PixelInternalFormat.Rgba8, PixelFormat.Rgba, PixelType.UnsignedByte);
             TexNormalsDistance = GenerateSingleTexture(PixelInternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float);
             TexSpecularBump = GenerateSingleTexture(PixelInternalFormat.Rgba8, PixelFormat.Rgba, PixelType.UnsignedByte);
-            TexOriginalNormal = GenerateSingleTexture(PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.HalfFloat);
+            TexOriginalNormal = GenerateSingleTexture(PixelInternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float);
             TexMeshIds = GenerateSingleTexture(PixelInternalFormat.R32ui, PixelFormat.RedInteger, PixelType.UnsignedInt);
 
             // generating rbo for depth

@@ -28,10 +28,8 @@ uniform float LightCutOffDistance;
 
 
 layout(binding = 20) uniform sampler2DShadow shadowMapSingle;
-layout(binding = 24) uniform sampler2D shadowMapSingleValued;
 
 layout(binding = 21) uniform samplerCubeShadow shadowMapCube;
-layout(binding = 25) uniform samplerCube shadowMapCubeValued;
 
 #define KERNEL 6
 #define PCFEDGE 1
@@ -45,23 +43,6 @@ float PCFDeferred(vec2 uvi, float comparison){
         for (float x = -bound; x <= bound; x += PCFEDGE){
 			vec2 uv = vec2(uvi+ vec2(x,y)* pixSize);
             shadow += texture(shadowMapSingle, vec3(uv, comparison));
-        }
-    }
-	return shadow / (KERNEL * KERNEL);
-}
-float PCFDeferredValueSubSurf(vec2 uvi, float comparison){
-
-    float shadow = 0.0;
-    float pixSize = 1.0 / textureSize(shadowMapSingle,0).x;
-    float bound = KERNEL * 0.5 - 0.5;
-    bound *= PCFEDGE;
-    for (float y = -bound; y <= bound; y += PCFEDGE){
-        for (float x = -bound; x <= bound; x += PCFEDGE){
-			vec2 uv = vec2(uvi+ vec2(x,y)* pixSize);
-            float v = reverseLog(texture(shadowMapSingleValued, uv).r, 10000);
-            float factor = pow(abs(comparison - v), 5);
-            float subsurfv = 1.0 - smoothstep(0.0, 0.0001, factor);
-            shadow += max(0, 0.1 - factor);
         }
     }
 	return shadow / (KERNEL * KERNEL);

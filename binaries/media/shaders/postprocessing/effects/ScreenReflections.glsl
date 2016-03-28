@@ -6,14 +6,14 @@ vec2 project(vec3 pos){
 
 
 vec4 ScreenReflections(FragmentData data){
-	if(data.roughness > 0.5) return vec4(0);
+	//if(data.roughness > 0.5) return vec4(0);
     vec2 closuv = vec2(0);
 	float closest = 0;
 	float closestdst = 0;
 	
 	#define SSREFSSTEPS_CLOSE 12
 	
-	#define SSREFSSTEPS 257
+	#define SSREFSSTEPS 48
 	
 	#define SSREFSSTEPS_REFINE 8
 	
@@ -76,7 +76,7 @@ vec4 ScreenReflections(FragmentData data){
 		
 		float tolerancedim = smoothstep(tolerance, 1.0, closest);
 	
-		vec3 deferred = texture(deferredTex, closuv).rgb;
+		vec3 deferred = texture(lastStageResultTex, closuv).rgb;
 		
 		vec4 normalsDistanceData = textureMSAAFull(normalsDistancetex, closuv);
 		vec3 normal = normalsDistanceData.rgb;
@@ -87,5 +87,5 @@ vec4 ScreenReflections(FragmentData data){
 	}
 	float roughMaxed = 1.0 - (data.roughness * 2.0);
 	
-    return vec4(res * roughMaxed, blurfactor * data.roughness);
+    return vec4(res, blurfactor * data.roughness);
 }

@@ -83,17 +83,15 @@ namespace VEngine
             s.SetUniform("LightVPMatrix", LastVPMatrix);
         }
 
-        public void BindShadowMap(int single, int cube, int singlevalue, int cubevalue)
+        public void BindShadowMap(int single, int cube)
         {
             if(ShadowMapType == ShadowMapTypeEnum.Single)
             {
                 Mapper.UseTextureSingle(ShadowsQuality, single);
-                Mapper.UseTextureSingle(ShadowsQuality, singlevalue);
             }
             else if(ShadowMapType == ShadowMapTypeEnum.Cubemap)
             {
                 Mapper.UseTextureCube(ShadowsQuality, cube);
-                Mapper.UseTextureCube(ShadowsQuality, cubevalue);
             }
         }
     }
