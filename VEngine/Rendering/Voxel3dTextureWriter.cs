@@ -10,12 +10,12 @@ namespace VEngine
 {
     public class Voxel3dTextureWriter
     {
-        private Texture3D TextureRed, TextureGreen, TextureBlue, TextureCount;
+        private Texture3D TextureRed, TextureGreen, TextureBlue, TextureCount, TextureNormalX, TextureNormalY, TextureNormalZ, TextureNormalResolved;
         private List<Texture3D> TextureResolvedMipMaps;
         private Framebuffer FBO;
         private Camera RenderingCamera;
         private ShaderPool.ShaderPack Shader;
-        private ComputeShader TextureResolverShader, TextureMipmapShader;
+        private ComputeShader TextureResolverShader, TextureResolverNormalShader, TextureMipmapShader;
         private Quaternion XForward, YForward, ZForward;
         private int GridSize;
         private float BoxSize;
@@ -25,11 +25,38 @@ namespace VEngine
             GridSize = gridsize;
             BoxSize = boxsize;
             TextureResolverShader = new ComputeShader("Texture3DResolve.compute.glsl");
+            TextureResolverNormalShader = new ComputeShader("Texture3DResolveNormal.compute.glsl");
             TextureMipmapShader = new ComputeShader("Texture3DMipmap.compute.glsl");
 
             TextureRed = new Texture3D(gridsize, gridsize, gridsize);
             TextureGreen = new Texture3D(gridsize, gridsize, gridsize);
             TextureBlue = new Texture3D(gridsize, gridsize, gridsize);
+
+            TextureNormalX = new Texture3D(gridsize, gridsize, gridsize)
+            {
+                ColorInternalFormat = PixelInternalFormat.R32i,
+                ColorPixelFormat = PixelFormat.RedInteger,
+                ColorPixelType = PixelType.Int
+            };
+            TextureNormalY = new Texture3D(gridsize, gridsize, gridsize)
+            {
+                ColorInternalFormat = PixelInternalFormat.R32i,
+                ColorPixelFormat = PixelFormat.RedInteger,
+                ColorPixelType = PixelType.Int
+            };
+            TextureNormalZ = new Texture3D(gridsize, gridsize, gridsize)
+            {
+                ColorInternalFormat = PixelInternalFormat.R32i,
+                ColorPixelFormat = PixelFormat.RedInteger,
+                ColorPixelType = PixelType.Int
+            };
+            TextureNormalResolved = new Texture3D(gridsize, gridsize, gridsize)
+            {
+                ColorInternalFormat = PixelInternalFormat.Rgba16f,
+                ColorPixelFormat = PixelFormat.Rgba,
+                ColorPixelType = PixelType.HalfFloat
+            };
+
             TextureCount = new Texture3D(gridsize, gridsize, gridsize);
 
             TextureResolvedMipMaps = new List<Texture3D>();
@@ -73,12 +100,18 @@ namespace VEngine
         {
             var lastCamera = Camera.Current;
 
+            var lights = Game.World.Scene.GetLights();
+
+            var light = lights[0];
+
             for(int i = 0; i < Shader.ProgramsList.Length; i++)
             {
                 var s = Shader.ProgramsList[i];
                 s.Use();
                 s.SetUniform("GridSize", GridSize);
                 s.SetUniform("BoxSize", BoxSize);
+                light.SetUniforms();
+                light.BindShadowMap(20, 21);
             }
 
             TextureRed.Clear();
@@ -94,6 +127,10 @@ namespace VEngine
             TextureGreen.BindImageUnit(1, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
             TextureBlue.BindImageUnit(2, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
             TextureCount.BindImageUnit(3, TextureAccess.ReadWrite, SizedInternalFormat.R32ui);
+
+            TextureNormalX.BindImageUnit(7, TextureAccess.ReadWrite, SizedInternalFormat.R32i);
+            TextureNormalY.BindImageUnit(8, TextureAccess.ReadWrite, SizedInternalFormat.R32i);
+            TextureNormalZ.BindImageUnit(9, TextureAccess.ReadWrite, SizedInternalFormat.R32i);
 
             Camera.Current = RenderingCamera;
             var vstep = BoxSize / (float)GridSize;
@@ -126,8 +163,23 @@ namespace VEngine
 
             TextureResolvedMipMaps[0].BindImageUnit(4, TextureAccess.ReadWrite, SizedInternalFormat.Rgba16f);
 
+            TextureRed.Use(TextureUnit.Texture0);
+            TextureGreen.Use(TextureUnit.Texture1);
+            TextureBlue.Use(TextureUnit.Texture2);
+            TextureCount.Use(TextureUnit.Texture3);
+
             TextureResolverShader.Use();
             TextureResolverShader.Dispatch(GridSize / 16, GridSize / 8, GridSize / 8);
+
+            TextureNormalX.Use(TextureUnit.Texture0);
+            TextureNormalY.Use(TextureUnit.Texture1);
+            TextureNormalZ.Use(TextureUnit.Texture2);
+            TextureCount.Use(TextureUnit.Texture3);
+            TextureNormalResolved.BindImageUnit(10, TextureAccess.ReadWrite, SizedInternalFormat.Rgba16f);
+
+            TextureResolverNormalShader.Use();
+            TextureResolverNormalShader.Dispatch(GridSize / 16, GridSize / 8, GridSize / 8);
+
             GL.MemoryBarrier(MemoryBarrierFlags.AllBarrierBits);
 
             TextureMipmapShader.Use();
@@ -154,6 +206,7 @@ namespace VEngine
 
         public void BindTexture(TextureUnit index)
         {
+            TextureNormalResolved.Use(TextureUnit.Texture24);
             for(int i = 0; i < TextureResolvedMipMaps.Count; i++)
             {
                 TextureResolvedMipMaps[i].Use(index + i);

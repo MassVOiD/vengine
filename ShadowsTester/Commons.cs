@@ -430,6 +430,7 @@ namespace ShadowsTester
                 {
                     RedLight[0].GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition() + new Vector3((float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1) * 0.1f);
                     RedLight[0].GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());
+                    Picked = RedLight[0];
                 }
                 if(e.Key == OpenTK.Input.Key.Tilde)
                 {

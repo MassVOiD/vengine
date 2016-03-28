@@ -37,6 +37,7 @@ layout(binding = 19) uniform sampler2D combinerTex;
 
 layout(binding = 22) uniform sampler2DArrayShadow sunCascadesArray;
 
+layout(binding = 24) uniform sampler3D voxelsNormalsTex;
 layout(binding = 25) uniform sampler3D voxelsTex1;
 layout(binding = 26) uniform sampler3D voxelsTex2;
 layout(binding = 27) uniform sampler3D voxelsTex3;
