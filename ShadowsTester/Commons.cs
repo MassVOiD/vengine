@@ -32,7 +32,7 @@ namespace ShadowsTester
             RedLight = new List<Light>();
             RedLight.Add(new Light(new TransformationManager(new Vector3(0, 5, 0), Quaternion.FromAxisAngle(new Vector3(1, 0, 0), MathHelper.DegreesToRadians(-110))))
             {
-                Color = new Vector3(1, 0.84f, 0.93f) * 1,
+                Color = new Vector3(1, 0.84f, 0.93f) * 20,
                 ShadowMappingEnabled = true,
                 ShadowMapType = Light.ShadowMapTypeEnum.Single
             });
@@ -452,7 +452,7 @@ namespace ShadowsTester
                 if(e.Key == OpenTK.Input.Key.Number4)
                     settings.UseRSM = !settings.UseRSM;
                 if(e.Key == OpenTK.Input.Key.Number3)
-                    settings.UseSSReflections = !settings.UseSSReflections;
+                    settings.UseVXGI = !settings.UseVXGI;
                 if(e.Key == OpenTK.Input.Key.Number2)
                     settings.UseHBAO = !settings.UseHBAO;
             };

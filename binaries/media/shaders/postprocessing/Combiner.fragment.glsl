@@ -59,18 +59,18 @@ layout(binding = 12) uniform samplerCube cube;
 void main()
 {
     float AOValue = 1.0;
+   // if(UseHBAO == 1) AOValue = lookupAO(UV, 1.0, 0);
     vec3 color = vec3(0);
     if(UseDeferred == 1) color += texture(deferredTex, UV).rgb;
-    if(UseHBAO == 1) AOValue = lookupAO(UV, 1.0, 0);
     if(UseVDAO == 1) color += AOValue * texture(envLightTex, UV).rgb * 1;
-    if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) color = vec3(AOValue * 0.5);
+   // if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) color = vec3(AOValue * 0.5);
 
 
 	if(textureMSAAFull(normalsDistancetex, UV).a == 0.0){
-        color = texture(cube, reconstructCameraSpaceDistance(UV, 1.0)).rgb;
+        //color = texture(cube, reconstructCameraSpaceDistance(UV, 1.0)).rgb;
+        color = vec3(0);
     }
     
-    color *= Brightness;
     
     outColor = clamp(vec4(color, 1.0), 0.0, 10000.0);
 }

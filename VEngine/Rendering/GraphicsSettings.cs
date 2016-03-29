@@ -16,7 +16,7 @@
 
         public bool UseRSM = false;
 
-        public bool UseSSReflections = false;
+        public bool UseVXGI = false;
 
         public bool UseVDAO = false;
 

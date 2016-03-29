@@ -139,7 +139,7 @@ vec3 shade(
 		
 		
     
-    return specularComponent * albedo;
+    return specularComponent * albedo * CalculateFallof(distance(lightPosition, fragmentPosition));
 }vec3 shadeDiffuse(
     vec3 camera,
     vec3 albedo, 
@@ -159,5 +159,5 @@ vec3 shade(
     vec3 cc = lightColor*albedo;
     vec3 difcolor = cc * att;
 	
-    return difcolor;
+    return difcolor * diffuseComponent;
 }

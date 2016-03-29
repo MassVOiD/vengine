@@ -142,6 +142,7 @@ color 1 1 1
 texture sponza_floor_a_diff.png
 normalmap sponza_floor_a_normal.png
 bumpmap sponza_floor_a_bump.png
+//roughnessmap floor_roughness.png
 
 material mesh_fabric_d
 metalness 0.0

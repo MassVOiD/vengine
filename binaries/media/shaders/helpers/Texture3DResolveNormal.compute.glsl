@@ -6,7 +6,7 @@ layout(binding = 0) uniform isampler3D VoxelsTextureRed;
 layout(binding = 1) uniform isampler3D VoxelsTextureGreen;
 layout(binding = 2) uniform isampler3D VoxelsTextureBlue;
 layout(binding = 3) uniform usampler3D VoxelsTextureCount;
-layout (binding = 10, rgba16f) uniform image3D VoxelsTextureResult;
+layout (binding = 10, rgba16f) writeonly uniform image3D VoxelsTextureResult;
 
 
 void main(){

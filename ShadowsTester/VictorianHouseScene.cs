@@ -52,7 +52,7 @@ namespace ShadowsTester
         }
         public VictorianHouseScene()
         {
-            var scene = new GameScene("victorianhouse.scene");
+            var scene = new GameScene("home1.scene");
             var ground = CreateWall(new Vector2(-1000), new Vector2(1000), Quaternion.Identity, Vector3.Zero, new Vector3(0.1f, 0.4f, 1));
             //Game.Invoke(() => DynamicCubeMapController.Create());
             Game.Invoke(() => Game.World.Scene.Add(ground));

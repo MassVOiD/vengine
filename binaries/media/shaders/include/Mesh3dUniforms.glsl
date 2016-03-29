@@ -129,4 +129,4 @@ uniform int UseDeferred;
 uniform int UseDepth;
 uniform int UseCubeMapGI;
 uniform int UseRSM;
-uniform int UseSSReflections;
+uniform int UseVXGI;

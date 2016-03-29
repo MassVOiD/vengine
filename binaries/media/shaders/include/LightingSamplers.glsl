@@ -19,7 +19,7 @@ layout(binding = 6) uniform sampler2DArray shadowMapsNormalsArray;
 
 layout(binding = 7) uniform sampler2D deferredTex;
 
-layout(binding = 9) uniform sampler2D ssRefTex;
+layout(binding = 9) uniform sampler2D vxgiTex;
 layout(binding = 10) uniform sampler2D envLightTex;
 
 layout(binding = 11) uniform sampler2D bloomPassSource;

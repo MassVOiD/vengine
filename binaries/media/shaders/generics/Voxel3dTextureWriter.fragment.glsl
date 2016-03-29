@@ -11,28 +11,31 @@ layout (binding = 8, r32i)  uniform iimage3D VoxelsTextureNormalY;
 layout (binding = 9, r32i)  uniform iimage3D VoxelsTextureNormalZ;
 
 layout (binding = 3, r32ui)  uniform uimage3D VoxelsTextureCount;
-uniform float BoxSize;
-uniform int GridSize;
+uniform vec3 BoxSize;
+uniform vec3 MapPosition;
+uniform int GridSizeX;
+uniform int GridSizeY;
+uniform int GridSizeZ;
 
 // xyz in range 0 -> 1
 void WriteData3d(vec3 xyz, vec3 color, vec3 normal){
-    uint r = uint(color.r * 128);
-    uint g = uint(color.g * 128);
-    uint b = uint(color.b * 128);
+    uint r = uint(color.r * 256);
+    uint g = uint(color.g * 256);
+    uint b = uint(color.b * 256);
     
-    int nx = int(normal.x * 128);
-    int ny = int(normal.y * 128);
-    int nz = int(normal.z * 128);
+    //int nx = int(normal.x * 128);
+    //int ny = int(normal.y * 128);
+    //int nz = int(normal.z * 128);
     
-    imageAtomicAdd(VoxelsTextureRed, ivec3(xyz * float(GridSize)), r);
-    imageAtomicAdd(VoxelsTextureGreen, ivec3(xyz * float(GridSize)), g);
-    imageAtomicAdd(VoxelsTextureBlue, ivec3(xyz * float(GridSize)), b);
+    imageAtomicAdd(VoxelsTextureRed, ivec3(xyz * vec3(GridSizeX, GridSizeY, GridSizeZ)), r);
+    imageAtomicAdd(VoxelsTextureGreen, ivec3(xyz * vec3(GridSizeX, GridSizeY, GridSizeZ)), g);
+    imageAtomicAdd(VoxelsTextureBlue, ivec3(xyz * vec3(GridSizeX, GridSizeY, GridSizeZ)), b);
     
-    imageAtomicAdd(VoxelsTextureNormalX, ivec3(xyz * float(GridSize)), nx);
-    imageAtomicAdd(VoxelsTextureNormalY, ivec3(xyz * float(GridSize)), ny);
-    imageAtomicAdd(VoxelsTextureNormalZ, ivec3(xyz * float(GridSize)), nz);
+   // imageAtomicAdd(VoxelsTextureNormalX, ivec3(xyz * float(GridSize)), nx);
+   // imageAtomicAdd(VoxelsTextureNormalY, ivec3(xyz * float(GridSize)), ny);
+  //  imageAtomicAdd(VoxelsTextureNormalZ, ivec3(xyz * float(GridSize)), nz);
     
-    imageAtomicAdd(VoxelsTextureCount, ivec3(xyz * float(GridSize)), 1);
+    imageAtomicAdd(VoxelsTextureCount, ivec3(xyz * vec3(GridSizeX, GridSizeY, GridSizeZ)), 1);
     //memoryBarrier();
 }
 
@@ -51,8 +54,7 @@ FragmentData currentFragment;
 #include Shade.glsl
 #include Direct.glsl
 #include AmbientOcclusion.glsl
-#include RSM.glsl
-#include EnvironmentLight.glsl
+#include RSM.glsl 
 
 #include ParallaxOcclusion.glsl
 
@@ -94,7 +96,7 @@ vec3 ApplyLighting(FragmentData data, int samp)
     
     vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, max(0.02, data.roughness), false);
     
-    vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
+    vec3 difradiance = shadeDiffuse(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, max(0.02, data.roughness), false);
     
 	if(LightUseShadowMap == 1){
 		if(LightShadowMapType == 0){
@@ -178,7 +180,7 @@ void main(){
     vec3 hafbox = ToCameraSpace(Input.WorldPos) / BoxSize;
     hafbox = clamp(hafbox, -1.0, 1.0);
     
-    WriteData3d(hafbox * 0.5 + 0.5, currentFragment.diffuseColor * 0.04 + ApplyLighting(currentFragment, 0),  quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal));
+    WriteData3d(hafbox * 0.5 + 0.5, currentFragment.diffuseColor * 0.0 + ApplyLighting(currentFragment, 0),  quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal));
 	
 	outColor = vec4(1,1,1, 0.2);
 }

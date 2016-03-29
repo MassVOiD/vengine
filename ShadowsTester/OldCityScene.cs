@@ -66,7 +66,7 @@ namespace ShadowsTester
            // VoxelGI gi = Game.DisplayAdapter.MainRenderer.VXGI;
             Game.Invoke(() =>
             {
-                PassiveVoxelizer vox = new PassiveVoxelizer();
+                //PassiveVoxelizer vox = new PassiveVoxelizer();
                 Random rand = new Random();
 
                 for(var i = 0; i < cnt; i++)

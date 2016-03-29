@@ -30,7 +30,7 @@ namespace VEngine
         private ShaderProgram
             BloomShader,
             HDRShader,
-            ScreenSpaceReflectionsShader,
+            VXGIShader,
             EnvLightShader,
             DeferredShader,
             AmbientOcclusionShader,
@@ -45,7 +45,7 @@ namespace VEngine
 
         public Framebuffer
             BloomXPass, BloomYPass,
-            ScreenSpaceReflectionsFramebuffer,
+            VXGIFramebuffer,
             EnvLightFramebuffer,
             DeferredFramebuffer,
             AmbientOcclusionFramebuffer,
@@ -69,13 +69,15 @@ namespace VEngine
 
         public void Resize(int initialWidth, int initialHeight)
         {
-            ScreenSpaceReflectionsFramebuffer.FreeGPU();
+            VXGIFramebuffer.FreeGPU();
             DeferredFramebuffer.FreeGPU();
             BloomXPass.FreeGPU();
             BloomYPass.FreeGPU();
             EnvLightFramebuffer.FreeGPU();
             AmbientOcclusionFramebuffer.FreeGPU();
             ForwardPassFramebuffer.FreeGPU();
+            CombinerFramebuffer.FreeGPU();
+            HelperFramebuffer.FreeGPU();
             FogFramebuffer.FreeGPU();
 
             MRT.FreeGPU();
@@ -90,7 +92,7 @@ namespace VEngine
         {
             GlareTexture = new Texture(Media.Get("glaretex.png"));
 
-            Voxelizer = new Voxel3dTextureWriter(256, 16);
+            Voxelizer = new Voxel3dTextureWriter(256, 256, 256, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
 
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
@@ -116,10 +118,10 @@ namespace VEngine
             if(samples > 1)
                 HDRShader.SetGlobal("USE_MSAA", "");
 
-            ScreenSpaceReflectionsShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "ScreenSpaceReflections.fragment.glsl");
-            ScreenSpaceReflectionsShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
+            VXGIShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "VXGI.fragment.glsl");
+            VXGIShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
             if(samples > 1)
-                ScreenSpaceReflectionsShader.SetGlobal("USE_MSAA", "");
+                VXGIShader.SetGlobal("USE_MSAA", "");
 
             AmbientOcclusionShader = ShaderProgram.Compile("PostProcess.vertex.glsl", "AmbientOcclusion.fragment.glsl");
             AmbientOcclusionShader.SetGlobal("MSAA_SAMPLES", samples.ToString());
@@ -167,7 +169,7 @@ namespace VEngine
 
             MRT = new MRTFramebuffer(Width, Height, Samples);
 
-            ScreenSpaceReflectionsFramebuffer = new Framebuffer(Width / 1, Height / 1)
+            VXGIFramebuffer = new Framebuffer(Width / 1, Height / 1)
             {
                 ColorOnly = true,
                 ColorInternalFormat = PixelInternalFormat.Rgba16f,
@@ -365,7 +367,7 @@ namespace VEngine
             shader.SetUniform("UseDepth", GraphicsSettings.UseDepth);
             shader.SetUniform("UseCubeMapGI", GraphicsSettings.UseCubeMapGI);
             shader.SetUniform("UseRSM", GraphicsSettings.UseRSM);
-            shader.SetUniform("UseSSReflections", GraphicsSettings.UseSSReflections);
+            shader.SetUniform("UseVXGI", GraphicsSettings.UseVXGI);
 
             shader.SetUniform("Brightness", Camera.MainDisplayCamera.Brightness);
             shader.SetUniform("VDAOGlobalMultiplier", 1.0f);
@@ -492,8 +494,6 @@ namespace VEngine
                 HDRShader.SetUniform("CameraCurrentDepth", Camera.MainDisplayCamera.CurrentDepthFocus);
                 HDRShader.SetUniform("LensBlurAmount", Camera.MainDisplayCamera.LensBlurAmount);
             }
-            Voxelizer.BindTexture(TextureUnit.Texture25);
-            Voxelizer.SetUniforms();
             CombinerFramebuffer.UseTexture(4);
             BloomYPass.UseTexture(11);
             //Voxelizer.BindTextureTest(26);
@@ -522,7 +522,7 @@ namespace VEngine
             CombinerSecondShader.Use();
             HelperFramebuffer.Use();
 
-            ScreenSpaceReflectionsFramebuffer.UseTexture(9);
+            VXGIFramebuffer.UseTexture(9);
             CombinerFramebuffer.UseTexture(4);
 
             DrawPPMesh();
@@ -541,10 +541,14 @@ namespace VEngine
             Game.CheckErrors("MotionB pass");
         }
 
-        private void ScreenSpaceReflections()
+        private void VXGI()
         {
-            ScreenSpaceReflectionsShader.Use();
-            ScreenSpaceReflectionsFramebuffer.Use();
+            Voxelizer.Map();
+            VXGIShader.Use();
+            Voxelizer.BindTexture(TextureUnit.Texture25);
+            CubeMaps[0].Texture.Use(TextureUnit.Texture12);
+            Voxelizer.SetUniforms();
+            VXGIFramebuffer.Use();
             CombinerFramebuffer.UseTexture(4);
             DrawPPMesh();
             Game.CheckErrors("SSR pass");
@@ -608,8 +612,6 @@ namespace VEngine
             DisableBlending();
             Game.World.Draw();
 
-            Voxelizer.Map();
-
             //Game.World.RunOcclusionQueries();
             InternalRenderingState.PassState = InternalRenderingState.State.Idle;
             if(GraphicsSettings.UseCubeMapGI || GraphicsSettings.UseVDAO)
@@ -621,8 +623,8 @@ namespace VEngine
             if(GraphicsSettings.UseDeferred)
                 Deferred();
             Combine();
-            if(GraphicsSettings.UseSSReflections)
-                ScreenSpaceReflections();
+            if(GraphicsSettings.UseVXGI)
+                VXGI();
             CombineSecond();
             MotionBlur();
             if(GraphicsSettings.UseBloom)

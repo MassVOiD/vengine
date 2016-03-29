@@ -80,11 +80,11 @@ void main(){
 	}
 	if(UseRoughnessTex) currentFragment.roughness = max(0.07, texture(roughnessTex, UV).r);
 	if(UseDiffuseTex) currentFragment.diffuseColor = texture(diffuseTex, UV).rgb; 
-	//if(UseDiffuseTex && !UseAlphaTex)currentFragment.alpha = texture(diffuseTex, UV).r; 
+	if(UseDiffuseTex && !UseAlphaTex)currentFragment.alpha = texture(diffuseTex, UV).a; 
 	if(UseSpecularTex) currentFragment.specularColor = texture(specularTex, UV).rgb; 
 	if(UseBumpTex) currentFragment.bump = texture(bumpTex, UV).r; 
 	if(UseAlphaTex) currentFragment.alpha = texture(alphaTex, UV).r; 
-	if(currentFragment.alpha < 0.01) discard;
+	if(currentFragment.alpha < 0.44) discard;
 	
 	currentFragment.normal = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, currentFragment.normal);
 

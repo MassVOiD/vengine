@@ -79,7 +79,7 @@ vec3 ApplyLighting(FragmentData data, int samp)
     
     vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, max(0.02, data.roughness), false);
     
-    vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1.0, false) * (data.roughness + 1.0);
+    vec3 difradiance = shadeDiffuse(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, max(0.02, data.roughness), false);
     
 	if(LightUseShadowMap == 1){
 		if(LightShadowMapType == 0){
