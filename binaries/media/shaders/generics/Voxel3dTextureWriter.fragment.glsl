@@ -125,10 +125,73 @@ vec3 ApplyLighting(FragmentData data, int samp)
 	return result;
 }
 
+uniform int Voxelize_GridSizeX;
+uniform int Voxelize_GridSizeY;
+uniform int Voxelize_GridSizeZ;
+uniform vec3 Voxelize_BoxSize;
+uniform vec3 Voxelize_MapPosition;
 
+vec3 getMapCoord(vec2 UV){
+    vec3 cpos =  (FromCameraSpace(reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a)) - Voxelize_MapPosition) / Voxelize_BoxSize;
+    return clamp(cpos * 0.5 + 0.5,0.0, 1.0);
+}
+vec3 getMapCoordWPos(vec3 wpos){
+    vec3 cpos = (wpos - Voxelize_MapPosition) / Voxelize_BoxSize;
+    return clamp(cpos * 0.5 + 0.5,0.0, 1.0);
+}
+ 
+
+vec4 sampleCone(vec3 coord, float blurness){
+    if(blurness < 0.2){
+        float bl = blurness / 0.2;
+        vec4 i1 = textureLod(voxelsTex1, coord, 0).rgba;
+        vec4 i2 = textureLod(voxelsTex2, coord, 0).rgba;
+        return mix(i1, i2, bl);
+    } else if(blurness < 0.4){
+        float bl = (blurness - 0.2) / 0.2;
+        vec4 i1 = textureLod(voxelsTex2, coord, 0).rgba;
+        vec4 i2 = textureLod(voxelsTex3, coord, 0).rgba * 2;
+        return mix(i1, i2, bl);
+    } else if(blurness < 0.6){
+        float bl = (blurness - 0.4) / 0.2;
+        vec4 i1 = textureLod(voxelsTex3, coord, 0).rgba* 3;
+        vec4 i2 = textureLod(voxelsTex4, coord, 0).rgba* 5;
+        return mix(i1, i2, bl) ;
+    } else if(blurness < 0.8){
+        float bl = (blurness - 0.6) / 0.2;
+        vec4 i1 = textureLod(voxelsTex4, coord, 0).rgba;
+        vec4 i2 = textureLod(voxelsTex4, coord, 0).rgba;
+        return mix(i1, i2, bl) * 3;
+    } else {
+        float bl = (blurness - 0.8) / 0.2;
+        vec4 i1 = textureLod(voxelsTex4, coord, 0).rgba;
+        vec4 i2 = textureLod(voxelsTex4, coord, 0).rgba;
+        return mix(i1, i2, bl) * 3;
+    } 
+}
+vec3 traceConeDiffuse(){ 
+    vec3 csp = getMapCoordWPos(Input.WorldPos);
+    vec3 norm = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal);	
+
+    vec3 res = vec3(0);
+    float st = 0.04;
+    float blurness = 0.8;
+    
+    st = 0.0;
+    
+    for(int g=0;g<10;g++){
+        vec3 c = csp + norm * (st * st + 0.02) * 0.7;
+        vec4 rc = sampleCone(clamp(c, 0.0, 1.0), 1.0 - blurness);
+        res += rc.rgb * (1.0 - st);
+        blurness = blurness * 0.5;
+        st += 0.1;
+    }
+    
+    return res * 0.0;
+}
 void main(){
 	vec3 norm = normalize(Input.Normal);
-	norm = faceforward(norm, norm, normalize(ToCameraSpace(Input.WorldPos)));
+//	norm = faceforward(norm, norm, normalize(ToCameraSpace(Input.WorldPos)));
 	currentFragment = FragmentData(
 		DiffuseColor,
 		SpecularColor,
@@ -180,7 +243,7 @@ void main(){
     vec3 hafbox = ToCameraSpace(Input.WorldPos) / BoxSize;
     hafbox = clamp(hafbox, -1.0, 1.0);
     
-    WriteData3d(hafbox * 0.5 + 0.5, currentFragment.diffuseColor * 0.0 + ApplyLighting(currentFragment, 0),  quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal));
+    WriteData3d(hafbox * 0.5 + 0.5, traceConeDiffuse() * currentFragment.diffuseColor + ApplyLighting(currentFragment, 0),  quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal));
 	
 	outColor = vec4(1,1,1, 0.2);
 }

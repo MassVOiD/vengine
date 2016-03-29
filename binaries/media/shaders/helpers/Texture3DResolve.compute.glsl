@@ -17,6 +17,6 @@ void main(){
     uint c = texelFetch(VoxelsTextureCount, ba, 0).r;
     vec3 rgb = c == 0 ? vec3(0) : vec3(r, g, b) / 256.0 / float(c);
     //imageStore(VoxelsTextureResult, ivec3(gl_GlobalInvocationID.xyz), vec4(rgb, float(c)));
-    imageStore(VoxelsTextureResult, ba, vec4(rgb, float(c == 0 ? 0 : 1)));
+    imageStore(VoxelsTextureResult, ba, vec4(rgb, float(c)));
 
 }

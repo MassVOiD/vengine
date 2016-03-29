@@ -66,7 +66,7 @@ namespace VEngine
             int szx = gridsizeX;
             int szy = gridsizeY;
             int szz = gridsizeZ;
-            while(szx > 8 && szy > 8 && szz > 8)
+            while(szx > 1 && szy > 1 && szz > 1)
             {
                 TextureResolvedMipMaps.Add(new Texture3D(szx, szy, szz)
                 {
@@ -74,9 +74,9 @@ namespace VEngine
                     ColorPixelFormat = PixelFormat.Rgba,
                     ColorPixelType = PixelType.HalfFloat
                 });
-                szx = szx / 2;
-                szy = szy / 2;
-                szz = szz / 2;
+                szx = szx / 3;
+                szy = szy / 3;
+                szz = szz / 3;
             }
 
             FBO = new Framebuffer(256, 256, true)
@@ -139,6 +139,8 @@ namespace VEngine
                 s.SetUniform("MapPosition", -MapPosition);
                 light.SetUniforms();
                 light.BindShadowMap(20, 21);
+                SetUniforms();
+                BindTexture(TextureUnit.Texture25);
             }
 
             TextureRed.Clear();
@@ -211,7 +213,7 @@ namespace VEngine
             {
                 TextureResolvedMipMaps[i].Use(TextureUnit.Texture0);
                 TextureResolvedMipMaps[i + 1].BindImageUnit(4, TextureAccess.WriteOnly, SizedInternalFormat.Rgba16f);
-                TextureMipmapShader.Dispatch(TextureResolvedMipMaps[i + 1].SizeX / 8, TextureResolvedMipMaps[i + 1].SizeY / 8, TextureResolvedMipMaps[i + 1].SizeZ / 8);
+                TextureMipmapShader.Dispatch(TextureResolvedMipMaps[i + 1].SizeX, TextureResolvedMipMaps[i + 1].SizeY, TextureResolvedMipMaps[i + 1].SizeZ);
             }
             
 

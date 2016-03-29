@@ -100,11 +100,11 @@ namespace VEngine
             ShaderProgram.Current.SetUniform("ForwardPass", InternalRenderingState.PassState == InternalRenderingState.State.ForwardTransparentBlendingAlphaPass ? 0 : 1);
             ModelInfosBuffer.Use(0);
 
-            if(DisableFaceCulling)
-                GL.Disable(EnableCap.CullFace);
+           // if(DisableFaceCulling)
+           //     GL.Disable(EnableCap.CullFace);
             Info3d.DrawInstanced(InstancesFiltered);
-            if(DisableFaceCulling)
-                GL.Enable(EnableCap.CullFace);
+            //if(DisableFaceCulling)
+           //     GL.Enable(EnableCap.CullFace);
         }
         
         public void UpdateMatrix(List<Mesh3dInstance> instances, bool instantRebuffer = false)
