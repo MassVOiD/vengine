@@ -1,4 +1,4 @@
-vec3 raymarchFog(vec3 start, vec3 end){
+/*vec3 raymarchFog(vec3 start, vec3 end){
     vec3 color1 = vec3(0);
 
     //vec3 fragmentPosWorld3d = texture(worldPosTex, UV).xyz;    
@@ -58,3 +58,4 @@ vec3 Fog(FragmentData data){
 	if(dst1 < 0.0001) cspaceEnd = reconstructCameraSpaceDistance(UV, 100);
     return vec3(raymarchFog(CameraPosition, CameraPosition + cspaceEnd));
 }
+*/

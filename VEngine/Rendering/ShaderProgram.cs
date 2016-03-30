@@ -34,6 +34,8 @@ namespace VEngine
 
         private Dictionary<string, int> UniformLocationsCache;
 
+        public Dictionary<string, string> ExportedConsts;
+
         private Dictionary<string, object> ValuesMap;
 
         private string VertexFile;
@@ -42,6 +44,7 @@ namespace VEngine
 
         private ShaderProgram(string vertexFile, string fragmentFile = null, string geometryFile = null, string tesscontrolFile = null, string tessevalFile = null)
         {
+            ExportedConsts = new Dictionary<string, string>();
             ValuesMap = new Dictionary<string, object>();
             VertexFile = vertexFile;
             FragmentFile = fragmentFile;
@@ -81,23 +84,33 @@ namespace VEngine
             GL.BindAttribLocation(Handle, index, name);
         }
 
+        public int getConstInt(string name)
+        {
+            return int.Parse(ExportedConsts[name]);
+        }
+
+        public string getConstString(string name)
+        {
+            return ExportedConsts[name];
+        }
+
         public void Recompile()
         {
             UniformLocationsCache = new Dictionary<string, int>();
 
-            VertexSource = ShaderPreparser.Preparse(VertexFile, Media.ReadAllText(VertexFile));
+            VertexSource = ShaderPreparser.Preparse(VertexFile, Media.ReadAllText(VertexFile), ExportedConsts);
             if(FragmentFile != null)
             {
-                FragmentSource = ShaderPreparser.Preparse(FragmentFile, Media.ReadAllText(FragmentFile));
+                FragmentSource = ShaderPreparser.Preparse(FragmentFile, Media.ReadAllText(FragmentFile), ExportedConsts);
             }
             if(GeometryFile != null)
             {
-                GeometrySource = ShaderPreparser.Preparse(GeometryFile, Media.ReadAllText(GeometryFile));
+                GeometrySource = ShaderPreparser.Preparse(GeometryFile, Media.ReadAllText(GeometryFile), ExportedConsts);
             }
             if(TessControlFile != null && TessEvalFile != null)
             {
-                TessControlSource = ShaderPreparser.Preparse(TessControlFile, Media.ReadAllText(TessControlFile));
-                TessEvaluationSource = ShaderPreparser.Preparse(TessEvalFile, Media.ReadAllText(TessEvalFile));
+                TessControlSource = ShaderPreparser.Preparse(TessControlFile, Media.ReadAllText(TessControlFile), ExportedConsts);
+                TessEvaluationSource = ShaderPreparser.Preparse(TessEvalFile, Media.ReadAllText(TessEvalFile), ExportedConsts);
                 UsingTessellation = true;
             }
             Compiled = false;

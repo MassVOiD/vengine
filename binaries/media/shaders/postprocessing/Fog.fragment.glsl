@@ -36,6 +36,6 @@ void main()
 		specularBumpData.a
 	);	
 	
-	vec4 color = Fog(currentFragment).rgbb;
+	vec4 color = vec4(0);//Fog(currentFragment).rgbb;
     outColor = clamp(color, 0.0, 10000.0);
 }

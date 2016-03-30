@@ -1,4 +1,4 @@
-struct SimpleLight
+/*struct SimpleLight
 {
     vec4 Position;
     vec4 Direction;
@@ -132,4 +132,4 @@ vec3 DirectLight(FragmentData data){
 	if(SunCascadeCount > 0) color1 += SunLight(data);
 	
     return color1;
-}
+}*/

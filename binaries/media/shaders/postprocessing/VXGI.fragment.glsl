@@ -9,6 +9,8 @@ in vec2 UV;
 
 out vec4 outColor;
 
+FragmentData currentFragment;
+
 uniform int Voxelize_GridSizeX;
 uniform int Voxelize_GridSizeY;
 uniform int Voxelize_GridSizeZ;
@@ -92,25 +94,89 @@ mat3 rotationMatrix(vec3 axis, float angle)
 	oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s, 
 	oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
 }
-vec3 traceConeDiffuse(){ 
-    vec3 csp = getMapCoord(UV);
-    vec3 norm = normalize(textureMSAA(normalsDistancetex, UV, 0).rgb);	
+vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){ 
+    vec3 csp = getMapCoordWPos(wposOrigin);
 
     vec3 res = vec3(0);
     float st = 0.04;
+    float w = 1.0;
     float blurness = 0.7;
     
     st = 0.0;
-    
-    for(int g=0;g<10;g++){
-        vec3 c = csp + norm * (st * st + 0.02) * 0.7;
-        vec4 rc = sampleCone(clamp(c, 0.0, 1.0), 1.0 - blurness) * (1.0 - st);
-        res += rc.rgb;
+    /*
+    for(int g=0;g<2;g++){
+        vec3 c = csp + direction * (st * st + 0.02) * 0.7;
+        vec4 rc = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0) ;
+        res += w * rc.rgb;
+       // w -= min(rc.a, 1.0) * 1.4 * st;
+       // w = max(0, w);
         blurness = blurness * 0.5;
         st += 0.1;
     }
+    for(int g=0;g<2;g++){
+        vec3 c = csp + direction * (st * st + 0.02) * 0.7;
+        vec4 rc = textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0) ;
+        res += w * rc.rgb;
+     //   w -= min(rc.a, 1.0) * 1.4 * st;
+     //   w = max(0, w);
+        blurness = blurness * 0.5;
+        st += 0.1;
+    }*/
+    for(int g=0;g<4;g++){
+        vec3 c = csp + direction * (st  + 0.02) * 0.7;
+        vec4 rc = textureLod(voxelsTex3, clamp(c, 0.0, 1.0), 0) ;
+        res += w * rc.rgb;
+        w -= min(rc.a, 1.0) * 4.4 * st;
+        w = max(0, w);
+        blurness = blurness * 0.5;
+        st += 0.03;
+    }
+    for(int g=0;g<4;g++){
+        vec3 c = csp + direction * (st  + 0.02) * 0.7;
+        vec4 rc = textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0) ;
+        res += w * rc.rgb;
+        w -= min(rc.a, 1.0) * 5.4 * st;
+        w = max(0, w);
+        blurness = blurness * 0.5;
+        st += 0.03;
+    }
+    for(int g=0;g<4;g++){
+        vec3 c = csp + direction * (st + 0.02) * 0.7;
+        vec4 rc = textureLod(voxelsTex5, clamp(c, 0.0, 1.0), 0) ;
+        res += w * rc.rgb;
+        w -= min(rc.a, 1.0) * 5.4 * st;
+        w = max(0, w);
+        blurness = blurness * 0.5;
+        st += 0.03;
+    }
     
-    return res * 0.4;
+    return res * 2.1;
+}
+
+vec3 traceConeDiffuse(FragmentData data){
+    float iter1 = 0.0;
+    float iter2 = 1.1112;
+    float iter3 = 0.4565;
+    vec3 buf = vec3(0);
+    vec2 uvx = vec2(0,1);
+    
+    vec3 voxelspace = getMapCoordWPos(data.worldPos);
+    
+    for(int i=0;i<10;i++){
+        vec3 rd = vec3(
+            rand2s(UV + iter1),
+            rand2s(UV + iter2),
+            rand2s(UV + iter3)
+        ) * 2.0 - 1.0;
+        rd = faceforward(rd, -rd, data.normal);
+        
+        buf += traceConeSingle(data.worldPos, normalize(rd));
+        
+        iter1 += 0.0031231;
+        iter2 += 0.0021232;
+        iter3 += 0.0041246;
+    }
+    return buf * 0.1 * data.diffuseColor;
 }
 
 vec3 traceDiffuseVoxelInvariant(vec3 csp){
@@ -253,12 +319,26 @@ void main()
 {
     vec3 color = vec3(0);
     
-	vec4 albedoRoughnessData = textureMSAA(albedoRoughnessTex, UV, 0);
+    vec4 albedoRoughnessData = textureMSAA(albedoRoughnessTex, UV, 0);
 	vec4 normalsDistanceData = textureMSAA(normalsDistancetex, UV, 0);
 	vec4 specularBumpData = textureMSAA(specularBumpTex, UV, 0);
-    //color = vec3(1) * traceConeAO();;
-    //color = traceConeDiffuse() * texture(aoTex, UV).r;// + traceConeDiffuse() * traceConeAO();;
-    color +=  traceConeDiffuse() * albedoRoughnessData.rgb ;
+	vec3 camSpacePos = reconstructCameraSpaceDistance(UV, normalsDistanceData.a);
+	vec3 worldPos = FromCameraSpace(camSpacePos);
+	
+	currentFragment = FragmentData(
+		albedoRoughnessData.rgb,
+		specularBumpData.rgb,
+		normalsDistanceData.rgb,
+		vec3(1,0,0),
+		worldPos,
+		camSpacePos,	
+		normalsDistanceData.a,
+		1.0,
+		albedoRoughnessData.a,
+		specularBumpData.a
+	);	
+    
+    color +=  traceConeDiffuse(currentFragment);
     color +=  traceConeSpecular() * specularBumpData.rgb ;
     //color = traceConeDiffuse();
     /*
@@ -268,6 +348,6 @@ void main()
     + traceVisDir(vec3(1, 1, 0)) 
     + traceVisDir(vec3(2, 1, 0));
     color *= 0.2;*/
-    
+    color += max(vec3(0.0), albedoRoughnessData.rgb - 1.0);
     outColor = clamp(vec4(color, 0), 0.0, 10000.0);
 }

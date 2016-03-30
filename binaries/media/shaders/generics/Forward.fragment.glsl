@@ -67,7 +67,7 @@ vec3 lookupFog(vec2 fuv, float radius, int samp){
 
 vec3 ApplyLighting(FragmentData data){
 	vec3 result = vec3(0);
-	 result += DirectLight(data);
+	 //result += DirectLight(data);
 	result += EnvironmentLightSkybox(data);
 	//if(UseRSM == 1) result += RSM(data);
 	//if(UseFog == 1) result += lookupFog(UV, 1.0, 0);

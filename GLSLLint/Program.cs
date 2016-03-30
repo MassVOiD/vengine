@@ -55,7 +55,7 @@ namespace GLSLLint
                 if(file.EndsWith(".geometry.glsl"))
                     type = ShaderType.GeometryShader;
                 int shader = GL.CreateShader(type);
-                string src = ShaderPreparser.Preparse(file, System.IO.File.ReadAllText(file));
+                string src = ShaderPreparser.Preparse(file, System.IO.File.ReadAllText(file), new System.Collections.Generic.Dictionary<string, string>());
                 StringBuilder globalsString = new StringBuilder();
                 globalsString.AppendLine("#define MSAA_SAMPLES " + Game.MSAASamples);
                 if(Game.MSAASamples > 1)

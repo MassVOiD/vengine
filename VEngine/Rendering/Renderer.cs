@@ -506,7 +506,7 @@ namespace VEngine
             CombinerShader.Use();
             CombinerFramebuffer.Use();
 
-            DeferredFramebuffer.UseTexture(7);
+            DeferredFramebuffer.UseTexture(CombinerShader.getConstInt("deferredTexBinding"));
             EnvLightFramebuffer.UseTexture(10);
             BloomYPass.UseTexture(11);
             CubeMaps[0].Texture.Use(TextureUnit.Texture12);

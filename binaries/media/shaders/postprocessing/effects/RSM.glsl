@@ -1,4 +1,4 @@
-vec3 ColorCurrent = vec3(0);
+/*vec3 ColorCurrent = vec3(0);
 vec3 NormalCurrent = vec3(1);
 float DistCurrent = 0;
 vec3 reconstructLightPos(vec2 uv, int i){    
@@ -248,4 +248,4 @@ vec3 RSM(FragmentData data){
         }
     }
     return color1 * distanceProbe;
-}
+}*/

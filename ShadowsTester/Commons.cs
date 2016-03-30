@@ -32,7 +32,7 @@ namespace ShadowsTester
             RedLight = new List<Light>();
             RedLight.Add(new Light(new TransformationManager(new Vector3(0, 5, 0), Quaternion.FromAxisAngle(new Vector3(1, 0, 0), MathHelper.DegreesToRadians(-110))))
             {
-                Color = new Vector3(1, 0.84f, 0.93f) * 20,
+                Color = new Vector3(1, 0.84f, 0.93f) * 400,
                 ShadowMappingEnabled = true,
                 ShadowMapType = Light.ShadowMapTypeEnum.Single
             });

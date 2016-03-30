@@ -1,5 +1,7 @@
 // let get it done well this time
-layout(binding = 0) uniform sampler2DArrayShadow shadowMapsArray;
+
+#pragma const deferredTexBinding 7
+
 #ifdef USE_MSAA
 layout(binding = 1) uniform sampler2DMS albedoRoughnessTex;
 layout(binding = 2) uniform sampler2DMS normalsDistancetex;
@@ -13,11 +15,8 @@ layout(binding = 15) uniform sampler2D originalNormalsTex;
 #endif
 
 layout(binding = 4) uniform sampler2D lastStageResultTex;
-layout(binding = 5) uniform sampler2DArray shadowMapsColorsArray;
-layout(binding = 6) uniform sampler2DArray shadowMapsNormalsArray;
 
-
-layout(binding = 7) uniform sampler2D deferredTex;
+layout(binding = deferredTexBinding) uniform sampler2D deferredTex;
 
 layout(binding = 9) uniform sampler2D vxgiTex;
 layout(binding = 10) uniform sampler2D envLightTex;

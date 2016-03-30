@@ -22,8 +22,11 @@ namespace VEngine
 
         private Dictionary<string, int> UniformLocationsCache;
 
+        public Dictionary<string, string> ExportedConsts;
+
         public ComputeShader(string file)
         {
+            ExportedConsts = new Dictionary<string, string>();
             UniformLocationsCache = new Dictionary<string, int>();
             ComputeFile = file;
             AllComputeShaders.Add(this);
@@ -225,7 +228,7 @@ namespace VEngine
 
         private void Compile()
         {
-            int shaderHandle = CompileSingleShader(ShaderType.ComputeShader, ShaderPreparser.Preparse(ComputeFile, Media.ReadAllText(ComputeFile)));
+            int shaderHandle = CompileSingleShader(ShaderType.ComputeShader, ShaderPreparser.Preparse(ComputeFile, Media.ReadAllText(ComputeFile), ExportedConsts));
 
             Handle = GL.CreateProgram();
 
