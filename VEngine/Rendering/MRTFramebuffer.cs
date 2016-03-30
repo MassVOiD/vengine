@@ -116,7 +116,7 @@ namespace VEngine
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, FBO);
 
             // generating textures
-            TexAlbedoRoughness = GenerateSingleTexture(PixelInternalFormat.Rgba8, PixelFormat.Rgba, PixelType.UnsignedByte);
+            TexAlbedoRoughness = GenerateSingleTexture(PixelInternalFormat.Rgba16f, PixelFormat.Rgba, PixelType.HalfFloat);
             TexNormalsDistance = GenerateSingleTexture(PixelInternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float);
             TexSpecularBump = GenerateSingleTexture(PixelInternalFormat.Rgba8, PixelFormat.Rgba, PixelType.UnsignedByte);
             TexOriginalNormal = GenerateSingleTexture(PixelInternalFormat.Rgba32f, PixelFormat.Rgba, PixelType.Float);

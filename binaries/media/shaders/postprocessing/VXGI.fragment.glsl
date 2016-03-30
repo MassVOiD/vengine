@@ -31,32 +31,17 @@ vec3 getNormalV(vec3 coord){
 }
 
 vec4 sampleCone(vec3 coord, float blurness){
-    if(blurness < 0.2){
-        float bl = blurness / 0.2;
+    if(blurness < 0.5){
+        float bl = blurness * 2.0;
         vec4 i1 = textureLod(voxelsTex1, coord, 0).rgba;
         vec4 i2 = textureLod(voxelsTex2, coord, 0).rgba;
         return mix(i1, i2, bl);
-    } else if(blurness < 0.4){
-        float bl = (blurness - 0.2) / 0.2;
+    } else if(blurness < 1.0){
+        float bl = (blurness - 0.5) * 2.0;
         vec4 i1 = textureLod(voxelsTex2, coord, 0).rgba;
-        vec4 i2 = textureLod(voxelsTex3, coord, 0).rgba * 2;
+        vec4 i2 = textureLod(voxelsTex3, coord, 0).rgba ;
         return mix(i1, i2, bl);
-    } else if(blurness < 0.6){
-        float bl = (blurness - 0.4) / 0.2;
-        vec4 i1 = textureLod(voxelsTex3, coord, 0).rgba* 3;
-        vec4 i2 = textureLod(voxelsTex4, coord, 0).rgba* 5;
-        return mix(i1, i2, bl) ;
-    } else if(blurness < 0.8){
-        float bl = (blurness - 0.6) / 0.2;
-        vec4 i1 = textureLod(voxelsTex4, coord, 0).rgba;
-        vec4 i2 = textureLod(voxelsTex4, coord, 0).rgba;
-        return mix(i1, i2, bl) * 5;
-    } else {
-        float bl = (blurness - 0.8) / 0.2;
-        vec4 i1 = textureLod(voxelsTex4, coord, 0).rgba;
-        vec4 i2 = textureLod(voxelsTex4, coord, 0).rgba;
-        return mix(i1, i2, bl) * 5;
-    } 
+    }
 }
 
 // Y up in this case, tangent space
@@ -112,7 +97,7 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
        // w = max(0, w);
         blurness = blurness * 0.5;
         st += 0.1;
-    }
+    }*/
     for(int g=0;g<2;g++){
         vec3 c = csp + direction * (st * st + 0.02) * 0.7;
         vec4 rc = textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0) ;
@@ -121,16 +106,16 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
      //   w = max(0, w);
         blurness = blurness * 0.5;
         st += 0.1;
-    }*/
+    }
     for(int g=0;g<4;g++){
         vec3 c = csp + direction * (st  + 0.02) * 0.7;
         vec4 rc = textureLod(voxelsTex3, clamp(c, 0.0, 1.0), 0) ;
-        res += w * rc.rgb;
-        w -= min(rc.a, 1.0) * 4.4 * st;
-        w = max(0, w);
+        res += rc.rgb * 3;
+        //w -= min(rc.a, 1.0) * 4.4 * st;
+       // w = max(0, w);
         blurness = blurness * 0.5;
         st += 0.03;
-    }
+    }/*
     for(int g=0;g<4;g++){
         vec3 c = csp + direction * (st  + 0.02) * 0.7;
         vec4 rc = textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0) ;
@@ -148,9 +133,9 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
         w = max(0, w);
         blurness = blurness * 0.5;
         st += 0.03;
-    }
+    }*/
     
-    return res * 2.1;
+    return res * 0.2;
 }
 
 vec3 traceConeDiffuse(FragmentData data){
@@ -162,7 +147,9 @@ vec3 traceConeDiffuse(FragmentData data){
     
     vec3 voxelspace = getMapCoordWPos(data.worldPos);
     
-    for(int i=0;i<10;i++){
+    float w = 0.0;
+    
+    for(int i=0;i<30;i++){
         vec3 rd = vec3(
             rand2s(UV + iter1),
             rand2s(UV + iter2),
@@ -175,8 +162,9 @@ vec3 traceConeDiffuse(FragmentData data){
         iter1 += 0.0031231;
         iter2 += 0.0021232;
         iter3 += 0.0041246;
+        w += 1.0;
     }
-    return buf * 0.1 * data.diffuseColor;
+    return (buf / w) * data.diffuseColor;
 }
 
 vec3 traceDiffuseVoxelInvariant(vec3 csp){
@@ -197,32 +185,51 @@ vec3 traceDiffuseVoxelInvariant(vec3 csp){
     return res * 0.9;
 }
 
-vec3 traceConeSpecular(){ 
+vec3 normalSeekLut[] = vec3[](
+    vec3(-1, 0, 0),
+    vec3(1, 0, 0),
+    vec3(0, 1, 0),
+    vec3(0, -1, 0),
+    vec3(0, 0, 1),
+    vec3(0, 0, -1)
+);
+vec3 VoxelSize = 1.0 / vec3(Voxelize_GridSizeX, Voxelize_GridSizeY, Voxelize_GridSizeZ);
+vec3 approxNormal(vec3 voxspace, vec3 opposite){
+    vec3 v = vec3(0);
+    for(int i=0;i<normalSeekLut.length();i++) 
+        v += textureLod(voxelsTex1, voxspace + normalSeekLut[i] * VoxelSize, 0).a * normalSeekLut[i];
+    return length(v) == 0.0 ? opposite : normalize(v);
+}
+
+vec3 traceConeSpecular(FragmentData data){ 
     //vec3 csp = reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a) / Voxelize_BoxSize;///Voxelize_BoxSize;
     vec3 csp = getMapCoord(UV);
     vec3 center = csp;
+    
     vec3 norm = normalize(textureMSAA(normalsDistancetex, UV, 0).rgb);
 	float roughness = max(0.01, textureMSAA(albedoRoughnessTex, UV, 0).a);
-    vec3 dir = mix(normalize(reflect(reconstructCameraSpace(UV), textureMSAA(normalsDistancetex, UV, 0).rgb)), normalize(textureMSAA(normalsDistancetex, UV, 0).rgb), roughness * roughness);
+    vec3 dir = mix(normalize(reflect(reconstructCameraSpace(UV), textureMSAA(originalNormalsTex, UV, 0).rgb)), normalize(textureMSAA(originalNormalsTex, UV, 0).rgb), roughness * roughness);
     float w = 1.0;
     vec3 res = vec3(0);
-    float st = 0.0;
+    float st = 0.001;
     float blurness = 1.0;
-    float rg2 =  sqrt(sqrt(sqrt(roughness)));
-    for(int i=0;i < 50;i++){
-        vec3 c = center + dir * (st * st + 0.02) * 0.4;
+    float rg2 =  sqrt( roughness);
+    for(int i=0;i < 150;i++){
+        vec3 c = center + dir * (st * st + 0.03 ) * 0.4;
+        float dt = smoothstep(0.0, 0.1, max(0, dot( approxNormal(clamp(c, 0.0, 1.0), -dir), -dir)));
+      //  if(dt == 0)continue;
         //float lv = mix(0.0, levels, st * 0.8);
         vec4 rc = sampleCone(clamp(c, 0.0, 1.0), roughness * (1.0 - blurness));
-       // rc *= max(0, dot(getNormalV(clamp(c, 0.0, 1.0)), -dir));
-        res += w * rc.rgb * mix(1.0, 0.0, rg2);
-        w -= min(rc.a, 1.0) * 1.4 * st;
+        res += w * rc.rgb * (1.0 - smoothstep(0.5, 1.0, rg2));
+        w -= min(rc.a, 1.0) * st;
         w = max(0, w);
         if(w == 0.0) { break;  }
-        st += 0.02;
-        blurness = blurness * 0.9;
+        blurness = blurness * 0.5;
+        st += 0.007;
     }
+    float fresnel = fresnel_again(norm, data.cameraPos);
     //res += w * MMALGI(dir, roughness);
-    return res * 1;
+    return res * fresnel;
 }
 
 vec3 traceConeAOx(){ 
@@ -339,7 +346,7 @@ void main()
 	);	
     
     color +=  traceConeDiffuse(currentFragment);
-    color +=  traceConeSpecular() * specularBumpData.rgb ;
+    //color +=  traceConeSpecular(currentFragment) * specularBumpData.rgb ;
     //color = traceConeDiffuse();
     /*
     color = traceVisDir(vec3(-2, 1, 0)) 

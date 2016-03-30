@@ -194,32 +194,19 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
     for(int g=0;g<4;g++){
         vec3 c = csp + direction * (st  + 0.02) * 0.7;
         vec4 rc = textureLod(voxelsTex3, clamp(c, 0.0, 1.0), 0) ;
-        res += w * rc.rgb;
-        w -= min(rc.a, 1.0) * 4.4 * st;
-        w = max(0, w);
+        res += rc.rgb;
         blurness = blurness * 0.5;
         st += 0.03;
     }
     for(int g=0;g<4;g++){
         vec3 c = csp + direction * (st  + 0.02) * 0.7;
         vec4 rc = textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0) ;
-        res += w * rc.rgb;
-        w -= min(rc.a, 1.0) * 5.4 * st;
-        w = max(0, w);
-        blurness = blurness * 0.5;
-        st += 0.03;
-    }
-    for(int g=0;g<4;g++){
-        vec3 c = csp + direction * (st + 0.02) * 0.7;
-        vec4 rc = textureLod(voxelsTex5, clamp(c, 0.0, 1.0), 0) ;
-        res += w * rc.rgb;
-        w -= min(rc.a, 1.0) * 5.4 * st;
-        w = max(0, w);
+        res += rc.rgb * 3;
         blurness = blurness * 0.5;
         st += 0.03;
     }
     
-    return res * 2.1;
+    return min(vec3(1.0), res * 2.7);
 }
 
 vec3 traceConeDiffuse(FragmentData data){
