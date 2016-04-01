@@ -29,6 +29,18 @@ namespace VEngine
                 exportedConsts[constName] = constValue;
             }
 
+            List<string[]> regexes = new List<string[]>();
+            Regex regexReplaceMatcher = new Regex("\\#pragma regex replace (.+?) with (.+?)");
+            match = regexReplaceMatcher.Match(source);
+            while(match.Success)
+            {
+                string from = match.Groups[1].Value.Trim();
+                string to= match.Groups[2].Value.Trim(); 
+                match = regexReplaceMatcher.Match(source);
+                source = source.Remove(match.Index, match.Length);
+                regexes.Add(new string[] { from, to });
+            }
+
             Regex includeOnceMatcher = new Regex("\\#include_once (.+)\n");
             var included = new List<string>();
             match = includeOnceMatcher.Match(source);
@@ -47,6 +59,10 @@ namespace VEngine
                     source = source.Insert(match.Index, includeFile + "\r\n");
                     match = includeMatcher.Match(source);
                 }
+            }
+            foreach(var r in regexes)
+            {
+                source = Regex.Replace(source, r[0], r[1]);
             }
             return PrependWithInfo(filename, source);
         }

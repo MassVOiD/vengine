@@ -74,9 +74,9 @@ namespace VEngine
                     ColorPixelFormat = PixelFormat.Rgba,
                     ColorPixelType = PixelType.HalfFloat
                 });
-                szx = szx / 4;
-                szy = szy / 4;
-                szz = szz / 4;
+                szx = szx / 2;
+                szy = szy / 2;
+                szz = szz / 2;
             }
 
             FBO = new Framebuffer(256, 256, true)

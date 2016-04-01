@@ -92,7 +92,7 @@ namespace VEngine
         {
             GlareTexture = new Texture(Media.Get("glaretex.png"));
 
-            Voxelizer = new Voxel3dTextureWriter(256, 256, 256, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
+            //Voxelizer = new Voxel3dTextureWriter(256, 256, 256, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
 
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
@@ -473,7 +473,7 @@ namespace VEngine
                 if(i == Game.World.CurrentlyRenderedCubeMap)
                     continue;
                 Matrix4 mat = Matrix4.CreateScale(CubeMaps[i].FalloffScale) * Matrix4.CreateTranslation(CubeMaps[i].FalloffScale > 99999.0f ? Camera.MainDisplayCamera.GetPosition() : CubeMaps[i].Position);
-                CubeMaps[i].Texture.Use(TextureUnit.Texture12);
+                CubeMaps[i].Texture.Use(TextureUnit.Texture23);
                 EnvLightShader.SetUniform("ModelMatrix", mat);
                 EnvLightShader.SetUniform("MapPosition", CubeMaps[i].FalloffScale > 99999.0f ? Camera.MainDisplayCamera.GetPosition() : CubeMaps[i].Position);
                 EnvLightShader.SetUniform("CubeCutOff", CubeMaps[i].FalloffScale);
@@ -509,7 +509,7 @@ namespace VEngine
             DeferredFramebuffer.UseTexture(CombinerShader.getConstInt("deferredTexBinding"));
             EnvLightFramebuffer.UseTexture(10);
             BloomYPass.UseTexture(11);
-            CubeMaps[0].Texture.Use(TextureUnit.Texture12);
+            CubeMaps[0].Texture.Use(TextureUnit.Texture23);
             FogFramebuffer.UseTexture(13);
             AmbientOcclusionFramebuffer.UseTexture(14);
 
@@ -546,7 +546,7 @@ namespace VEngine
             Voxelizer.Map();
             VXGIShader.Use();
             Voxelizer.BindTexture(TextureUnit.Texture25);
-            CubeMaps[0].Texture.Use(TextureUnit.Texture12);
+            CubeMaps[0].Texture.Use(TextureUnit.Texture23);
             Voxelizer.SetUniforms();
             VXGIFramebuffer.Use();
             CombinerFramebuffer.UseTexture(4);

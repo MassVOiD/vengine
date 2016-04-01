@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 using OpenTK;
 using VEngine;
@@ -20,7 +21,10 @@ namespace ShadowsTester
         [STAThread]
         private static void Main(string[] args)
         {
-            Game.Initialize(new Size(Config.Width, Config.Height),1, Config.MediaPath, GameWindowFlags.Default);
+            string fp = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string dir = Path.GetDirectoryName(fp);
+
+            Game.Initialize(new Size(Config.Width, Config.Height),1, dir + "/" + Config.MediaPath, GameWindowFlags.Default);
 
             var freeCamera = Commons.SetUpFreeCamera();
             //System.Threading.Thread.Sleep(1100);

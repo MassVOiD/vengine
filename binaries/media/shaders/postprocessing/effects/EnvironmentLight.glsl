@@ -10,7 +10,6 @@ vec3 vec3pow(vec3 inputx, float po){
 float precentage = 0;
 float falloff = 0;
 
-layout(binding = 12) uniform samplerCube cube;
 
 vec3 MMALNoPrcDiffuse(vec3 visdis, float dist, vec3 normal, float roughness){
 	

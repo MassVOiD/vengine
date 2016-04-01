@@ -37,6 +37,18 @@ namespace ShadowsTester
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             return terrainMesh;
         }
+        Mesh3d CreateDiffuseModelFromObj(string obj, Vector3 color)
+        {
+            var terrain3dManager = Object3dManager.LoadFromObjSingle(Media.Get(obj));
+            terrain3dManager.ScaleUV(20);
+            var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
+            var terrainMaterial = new GenericMaterial();
+            terrainMaterial.DiffuseColor = new Vector3(0.7f);
+            terrainMaterial.SpecularColor = new Vector3(0.7f);
+            terrainMaterial.Roughness = 0.5f;
+            var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
+            return terrainMesh;
+        }
         public OldCityScene()
         {
             /*  var scene = Object3dInfo.LoadSceneFromObj(Media.Get("desertcity.obj"), Media.Get("desertcity.mtl"), 1.0f);
@@ -118,10 +130,11 @@ namespace ShadowsTester
                 {
                   //  gi.UpdateGI();
                 };
-                var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
+                //var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
+                var lucy = CreateDiffuseModelFromObj("hipolysphere.obj", new Vector3(1));
                 Game.World.Scene.Add(lucy);
                 lucy.GetInstance(0).Scale(0.3f);
-                lucy.GetLodLevel(0).Material.SetNormalsTexture("stonew_n.jpg");
+                //lucy.GetLodLevel(0).Material.SetNormalsTexture("stonew_n.jpg");
                 lucy.GetLodLevel(0).Material.DiffuseColor = new Vector3(1.0f);
 
                 //DynamicCubeMapController.Create();

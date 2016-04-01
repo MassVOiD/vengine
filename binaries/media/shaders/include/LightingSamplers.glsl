@@ -36,6 +36,18 @@ layout(binding = 19) uniform sampler2D combinerTex;
 
 layout(binding = 22) uniform sampler2DArrayShadow sunCascadesArray;
 
+
+layout(binding = 21) uniform sampler2D free1Tex;
+layout(binding = 20) uniform sampler2D free1Tex;
+layout(binding = 16) uniform sampler2D free1Tex;
+layout(binding = 5) uniform sampler2D free1Tex;
+layout(binding = 6) uniform sampler2D free1Tex;
+layout(binding = 7) uniform sampler2D free1Tex;
+layout(binding = 8) uniform sampler2D free1Tex;
+layout(binding = 0) uniform sampler2D free1Tex;
+
+layout(binding = 23) uniform samplerCube cube;
+
 layout(binding = 24) uniform sampler3D voxelsNormalsTex;
 layout(binding = 25) uniform sampler3D voxelsTex1;
 layout(binding = 26) uniform sampler3D voxelsTex2;
@@ -56,12 +68,15 @@ uniform uvec2 CubeMapsAddrs[233];
 
 #ifdef USE_MSAA
 
+#pragma regex replace loop\([ ]*([A-z0-9_-]+)[ ]*,[ ]*([A-z0-9_-]+)[ ]*\.\.[ ]*([A-z0-9_-]+).*\) with for(int $1 = $2; $1 < $3; $1++)
+
 ivec2 txsize = textureSize(albedoRoughnessTex);
 float MSAADifference(sampler2DMS tex, vec2 inUV){
     ivec2 texcoord = ivec2(vec2(txsize) * inUV); 
     vec4 color11 = texelFetch(tex, texcoord, 0);
     float diff = 0;
-    for (int i=1;i<MSAA_SAMPLES;i++)
+    //for (int i=1;i<MSAA_SAMPLES;i++)
+    loop(i, i..MSAA_SAMPLES)
     {
         vec4 color2 = texelFetch(tex, texcoord, i);
         diff += distance(color11, color2);  
