@@ -376,7 +376,6 @@ namespace ShadowsTester
                         PickedMesh.GetLodLevel(0).Material.Roughness -= 0.05f;
                         if(PickedMesh.GetLodLevel(0).Material.Roughness < 0)
                             PickedMesh.GetLodLevel(0).Material.Roughness = 0;
-                        GenericMaterial.UpdateMaterialsBuffer();
                     }
                 }
                 if(e.Key == OpenTK.Input.Key.Period)
@@ -386,7 +385,6 @@ namespace ShadowsTester
                         PickedMesh.GetLodLevel(0).Material.Roughness += 0.05f;
                         if(PickedMesh.GetLodLevel(0).Material.Roughness > 1)
                             PickedMesh.GetLodLevel(0).Material.Roughness = 1;
-                        GenericMaterial.UpdateMaterialsBuffer();
                     }
                 }
 

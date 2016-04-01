@@ -19,7 +19,7 @@ layout(binding = 4) uniform sampler2D lastStageResultTex;
 layout(binding = deferredTexBinding) uniform sampler2D deferredTex;
 
 layout(binding = 9) uniform sampler2D vxgiTex;
-layout(binding = 10) uniform sampler2D envLightTex;
+layout(binding = 8) uniform sampler2D envLightTex;
 
 layout(binding = 11) uniform sampler2D bloomPassSource;
 
@@ -37,14 +37,21 @@ layout(binding = 19) uniform sampler2D combinerTex;
 layout(binding = 22) uniform sampler2DArrayShadow sunCascadesArray;
 
 
-layout(binding = 21) uniform sampler2D free1Tex;
-layout(binding = 20) uniform sampler2D free1Tex;
-layout(binding = 16) uniform sampler2D free1Tex;
-layout(binding = 5) uniform sampler2D free1Tex;
-layout(binding = 6) uniform sampler2D free1Tex;
-layout(binding = 7) uniform sampler2D free1Tex;
-layout(binding = 8) uniform sampler2D free1Tex;
-layout(binding = 0) uniform sampler2D free1Tex;
+#pragma const normalsTexBind 5
+#pragma const bumpTexBind 8
+#pragma const alphaTexBind 0
+#pragma const roughnessTexBind 7
+#pragma const diffuseTexBind 16
+#pragma const specularTexBind 6
+
+layout(binding = normalsTexBind) uniform sampler2D normalsTex;
+layout(binding = bumpTexBind) uniform sampler2D bumpTex;
+layout(binding = alphaTexBind) uniform sampler2D alphaTex;
+layout(binding = roughnessTexBind) uniform sampler2D roughnessTex;
+layout(binding = diffuseTexBind) uniform sampler2D diffuseTex;
+layout(binding = specularTexBind) uniform sampler2D specularTex;
+//layout(binding = 8) uniform sampler2D free1Tex;
+//layout(binding = 0) uniform sampler2D free1Tex;
 
 layout(binding = 23) uniform samplerCube cube;
 
@@ -75,8 +82,8 @@ float MSAADifference(sampler2DMS tex, vec2 inUV){
     ivec2 texcoord = ivec2(vec2(txsize) * inUV); 
     vec4 color11 = texelFetch(tex, texcoord, 0);
     float diff = 0;
-    //for (int i=1;i<MSAA_SAMPLES;i++)
-    loop(i, i..MSAA_SAMPLES)
+    for (int i=1;i<MSAA_SAMPLES;i++)
+    //loop(i, i..MSAA_SAMPLES)
     {
         vec4 color2 = texelFetch(tex, texcoord, i);
         diff += distance(color11, color2);  

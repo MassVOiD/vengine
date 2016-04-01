@@ -53,16 +53,14 @@ float lookupAO(vec2 fuv, float radius, int samp){
      }
      return outc / counter;
 }
-
-layout(binding = 12) uniform samplerCube cube;
-
+ 
 void main()
 {
     float AOValue = 1.0;
    // if(UseHBAO == 1) AOValue = lookupAO(UV, 1.0, 0);
     vec3 color = vec3(0);
     if(UseDeferred == 1) color += texture(deferredTex, UV).rgb;
-    if(UseVDAO == 1) color += AOValue * texture(envLightTex, UV).rgb * 1;
+    if(UseVDAO == 1) color += AOValue * textureLod(envLightTex, UV, 0.0).rgb * 1;
    // if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) color = vec3(AOValue * 0.5);
 
 

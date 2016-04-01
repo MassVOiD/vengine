@@ -111,7 +111,7 @@ namespace ShadowsTester
             var p = Game.DisplayAdapter.PointToScreen(new System.Drawing.Point(Game.Resolution.Width / 2, Game.Resolution.Height / 2));
             var p3 = (new System.Drawing.Point(Game.Resolution.Width / 2, Game.Resolution.Height / 2));
             var p2 =  (new System.Drawing.Point(mouse.X, mouse.Y));
-            Console.WriteLine(p2);
+            //Console.WriteLine(p2);
             int deltaX = p2.X - p.X;
             int deltaY = p2.Y - p.Y;
             System.Windows.Forms.Cursor.Position = p;

@@ -3,6 +3,7 @@
 layout(triangles, fractional_odd_spacing, ccw) in;
 
 #include Mesh3dUniforms.glsl
+#include LightingSamplers.glsl
 
 in Data {
 #include InOutStageLayout.glsl
@@ -73,7 +74,7 @@ uniform int IsTessellatedTerrain;
 uniform float TessellationMultiplier;
 
 float GetTerrainHeight(vec2 uv){
-	return texture(bumpTex, uv).r * getCurrentMaterial().roughnessAndParallaxHeightAndAlpha.g; 
+	return texture(bumpTex, uv).r * ParallaxHeightMultiplier; 
 }
 
 void main()

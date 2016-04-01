@@ -37,7 +37,7 @@ namespace VEngine
         private ShaderProgram lastUserProgram = null;
 
         private static List<GenericMaterial> AllMaterialsPool = new List<GenericMaterial>();
-        private static MaterialsBuffer Buffer = new MaterialsBuffer();
+        //private static MaterialsBuffer Buffer = new MaterialsBuffer();
 
         public ShaderProgram CustomShaderProgram = null;
 
@@ -59,16 +59,6 @@ namespace VEngine
         {
             AllMaterialsPool.Remove(this);
             //Buffer.Update(AllMaterialsPool);
-        }
-
-        public static void UpdateMaterialsBuffer()
-        {
-            Buffer.Update(AllMaterialsPool);
-        }
-
-        public static void UseBuffer(uint point)
-        {
-            Buffer.UseBuffer(point);
         }
 
         public GenericMaterial(Vector3 color)
@@ -155,11 +145,42 @@ namespace VEngine
                 lastUserProgram = ShaderProgram.Current;
             ShaderProgram.SwitchResult res = prg.Use();
 
-            prg.SetUniform("MaterialIndex", BufferOffset);
+            //prg.SetUniform("MaterialIndex", BufferOffset);
             prg.SetUniform("IsTessellatedTerrain", Type == MaterialType.TessellatedTerrain);
             prg.SetUniform("TessellationMultiplier", TessellationMultiplier);
             prg.SetUniform("InvertUVy", InvertUVy);
             prg.SetUniform("IsBillboard", IsBillboard);
+
+            prg.SetUniform("SpecularColor", SpecularColor);
+            prg.SetUniform("DiffuseColor", DiffuseColor);
+            prg.SetUniform("ParallaxHeightMultiplier", ParallaxHeightMultiplier);
+            prg.SetUniform("Roughness", Roughness);
+            prg.SetUniform("Alpha", Alpha);
+
+            prg.SetUniform("NormalTexEnabled", NormalsTexture != null);
+            prg.SetUniform("BumpTexEnabled", BumpTexture != null);
+            prg.SetUniform("AlphaTexEnabled", AlphaTexture != null);
+            prg.SetUniform("RoughnessTexEnabled", RoughnessTexture != null);
+            prg.SetUniform("DiffuseTexEnabled", DiffuseTexture != null);
+            prg.SetUniform("SpecularTexEnabled", SpecularTexture != null);
+
+            if(NormalsTexture != null)
+                NormalsTexture.Use(prg.getConstInt("normalsTexBind"));
+
+            if(BumpTexture != null)
+                BumpTexture.Use(prg.getConstInt("bumpTexBind"));
+
+            if(AlphaTexture != null)
+                AlphaTexture.Use(prg.getConstInt("alphaTexBind"));
+
+            if(RoughnessTexture != null)
+                RoughnessTexture.Use(prg.getConstInt("roughnessTexBind"));
+
+            if(DiffuseTexture != null)
+                DiffuseTexture.Use(prg.getConstInt("diffuseTexBind"));
+
+            if(SpecularTexture != null)
+                SpecularTexture.Use(prg.getConstInt("specularTexBind"));
 
             return true;
         }

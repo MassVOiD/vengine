@@ -28,44 +28,6 @@ uniform mat4 SunMatricesV[MAX_SUN_CASCADES];
 
 uniform int Instances;
 
-struct Material{
-	vec4 diffuseColor;
-	vec4 specularColor;
-	vec4 roughnessAndParallaxHeightAndAlpha;
-	
-	uvec2 diffuseAddr;
-	uvec2 specularAddr;
-	uvec2 alphaAddr;
-	uvec2 roughnessAddr;
-	uvec2 bumpAddr;
-	uvec2 normalAddr;
-};
-
-layout (std430, binding = 7) buffer MatBuffer
-{
-  Material Materials[]; 
-};
-uniform int MaterialIndex;
-
-Material getCurrentMaterial(){
-	//return Materials[MaterialIndex];
-	Material mat = Material(
-		Materials[MaterialIndex].diffuseColor,
-		Materials[MaterialIndex].specularColor,
-		Materials[MaterialIndex].roughnessAndParallaxHeightAndAlpha,
-		
-		Materials[MaterialIndex].diffuseAddr,
-		Materials[MaterialIndex].specularAddr,
-		Materials[MaterialIndex].alphaAddr,
-		Materials[MaterialIndex].roughnessAddr,
-		Materials[MaterialIndex].bumpAddr,
-		Materials[MaterialIndex].normalAddr
-	);
-	return mat;
-}
-
-Material currentMaterial = getCurrentMaterial();
-
 struct ModelInfo{
 	vec4 Rotation;
 	vec3 Translation;
@@ -91,11 +53,11 @@ vec3 transform_vertex(int info, vec3 vertex){
 uniform vec3 CameraPosition;
 //uniform vec3 CameraDirection;
 uniform float Time;
-
+uniform float Brightness;
+/*
 #define SpecularColor currentMaterial.specularColor.xyz
 #define DiffuseColor currentMaterial.diffuseColor.xyz
 
-uniform float Brightness;
 
 #define UseNormalsTex (currentMaterial.normalAddr.x > 0)
 #define UseBumpTex (currentMaterial.bumpAddr.x > 0)
@@ -115,8 +77,29 @@ uniform float Brightness;
 
 #define Roughness currentMaterial.roughnessAndParallaxHeightAndAlpha.x
 #define ParallaxHeightMultiplier currentMaterial.roughnessAndParallaxHeightAndAlpha.y
-#define Alpha currentMaterial.roughnessAndParallaxHeightAndAlpha.z
+#define Alpha currentMaterial.roughnessAndParallaxHeightAndAlpha.z*/
 //uniform float Metalness;
+
+uniform vec3 SpecularColor;
+uniform vec3 DiffuseColor;
+
+uniform float Roughness;
+uniform float ParallaxHeightMultiplier;
+uniform float Alpha;
+
+uniform int NormalTexEnabled;
+uniform int BumpTexEnabled;
+uniform int AlphaTexEnabled;
+uniform int RoughnessTexEnabled;
+uniform int DiffuseTexEnabled;
+uniform int SpecularTexEnabled;
+
+#define UseNormalsTex (NormalTexEnabled > 0)
+#define UseBumpTex (BumpTexEnabled > 0)
+#define UseAlphaTex (AlphaTexEnabled > 0)
+#define UseRoughnessTex (RoughnessTexEnabled > 0)
+#define UseDiffuseTex (DiffuseTexEnabled > 0)
+#define UseSpecularTex (SpecularTexEnabled > 0)
 
 uniform vec2 resolution;
 float ratio = resolution.y/resolution.x;

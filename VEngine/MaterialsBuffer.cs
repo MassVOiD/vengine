@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using OpenTK.Graphics.OpenGL4;
 
 namespace VEngine
-{
+{/*
     class MaterialsBuffer
     {
         ShaderStorageBuffer Buffer;
@@ -47,25 +47,6 @@ namespace VEngine
         }
         private byte[] SerializeMaterial(GenericMaterial mat)
         {
-            /*
-            vec4 diff 16
-            vec4 spec 16
-            float roughness 4
-            float parallax height 4
-            float roughness 4
-            float roughness 4
-
-            uvec2 dif 8
-            uvec2 spec 8
-
-            uvec2 aplh 8
-            uvec2 rough 8
-
-            uvec2 bump 8
-            uvec2 norm 8
-
-            totals 96 bytes
-            */
             byte[] bytes = new byte[96];
             Array.Clear(bytes, 0, 96);
             int cursor = 0;
@@ -116,8 +97,8 @@ namespace VEngine
             cursor += 8;
 
             return bytes;
-        }
 
 
     }
+        }*/
 }

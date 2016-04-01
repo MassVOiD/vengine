@@ -107,8 +107,7 @@ namespace ShadowsTester
 
                 points.UpdateMatrix();
                 scene.Add(points);
-
-                GenericMaterial.UpdateMaterialsBuffer();
+                
             });
         }
     }

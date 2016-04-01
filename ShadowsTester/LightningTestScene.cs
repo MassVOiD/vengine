@@ -258,7 +258,6 @@ namespace ShadowsTester
                 scene.Add(terrainMesh);*/
 
                 // DynamicCubeMapController.Create();
-                GenericMaterial.UpdateMaterialsBuffer();
             });
         }
     }

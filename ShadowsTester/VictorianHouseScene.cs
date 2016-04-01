@@ -73,7 +73,6 @@ namespace ShadowsTester
                         }
 
                         o.GetLodLevel(0).Info3d.Manager = null;
-                        GenericMaterial.UpdateMaterialsBuffer();
                     });
                 }
             };

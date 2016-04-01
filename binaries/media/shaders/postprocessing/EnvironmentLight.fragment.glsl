@@ -9,7 +9,7 @@ uniform float VDAOGlobalMultiplier;
 FragmentData currentFragment;
 
 #include Lighting.glsl
-vec2 UV = gl_FragCoord.xy / textureSize(deferredTex, 0);
+vec2 UV = gl_FragCoord.xy / resolution;
 #include UsefulIncludes.glsl
 #include Shade.glsl
 #include EnvironmentLight.glsl

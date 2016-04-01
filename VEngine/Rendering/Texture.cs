@@ -180,6 +180,15 @@ namespace VEngine
             GL.ActiveTexture(unit);
             GL.BindTexture(ImageTextureTarget, Handle);
         }
+        public void Use(int unit)
+        {
+            if(!Generated)
+            {
+                Generate();
+            }
+            GL.ActiveTexture(TextureUnit.Texture0 + unit);
+            GL.BindTexture(ImageTextureTarget, Handle);
+        }
 
         public void UseBindlessHandle(string name)
         {

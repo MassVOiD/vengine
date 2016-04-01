@@ -92,7 +92,7 @@ namespace VEngine
         {
             GlareTexture = new Texture(Media.Get("glaretex.png"));
 
-            //Voxelizer = new Voxel3dTextureWriter(256, 256, 256, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
+            Voxelizer = new Voxel3dTextureWriter(256, 256, 256, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
 
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
@@ -345,9 +345,7 @@ namespace VEngine
             Camera.Current.SetUniforms();
 
             MRT.UseTextures(1, 2, 3, 15);
-
-            GenericMaterial.UseBuffer(7);
-
+            
             //SetCubemapsUniforms();
 
             shader.SetUniform("CameraPosition", Camera.Current.Transformation.GetPosition());
@@ -507,7 +505,7 @@ namespace VEngine
             CombinerFramebuffer.Use();
 
             DeferredFramebuffer.UseTexture(CombinerShader.getConstInt("deferredTexBinding"));
-            EnvLightFramebuffer.UseTexture(10);
+            EnvLightFramebuffer.UseTexture(8);
             BloomYPass.UseTexture(11);
             CubeMaps[0].Texture.Use(TextureUnit.Texture23);
             FogFramebuffer.UseTexture(13);

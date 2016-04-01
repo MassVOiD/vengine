@@ -138,7 +138,6 @@ namespace ShadowsTester
                 lucy.GetLodLevel(0).Material.DiffuseColor = new Vector3(1.0f);
 
                 //DynamicCubeMapController.Create();
-                GenericMaterial.UpdateMaterialsBuffer();
             });
 
 
