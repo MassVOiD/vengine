@@ -24,7 +24,7 @@ namespace VEngine
             CubeMediumQuality = new CubeMapDepthFramebuffer(512, 512);
             CubeLowQuality = new CubeMapDepthFramebuffer(256, 256);
 
-            SpotHighQuality = new Framebuffer(2048, 2048, true);
+            SpotHighQuality = new Framebuffer(1024, 1024, true);
             SpotMediumQuality = new Framebuffer(1024, 1024, true);
             SpotLowQuality = new Framebuffer(512, 512, true);
 

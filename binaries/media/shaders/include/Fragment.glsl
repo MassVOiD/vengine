@@ -41,6 +41,7 @@ uniform int IsTessellatedTerrain;
 void main(){
 	//outColor = vec4(1.0);
 	//return;
+    
 	vec3 norm = normalize(Input.Normal);
 	FragmentData currentFragment = FragmentData(
 		DiffuseColor,
