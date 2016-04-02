@@ -77,7 +77,7 @@ namespace GLSLLint
                     Console.WriteLine("File: " + file);
                     Console.WriteLine(compilationResult.Trim());
                     string[] errors = compilationResult.Split('\n');
-                    var codes = src.Split('\n');
+                    var codes = fullsrc.Split('\n');
                     foreach(var line in errors)
                     {
                         // if(line.StartsWith("ERROR"))
@@ -130,6 +130,7 @@ namespace GLSLLint
             string directory = args[0];
             var linter = new Linter();
             CompileRecurse(linter, directory);
+            Console.WriteLine("VEngine Lint program finished");
         }
     }
 }

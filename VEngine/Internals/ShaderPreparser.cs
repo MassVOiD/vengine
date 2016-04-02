@@ -13,7 +13,7 @@ namespace VEngine
             {
                 string includeFile = Preparse(match.Groups[1].Value.Trim(), Media.ReadAllText(match.Groups[1].Value.Trim()), exportedConsts);
                 source = source.Remove(match.Index, match.Length);
-                source = source.Insert(match.Index, "#line 1\r\n" + includeFile + "\r\n");
+                source = source.Insert(match.Index, includeFile + "\r\n");
                 match = includeMatcher.Match(source);
             }
 
@@ -30,14 +30,14 @@ namespace VEngine
             }
 
             List<string[]> regexes = new List<string[]>();
-            Regex regexReplaceMatcher = new Regex("\\#pragma regex replace (.+?) with (.+?)");
+            Regex regexReplaceMatcher = new Regex("\\#pragma regex replace (.+?) with (.+)\n");
             match = regexReplaceMatcher.Match(source);
             while(match.Success)
             {
                 string from = match.Groups[1].Value.Trim();
-                string to= match.Groups[2].Value.Trim(); 
-                match = regexReplaceMatcher.Match(source);
+                string to= match.Groups[2].Value.Trim();
                 source = source.Remove(match.Index, match.Length);
+                match = regexReplaceMatcher.Match(source);
                 regexes.Add(new string[] { from, to });
             }
 
@@ -56,7 +56,7 @@ namespace VEngine
                     included.Add(file);
                     string includeFile = Preparse(match.Groups[1].Value.Trim(), Media.ReadAllText(match.Groups[1].Value.Trim()), exportedConsts);
                     source = source.Remove(match.Index, match.Length);
-                    source = source.Insert(match.Index, "#line 1\r\n" + includeFile + "\r\n");
+                    source = source.Insert(match.Index, includeFile + "\r\n");
                     match = includeMatcher.Match(source);
                 }
             }
@@ -78,7 +78,8 @@ namespace VEngine
             string[] split = content.Split('\n');
             for(int i = 0; i < split.Length; i++)
             {
-                split[i] = split[i] + " //" + srcFile + ":" + (i + 1).ToString();
+                string info = string.Format("//L[{0}]F[{1}]", i+1, srcFile);
+                split[i] = split[i] + info;
             }
             return string.Join("\r\n", split);
         }

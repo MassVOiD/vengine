@@ -62,11 +62,20 @@ namespace VEngine
             */
             TextureCount = new Texture3D(gridsizeX, gridsizeY, gridsizeZ);
 
+            /*
+            TEXTURE LAYOUT:
+            1 - Initial - RES / 1 - 256
+            2 - Blurred 2 PX 1 res / 2 128
+            3 - Blurred 2 PX 2 res / 2 64
+            4 - Blurred 2 PX 3 res / 2 32
+            */
+
             TextureResolvedMipMaps = new List<Texture3D>();
             int szx = gridsizeX;
             int szy = gridsizeY;
             int szz = gridsizeZ;
-            while(szx > 8 && szy > 8 && szz > 8)
+            //while(szx > 8 && szy > 8 && szz > 8)
+            for(int i=0;i<4;i++)
             {
                 TextureResolvedMipMaps.Add(new Texture3D(szx, szy, szz)
                 {

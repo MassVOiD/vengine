@@ -183,38 +183,46 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
        // w = max(0, w);
         blurness = blurness * 0.5;
         st += 0.1;
-    }
-    for(int g=0;g<2;g++){
-        vec3 c = csp + direction * (st * st + 0.02) * 0.7;
-        vec4 rc = textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0) ;
-        res += w * rc.rgb;
-     //   w -= min(rc.a, 1.0) * 1.4 * st;
-     //   w = max(0, w);
-        blurness = blurness * 0.5;
-        st += 0.1;
     }*/
-    for(int g=0;g<6;g++){
+    for(int g=0;g<3;g++){
         vec3 c = csp + direction * (st * st + 0.02) * 0.7;
         vec4 rc = textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0) ;
         //float aa = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0).a ;
-        res += w * rc.rgb;
-        //w -= min(aa, 1.0) * 21.4 * st;
-        //w = max(0, w);
-        //if(w == 0) break;
-        blurness = blurness * 0.5;
-        st += 0.02;
+        res += rc.rgb;
+        st += 0.03;
     }
-    for(int g=0;g<6;g++){
-        vec3 c = csp + direction * (st  + 0.02) * 0.7;
+    for(int g=0;g<3;g++){
+        vec3 c = csp + direction * (st * st  + 0.02) * 0.7;
         vec4 rc = textureLod(voxelsTex3, clamp(c, 0.0, 1.0), 0) ;
         res += rc.rgb * 3;
-        //w -= min(rc.a, 1.0) * 4.4 * st;
-       // w = max(0, w);
-        blurness = blurness * 0.5;
-        st += 0.02;
+        st += 0.1;
     }
+    for(int g=0;g<3;g++){
+        vec3 c = csp + direction * (st * st  + 0.02) * 0.7;
+        vec4 rc = textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0) ;
+        res += rc.rgb * 3;
+        st += 0.1;
+    }/*
+    for(int g=0;g<4;g++){
+        vec3 c = csp + direction * (st  + 0.02) * 0.7;
+        vec4 rc = textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0) ;
+        res += w * rc.rgb;
+        w -= min(rc.a, 1.0) * 5.4 * st;
+        w = max(0, w);
+        blurness = blurness * 0.5;
+        st += 0.03;
+    }
+    for(int g=0;g<4;g++){
+        vec3 c = csp + direction * (st + 0.02) * 0.7;
+        vec4 rc = textureLod(voxelsTex5, clamp(c, 0.0, 1.0), 0) ;
+        res += w * rc.rgb;
+        w -= min(rc.a, 1.0) * 5.4 * st;
+        w = max(0, w);
+        blurness = blurness * 0.5;
+        st += 0.03;
+    }*/
     
-    return  res * 0.25;
+    return res * 0.2;
 }
 
 vec3 traceConeDiffuse(FragmentData data){
@@ -226,22 +234,28 @@ vec3 traceConeDiffuse(FragmentData data){
     
     vec3 voxelspace = getMapCoordWPos(data.worldPos);
     
-    for(int i=0;i<10;i++){
+    float w = 0.0;
+    
+    vec3 nr = quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal);
+    
+    for(int i=0;i<4;i++){
         vec3 rd = vec3(
             rand2s(UV + iter1),
             rand2s(UV + iter2),
             rand2s(UV + iter3)
         ) * 2.0 - 1.0;
-        rd = faceforward(rd, -rd, data.normal);
+        rd = faceforward(rd, -rd, nr);
         
         buf += traceConeSingle(data.worldPos, normalize(rd));
         
         iter1 += 0.0031231;
         iter2 += 0.0021232;
         iter3 += 0.0041246;
+        w += 1.0;
     }
-    return buf * 0.1 * data.diffuseColor;
+    return (buf / w) * data.diffuseColor;
 }
+
 void main(){
 	vec3 norm = normalize(Input.Normal);
 //	norm = faceforward(norm, norm, normalize(ToCameraSpace(Input.WorldPos)));
@@ -296,7 +310,7 @@ void main(){
     vec3 hafbox = ToCameraSpace(Input.WorldPos) / BoxSize;
     hafbox = clamp(hafbox, -1.0, 1.0);
     
-    WriteData3d(hafbox * 0.5 + 0.5, traceConeDiffuse(currentFragment)  +  max(vec3(0.0), currentFragment.diffuseColor - 1.0) + ApplyLighting(currentFragment, 0) + currentFragment.diffuseColor * 0.01,  quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal));
+    WriteData3d(hafbox * 0.5 + 0.5,  traceConeDiffuse(currentFragment) + max(vec3(0.0), currentFragment.diffuseColor - 1.0) + ApplyLighting(currentFragment, 0) + currentFragment.diffuseColor * 0.0,  quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal));
 	
 	outColor = vec4(1,1,1, 0.2);
 }
