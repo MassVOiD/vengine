@@ -36,9 +36,9 @@ void main()
 		specularBumpData.a
 	);	
     
-    vec3 ao = traceConeAOx(currentFragment);
-    color +=  traceConeDiffuse(currentFragment) * ao;
-    color +=  traceConeSpecular(currentFragment) * specularBumpData.rgb * mix(vec3(1), ao, currentFragment.roughness);
+   // vec3 ao = traceConeAOx(currentFragment);
+    color +=  traceConeDiffuse(currentFragment);
+    color +=  traceConeSpecular(currentFragment) * specularBumpData.rgb;// * mix(vec3(1), ao, currentFragment.roughness);
    // color += debugVoxel();
     /*
     color = traceVisDir(vec3(-2, 1, 0)) 

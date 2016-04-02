@@ -80,16 +80,6 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
     float blurness = 0.7;
     
     st = 0.0;
-    /*
-    for(int g=0;g<2;g++){
-        vec3 c = csp + direction * (st * st + 0.02) * 0.7;
-        vec4 rc = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0) ;
-        res += w * rc.rgb;
-       // w -= min(rc.a, 1.0) * 1.4 * st;
-       // w = max(0, w);
-        blurness = blurness * 0.5;
-        st += 0.1;
-    }*/
     for(int g=0;g<3;g++){
         vec3 c = csp + direction * (st * st + 0.02) * 0.7;
         vec4 rc = textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0) ;
@@ -108,26 +98,33 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
         vec4 rc = textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0) ;
         res += rc.rgb * 3;
         st += 0.1;
-    }/*
-    for(int g=0;g<4;g++){
-        vec3 c = csp + direction * (st  + 0.02) * 0.7;
-        vec4 rc = textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0) ;
-        res += w * rc.rgb;
-        w -= min(rc.a, 1.0) * 5.4 * st;
-        w = max(0, w);
-        blurness = blurness * 0.5;
-        st += 0.03;
     }
-    for(int g=0;g<4;g++){
-        vec3 c = csp + direction * (st + 0.02) * 0.7;
-        vec4 rc = textureLod(voxelsTex5, clamp(c, 0.0, 1.0), 0) ;
-        res += w * rc.rgb;
-        w -= min(rc.a, 1.0) * 5.4 * st;
-        w = max(0, w);
-        blurness = blurness * 0.5;
-        st += 0.03;
-    }*/
+    return res * 0.2;
+}
+float traceConeSingleAO(vec3 wposOrigin, vec3 direction){ 
+    vec3 csp = getMapCoordWPos(wposOrigin);
+
+    float res = 0;
+    float st = 0.04;
+    float w = 1.0;
+    float blurness = 0.7;
     
+    st = 0.0;
+    for(int g=0;g<3;g++){
+        vec3 c = csp + direction * (st * st + 0.01) * 0.6;
+        vec4 rc = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0) ;
+        //float aa = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0).a ;
+        res += rc.a;
+        st += 0.06;
+    } 
+    st = 0.04;
+    for(int g=0;g<3;g++){
+        vec3 c = csp + direction * (st * st + 0.03) * 0.6;
+        vec4 rc = textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0) ;
+        //float aa = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0).a ;
+        res += rc.a * 2;
+        st += 0.06;
+    } 
     return res * 0.2;
 }
 
@@ -230,31 +227,34 @@ vec3 traceConeSpecular(FragmentData data){
 }
 
 vec3 traceConeAOx(FragmentData data){ 
-    //vec3 csp = reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a) / Voxelize_BoxSize;///Voxelize_BoxSize;
-    vec3 csp = getMapCoord(UV);
-    vec3 center = csp;
+    float iter1 = 0.0;
+    float iter2 = 1.1112;
+    float iter3 = 0.4565;
+    float buf = 0;
+    vec2 uvx = vec2(0,1);
     
-    vec3 norm = normalize(textureMSAA(normalsDistancetex, UV, 0).rgb);
-	float roughness = max(0.01, textureMSAA(albedoRoughnessTex, UV, 0).a);
-    vec3 dir =   normalize(textureMSAA(normalsDistancetex, UV, 0).rgb);
-    float w = 1.0;
-    vec3 res = vec3(0);
-    float st = 0.001;
-    float blurness = 0.8;
-    float rg2 =  sqrt( roughness);
-    rg2 = ((1.0 - smoothstep(0.5, 1.0, rg2)) * 0.9 + 0.1);
-    for(int i=0;i < 10;i++){
-        vec3 c = center + dir * (st * st + 0.03 ) * 0.4;
+    
+    vec3 voxelspace = getMapCoordWPos(data.worldPos);
+    //float c = textureLod(voxelsTex2, voxelspace, 0).a;
+    
+    float w = 0.0;
+    
+    for(int i=0;i<28;i++){
+        vec3 rd = vec3(
+            rand2s(UV + iter1),
+            rand2s(UV + iter2),
+            rand2s(UV + iter3)
+        ) * 2.0 - 1.0;
+        rd = faceforward(rd, -rd, data.normal);
         
-        vec4 rc = sampleCone(clamp(c, 0.0, 1.0), blurness);
-        res += min(rc.a, 10.0);
-      //  w -= min(rc.a, 1.0) * st;
-       // w = max(0, w);
-       // if(w == 0.0) { break;  }
-        blurness = blurness * 0.7;
-        st += 0.03;
+        buf += traceConeSingleAO(data.worldPos, normalize(rd)) * 0.3;
+        
+        iter1 += 0.0031231;
+        iter2 += 0.0021232;
+        iter3 += 0.0041246;
+        w += 1.0;
     }
-    return max(vec3(0.0), 1.0 - res * 0.01);
+    return vec3(1.0 - buf / w);
 }
 vec3 traceConeAO(){ 
     //vec3 csp = reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a) / Voxelize_BoxSize;///Voxelize_BoxSize;
