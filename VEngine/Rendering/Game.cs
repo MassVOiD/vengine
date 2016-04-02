@@ -59,11 +59,11 @@ namespace VEngine
                 SetCurrentThreadCores(2);
                 DisplayAdapter = new VEngineWindowAdapter("VEngine App", resolution.Width, resolution.Height, flags);
 
-                DisplayAdapter.MainRenderer.GraphicsSettings.UseDeferred = true;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseDeferred = false;
                 DisplayAdapter.MainRenderer.GraphicsSettings.UseRSM = false;
-                DisplayAdapter.MainRenderer.GraphicsSettings.UseVDAO = true;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseVDAO = false;
                 DisplayAdapter.MainRenderer.GraphicsSettings.UseFog = false;
-                DisplayAdapter.MainRenderer.GraphicsSettings.UseBloom = true;
+                DisplayAdapter.MainRenderer.GraphicsSettings.UseBloom = false;
                 DisplayAdapter.MainRenderer.GraphicsSettings.UseCubeMapGI = false;
 
                 DisplayAdapter.CursorVisible = false;

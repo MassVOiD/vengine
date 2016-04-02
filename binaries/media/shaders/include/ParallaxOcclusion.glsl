@@ -36,7 +36,8 @@ vec2 adjustParallaxUV(){
    float heightFromTexture = 1.0 - texture(bumpTex, currentTextureCoords).r;
 
    // while point is above the surface
-   while(heightFromTexture > curLayerHeight) 
+   int cnt = int(numLayers);
+   while(heightFromTexture > curLayerHeight && cnt-- >= 0) 
    {
       // to the next layer
       curLayerHeight += layerHeight; 

@@ -62,7 +62,6 @@ layout(binding = 27) uniform sampler3D voxelsTex3;
 layout(binding = 28) uniform sampler3D voxelsTex4;
 layout(binding = 29) uniform sampler3D voxelsTex5;
 layout(binding = 30) uniform sampler3D voxelsTex6;
-layout(binding = 31) uniform sampler3D voxelsTex7;
 //layout(binding = 26) uniform sampler2D voxelsTexTest;
 
 //layout(binding = 8) uniform sampler2D distanceTex;
