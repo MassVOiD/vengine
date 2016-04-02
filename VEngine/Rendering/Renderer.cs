@@ -92,7 +92,7 @@ namespace VEngine
         {
             GlareTexture = new Texture(Media.Get("glaretex.png"));
 
-            Voxelizer = new Voxel3dTextureWriter(256, 256, 256, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
+            Voxelizer = new Voxel3dTextureWriter(96, 96, 96, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
 
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 

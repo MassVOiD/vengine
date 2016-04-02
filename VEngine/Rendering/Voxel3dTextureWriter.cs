@@ -140,6 +140,8 @@ namespace VEngine
             for(int i = 0; i < Shader.ProgramsList.Length; i++)
             {
                 var s = Shader.ProgramsList[i];
+                if(!s.Compiled)
+                    continue;
                 s.Use();
                 s.SetUniform("GridSizeX", GridSizeX);
                 s.SetUniform("GridSizeY", GridSizeY);

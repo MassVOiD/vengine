@@ -292,7 +292,7 @@ vec3 traceVisDir(vec3 pos){
         stepper += 1.0 / 30.0;
     }
     //vis = 1.0 - vis;
-    vis = 1.0 - smoothstep(8, 16.0, vis);
+    vis = 1.0 - smoothstep(8.0, 16.0, vis);
     return vec3(1) * vis;
 }
 

@@ -1,16 +1,12 @@
 #version 430 core
 
-#define MMBuffer m1mbbf
+//#define MMBuffer m1mbbf
 
 layout(location = 0) out vec4 outColor;
 
 layout (binding = 6, r32ui)  uniform uimage3D VoxelsTextureRed;
 layout (binding = 1, r32ui)  uniform uimage3D VoxelsTextureGreen;
 layout (binding = 2, r32ui)  uniform uimage3D VoxelsTextureBlue;
-
-layout (binding = 7, r32i)  uniform iimage3D VoxelsTextureNormalX;
-layout (binding = 8, r32i)  uniform iimage3D VoxelsTextureNormalY;
-layout (binding = 9, r32i)  uniform iimage3D VoxelsTextureNormalZ;
 
 layout (binding = 3, r32ui)  uniform uimage3D VoxelsTextureCount;
 uniform vec3 BoxSize;

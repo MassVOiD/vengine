@@ -263,8 +263,8 @@ float AO(
 	vec3 normalcenter = textureMSAA(originalNormalsTex, UV, 0).rgb;
 	
     mat2 RM = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
-    for(int g=0;g < xsamples.length();g+=quality){
-		vec2 nuv = UV + (xsamples[g] * multiplier);
+    for(int g=0;g < aoSamplesSpeed.length();g+=quality){
+		vec2 nuv = UV + ((aoSamplesSpeed[g] * 2.0 - 1.0 ) * multiplier);
 		//if(nuv.x > 1.0 || nuv.x < 0.0 || nuv.y > 1.0 || nuv.y<0.0) continue;
         float aondata = textureMSAA(originalNormalsTex, nuv, 0).a;
         vec3 normdata = textureMSAA(originalNormalsTex, nuv, 0).rgb;
@@ -284,14 +284,14 @@ float AO(
 		outc += (occ) * fact;
     
     }
-    return clamp(1.0 - max(0, (outc / (xsamples.length()/quality))), 0.0, 1.0);
+    return clamp(1.0 - max(0, (outc / (aoSamplesSpeed.length()/quality))), 0.0, 1.0);
   //  return 1.0 - outc / (xsamples.length()/quality);
 }
 
 
 float AmbientOcclusion(FragmentData data){
     float ao = 0;//AmbientOcclusionSingle(position, normal, roughness, 0.1);
-    ao = AO(data.worldPos, data.cameraPos, vec3(0,1,0), data.roughness, 1.4, 4);
+    ao = AO(data.worldPos, data.cameraPos, vec3(0,1,0), data.roughness, 1.4, 1);
     //ao *= AO(data.worldPos, data.cameraPos, data.normal, data.roughness, 0.3, 5);
    // ao *= pow(AO(data.worldPos, data.normal, data.roughness, 8.0, 4), 5);
     return pow(ao, 7.5);
