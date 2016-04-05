@@ -20,6 +20,7 @@ If you want to check out how does it behave - Run Tester project binaries with c
 
 The software is licensed under MIT license - so do what you want.
 
+![A screenshot](http://i.imgur.com/VfIlCqS.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/WKgLcO3.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/UkP5wnX.jpg "Screenshot")
 ![A screenshot](http://i.imgur.com/WKzLA1x.jpg "Screenshot")
