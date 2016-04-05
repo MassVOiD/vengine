@@ -16,7 +16,7 @@ namespace VEngine
     {
         public PrimitiveType DrawMode = PrimitiveType.Triangles;
 
-        private float[] VBO;
+        public float[] VBO;
 
         public bool WireFrameRendering = false;
 

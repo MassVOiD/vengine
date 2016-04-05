@@ -60,6 +60,23 @@ vec3 getTangent(vec3 v){
 }
 
 
+vec3 normalSeekLut[] = vec3[](
+    vec3(-1, 0, 0),
+    vec3(1, 0, 0),
+    vec3(0, 1, 0),
+    vec3(0, -1, 0),
+    vec3(0, 0, 1),
+    vec3(0, 0, -1)
+);
+vec3 VoxelSize = 1.0 / vec3(Voxelize_GridSizeX, Voxelize_GridSizeY, Voxelize_GridSizeZ);
+float VoxelCut = length(VoxelSize);
+vec3 approxNormal(vec3 voxspace, vec3 opposite){
+    vec3 v = vec3(0);
+    for(int i=0;i<normalSeekLut.length();i++) 
+        v += textureLod(voxelsTex1, voxspace + normalSeekLut[i] * VoxelSize, 0).a * normalSeekLut[i];
+    return length(v) == 0.0 ? opposite : normalize(v);
+}
+
 mat3 rotationMatrix(vec3 axis, float angle)
 {
 	axis = normalize(axis);
@@ -80,26 +97,14 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
     float blurness = 0.7;
     
     st = 0.0;
-    for(int g=0;g<3;g++){
-        vec3 c = csp + direction * (st * st + 0.02) * 0.7;
-        vec4 rc = textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0) ;
-        //float aa = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0).a ;
-        res += rc.rgb;
-        st += 0.03;
-    }
-    for(int g=0;g<3;g++){
-        vec3 c = csp + direction * (st * st  + 0.02) * 0.7;
+    for(int g=0;g<12;g++){
+        vec3 c = csp + direction * (st * st + 0.02) * 0.9;
         vec4 rc = textureLod(voxelsTex3, clamp(c, 0.0, 1.0), 0) ;
-        res += rc.rgb * 3;
-        st += 0.1;
-    }
-    for(int g=0;g<3;g++){
-        vec3 c = csp + direction * (st * st  + 0.02) * 0.7;
-        vec4 rc = textureLod(voxelsTex4, clamp(c, 0.0, 1.0), 0) ;
-        res += rc.rgb * 3;
-        st += 0.1;
-    }
-    return res * 0.2;
+        //float aa = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0).a ;
+        st += 0.050;
+        res += rc.rgb / (1.0 + st * Voxelize_BoxSize.x);
+    } 
+    return res * 5;
 }
 float traceConeSingleAO(vec3 wposOrigin, vec3 direction){ 
     vec3 csp = getMapCoordWPos(wposOrigin);
@@ -122,18 +127,66 @@ float traceConeSingleAO(vec3 wposOrigin, vec3 direction){
         vec3 c = csp + direction * (st * st + 0.03) * 0.6;
         vec4 rc = textureLod(voxelsTex2, clamp(c, 0.0, 1.0), 0) ;
         //float aa = textureLod(voxelsTex1, clamp(c, 0.0, 1.0), 0).a ;
-        res += rc.a * 2;
+        res += rc.a ;
         st += 0.06;
     } 
-    return res * 0.2;
+    return res * 1;
+}
+
+vec3 raytrace(vec3 voxelorigin, vec3 dir){
+    vec3 c = voxelorigin + dir * 0.015;
+    vec3 res = vec3(0);
+    for(int i=0;i<128;i++){
+        c += dir * 0.002;
+        if(clamp(c, 0.0, 1.0) != c) break;
+        vec4 rc = textureLod(voxelsTex1, c, 0);
+        if(rc.a > 0.0) { 
+            res = rc.rgb; 
+            break;
+        }
+    }
+    return res;
 }
 
 vec3 traceConeDiffuse(FragmentData data){
+    float iter1 = 0.0 + Time;
+    float iter2 = 1.1112+ Time;
+    float iter3 = 0.4565+ Time;
+    vec3 buf = vec3(0);
+    vec2 uvx = vec2(0,1);
+    vec3 dir = normalize(mix(normalize(reflect(reconstructCameraSpace(UV), textureMSAA(normalsDistancetex, UV, 0).rgb)), normalize(textureMSAA(normalsDistancetex, UV, 0).rgb), data.roughness * data.roughness));
+    
+    vec3 voxelspace = getMapCoordWPos(data.worldPos);
+    
+    float w = 0.0;
+    
+    for(int i=0;i<2;i++){
+        vec3 rd = vec3(
+            rand2s(UV + iter1),
+            rand2s(UV + iter2),
+            rand2s(UV + iter3)
+        ) * 2.0 - 1.0;
+        rd = faceforward(rd, -rd, data.normal);
+        rd = mix(dir, rd, data.roughness);
+        
+        buf += raytrace(voxelspace, normalize(rd))
+        * max(0, dot(rd, data.normal));
+        
+        iter1 += 0.0031231;
+        iter2 += 0.0021232;
+        iter3 += 0.0041246;
+        w += 1.0;
+    }
+    return (buf / w) * data.diffuseColor;
+}
+
+vec3 traceConeDiffusePrecise(FragmentData data){
     float iter1 = 0.0;
     float iter2 = 1.1112;
     float iter3 = 0.4565;
     vec3 buf = vec3(0);
     vec2 uvx = vec2(0,1);
+    vec3 dir = normalize(mix(normalize(reflect(reconstructCameraSpace(UV), textureMSAA(normalsDistancetex, UV, 0).rgb)), normalize(textureMSAA(normalsDistancetex, UV, 0).rgb), data.roughness * data.roughness));
     
     vec3 voxelspace = getMapCoordWPos(data.worldPos);
     
@@ -146,8 +199,24 @@ vec3 traceConeDiffuse(FragmentData data){
             rand2s(UV + iter3)
         ) * 2.0 - 1.0;
         rd = faceforward(rd, -rd, data.normal);
+        rd = mix(dir, rd, data.roughness * 0.9 + 0.1);
         
-        buf += traceConeSingle(data.worldPos, normalize(rd));
+       // buf += traceConeSingle(data.worldPos, normalize(rd));
+        vec4 res = vec4(0);
+        vec3 c = vec3(0);
+        float st = 0.02;
+        float wx = 1.0;
+        float blurness = 0.7;
+
+        st = 0.0;
+        for(int g=0;g<20;g++){
+            c = voxelspace + rd * (st * st + 0.02) * 0.7;
+            res = textureLod(voxelsTex3, clamp(c, 0.0, 1.0), 0) ;
+            buf += res.rgb * 11;
+            wx -= res.a * 0.05;
+            st += 0.05;
+        } 
+       // buf += res.rgb * 100 ;//* max(0, dot(approxNormal(c, data.normal), data.normal));
         
         iter1 += 0.0031231;
         iter2 += 0.0021232;
@@ -175,23 +244,6 @@ vec3 traceDiffuseVoxelInvariant(vec3 csp){
     return res * 0.9;
 }
 
-vec3 normalSeekLut[] = vec3[](
-    vec3(-1, 0, 0),
-    vec3(1, 0, 0),
-    vec3(0, 1, 0),
-    vec3(0, -1, 0),
-    vec3(0, 0, 1),
-    vec3(0, 0, -1)
-);
-vec3 VoxelSize = 1.0 / vec3(Voxelize_GridSizeX, Voxelize_GridSizeY, Voxelize_GridSizeZ);
-float VoxelCut = length(VoxelSize);
-vec3 approxNormal(vec3 voxspace, vec3 opposite){
-    vec3 v = vec3(0);
-    for(int i=0;i<normalSeekLut.length();i++) 
-        v += textureLod(voxelsTex1, voxspace + normalSeekLut[i] * VoxelSize, 0).a * normalSeekLut[i];
-    return length(v) == 0.0 ? opposite : normalize(v);
-}
-
 vec3 traceConeSpecular(FragmentData data){ 
     //vec3 csp = reconstructCameraSpaceDistance(UV, textureMSAAFull(normalsDistancetex, UV).a) / Voxelize_BoxSize;///Voxelize_BoxSize;
     vec3 csp = getMapCoord(UV);
@@ -205,22 +257,24 @@ vec3 traceConeSpecular(FragmentData data){
     float st = 0.001;
     float blurness = 1.0;
     float rg2 =  sqrt( roughness);
-    rg2 = ((1.0 - smoothstep(0.5, 1.0, rg2)) * 0.9 + 0.1);
+    rg2 = ((1.0 - smoothstep(0.5, 1.0, rg2)) * 0.6 + 0.4);
     
     float shift = mix(VoxelCut * 9.0, VoxelCut * 2.0, max(0, dot(normalize(-data.cameraPos), data.normal)));
     
-    for(int i=0;i < 150;i++){
-        vec3 c = center + dir * (st * st + shift ) * 0.4; 
+    for(int i=0;i < 140;i++){
+        vec3 c = center + dir * (st * st + shift ) * 1.0; 
+        
+        if(c.x > 1.0 || c.y > 1.0 || c.z > 1.0 || c.x < 0.0 || c.y < 0.0 || c.z < 0.0) { break; }
         
         vec4 rc = sampleCone(clamp(c, 0.0, 1.0), roughness * (1.0 - blurness));
-        res += w * rc.rgb * rg2;
-        w -= min(rc.a, 1.0) * (st * st);
-        w = max(0, w);
-        if(w == 0.0) { break;  }
+        res += w * rc.rgb * rg2 * smoothstep(0.0, 0.7, st);
+       // w -= min(rc.a, 1.0)  ;
+       // w = max(0, w);
+      //  if(w == 0.0) { break; }
         blurness = blurness * 0.9;
         st += 0.007;
     }
-    float fresnel = fresnel_again(norm, data.cameraPos);
+    float fresnel = fresnel_again(norm, data.cameraPos, data.roughness);
    // res += w * MMALGI(dir, roughness);
     return res * fresnel;
     //return approxNormal(center, vec3(0));

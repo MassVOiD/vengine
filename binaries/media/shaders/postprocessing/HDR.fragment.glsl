@@ -202,7 +202,13 @@ vec3 rgb_to_srgb(vec3 rgb) {
         linear_to_srgb(rgb.b)
     );
 }
-
+vec3 czm_saturation(vec3 rgb, float adjustment)
+{
+    // Algorithm from Chapter 16 of OpenGL Shading Language
+    const vec3 W = vec3(0.2125, 0.7154, 0.0721);
+    vec3 intensity = vec3(dot(rgb, W));
+    return mix(intensity, rgb, adjustment);
+}
 void main()
 {
     vec3 color = fxaa(lastStageResultTex, UV).rgb;
@@ -219,6 +225,7 @@ void main()
         color = ExecutePostProcessing(color, UV);
 		//color = color / (1 + color);
 		float gamma = 1.0/2.2;
+        //color = czm_saturation(color, 2);
 		color = rgb_to_srgb(color);
 	}
     

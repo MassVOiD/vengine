@@ -14,6 +14,16 @@ namespace VEngine
         public Renderer MainRenderer;
         private volatile bool PhysicsNeedsUpdate = false;
 
+        public enum VendorEnum
+        {
+            AMD,
+            INTEL,
+            NVIDIA,
+            GENERIC
+        }
+
+        public VendorEnum Vendor;
+
         public AbsDisplayAdapter(string title, int width, int height, GameWindowFlags flags)
             : base(width, height,
                 new OpenTK.Graphics.GraphicsMode(new ColorFormat(8, 8, 8, 8), 8, 0, 1), title, flags,
@@ -22,6 +32,25 @@ namespace VEngine
         {
             Game.DisplayAdapter = this;
             Game.Resolution = new Size(Width, Height);
+
+            string vendor = GL.GetString(StringName.Vendor).ToLower();
+            if(vendor.Contains("nvidia"))
+            {
+                Vendor = VendorEnum.NVIDIA;
+            }
+            else if(vendor.Contains("intel"))
+            {
+                Vendor = VendorEnum.INTEL;
+            }
+            else if(vendor.Contains("ati") || vendor.Contains("amd"))
+            {
+                Vendor = VendorEnum.AMD;
+            }
+            else
+            {
+                Vendor = VendorEnum.GENERIC;
+            }
+
             GL.Enable(EnableCap.DepthClamp);
             GL.Enable(EnableCap.DebugOutput);
             GL.Enable(EnableCap.DebugOutputSynchronous);
@@ -80,17 +109,16 @@ namespace VEngine
             }
         }
 
+
         protected override void OnLoad(System.EventArgs e)
         {
             VSync = VSyncMode.Off;
             TargetRenderFrequency = 3000;
             TargetUpdateFrequency = 3000;
             this.Context.ErrorChecking = true;
-            
-            //this.Context.
 
-            var s = GL.GetString(StringName.Version);
-            Console.WriteLine(s);
+            //this.Context.
+            Console.WriteLine("Version " + GL.GetString(StringName.Version));
         }
 
         private void PhysicsThread()
@@ -115,7 +143,7 @@ namespace VEngine
         {
             if(Game.Resolution.Width != this.Width || Game.Resolution.Height != this.Height)
                 Game.InvokeOnResize(e);
-            //Interpolator.StepAll();
+            Interpolator.StepAll();
             //TransformationJoint.Resolve();
 
             Game.CurrentFrameTime = (float)( e.Time * 1000.0 );

@@ -80,12 +80,12 @@ namespace ShadowsTester
             //Cam.Transformation.SetPosition(rigidBody.WorldTransform.ExtractTranslation());
             //Cam.Transformation.ClearModifiedFlag();
             //Game.Invoke(() => Cam.UpdateFromRollPitch());
-            
+
         }
 
         float mousespeedX = 0.0f, mousespeedY = 0.0f;
         Vector3 camvelocity = Vector3.Zero;
-        
+
         private void UpdateSterring(object o, OpenTK.FrameEventArgs e)
         {
             Camera.MainDisplayCamera = Cam;
@@ -106,11 +106,11 @@ namespace ShadowsTester
                 return;
 
             var mouse = OpenTK.Input.Mouse.GetCursorState();
-            
+
 
             var p = Game.DisplayAdapter.PointToScreen(new System.Drawing.Point(Game.Resolution.Width / 2, Game.Resolution.Height / 2));
             var p3 = (new System.Drawing.Point(Game.Resolution.Width / 2, Game.Resolution.Height / 2));
-            var p2 =  (new System.Drawing.Point(mouse.X, mouse.Y));
+            var p2 = (new System.Drawing.Point(mouse.X, mouse.Y));
             //Console.WriteLine(p2);
             int deltaX = p2.X - p.X;
             int deltaY = p2.Y - p.Y;
@@ -121,6 +121,7 @@ namespace ShadowsTester
             mousespeedY += (float)deltaY / 200.0f;
             mousespeedY *= 0.7f;
 
+            bool needsUpdate = false;
             if(!Freeze)
             {
 
@@ -135,9 +136,15 @@ namespace ShadowsTester
                     newRoll = -MathHelper.Pi / 2;
 
                 if(newRoll != Cam.Roll)
+                {
                     Cam.Roll = newRoll;
+                    needsUpdate = true;
+                }
                 if(newPitch != Cam.Pitch)
+                {
                     Cam.Pitch = newPitch;
+                    needsUpdate = true;
+                }
             }
 
 
@@ -165,8 +172,7 @@ namespace ShadowsTester
             {
                 Camera.MainDisplayCamera.Brightness += 0.003f;
             }
-            
-            bool needsUpdate = false;
+
 
             if(keyboard.IsKeyDown(OpenTK.Input.Key.W))
             {
@@ -228,13 +234,14 @@ namespace ShadowsTester
 
             // rigidBody.LinearVelocity = new Vector3( rigidBody.LinearVelocity.X * 0.94f,
             // rigidBody.LinearVelocity.Y * 0.94f, rigidBody.LinearVelocity.Z * 0.94f);
-            // if(needsUpdate)
-            // {
-            Cam.Transformation.SetPosition(currentPosition);
+            if(needsUpdate)
+            {
+                Cam.Transformation.SetPosition(currentPosition);
                 Cam.Transformation.ClearModifiedFlag();
-               // Cam.Update();
-          //  }
-            Cam.UpdateFromRollPitch(); 
+                // Cam.Update();
+                Cam.UpdateFromRollPitch();
+            } else
+                Cam.Update();
 
             //Cam.UpdateFromRollPitch();
             //Cam.Update();

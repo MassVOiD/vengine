@@ -120,12 +120,11 @@ vec3 stupidBRDF(vec3 dir, float level, float roughness){
 
 vec3 MMALSkybox(vec3 normal, vec3 reflected, float roughness){
 	//roughness = roughness * roughness;
-    float levels = max(0, float(textureQueryLevels(cube)) - 2);
+    float levels = max(0, float(textureQueryLevels(cube)) - 1);
     float mx = log2(roughness*MMAL_LOD_REGULATOR+1)/log2(MMAL_LOD_REGULATOR);
     vec3 result = stupidBRDF(mix(reflected, normal, roughness), mx * levels, roughness);
 	
 	return result;
-	//return vec3pow(result*1.5, 6.0);
 }
 
 
@@ -158,16 +157,17 @@ vec3 EnvironmentLight(FragmentData data)
 vec3 EnvironmentLightSkybox(FragmentData data)
 {       
     vec3 dir = normalize(reflect(data.cameraPos, data.normal));
-    vec3 dir2 = mix(dir, data.normal, data.roughness);
-    vec3 vdir = normalize(data.cameraPos);
+    
 	vec3 reflected = vec3(0);
 	vec3 diffused = vec3(0);
 	
-	reflected += MMALSkybox(data.normal, dir, data.roughness) * data.specularColor;// * (1.0 - data.roughness);
+    float fresnel = 1.0 - fresnel_again(data.normal, data.cameraPos, data.roughness);
+    
+	reflected += MMALSkybox(data.normal, dir, fresnel) * data.specularColor;// * (1.0 - data.roughness); 
 	
 	diffused += MMALSkybox(data.normal, dir, 1.0) * data.diffuseColor * (data.roughness + 1.0);
 
-    float fresnel = fresnel_again(data.normal, data.cameraPos);
+    fresnel = fresnel_again(data.normal, data.cameraPos, data.roughness);
     
     //return fresnel * vec3(0.2);
     return fresnel * reflected + diffused;

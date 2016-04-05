@@ -88,7 +88,7 @@ namespace VEngine
                 szz = szz / 2;
             }
 
-            FBO = new Framebuffer(256, 256, true)
+            FBO = new Framebuffer(512, 512, true)
             {
             };
 
@@ -198,7 +198,7 @@ namespace VEngine
 
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
-
+            GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
             TextureResolvedMipMaps[0].BindImageUnit(4, TextureAccess.WriteOnly, SizedInternalFormat.Rgba16f);
 
             TextureRed.Use(TextureUnit.Texture0);
@@ -208,6 +208,7 @@ namespace VEngine
 
             TextureResolverShader.Use();
             TextureResolverShader.Dispatch(GridSizeX / 16, GridSizeY / 8, GridSizeZ / 8);
+            GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
             /*
             TextureNormalX.Use(TextureUnit.Texture0);
             TextureNormalY.Use(TextureUnit.Texture1);
@@ -225,6 +226,7 @@ namespace VEngine
                 TextureResolvedMipMaps[i].Use(TextureUnit.Texture0);
                 TextureResolvedMipMaps[i + 1].BindImageUnit(4, TextureAccess.WriteOnly, SizedInternalFormat.Rgba16f);
                 TextureMipmapShader.Dispatch(TextureResolvedMipMaps[i + 1].SizeX / 8, TextureResolvedMipMaps[i + 1].SizeY / 8, TextureResolvedMipMaps[i + 1].SizeZ / 8);
+                GL.MemoryBarrier(MemoryBarrierFlags.ShaderImageAccessBarrierBit);
             }
             
 

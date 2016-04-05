@@ -38,6 +38,10 @@ vec3 examineBumpMap(){
 
 uniform int IsTessellatedTerrain;
 
+vec3 linearize(vec3 c){
+    return pow(c, vec3(2.4));
+}
+
 void main(){
 	//outColor = vec4(1.0);
 	//return;
@@ -80,9 +84,9 @@ void main(){
 		currentFragment.normal = TBN * examineBumpMap();
 	}
 	if(UseRoughnessTex) currentFragment.roughness = max(0.07, texture(roughnessTex, UV).r);
-	if(UseDiffuseTex) currentFragment.diffuseColor = texture(diffuseTex, UV).rgb; 
+	if(UseDiffuseTex) currentFragment.diffuseColor = linearize(texture(diffuseTex, UV).rgb); 
 	if(UseDiffuseTex && !UseAlphaTex)currentFragment.alpha = texture(diffuseTex, UV).a; 
-	if(UseSpecularTex) currentFragment.specularColor = texture(specularTex, UV).rgb; 
+	if(UseSpecularTex) currentFragment.specularColor = linearize(texture(specularTex, UV).rgb); 
 	if(UseBumpTex) currentFragment.bump = texture(bumpTex, UV).r; 
 	if(UseAlphaTex) currentFragment.alpha = texture(alphaTex, UV).r; 
 	if(currentFragment.alpha < 0.44) discard;

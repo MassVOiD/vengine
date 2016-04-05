@@ -31,8 +31,14 @@ namespace ShadowsTester
         public DragonScene()
         {
             var scene = Game.World.Scene;
-            
-            
+
+            var fiatmeshes = Object3dManager.LoadSceneFromObj("sponza2.obj", "sponza2.mtl", 1);
+            fiatmeshes.ForEach((a) =>
+            {
+                a.GetLodLevel(0).DisableFaceCulling = true;
+                scene.Add(a);
+            });
+
         }
     }
 }

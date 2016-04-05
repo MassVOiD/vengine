@@ -35,14 +35,13 @@ namespace ShadowsTester
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             return terrainMesh;
         }
-        Mesh3d CreateDiffuseModelFromObj(string obj, Vector3 color)
+        Mesh3d CreateModel(Object3dInfo obj, Vector3 diffuse, Vector3 specular, float roughness)
         {
-            var terrain3dManager = Object3dManager.LoadFromObjSingle(Media.Get(obj));
-            var terrain3dInfo = new Object3dInfo(terrain3dManager.Vertices);
+            var terrain3dInfo = obj;
             var terrainMaterial = new GenericMaterial();
-            terrainMaterial.DiffuseColor = color;
-            terrainMaterial.SpecularColor = color;
-            terrainMaterial.Roughness = 1f;
+            terrainMaterial.DiffuseColor = diffuse;
+            terrainMaterial.SpecularColor = specular;
+            terrainMaterial.Roughness = roughness;
             var terrainMesh = Mesh3d.Create(terrain3dInfo, terrainMaterial);
             return terrainMesh;
         }
@@ -59,15 +58,34 @@ namespace ShadowsTester
             Game.Invoke(() =>
             {
                 var ground = CreateWall(new Vector2(-1000), new Vector2(1000), Quaternion.Identity, Vector3.Zero, new Vector3(0.1f, 0.4f, 1));
-                scene.Add(ground);
+                // scene.Add(ground);
 
-                var fiatmeshes = Object3dManager.LoadSceneFromObj("yen.obj", "yen.mtl", 1);
-                fiatmeshes.ForEach((a) =>
-                {
-                    a.GetLodLevel(0).DisableFaceCulling = true;
-                    scene.Add(a);
-                });
+                var obj = Object3dManager.LoadFromObjSingle(Media.Get("emily.obj"));
+                obj.RecalulateNormals(Object3dManager.NormalRecalculationType.Smooth, 1);
+                var t1 = CreateModel(obj.AsObject3dInfo(), new Vector3(0.8f), new Vector3(0.2f), 0.1f);
+
+                t1.GetLodLevel(0).Material.SetDiffuseTexture("00_diffuse_unlit_unpainted.png");
+                t1.GetLodLevel(0).Material.SetSpecularTexture("00_specular_unlit_unpainted.png");
+                t1.GetLodLevel(0).Material.SetBumpTexture("00_displacement_misdfcro.png");
                 
+                scene.Add(t1);
+
+                var obj2 = Object3dManager.LoadFromObjSingle(Media.Get("emilylashes.obj"));
+                var t2 = CreateModel(obj2.AsObject3dInfo(), new Vector3(0.8f), new Vector3(0.2f), 0.1f);
+
+                t2.GetLodLevel(0).Material.DiffuseColor = Vector3.Zero;
+                t2.GetLodLevel(0).Material.SpecularColor = Vector3.Zero;
+
+                scene.Add(t2);
+
+               // var obj2 = Object3dManager.LoadFromObjSingle(Media.Get("emilyeyes.obj"));
+              //  var t2 = CreateModel(obj2.AsObject3dInfo(), new Vector3(0.8f), new Vector3(0.2f), 0.1f);
+
+              //  t2.GetLodLevel(0).Material.DiffuseColor = Vector3.Zero;
+              //  t2.GetLodLevel(0).Material.SpecularColor = Vector3.Zero;
+
+              //  scene.Add(t2);
+
                 /*
                 var m = CreateDiffuseModelFromObj("hipolysphere.obj", new Vector3(1));
                 m.GetLodLevel(0).Material.SpecularColor = new Vector3(1.0f);

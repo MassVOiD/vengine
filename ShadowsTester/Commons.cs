@@ -32,7 +32,7 @@ namespace ShadowsTester
             RedLight = new List<Light>();
             RedLight.Add(new Light(new TransformationManager(new Vector3(0, 5, 0), Quaternion.FromAxisAngle(new Vector3(1, 0, 0), MathHelper.DegreesToRadians(-110))))
             {
-                Color = new Vector3(1, 0.84f, 0.93f) * 400,
+                Color = new Vector3(1) * 400,
                 ShadowMappingEnabled = true,
                 ShadowMapType = Light.ShadowMapTypeEnum.Single
             });
@@ -424,7 +424,7 @@ namespace ShadowsTester
                 {
                     FreeCam.Cam.Brightness += 0.1f;
                 }
-                if(e.Key == OpenTK.Input.Key.F1)
+                if(e.Key == OpenTK.Input.Key.Number1)
                 {
                     RedLight[0].GetTransformationManager().SetPosition(FreeCam.Cam.Transformation.GetPosition() + new Vector3((float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1, (float)rand.NextDouble() * 2 - 1) * 0.1f);
                     RedLight[0].GetTransformationManager().SetOrientation(FreeCam.Cam.Transformation.GetOrientation());

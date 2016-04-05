@@ -60,8 +60,8 @@ void main()
     if(UseHBAO == 1) AOValue = lookupAO(UV, 1.0, 0);
     vec3 color = vec3(0);
     if(UseDeferred == 1) color += texture(deferredTex, UV).rgb;
-    if(UseVDAO == 1) color += AOValue * textureLod(envLightTex, UV, 0.0).rgb * 1;
-    if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) color = vec3(AOValue * 0.5);
+    if(UseVDAO == 1) color += AOValue * textureLod(envLightTex, UV, 0.0).rgb * 0.05;
+    //if(UseVDAO == 0 && UseRSM == 0 && UseHBAO == 1) color = vec3(AOValue * 0.5);
 
 
 	if(textureMSAAFull(normalsDistancetex, UV).a == 0.0){

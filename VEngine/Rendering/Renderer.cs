@@ -92,7 +92,7 @@ namespace VEngine
         {
             GlareTexture = new Texture(Media.Get("glaretex.png"));
 
-            Voxelizer = new Voxel3dTextureWriter(96, 96, 96, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
+            Voxelizer = new Voxel3dTextureWriter(256, 256, 256, new Vector3(22, 22, 22), new Vector3(0, 8, 0));
 
             CubeMapSphere = new Object3dInfo(Object3dManager.LoadFromObjSingle(Media.Get("cubemapsphere.obj")).Vertices);
 
@@ -541,6 +541,7 @@ namespace VEngine
 
         private void VXGI()
         {
+            BlitFramebuffers(VXGIFramebuffer, HelperFramebuffer, BlitMode.Color);
             Voxelizer.Map();
             VXGIShader.Use();
             Voxelizer.BindTexture(TextureUnit.Texture25);
@@ -548,6 +549,7 @@ namespace VEngine
             Voxelizer.SetUniforms();
             VXGIFramebuffer.Use();
             CombinerFramebuffer.UseTexture(4);
+            HelperFramebuffer.UseTexture(17);
             DrawPPMesh();
             Game.CheckErrors("SSR pass");
         }

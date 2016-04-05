@@ -447,7 +447,9 @@ namespace VEngine
             {
                 globalsString.AppendLine("#define " + g.Key + " " + g.Value);
             }
-           
+
+            globalsString.AppendLine("#define " + Game.DisplayAdapter.Vendor.ToString());
+
             string fullsrc = Regex.Replace(source, @"\#version (.+)\r\n", "#version $1\r\n" + globalsString);
 
             GL.ShaderSource(shader, fullsrc);

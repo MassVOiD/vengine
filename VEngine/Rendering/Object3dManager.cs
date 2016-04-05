@@ -285,6 +285,20 @@ namespace VEngine
             File.WriteAllBytes(outfile, vboStream.ToArray());
         }
 
+        public void SaveRawWithTangents(string outfile)
+        {
+            MemoryStream vboStream = new MemoryStream();
+
+            var o3i = AsObject3dInfo();
+            o3i.UpdateTangents();
+
+            foreach(var v2 in o3i.VBO)
+                vboStream.Write(BitConverter.GetBytes(v2), 0, 4);
+
+            vboStream.Flush();
+            File.WriteAllBytes(outfile, vboStream.ToArray());
+        }
+
         public static Dictionary<string, MaterialInfo> LoadMaterialsFromMtl(string filename)
         {
             Dictionary<string, MaterialInfo> materials = new Dictionary<string, MaterialInfo>();

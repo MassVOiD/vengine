@@ -20,6 +20,11 @@ namespace MeshConverter
                 var element = Object3dManager.LoadFromObjSingle(infile);
                 element.SaveRaw(outfile);
             }
+            if(mode == "obj2rawtang")
+            {
+                var element = Object3dManager.LoadFromObjSingle(infile);
+                element.SaveRawWithTangents(outfile);
+            }
 
             if(mode == "ply2raw")
             {
