@@ -711,6 +711,14 @@ namespace VEngine
             }
         }
 
+        public void ReverseYUV(float scale)
+        {
+            for(int i = 0; i < Vertices.Count; i++)
+            {
+                Vertices[i].UV.Y = 1.0f - Vertices[i].UV.Y;
+            }
+        }
+
         public void Transform(Matrix4 ModelMatrix, Matrix4 RotationMatrix)
         {
             for(int i = 0; i < Vertices.Count; i++)
