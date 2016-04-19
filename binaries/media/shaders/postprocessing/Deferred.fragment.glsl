@@ -72,14 +72,32 @@ float CubeMapShadows(vec3 dir, float comparison){
 	return aaprc / 11;
 }
 
+
+vec3 shadingMetalic(PostProceessingData data){
+    float fresnel = fresnel_again(data.normal, data.cameraPos, data.roughness);
+    
+    return fresnel * shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, max(0.02, data.roughness), false);
+}
+
+vec3 shadingNonMetalic(PostProceessingData data){
+    float fresnel = fresnel_again(data.normal, data.cameraPos, 1.0 - data.roughness);
+    float fresnel2 = fresnel_again(data.normal, data.cameraPos, 0.0);
+    
+    vec3 radiance =  shade(CameraPosition, vec3(0.08), data.normal, data.worldPos, LightPosition, LightColor, fresnel, false);    
+    
+    vec3 difradiance = shade(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, 1, false);
+    return radiance + difradiance;
+}
+
+vec3 MakeShading(PostProceessingData data){
+    return mix(shadingNonMetalic(data), shadingMetalic(data), data.metalness);
+}
 vec3 ApplyLighting(FragmentData data, int samp)
 {
 	vec3 result = vec3(0);
     float fresnel = fresnel_again(data.normal, data.cameraPos, data.roughness);
     
-    vec3 radiance = shade(CameraPosition, data.specularColor, data.normal, data.worldPos, LightPosition, LightColor, max(0.02, data.roughness), false);
-    
-    vec3 difradiance = shadeDiffuse(CameraPosition, data.diffuseColor, data.normal, data.worldPos, LightPosition, LightColor, max(0.02, data.roughness), false);
+    vec3 radiance = MakeShading(data);
     
 	if(LightUseShadowMap == 1){
 		if(LightShadowMapType == 0){
@@ -91,7 +109,7 @@ vec3 ApplyLighting(FragmentData data, int samp)
 				if(lightScreenSpace.x >= 0.0 && lightScreenSpace.x <= 1.0 && lightScreenSpace.y >= 0.0 && lightScreenSpace.y <= 1.0) {
 					percent = PCFDeferred(lightScreenSpace.xy, toLogDepth2(distance(data.worldPos, LightPosition), 10000) - 0.001);
 				}
-				result += (difradiance + radiance * 0.1) * 0.5 * percent ;
+				result += radiance * percent ;
                 
                 //subsurf
                /* float subsurfv = PCFDeferredValueSubSurf(lightScreenSpace.xy, distance(data.worldPos, LightPosition));
@@ -104,13 +122,12 @@ vec3 ApplyLighting(FragmentData data, int samp)
 			vec3 checkdir = normalize(data.worldPos - LightPosition);
 			float percent = CubeMapShadows(checkdir, toLogDepth2(distance(data.worldPos, LightPosition), 10000) - 0.001);
 		
-			result += (radiance + difradiance) * 0.5 * percent;
+			result += radiance * percent;
 		
 		} 
 	} else if(LightUseShadowMap == 0){
-		result += (radiance + difradiance) * 0.5;
+		result += radiance;
 	}
-    result = fresnel * result;
 	return result * (1.0 - smoothstep(0.0, LightCutOffDistance, distance(LightPosition, data.worldPos)));
 }
 

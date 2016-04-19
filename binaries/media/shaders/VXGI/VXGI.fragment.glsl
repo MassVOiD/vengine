@@ -60,7 +60,7 @@ void main()
     float AOValue = 1.0;
     if(UseHBAO == 1) AOValue = lookupAO(UV, 1.0, 0);
    // vec3 ao = traceConeAOx(currentFragment);
-    color +=  traceConeDiffuse(currentFragment) * AOValue;
+    color +=  traceConeDiffuse(currentFragment) * 8;
     //color +=  traceConeSpecular(currentFragment) * specularBumpData.rgb * mix(1, AOValue, currentFragment.roughness);
    // color += debugVoxel();
     /*
@@ -73,7 +73,7 @@ void main()
     //color += max(vec3(0.0), albedoRoughnessData.rgb - 1.0);
     
     vec3 last = texture(forwardPassBuffer, UV).rgb;
-    color = mix(last, color, 0.0);
+    color = mix(last, color, 0.1);
     
     outColor = clamp(vec4(color, 0), 0.0, 10000.0);
 }

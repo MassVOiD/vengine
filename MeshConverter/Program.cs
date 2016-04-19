@@ -36,8 +36,8 @@ namespace MeshConverter
                     var mat = m.GetLodLevel(0).Material;
                     var i3d = m.GetLodLevel(0).Info3d;
                     var inst = m.GetInstance(0);
-                    string meshname = m.GetInstance(0).Name != null && m.GetInstance(0).Name.Length > 0 ? m.GetInstance(0).Name : ("unnamed_" + (unnamed++).ToString());
-                    string matname = mat.Name != null && mat.Name.Length > 0 ? mat.Name : ("unnamed_" + (unnamed++).ToString());
+                    string meshname = m.GetInstance(0).Name != null && m.GetInstance(0).Name.Length > 0 ? (m.GetInstance(0).Name + (unnamed++).ToString()) : ("unnamed_" + (unnamed++).ToString());
+                    string matname = mat.Name != null && mat.Name.Length > 0 ? (mat.Name + (unnamed++).ToString()) : ("unnamed_" + (unnamed++).ToString());
                     meshname = meshname + ".mesh3d";
                     matname = matname + ".material";
 

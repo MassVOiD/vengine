@@ -77,54 +77,55 @@ namespace VEngine.FileFormats
                 var i0 = mesh.GetInstance(0);
                 foreach(var elementC in elements)
                 {
-                    var element = elementC.Info3d.Manager;
-                    output.Append("mesh ");
-                    output.Append(nameprefix);
-                    output.AppendLine(mesh.GetInstance(0).Name);
-                    if(saveFiles)
+                    try
                     {
-                        MemoryStream vboStream = new MemoryStream();
+                        var element = elementC.Info3d.Manager;
+                        if(saveFiles)
+                        {
+                            FileStream vboStream = new FileStream(directory + nameprefix + element.Name + ".vbo.raw", FileMode.Create);
 
-                        foreach(var v in element.Vertices)
-                            foreach(var v2 in v.ToFloatList())
-                                vboStream.Write(BitConverter.GetBytes(v2), 0, 4);
+                            foreach(var v in element.Vertices)
+                                foreach(var v2 in v.ToFloatList())
+                                    vboStream.Write(BitConverter.GetBytes(v2), 0, 4);
 
-                        vboStream.Flush();
+                            vboStream.Flush();
+                            vboStream.Close();
+                        }
+                        output.Append("mesh ");
+                        output.Append(nameprefix);
+                        output.AppendLine(mesh.GetInstance(0).Name);
+                        output.Append("usematerial ");
+                        output.Append(nameprefix);
+                        output.AppendLine(elementC.Material.Name);
 
-                        if(File.Exists(directory + nameprefix + element.Name + ".vbo.raw"))
-                            File.Delete(directory + nameprefix + element.Name + ".vbo.raw");
-                        File.WriteAllBytes(directory + nameprefix + element.Name + ".vbo.raw", vboStream.ToArray());
+                        output.Append("vbo ");
+                        output.AppendLine(nameprefix + element.Name + ".vbo.raw");
+
+                        output.Append("translate ");
+                        output.Append(i0.GetPosition().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        output.Append(" ");
+                        output.Append(i0.GetPosition().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        output.Append(" ");
+                        output.AppendLine(i0.GetPosition().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+                        output.Append("rotate ");
+                        output.Append(i0.GetOrientation().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        output.Append(" ");
+                        output.Append(i0.GetOrientation().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        output.Append(" ");
+                        output.Append(i0.GetOrientation().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        output.Append(" ");
+                        output.AppendLine(i0.GetOrientation().W.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+                        output.Append("scale ");
+                        output.Append(i0.GetScale().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        output.Append(" ");
+                        output.Append(i0.GetScale().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        output.Append(" ");
+                        output.AppendLine(i0.GetScale().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                        output.AppendLine();
                     }
-                    output.Append("usematerial ");
-                    output.Append(nameprefix);
-                    output.AppendLine(elementC.Material.Name);
-
-                    output.Append("vbo ");
-                    output.AppendLine(nameprefix + element.Name + ".vbo.raw");
-
-                    output.Append("translate ");
-                    output.Append(i0.GetPosition().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    output.Append(" ");
-                    output.Append(i0.GetPosition().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    output.Append(" ");
-                    output.AppendLine(i0.GetPosition().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
-
-                    output.Append("rotate ");
-                    output.Append(i0.GetOrientation().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    output.Append(" ");
-                    output.Append(i0.GetOrientation().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    output.Append(" ");
-                    output.Append(i0.GetOrientation().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    output.Append(" ");
-                    output.AppendLine(i0.GetOrientation().W.ToString(System.Globalization.CultureInfo.InvariantCulture));
-
-                    output.Append("scale ");
-                    output.Append(i0.GetScale().X.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    output.Append(" ");
-                    output.Append(i0.GetScale().Y.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    output.Append(" ");
-                    output.AppendLine(i0.GetScale().Z.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                    output.AppendLine();
+                    catch (Exception e) { System.Windows.Forms.MessageBox.Show(e.Message); }
                 }
             }
             return output.ToString();

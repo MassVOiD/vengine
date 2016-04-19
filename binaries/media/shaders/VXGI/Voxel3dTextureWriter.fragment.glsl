@@ -185,8 +185,8 @@ vec3 traceConeSingle(vec3 wposOrigin, vec3 direction){
 vec3 raytrace(vec3 voxelorigin, vec3 dir){
     vec3 c = voxelorigin + dir * 0.015;
     vec3 res = vec3(0);
-    for(int i=0;i<128;i++){
-        c += dir * 0.002;
+    for(int i=0;i<32;i++){
+        c += dir * 0.005;
         if(clamp(c, 0.0, 1.0) != c) break;
         vec4 rc = textureLod(voxelsTex1, c, 0);
         if(rc.a > 0.0) { 
@@ -284,7 +284,7 @@ void main(){
     vec3 hafbox = ToCameraSpace(Input.WorldPos) / BoxSize;
     hafbox = clamp(hafbox, -1.0, 1.0);
     
-    WriteData3d(hafbox * 0.5 + 0.5,   max(vec3(0.0), currentFragment.diffuseColor - 1.0) + ApplyLighting(currentFragment, 0) + currentFragment.diffuseColor * 0.0,  quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal));
+    WriteData3d(hafbox * 0.5 + 0.5, traceConeDiffuse(currentFragment) +   max(vec3(0.0), currentFragment.diffuseColor - 1.0) + ApplyLighting(currentFragment, 0) + currentFragment.diffuseColor * 0.0,  quat_mul_vec(ModelInfos[Input.instanceId].Rotation, Input.Normal));
 	
 	outColor = vec4(1,1,1, 0.2);
 }
