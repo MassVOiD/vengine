@@ -405,50 +405,34 @@ namespace VEngine
             Dictionary<string, GenericMaterial> texCache = new Dictionary<string, GenericMaterial>();
             Dictionary<Vector3, GenericMaterial> colorCache = new Dictionary<Vector3, GenericMaterial>();
             Dictionary<GenericMaterial, MaterialInfo> mInfos = new Dictionary<GenericMaterial, MaterialInfo>();
-            Dictionary<GenericMaterial, List<Object3dManager>> linkCache = new Dictionary<GenericMaterial, List<Object3dManager>>();
+            Dictionary<GenericMaterial, Object3dManager> linkCache = new Dictionary<GenericMaterial, Object3dManager>();
             var colorPink = new GenericMaterial(Color.White);
-            mInfos = new Dictionary<GenericMaterial, MaterialInfo>();
+
             foreach(var obj in objs)
             {
+                Console.WriteLine("Loading " + obj.Name);
+                Console.WriteLine("GC MEMORY USED {0} MB", GC.GetTotalMemory(true) / 1024.0 / 1024);
                 var mat = mtllib.ContainsKey(obj.MaterialName) ? mtllib[obj.MaterialName] : new MaterialInfo();
                 GenericMaterial material = colorPink;
                 if(mat != null && mat.TextureName.Length > 0)
                 {
-                    if(texCache.ContainsKey(mat.TextureName + mat.AlphaMask))
-                    {
-                        material = texCache[mat.TextureName + mat.AlphaMask];
 
-                        material.Name = obj.MaterialName;
-                        mInfos[material] = mat;
-                    }
-                    else
-                    {
-                        var m = new GenericMaterial();
-                        m.SetDiffuseTexture(Path.GetFileName(mat.TextureName));
-                        m.SpecularTexture = m.DiffuseTexture;
-                       // m.NormalMapScale = 10;
-                        material = m;
+                    var m = new GenericMaterial();
+                    m.SetDiffuseTexture(Path.GetFileName(mat.TextureName));
+                    m.SpecularTexture = m.DiffuseTexture;
+                    // m.NormalMapScale = 10;
+                    material = m;
 
-                        material.Name = obj.MaterialName;
-                        mInfos[material] = mat;
-                        texCache.Add(mat.TextureName + mat.AlphaMask, material);
-                        // material = colorPink;
-                    }
-                    //material = new GenericMaterial(Color.Pink);
+                    material.Name = obj.MaterialName;
+                    mInfos[material] = mat;
+                   // texCache.Add(mat.TextureName + mat.AlphaMask, material);
+                    // material = colorPink;
+
                 }
                 else if(mat != null)
                 {
-                    if(colorCache.ContainsKey(mat.DiffuseColor))
-                    {
-                        material = colorCache[mat.DiffuseColor];
-                        mInfos[material] = mat;
-                    }
-                    else
-                    {
-                        material = new GenericMaterial(mat.DiffuseColor);
-                        mInfos[material] = mat;
-                        //  colorCache.Add(mat.DiffuseColor, material);
-                    }
+                    material = new GenericMaterial(mat.DiffuseColor);
+                    mInfos[material] = mat;
                 }
                 else
                 {
@@ -462,25 +446,22 @@ namespace VEngine
                 }
                 var o3di = new Object3dManager(obj.VBO);
                 o3di.Name = obj.Name;
-                if(!linkCache.ContainsKey(material))
-                    linkCache.Add(material, new List<Object3dManager> { o3di });
-                else
-                    linkCache[material].Add(o3di);
+                // if(!linkCache.ContainsKey(material))
+                linkCache.Add(material, o3di);
+                // else
+                //     linkCache[material].Add(o3di);
             }
             foreach(var kv in linkCache)
             {
-                Object3dManager o3di = kv.Value[0];
-                if(kv.Value.Count > 1)
-                {
-                    foreach(var e in kv.Value.Skip(1))
-                        o3di.Append(e);
-                }
+                Object3dManager o3di = kv.Value;
+
                 // var trans = o3di.GetAverageTranslationFromZero();
                 // o3di.OriginToCenter();
                 //o3di.CorrectFacesByNormals();
                 // o3di.CorrectFacesByNormals();
                 var oi = new Object3dInfo(o3di.Vertices);
                 oi.Manager = o3di;
+               // GC.Collect();
                 Mesh3d mesh = Mesh3d.Create(oi, kv.Key);
                 //kv.Key.SpecularComponent = 1.0f - mInfos[kv.Key].SpecularStrength + 0.01f;
                 kv.Key.Roughness = mInfos[kv.Key].SpecularStrength;
@@ -779,27 +760,31 @@ namespace VEngine
             List<Vector3> temp_vertices = new List<Vector3>(), temp_normals = new List<Vector3>();
             List<Vector2> temp_uvs = new List<Vector2>();
             List<VertexInfo> out_vertex_buffer = new List<VertexInfo>();
-            ;
+
             //out_vertex_buffer.AddRange(Enumerable.Repeat<double>(0, 8));
             uint vcount = 0;
 
             ObjFileData current = new ObjFileData();
             string currentMaterial = "";
+            string name = "";
 
-            Match match = Match.Empty;
+            //  Match match = Match.Empty;
             foreach(string line in lines)
             {
                 if(line.StartsWith("o"))
                 {
-                    match = Regex.Match(line, @"o (.+)");
                     current.VBO = out_vertex_buffer;
                     if(current.VBO.Count >= 1)
                     {
                         current.MaterialName = currentMaterial;
                         objects.Add(current);
+                        GC.Collect();
+                        Console.WriteLine("GC MEMORY USED {0} MB", GC.GetTotalMemory(true) / 1024.0 / 1024);
+                        Console.OpenStandardOutput().Flush();
                     }
                     current = new ObjFileData();
-                    current.Name = match.Groups[1].Value;
+                    current.Name = line.Substring(2);
+                    Console.WriteLine("Internal Loading " + current.Name);
                     vcount = 0;
                     //temp_vertices = new List<Vector3>();
                     //temp_normals = new List<Vector3>();
@@ -808,63 +793,95 @@ namespace VEngine
                 }
                 if(line.StartsWith("usemtl"))
                 {
-                    match = Regex.Match(line, @"usemtl (.+)");
-                    currentMaterial = match.Groups[1].Value;
+                    currentMaterial = line.Substring(7);
                 }
                 if(line.StartsWith("vt"))
                 {
-                    match = Regex.Match(line.Replace("nan", "0"), @"vt ([0-9.-]+) ([0-9.-]+)");
-                    temp_uvs.Add(new Vector2(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), 1.0f - float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture)));
+                    var groups = line.Substring(3).Replace("nan", "0").Split(' ');
+                    temp_uvs.Add(new Vector2(float.Parse(groups[0], System.Globalization.CultureInfo.InvariantCulture),
+                        float.Parse(groups[1], System.Globalization.CultureInfo.InvariantCulture)));
                 }
                 else if(line.StartsWith("vn"))
                 {
-                    match = Regex.Match(line, @"vn ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
-                    temp_normals.Add(new Vector3(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture)));
+                    var groups = line.Substring(3).Split(' ');
+                    temp_normals.Add(new Vector3(
+                        float.Parse(groups[0], System.Globalization.CultureInfo.InvariantCulture),
+                        float.Parse(groups[1], System.Globalization.CultureInfo.InvariantCulture),
+                        float.Parse(groups[2], System.Globalization.CultureInfo.InvariantCulture)));
                 }
                 else if(line.StartsWith("v"))
                 {
-                    match = Regex.Match(line, @"v ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
-                    temp_vertices.Add(new Vector3(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture)));
+                    var groups = line.Substring(2).Split(' ');
+                    temp_vertices.Add(new Vector3(
+                        float.Parse(groups[0], System.Globalization.CultureInfo.InvariantCulture),
+                        float.Parse(groups[1], System.Globalization.CultureInfo.InvariantCulture),
+                        float.Parse(groups[2], System.Globalization.CultureInfo.InvariantCulture)));
                 }
                 else if(line.StartsWith("f"))
                 {
-                    match = Regex.Match(line, @"f ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+)");
-                    if(match.Success)
+                    // match = Regex.Match(line, @"f ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+)");
+                    var groups = line.Substring(2).Replace("//", "/").Replace(' ', '/').Split('/');
+                    if(groups.Length == 9)
                     {
-                        for(int i = 1; ;)
-                        {
-                            Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
-                            Vector2 uv = temp_uvs[int.Parse(match.Groups[i++].Value) - 1];
-                            Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
-
-                            out_vertex_buffer.Add(new VertexInfo() { Position = vertex, Normal = normal, UV = uv });
-                            if(i >= 9)
-                                break;
-                        }
+                        out_vertex_buffer.Add(
+                            new VertexInfo()
+                            {
+                                Position = temp_vertices[int.Parse(groups[0]) - 1],
+                                UV = temp_uvs[int.Parse(groups[1]) - 1],
+                                Normal = temp_normals[int.Parse(groups[2]) - 1]
+                            }
+                        );
+                        out_vertex_buffer.Add(
+                            new VertexInfo()
+                            {
+                                Position = temp_vertices[int.Parse(groups[3]) - 1],
+                                UV = temp_uvs[int.Parse(groups[4]) - 1],
+                                Normal = temp_normals[int.Parse(groups[5]) - 1]
+                            }
+                        );
+                        out_vertex_buffer.Add(
+                            new VertexInfo()
+                            {
+                                Position = temp_vertices[int.Parse(groups[6]) - 1],
+                                UV = temp_uvs[int.Parse(groups[7]) - 1],
+                                Normal = temp_normals[int.Parse(groups[8]) - 1]
+                            }
+                        );
                     }
                     else
                     {
-                        match = Regex.Match(line, @"f ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+)");
-                        if(match.Success)
-                        {
-                            for(int i = 1; ;)
+                        out_vertex_buffer.Add(
+                            new VertexInfo()
                             {
-                                Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
-                                Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
-
-                                out_vertex_buffer.Add(new VertexInfo() { Position = vertex, Normal = normal, UV = normal.Xz });
-                                if(i >= 6)
-                                    break;
+                                Position = temp_vertices[int.Parse(groups[0]) - 1],
+                                UV = Vector2.One,
+                                Normal = temp_normals[int.Parse(groups[1]) - 1]
                             }
-                        }
+                        );
+                        out_vertex_buffer.Add(
+                            new VertexInfo()
+                            {
+                                Position = temp_vertices[int.Parse(groups[2]) - 1],
+                                UV = Vector2.One,
+                                Normal = temp_normals[int.Parse(groups[3]) - 1]
+                            }
+                        );
+                        out_vertex_buffer.Add(
+                            new VertexInfo()
+                            {
+                                Position = temp_vertices[int.Parse(groups[4]) - 1],
+                                UV = Vector2.One,
+                                Normal = temp_normals[int.Parse(groups[5]) - 1]
+                            }
+                        );
                     }
+
                 }
             }
             current.VBO = out_vertex_buffer;
             current.MaterialName = currentMaterial;
             objects.Add(current);
             current = new ObjFileData();
-            current.Name = match.Groups[1].Value;
             return objects;
         }
 

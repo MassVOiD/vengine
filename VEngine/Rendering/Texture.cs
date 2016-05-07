@@ -81,7 +81,7 @@ namespace VEngine
         
         public void Update(string file)
         {
-            if(IsDDS)
+          /*  if(IsDDS)
             {
                 Bitmap = File.ReadAllBytes(file);
             }
@@ -99,7 +99,7 @@ namespace VEngine
                         BitmapToByteArray(bitmap, ref Bitmap);
                     }
                 }
-            }
+            }*/
         }
 
         public void Update(Bitmap bitmap)

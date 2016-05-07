@@ -264,7 +264,7 @@ namespace VEngine.Generators
         }
 
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]  
         private static Vector3 GetNormal(float[] VBOPart)
         {
             return new Vector3(VBOPart[5], VBOPart[6], VBOPart[7]);
@@ -273,9 +273,9 @@ namespace VEngine.Generators
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static float[] GetTerrainVertex(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, float partx, float party, Func<float, float, float> heightGenerator)
         {
-            var h = heightGenerator.Invoke(
-                start.X + ((end.X - start.X) * partx),
-                start.Y + ((end.Y - start.Y) * party));
+            var h = heightGenerator.Invoke(partx, party);
+                //start.X + ((end.X - start.X) * partx),
+                //start.Y + ((end.Y - start.Y) * party));
 
             return new float[]{
                 start.X + ((end.X - start.X) * partx),
