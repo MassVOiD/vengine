@@ -131,12 +131,7 @@ namespace ShadowsTester
                   //  gi.UpdateGI();
                 };
                 //var lucy = CreateDiffuseModelFromRaw("lucy.vbo.raw", new Vector3(1));
-                var lucy = CreateDiffuseModelFromObj("hipolysphere.obj", new Vector3(1));
-                Game.World.Scene.Add(lucy);
-                lucy.GetInstance(0).Scale(0.3f);
-                //lucy.GetLodLevel(0).Material.SetNormalsTexture("stonew_n.jpg");
-                lucy.GetLodLevel(0).Material.DiffuseColor = new Vector3(1.0f);
-
+         
                 //DynamicCubeMapController.Create();
             });
 

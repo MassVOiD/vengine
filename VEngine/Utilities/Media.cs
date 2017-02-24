@@ -21,11 +21,16 @@ namespace VEngine
 
         public static string Get(string name)
         {
-            if(!CompletedLoading)
-                LoadFileMap();
-            if(!Map.ContainsKey(name.ToLower()))
-                throw new KeyNotFoundException(name);
-            return Map[name.ToLower()];
+            try
+            {
+                if(!CompletedLoading)
+                    LoadFileMap();
+                if(!Map.ContainsKey(name.ToLower().Trim()))
+                    throw new KeyNotFoundException(name);
+                return Map[name.ToLower().Trim()];
+            }
+            catch { }
+            return "";
         }
 
         public static void LoadFileMap()

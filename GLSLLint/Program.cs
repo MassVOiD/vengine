@@ -63,7 +63,8 @@ namespace GLSLLint
 
 
                 string fullsrc = Regex.Replace(src, @"\#version (.+)\r\n", "#version $1\r\n" + globalsString);
-               // File.WriteAllText(file + ".out.txt", fullsrc);
+                //Console.WriteLine(fullsrc);
+                // File.WriteAllText(file + ".out.txt", fullsrc);
                 GL.ShaderSource(shader, fullsrc);
 
                 GL.CompileShader(shader);
@@ -92,7 +93,11 @@ namespace GLSLLint
                                 int id = int.Parse(match.Groups[1].Value) - 1;
                                 if(id >= codes.Length)
                                     id = codes.Length - 1;
-                                Console.WriteLine("in line AMD: " + codes[id].Trim());
+                                if(id > 0 && codes.Length > 1)
+                                    Console.WriteLine("in line NV: " + codes[id - 1].Trim());
+                                Console.WriteLine("in line NV: " + codes[id].Trim());
+                                if(id < codes.Length - 1)
+                                    Console.WriteLine("in line NV: " + codes[id + 1].Trim());
                             }
                             if(match2.Success)
                             {
@@ -100,7 +105,10 @@ namespace GLSLLint
                                 int id = int.Parse(match2.Groups[1].Value) - 1;
                                 if(id >= codes.Length)
                                     id = codes.Length - 1;
+                                if(id > 0 && codes.Length > 1)Console.WriteLine("in line NV: " + codes[id - 1].Trim());
                                 Console.WriteLine("in line NV: " + codes[id].Trim());
+                                if(id < codes.Length - 1)
+                                    Console.WriteLine("in line NV: " + codes[id+1].Trim());
                             }
                         }
                         catch { }

@@ -16,6 +16,14 @@ namespace VEngine
                 source = source.Insert(match.Index, includeFile + "\r\n");
                 match = includeMatcher.Match(source);
             }
+            Regex exportMatcher = new Regex("\\#export (.+)\n");
+            match = exportMatcher.Match(source);
+            while(match.Success)
+            {
+                source = source.Remove(match.Index, match.Length);
+                source = source.Insert(match.Index, "uniform " + match.Groups[1].Value.Trim() + ";\r\n");
+                match = exportMatcher.Match(source);
+            }
 
             Regex exportedConstMatcher = new Regex("\\#pragma const ([A-z0-9_-]+) (.+)\n");
             match = exportedConstMatcher.Match(source);

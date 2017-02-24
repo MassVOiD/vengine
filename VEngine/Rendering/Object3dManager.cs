@@ -299,6 +299,21 @@ namespace VEngine
             File.WriteAllBytes(outfile, vboStream.ToArray());
         }
 
+        public void SaveRawWithTangents2(string outfile)
+        {
+            MemoryStream vboStream = new MemoryStream();
+
+            var o3i = AsObject3dInfo();
+            o3i.DrawMode = PrimitiveType.LineStrip;
+            o3i.UpdateTangents();
+
+            foreach(var v2 in o3i.VBO)
+                vboStream.Write(BitConverter.GetBytes(v2), 0, 4);
+
+            vboStream.Flush();
+            File.WriteAllBytes(outfile, vboStream.ToArray());
+        }
+
         public static Dictionary<string, MaterialInfo> LoadMaterialsFromMtl(string filename)
         {
             Dictionary<string, MaterialInfo> materials = new Dictionary<string, MaterialInfo>();
@@ -459,6 +474,7 @@ namespace VEngine
                 // o3di.OriginToCenter();
                 //o3di.CorrectFacesByNormals();
                 // o3di.CorrectFacesByNormals();
+                var translation = o3di.ExtractTranslation();
                 var oi = new Object3dInfo(o3di.Vertices);
                 oi.Manager = o3di;
                // GC.Collect();
@@ -479,11 +495,15 @@ namespace VEngine
                 if(mInfos[kva].NormapMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetNormalsTexture(mInfos[kv.Key].NormapMapName);
                 if(mInfos[kva].TextureName.Length > 1)
+                {
                     ((GenericMaterial)kv.Key).SetDiffuseTexture(mInfos[kv.Key].TextureName);
+                    Console.WriteLine(mInfos[kv.Key].TextureName);
+                }
                 // mesh.SpecularComponent = kv.Key.SpecularStrength;
                 //  mesh.GetInstance(0).Translate(trans);
                 // mesh.SetCollisionShape(o3di.GetConvexHull(mesh.Transformation.GetPosition(),
                 // 1.0f, 1.0f));
+                mesh.GetInstance(0).Transformation.SetPosition(translation);
                 meshes.Add(mesh);
             }
             return meshes;
@@ -538,6 +558,54 @@ namespace VEngine
             averagey /= (float)Vertices.Count;
             averagez /= (float)Vertices.Count;
             return new Vector3(averagex, averagey, averagez);
+        }
+
+        public Vector3 ExtractTranslation()
+        {
+            float averagex = 0, averagey = 0, averagez = 0;
+            for(int i = 0; i < Vertices.Count; i++)
+            {
+                var vertex = Vertices[i].Position;
+                averagex += vertex.X;
+                averagey += vertex.Y;
+                averagez += vertex.Z;
+            }
+            averagex /= (float)Vertices.Count;
+            averagey /= (float)Vertices.Count;
+            averagez /= (float)Vertices.Count;
+            var center = new Vector3(averagex, averagey, averagez);
+
+            for(int i = 0; i < Vertices.Count; i++)
+            {
+                var vertex = Vertices[i].Position;
+                vertex.X -= center.X;
+                vertex.Y -= center.Y;
+                vertex.Z -= center.Z;
+                Vertices[i].Position = vertex;
+            }
+            return center;
+        }
+        public Vector3 ExtractTranslation2DOnly()
+        {
+            float averagex = 0, averagey = 0;
+            for(int i = 0; i < Vertices.Count; i++)
+            {
+                var vertex = Vertices[i].Position;
+                averagex += vertex.X;
+                averagey += vertex.Z;
+            }
+            averagex /= (float)Vertices.Count;
+            averagey /= (float)Vertices.Count;
+            var center = new Vector3(averagex, 0.0f, averagey);
+
+            for(int i = 0; i < Vertices.Count; i++)
+            {
+                var vertex = Vertices[i].Position;
+                vertex.X -= center.X;
+                vertex.Z -= center.Z;
+                Vertices[i].Position = vertex;
+            }
+            return center;
         }
 
         public Vector3 GetAxisAlignedBox()
