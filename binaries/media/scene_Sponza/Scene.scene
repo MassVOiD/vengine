@@ -1,351 +1,309 @@
 material mesh_arch
-metalness 0.0
-roughness 0.943137
-color 1 1 1
-//texture sponza_arch_diff.png
+roughness 0.443137
+color 1 1 1 1
+texture sponza_arch_diff.png
 
 material mesh_flagpole
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.443137
+color 1 1 1 1
 texture sponza_flagpole_diff.png
 
 material mesh_column_b
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.443137
+color 1 1 1 1
 texture sponza_column_b_diff.png
 bumpmap sponza_column_b_bump.png
-roughnessmap sponza_column_b_spec.png
 
 material mesh_ceiling
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.343137
+color 1 1 1 1
 texture sponza_ceiling_a_diff.png
 
 material mesh_0
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.443137
+color 1 1 1 1
 
 material mesh_fabric_g
-metalness 0.0
 roughness 0.743137
-color 1 1 1
+color 1 1 1 1
 texture sponza_curtain_blue_diff.png
-metalness 0.0
-roughnessmap sponza_curtain_blue_roughness.png
-normalmap sponza_curtain_blue_normal.png
-metalnessmap sponza_curtain_blue_metalness.png
 
 material mesh_column_c
-metalness 0.0
 roughness 0.543137
-color 1 1 1
+color 1 1 1 1
 texture sponza_column_c_diff.png
-roughnessmap sponza_column_c_spec.png
 bumpmap sponza_column_c_bump.png
 
 material mesh_vase_hanging
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.443137
+color 1 1 1 1
 texture vase_hanging.png
 
 material mesh_column_a
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.443137
+color 1 1 1 1
 texture sponza_column_a_diff.png
 bumpmap sponza_column_a_bump.png
 
 material mesh_bricks
-metalness 0.0
 roughness 0.88
-color 1 1 1
+color 1 1 1 1
 texture spnza_bricks_a_diff.png
-normalmap spnza_bricks_a_normal.png
-bumpmap spnza_bricks_a_bump.png
+bumpmap spnza_bricks_a_diff.png
 
 material mesh_chain
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.143137
+color 1 1 1 1
 texture chain_texture.png
-transparency true
 bumpmap chain_texture_bump.png
+discardmap chain_texture_mask.png
 
 material mesh_leaf
-metalness 0.0
 roughness 0.843137
-color 1 1 1
+color 1 1 1 1
 texture sponza_thorn_diff.png
-transparency true
 bumpmap sponza_thorn_bump.png
+discardmap sponza_thorn_mask.png
 
 material mesh_vase_round
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.143137
+color 1 1 1 1
 texture vase_round.png
 bumpmap vase_round_bump.png
 
 material mesh_fabric_c
-metalness 0.0
 roughness 0.743137
-color 1 1 1
+color 1 1 1 1
 texture sponza_curtain_diff.png
-metalness 0.0
-roughnessmap sponza_curtain_blue_roughness.png
-normalmap sponza_curtain_blue_normal.png
-metalnessmap sponza_curtain_blue_metalness.png
 
 material mesh_vase
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.143137
+color 1 1 1 1
 texture vase_dif.png
 bumpmap vase_bump.png
 
 material mesh_fabric_a
-metalness 0.0
 roughness 0.95
-color 1 1 1
+color 1 1 1 1
 texture sponza_fabric_diff.png
 
 material mesh_Material__298
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.443137
+color 1 1 1 1
 texture background.png
 bumpmap background_bump.png
 
 material mesh_roof
-metalness 0.0
-roughness 0.943137
-color 1 1 1
-texture roofalb.dds
-normalmap roofnorm.dds
-invertnormalmap false
+roughness 0.343137
+color 1 1 1 1
+texture sponza_roof_diff.png
 
 material mesh_fabric_e
-metalness 0.0
 roughness 0.743137
-color 1 1 1
+color 1 1 1 1
 texture sponza_fabric_green_diff.png
 
 material mesh_floor
-metalness 0.0
-roughness 1.0
-color 1 1 1
+roughness 0.97
+color 1 1 1 1
 texture sponza_floor_a_diff.png
-normalmap sponza_floor_a_normal.png
-bumpmap sponza_floor_a_bump.png
-//roughnessmap floor_roughness.png
 
 material mesh_fabric_d
-metalness 0.0
 roughness 0.743137
-color 1 1 1
+color 1 1 1 1
 texture sponza_fabric_blue_diff.png
 
 material mesh_details
-metalness 0.0
-roughness 0.943137
-color 1 1 1
+roughness 0.243137
+color 1 1 1 1
 texture sponza_details_diff.png
-roughnessmap sponza_details_spec.png
 
 material mesh_fabric_f
-metalness 0.0
 roughness 0.97
-color 1 1 1
+color 1 1 1 1
 texture sponza_curtain_green_diff.png
-metalness 0.0
-roughnessmap sponza_curtain_blue_roughness.png
-normalmap sponza_curtain_blue_normal.png
-metalnessmap sponza_curtain_blue_metalness.png
 
 mesh mesh_sponza_37
-usematerial mesh_arch
 vbo sponza_37.vbo.raw
+ibo sponza_37.indices.raw
+usematerial mesh_arch
 translate -2.475624 21.46494 -1.075904
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_266
-usematerial mesh_flagpole
 vbo sponza_266.vbo.raw
+ibo sponza_266.indices.raw
+usematerial mesh_flagpole
 translate -1.897823 14.10459 -1.162681
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_146
-usematerial mesh_column_b
 vbo sponza_146.vbo.raw
+ibo sponza_146.indices.raw
+usematerial mesh_column_b
 translate -1.919682 18.53495 -1.112186
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_54
-usematerial mesh_ceiling
 vbo sponza_54.vbo.raw
+ibo sponza_54.indices.raw
+usematerial mesh_ceiling
 translate 0.5105606 20.7075 -1.061622
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_257
-usematerial mesh_0
 vbo sponza_257.vbo.raw
+ibo sponza_257.indices.raw
+usematerial mesh_0
 translate -1.904701 9.044056 17.13378
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_329
-usematerial mesh_fabric_g
 vbo sponza_329.vbo.raw
+ibo sponza_329.indices.raw
+usematerial mesh_fabric_g
 translate 2.089906 4.338116 -3.451465
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_114
-usematerial mesh_column_c
 vbo sponza_114.vbo.raw
+ibo sponza_114.indices.raw
+usematerial mesh_column_c
 translate -1.908463 15.73011 -1.072961
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_337
-usematerial mesh_vase_hanging
 vbo sponza_337.vbo.raw
+ibo sponza_337.indices.raw
+usematerial mesh_vase_hanging
 translate -1.973507 3.727845 -1.145433
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_09
-usematerial mesh_column_a
 vbo sponza_09.vbo.raw
+ibo sponza_09.indices.raw
+usematerial mesh_column_a
 translate -1.93895 5.730199 -1.070011
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_258
-usematerial mesh_bricks
 vbo sponza_258.vbo.raw
+ibo sponza_258.indices.raw
+usematerial mesh_bricks
 translate -1.448821 19.00624 2.938971
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_348
-usematerial mesh_chain
 vbo sponza_348.vbo.raw
+ibo sponza_348.indices.raw
+usematerial mesh_chain
 translate -1.973584 5.219702 -1.145382
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_277
-usematerial mesh_leaf
 vbo sponza_277.vbo.raw
+ibo sponza_277.indices.raw
+usematerial mesh_leaf
 translate -1.877038 4.103712 -0.2050861
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_366
-usematerial mesh_vase_round
 vbo sponza_366.vbo.raw
+ibo sponza_366.indices.raw
+usematerial mesh_vase_round
 translate -2.144848 1.05541 -1.078724
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_323
-usematerial mesh_fabric_c
 vbo sponza_323.vbo.raw
+ibo sponza_323.indices.raw
+usematerial mesh_fabric_c
 translate -1.90535 4.386534 -1.171977
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_376
-usematerial mesh_vase
 vbo sponza_376.vbo.raw
+ibo sponza_376.indices.raw
+usematerial mesh_vase
 translate -1.237625 2.477638 -0.6785652
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_288
-usematerial mesh_fabric_a
 vbo sponza_288.vbo.raw
+ibo sponza_288.indices.raw
+usematerial mesh_fabric_a
 translate -2.024144 13.86084 -1.083589
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_378
-usematerial mesh_Material__298
 vbo sponza_378.vbo.raw
+ibo sponza_378.indices.raw
+usematerial mesh_Material__298
 translate -9.674436 8.604491 -1.094319
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_380
-usematerial mesh_roof
 vbo sponza_380.vbo.raw
+ibo sponza_380.indices.raw
+usematerial mesh_roof
 translate -1.842863 40.54547 -1.123871
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_287
-usematerial mesh_fabric_e
 vbo sponza_287.vbo.raw
+ibo sponza_287.indices.raw
+usematerial mesh_fabric_e
 translate -0.1750821 13.86035 1.173178
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_18
-usematerial mesh_floor
 vbo sponza_18.vbo.raw
-scaleuv 4.0 4.0
+ibo sponza_18.indices.raw
+usematerial mesh_floor
 translate -1.376545 9.479931 -0.7731273
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_283
-usematerial mesh_fabric_d
 vbo sponza_283.vbo.raw
+ibo sponza_283.indices.raw
+usematerial mesh_fabric_d
 translate -3.873232 13.86035 -3.340389
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 
 mesh mesh_sponza_70
-usematerial mesh_details
 vbo sponza_70.vbo.raw
+ibo sponza_70.indices.raw
+usematerial mesh_details
 translate 14.05153 10.30982 -4.025021
 rotate 0 0 0 1
 scale 1 1 1
 
 mesh mesh_sponza_322
-usematerial mesh_fabric_f
 vbo sponza_322.vbo.raw
+ibo sponza_322.indices.raw
+usematerial mesh_fabric_f
 translate -5.84315 4.338094 1.15935
 rotate 0 0 0 1
 scale 1 1 1
-//physics accurate 0.0
-//physics enable
 

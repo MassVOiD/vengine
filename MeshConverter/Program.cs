@@ -232,7 +232,7 @@ namespace MeshConverter
             {
                 RequireArgs("resolution", "parts", "in", "inx", "iny", "out", "size", "uvscale", "height");
                 var imgraw = File.ReadAllBytes(Arguments["in"]);
-                var imgdata = new short[imgraw.Length / 2];
+                var imgdata = new ushort[imgraw.Length / 2];
                 Buffer.BlockCopy(imgraw, 0, imgdata, 0, imgraw.Length);
                 int resolution = int.Parse(Arguments["resolution"]);
                 int imgwidth = int.Parse(Arguments["inx"]);
@@ -270,13 +270,16 @@ namespace MeshConverter
                                     ypx = imgheight - 1;
                                 byte b0 = imgraw[(xpx + ypx * imgwidth) * 2];
                                 byte b1 = imgraw[(xpx + ypx * imgwidth) * 2 + 1];
-                                var col = BitConverter.ToUInt16(new byte[] { b0, b1 }, 0);
+                                var col = BitConverter.ToUInt16(new byte []{ b0, b1 }, 0);
                                 int zxzs = (int)(x * 100.0);
                                 if(zxzs > lx)
                                     Console.WriteLine(zxzs);
                                 if(zxzs > lx)
                                     lx = zxzs;
-                                return ((float)(col) / ushort.MaxValue) * height;
+                                float f = ((float)(col) / (float)ushort.MaxValue) * height;
+                                if(f < 0.01f)
+                                    f = -50.0f;
+                                return f;
                             });
                             Console.WriteLine("Starting saving " + ofile + "_" + partX + "x" + partY + ".raw");
                             t.ExtractTranslation2DOnly();
@@ -427,7 +430,118 @@ namespace MeshConverter
             }
 
 
-            Console.WriteLine("Done");
+            if (mode == "assimp2skeleton")
+            {
+                // convert.exe assimp2skeleton infile.dae outfile.skeleton
+                var ai = new AssimpContext();
+                var usednames = new List<string>();
+                var mi = ai.ImportFile(infile);
+                string skeleton = getSkeleton(mi, 0);
+
+                File.WriteAllText(outfile , skeleton);
+
+
+                Console.WriteLine("Done");
+            }
+        }
+
+        static Assimp.Node findNodeByName(Assimp.Node root, string s)
+        {
+            if (root.Name == s) return root;
+            var test = root.FindNode(s);
+            if (test != null) return test;
+            foreach (var a in root.Children)
+            {
+
+                var t = findNodeByName(a, s);
+                if (t != null) return t;
+            }
+            return null;
+        }
+
+        static string getSkeleton(Assimp.Scene scn, int meshid)
+        {
+            var m = scn.Meshes[meshid];
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine();
+            Dictionary<int, List<string>> vweights = new Dictionary<int, List<string>>();
+            int boneid = 0;
+            List<string> names = new List<string>();
+            foreach (var b in m.Bones) {
+                names.Add(b.Name);
+            }
+
+            foreach (var b in m.Bones)
+            {
+                sb.Append("bone " + boneid.ToString() + " ");
+                sb.AppendLine(b.Name);
+                Assimp.Node n = scn.RootNode;
+                var na = findNodeByName(n, b.Name);
+                if (na != null && na.Parent != null) {
+                    
+                    sb.AppendLine("parent " + names.FindIndex((wa) => wa == na.Parent.Name).ToString());
+                }
+                // sb.Append("weights ");
+                foreach (var v in b.VertexWeights)
+                {
+                   // sb.Append(v.VertexID);
+                   // sb.Append("=");
+                   // sb.Append(v.Weight.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                   // sb.Append(" ");
+                    if (!vweights.ContainsKey(v.VertexID))
+                    {
+                        vweights.Add(v.VertexID, new List<string>());
+                    }
+                    vweights[v.VertexID].Add(string.Format("{0}={1}", boneid, v.Weight.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture)));
+                }
+              //  sb.AppendLine();
+                sb.Append("matrix ");
+
+                Assimp.Quaternion q;
+                Assimp.Vector3D t;
+                Assimp.Vector3D s;
+                var a = b.OffsetMatrix;
+              //  a.Inverse();
+                a.Decompose(out s, out q, out t);
+                t /= s;
+
+                sb.Append(q.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" ");
+                sb.Append(q.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" ");
+                sb.Append(q.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" ");
+                sb.Append(q.W.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" ");
+
+                sb.Append(t.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" ");
+                sb.Append(t.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" ");
+                sb.Append(t.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.AppendLine();
+
+                sb.Append(s.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" ");
+                sb.Append(s.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.Append(" ");
+                sb.Append(s.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                sb.AppendLine();
+                boneid++;
+            }
+            sb.AppendLine();
+            foreach(var vw in vweights)
+            {
+                sb.Append("vertex_weights ");
+                sb.Append(vw.Key);
+                foreach (var v in vw.Value)
+                {
+                    sb.Append(" ");
+                    sb.Append(v);
+                }
+                sb.AppendLine();
+            }
+            return sb.ToString();
         }
 
         static void recurseNode(Assimp.Scene scn, Node node, StringBuilder scenesb, Matrix4x4 matrix)
