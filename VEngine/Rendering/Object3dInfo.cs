@@ -32,7 +32,7 @@ namespace VEngine
         public Object3dInfo(VertexInfo[] vbo)
         {
             VBO = VertexInfo.ToFloatList(vbo).ToArray();
-            IndicesCount = VBO.Length / 8;
+            IndicesCount = vbo.Length;
             if(vbo.Length > 0)
             {
                 var a = vbo[0].Position;
@@ -50,7 +50,7 @@ namespace VEngine
         public Object3dInfo(List<VertexInfo> vbo)
         {
             VBO = VertexInfo.ToFloatList(vbo).ToArray();
-            IndicesCount = VBO.Length / 8;
+            IndicesCount = vbo.Count;
             if(vbo.Count > 0)
             {
                 var a = vbo[0].Position;
@@ -144,6 +144,7 @@ namespace VEngine
                 int vboIndex1 = (int)i * 8;
                 int vboIndex2 = (int)(i + 1) * 8;
                 int vboIndex3 = (int)(i + 2) * 8;
+                Console.WriteLine(vboIndex3 + "/" + VBO.Length + "/" + ((IndicesCount) * 8));
                 var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
                 var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
                 var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);

@@ -21,15 +21,15 @@ namespace MeshConverter
         static void RequireArgs(params string[] args)
         {
             bool fail = false;
-            foreach(var a in args)
+            foreach (var a in args)
             {
-                if(!Arguments.ContainsKey(a))
+                if (!Arguments.ContainsKey(a))
                 {
                     Console.WriteLine("Argument not found: " + a);
                     fail = true;
                 }
             }
-            if(fail)
+            if (fail)
                 throw new ArgumentException();
         }
 
@@ -52,7 +52,7 @@ namespace MeshConverter
             materialb.AppendLine(string.Format("roughness {0}", ftos(mat.Roughness)));
             materialb.AppendLine(string.Format("metalness {0}", 0.2f));
             materialb.AppendLine();
-            if(mat.NormalsTexture != null)
+            if (mat.NormalsTexture != null)
             {
                 materialb.AppendLine("node");
                 materialb.AppendLine(string.Format("texture {0}", mat.NormalsTexture.FileName));
@@ -60,7 +60,7 @@ namespace MeshConverter
                 materialb.AppendLine("target NORMAL");
                 materialb.AppendLine();
             }
-            if(mat.DiffuseTexture != null)
+            if (mat.DiffuseTexture != null)
             {
                 materialb.AppendLine("node");
                 materialb.AppendLine(string.Format("texture {0}", mat.DiffuseTexture.FileName));
@@ -69,7 +69,7 @@ namespace MeshConverter
                 materialb.AppendLine("modifier LINEARIZE");
                 materialb.AppendLine();
             }
-            if(mat.BumpTexture != null)
+            if (mat.BumpTexture != null)
             {
                 materialb.AppendLine("node");
                 materialb.AppendLine(string.Format("texture {0}", mat.BumpTexture.FileName));
@@ -77,7 +77,7 @@ namespace MeshConverter
                 materialb.AppendLine("target BUMP");
                 materialb.AppendLine();
             }
-            if(mat.RoughnessTexture != null)
+            if (mat.RoughnessTexture != null)
             {
                 materialb.AppendLine("node");
                 materialb.AppendLine(string.Format("texture {0}", mat.RoughnessTexture.FileName));
@@ -108,10 +108,10 @@ namespace MeshConverter
         private static void Main(string[] args)
         {
             Arguments = new Dictionary<string, string>();
-            foreach(var a in args)
+            foreach (var a in args)
             {
                 int i = a.IndexOf('=');
-                if(i > 0)
+                if (i > 0)
                 {
                     string k = a.Substring(0, i);
                     string v = a.Substring(i + 1);
@@ -123,7 +123,7 @@ namespace MeshConverter
             outfile = args[2];
             Media.SearchPath = ".";
 
-            if(mode == "scene2assets")
+            if (mode == "scene2assets")
             {
                 string scenename = args[3];
                 var element = new VEngine.FileFormats.GameScene(infile);
@@ -131,7 +131,7 @@ namespace MeshConverter
                 int unnamed = 0;
                 StringBuilder sceneb = new StringBuilder();
                 var rand = new Random();
-                foreach(var m in element.Meshes)
+                foreach (var m in element.Meshes)
                 {
                     string name = "mesh" + (unnamed++);
                     SaveMeshToFile(m, name, outfile);
@@ -139,33 +139,33 @@ namespace MeshConverter
                 }
                 File.WriteAllText(outfile + "/" + scenename, sceneb.ToString());
             }
-            if(mode == "obj2raw")
+            if (mode == "obj2raw")
             {
                 var element = Object3dManager.LoadFromObjSingle(infile);
                 element.SaveRaw(outfile);
             }
-            if(mode == "obj2rawtangsmooth")
+            if (mode == "obj2rawtangsmooth")
             {
                 var element = Object3dManager.LoadFromObjSingle(infile);
                 element.RecalulateNormals(Object3dManager.NormalRecalculationType.Smooth, 1);
                 element.SaveRawWithTangents(outfile);
             }
-            if(mode == "raw2rawtang")
+            if (mode == "raw2rawtang")
             {
                 var element = Object3dManager.LoadFromRaw(infile);
                 element.SaveRawWithTangents(outfile);
             }
-            if(mode == "raw2rawtangfake")
+            if (mode == "raw2rawtangfake")
             {
                 var element = Object3dManager.LoadFromRaw(infile);
                 element.SaveRawWithTangents2(outfile);
             }
-            if(mode == "obj2rawtang")
+            if (mode == "obj2rawtang")
             {
                 var element = Object3dManager.LoadFromObjSingle(infile);
                 element.SaveRawWithTangents(outfile);
             }
-            if(mode == "objscene2assets")
+            if (mode == "objscene2assets")
             {
                 Console.WriteLine("Conversion started");
                 var elements = Object3dManager.LoadSceneFromObj(infile + ".obj", infile + ".mtl");
@@ -176,20 +176,20 @@ namespace MeshConverter
                 string scenename = args[3];
 
                 Console.WriteLine("Found elements " + elements.Count);
-                foreach(var m in elements)
+                foreach (var m in elements)
                 {
                     string n = m.GetInstance(0).Name;
-                    if(n == null || n.Length == 0 || map.Contains(n))
+                    if (n == null || n.Length == 0 || map.Contains(n))
                         n = m.GetLodLevel(0).Info3d.Manager.Name;
-                    if(n == null || n.Length == 0 || map.Contains(n))
+                    if (n == null || n.Length == 0 || map.Contains(n))
                         n = m.GetLodLevel(0).Material.Name;
-                    if(n == null || n.Length == 0 || map.Contains(n))
+                    if (n == null || n.Length == 0 || map.Contains(n))
                         n = Path.GetFileNameWithoutExtension(m.GetLodLevel(0).Material.DiffuseTexture.FileName);
-                    if(n == null || n.Length == 0 || map.Contains(n))
+                    if (n == null || n.Length == 0 || map.Contains(n))
                         n = Path.GetFileNameWithoutExtension(m.GetLodLevel(0).Material.BumpTexture.FileName);
-                    if(n == null || n.Length == 0 || map.Contains(n))
+                    if (n == null || n.Length == 0 || map.Contains(n))
                         n = Path.GetFileNameWithoutExtension(m.GetLodLevel(0).Material.NormalsTexture.FileName);
-                    while(n == null || n.Length == 0 || map.Contains(n))
+                    while (n == null || n.Length == 0 || map.Contains(n))
                         n = "unknown_" + r.Next();
                     Console.WriteLine("Converting mesh " + n);
 
@@ -200,16 +200,16 @@ namespace MeshConverter
                 File.WriteAllText(outfile + "/" + scenename, sceneb.ToString());
             }
 
-            if(mode == "ply2raw")
+            if (mode == "ply2raw")
             {
                 var ai = new AssimpContext();
                 var vertexinfos = new List<VertexInfo>();
                 var mi = ai.ImportFile(infile, PostProcessSteps.Triangulate);
-                foreach(var m in mi.Meshes)
+                foreach (var m in mi.Meshes)
                 {
                     var indices = m.GetIndices();
 
-                    for(int i = 0; i < indices.Length; i++)
+                    for (int i = 0; i < indices.Length; i++)
                     {
                         int f = indices[i];
                         var vp = m.Vertices[f];
@@ -228,7 +228,7 @@ namespace MeshConverter
                 var element = new Object3dManager(vertexinfos);
                 element.SaveRaw(outfile);
             }
-            if(mode == "generateterrain")
+            if (mode == "generateterrain")
             {
                 RequireArgs("resolution", "parts", "in", "inx", "iny", "out", "size", "uvscale", "height");
                 var imgraw = File.ReadAllBytes(Arguments["in"]);
@@ -247,10 +247,10 @@ namespace MeshConverter
                 var end = new Vector2(size);
                 var stepsize = (end - start) / ((float)parts);
                 var realstepsize = (1.0f) / ((float)parts);
-                for(int ApartX = 0; ApartX < parts; ApartX++)
+                for (int ApartX = 0; ApartX < parts; ApartX++)
                 {
                     var tasks = new List<Task>();
-                    for(int ApartY = 0; ApartY < parts; ApartY++)
+                    for (int ApartY = 0; ApartY < parts; ApartY++)
                     {
                         int partX = ApartX;
                         int partY = ApartY;
@@ -264,20 +264,20 @@ namespace MeshConverter
                                 float ry = realstepsize * (float)partY + realstepsize * (y);
                                 int xpx = (int)(rx * imgwidth);
                                 int ypx = (int)(ry * imgheight);
-                                if(xpx >= imgwidth)
+                                if (xpx >= imgwidth)
                                     xpx = imgwidth - 1;
-                                if(ypx >= imgheight)
+                                if (ypx >= imgheight)
                                     ypx = imgheight - 1;
                                 byte b0 = imgraw[(xpx + ypx * imgwidth) * 2];
                                 byte b1 = imgraw[(xpx + ypx * imgwidth) * 2 + 1];
-                                var col = BitConverter.ToUInt16(new byte []{ b0, b1 }, 0);
+                                var col = BitConverter.ToUInt16(new byte[] { b0, b1 }, 0);
                                 int zxzs = (int)(x * 100.0);
-                                if(zxzs > lx)
+                                if (zxzs > lx)
                                     Console.WriteLine(zxzs);
-                                if(zxzs > lx)
+                                if (zxzs > lx)
                                     lx = zxzs;
                                 float f = ((float)(col) / (float)ushort.MaxValue) * height;
-                                if(f < 0.01f)
+                                if (f < 0.01f)
                                     f = -50.0f;
                                 return f;
                             });
@@ -297,7 +297,7 @@ namespace MeshConverter
                     tasks.ForEach((a) => a.Wait());
                 }
             }
-            if(mode == "generateterraingrass")
+            if (mode == "generateterraingrass")
             {
                 RequireArgs("resolution", "in", "out", "size", "uvscale", "height", "threshold");
                 var img = new System.Drawing.Bitmap(Arguments["in"]);
@@ -318,28 +318,28 @@ namespace MeshConverter
                 {
                     int xpx = (int)(x * img.Size.Width);
                     int ypx = (int)(y * img.Size.Height);
-                    if(xpx >= img.Size.Width)
+                    if (xpx >= img.Size.Width)
                         xpx = img.Size.Width - 1;
-                    if(ypx >= img.Size.Height)
+                    if (ypx >= img.Size.Height)
                         ypx = img.Size.Height - 1;
                     var col = img.GetPixel(xpx, ypx);
                     int zxzs = (int)(x * 100.0);
                     // if(zxzs > lx)
                     //  Console.WriteLine(zxzs);
-                    if(zxzs > lx)
+                    if (zxzs > lx)
                         lx = zxzs;
                     return ((float)(col.R) / 255.0f) * height;
                 });
 
-                for(int x = 0; x < resolution; x++)
+                for (int x = 0; x < resolution; x++)
                 {
-                    for(int y = 0; y < resolution; y++)
+                    for (int y = 0; y < resolution; y++)
                     {
                         float fx = (float)x / (float)resolution;
                         float fy = (float)y / (float)resolution;
                         float h = gethfn(fx, fy);
                         //  Console.WriteLine(h);
-                        if(h > threshold)
+                        if (h > threshold)
                         {
                             Vector2 vx = start + mixdir * new Vector2(fx, fy);
                             sb.AppendLine("instance");
@@ -357,7 +357,7 @@ namespace MeshConverter
 
 
             }
-            if(mode == "assimp2assets")
+            if (mode == "assimp2assets")
             {
                 // convert.exe assimp2assets infile.dae outdir outname.scene
                 var ai = new AssimpContext();
@@ -368,7 +368,7 @@ namespace MeshConverter
                 var scenesb = new StringBuilder();
                 string scenename = args[3];
                 doublefaced = args.Length == 5 && args[4] == "doublefaced";
-                foreach(var m in mi.Materials)
+                foreach (var m in mi.Materials)
                 {
                     string name = usednames.Contains(m.Name) ? (m.Name + (unnamed++).ToString()) : m.Name;
                     var sb = new StringBuilder();
@@ -377,7 +377,7 @@ namespace MeshConverter
                     sb.AppendLine(string.Format("metalness {0}", ftos(0.0f)));
                     sb.AppendLine();
 
-                    if(m.HasTextureDiffuse)
+                    if (m.HasTextureDiffuse)
                     {
                         sb.AppendLine("node");
                         sb.AppendLine(string.Format("texture {0}", Path.GetFileName(m.TextureDiffuse.FilePath)));
@@ -386,7 +386,7 @@ namespace MeshConverter
                         sb.AppendLine("modifier LINEARIZE");
                         sb.AppendLine();
                     }
-                    if(m.HasTextureReflection)
+                    if (m.HasTextureReflection)
                     {
                         sb.AppendLine("node");
                         sb.AppendLine(string.Format("texture {0}", Path.GetFileName(m.TextureReflection.FilePath)));
@@ -394,7 +394,7 @@ namespace MeshConverter
                         sb.AppendLine("target ROUGHNESS");
                         sb.AppendLine();
                     }
-                    if(m.HasTextureSpecular)
+                    if (m.HasTextureSpecular)
                     {
                         sb.AppendLine("node");
                         sb.AppendLine(string.Format("texture {0}", Path.GetFileName(m.TextureSpecular.FilePath)));
@@ -402,7 +402,7 @@ namespace MeshConverter
                         sb.AppendLine("target ROUGHNESS");
                         sb.AppendLine();
                     }
-                    if(m.HasTextureNormal)
+                    if (m.HasTextureNormal)
                     {
                         sb.AppendLine("node");
                         sb.AppendLine(string.Format("texture {0}", Path.GetFileName(m.TextureNormal.FilePath)));
@@ -410,7 +410,7 @@ namespace MeshConverter
                         sb.AppendLine("target NORMAL");
                         sb.AppendLine();
                     }
-                    if(m.HasTextureDisplacement)
+                    if (m.HasTextureDisplacement)
                     {
                         sb.AppendLine("node");
                         sb.AppendLine(string.Format("texture {0}", Path.GetFileName(m.TextureDisplacement.FilePath)));
@@ -436,9 +436,9 @@ namespace MeshConverter
                 var ai = new AssimpContext();
                 var usednames = new List<string>();
                 var mi = ai.ImportFile(infile);
-                string skeleton = getSkeleton(mi, 0);
+                string skeleton = saveSkeleton(mi, args[3]);
 
-                File.WriteAllText(outfile , skeleton);
+                File.WriteAllText(outfile, skeleton);
 
 
                 Console.WriteLine("Done");
@@ -459,78 +459,137 @@ namespace MeshConverter
             return null;
         }
 
-        static string getSkeleton(Assimp.Scene scn, int meshid)
+        static string saveSkeleton(Assimp.Scene scn, string rawfile)
         {
-            var m = scn.Meshes[meshid];
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine();
             Dictionary<int, List<string>> vweights = new Dictionary<int, List<string>>();
-            int boneid = 0;
-            List<string> names = new List<string>();
-            foreach (var b in m.Bones) {
-                names.Add(b.Name);
-            }
-
-            foreach (var b in m.Bones)
+            int vertexStart = 0;
+            Object3dManager mgr = new Object3dManager(new VertexInfo[0]);
+            foreach (var m in scn.Meshes)
             {
-                sb.Append("bone " + boneid.ToString() + " ");
-                sb.AppendLine(b.Name);
-                Assimp.Node n = scn.RootNode;
-                var na = findNodeByName(n, b.Name);
-                if (na != null && na.Parent != null) {
-                    
-                    sb.AppendLine("parent " + names.FindIndex((wa) => wa == na.Parent.Name).ToString());
-                }
-                // sb.Append("weights ");
-                foreach (var v in b.VertexWeights)
+                for (int i = 0; i < m.VertexCount; i++)
+                    vweights.Add(vertexStart + i, new List<string>());
+
+                var indyk = m.GetIndices();
+                for (int ix = 0; ix < indyk.Length; ix++)
                 {
-                   // sb.Append(v.VertexID);
-                   // sb.Append("=");
-                   // sb.Append(v.Weight.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                   // sb.Append(" ");
-                    if (!vweights.ContainsKey(v.VertexID))
-                    {
-                        vweights.Add(v.VertexID, new List<string>());
-                    }
-                    vweights[v.VertexID].Add(string.Format("{0}={1}", boneid, v.Weight.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture)));
+                    int i = indyk[ix];
+                    var vt = new VertexInfo();
+                    vt.Position = new Vector3(m.Vertices[i].X, m.Vertices[i].Y, m.Vertices[i].Z);
+                    vt.Normal = new Vector3(m.Normals[i].X, m.Normals[i].Y, m.Normals[i].Z);
+                    vt.UV = new Vector2(m.TextureCoordinateChannels[0][i].X, m.TextureCoordinateChannels[0][i].Y);
+                    mgr.Vertices.Add(vt);
                 }
-              //  sb.AppendLine();
-                sb.Append("matrix ");
-
-                Assimp.Quaternion q;
-                Assimp.Vector3D t;
-                Assimp.Vector3D s;
-                var a = b.OffsetMatrix;
-              //  a.Inverse();
-                a.Decompose(out s, out q, out t);
-                t /= s;
-
-                sb.Append(q.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" ");
-                sb.Append(q.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" ");
-                sb.Append(q.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" ");
-                sb.Append(q.W.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" ");
-
-                sb.Append(t.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" ");
-                sb.Append(t.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" ");
-                sb.Append(t.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
                 sb.AppendLine();
+                int boneid = 0;
+                List<string> names = new List<string>();
+                foreach (var b in m.Bones)
+                {
+                    names.Add(b.Name);
+                    Console.WriteLine(b.Name);
+                }
 
-                sb.Append(s.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" ");
-                sb.Append(s.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.Append(" ");
-                sb.Append(s.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
-                sb.AppendLine();
-                boneid++;
+                foreach (var b in m.Bones)
+                {
+                    sb.Append("bone " + boneid.ToString() + " ");
+                    sb.AppendLine(b.Name);
+                    Assimp.Node n = scn.RootNode;
+                    var na = findNodeByName(n, b.Name);
+                    if (na != null && na.Parent != null)
+                    {
+
+                        sb.AppendLine("parent " + names.FindIndex((wa) => wa == na.Parent.Name).ToString());
+                    }
+                    // sb.Append("weights ");
+                    float radius = 0.0f;
+                    var tx = na.Transform;
+                    var parent = na.Parent;
+                    while(parent != null)
+                    {
+                        tx = parent.Transform * tx;
+                        parent = parent.Parent;
+                    }
+                    Assimp.Vector3D testpos, terstscale;
+                    Assimp.Quaternion testquat;
+                    tx.Decompose(out terstscale, out testquat, out testpos);
+                    testpos *= terstscale;
+                    Console.WriteLine(testpos.X + " " + testpos.Y + " " + testpos.Z);
+                    Vector3 position = Vector3.Zero;
+                    float weisum = 0.001f;
+                    foreach (var v in b.VertexWeights)
+                    {
+                        Vector3 vert = new Vector3(m.Vertices[v.VertexID].X, m.Vertices[v.VertexID].Y, m.Vertices[v.VertexID].Z);
+                        position += v.Weight * vert;
+                        weisum += v.Weight;
+
+                        vweights[vertexStart + v.VertexID].Add(string.Format("{0}={1}", boneid, v.Weight.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture)));
+                    }
+                    position /= weisum;
+                    weisum = 0.001f;
+                    foreach (var v in b.VertexWeights)
+                    {
+                        Vector3 vert = new Vector3(m.Vertices[v.VertexID].X, m.Vertices[v.VertexID].Y, m.Vertices[v.VertexID].Z);
+                        radius += v.Weight * (position - vert).Length;
+                        weisum += v.Weight;
+
+                        vweights[vertexStart + v.VertexID].Add(string.Format("{0}={1}", boneid, v.Weight.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture)));
+                    }
+                    radius /= weisum;
+                    Console.WriteLine(position.X + " " + position.Y + " " + position.Z);
+
+                    sb.AppendLine();
+                    sb.Append("position ");
+                    sb.Append(position.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(position.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(position.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.AppendLine();
+                    sb.Append("radius ");
+                    sb.Append(radius.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    Console.WriteLine();
+
+                    sb.AppendLine();
+                    sb.Append("matrix ");
+                  
+                    Assimp.Quaternion q;
+                    Assimp.Vector3D t;
+                    Assimp.Vector3D s;
+                    var a = b.OffsetMatrix;
+                    //  a.Inverse();
+                    a.Decompose(out s, out q, out t);
+                    t /= s;
+
+                    sb.Append(q.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(q.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(q.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(q.W.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+
+                    sb.Append(t.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(t.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(t.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.AppendLine();
+
+                    sb.Append(s.X.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(s.Y.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.Append(" ");
+                    sb.Append(s.Z.ToString("0.#########", System.Globalization.CultureInfo.InvariantCulture));
+                    sb.AppendLine();
+                    boneid++;
+                }
+                vertexStart += m.VertexCount;
             }
+            while (mgr.Vertices.Count % 3 != 0) mgr.Vertices.RemoveAt(mgr.Vertices.Count - 1);
+            mgr.SaveRawWithTangents(rawfile);
             sb.AppendLine();
-            foreach(var vw in vweights)
+            foreach (var vw in vweights)
             {
                 sb.Append("vertex_weights ");
                 sb.Append(vw.Key);
@@ -538,6 +597,10 @@ namespace MeshConverter
                 {
                     sb.Append(" ");
                     sb.Append(v);
+                }
+                if(vw.Value.Count == 0)
+                {
+                    sb.Append(" 0=0");
                 }
                 sb.AppendLine();
             }
@@ -547,17 +610,17 @@ namespace MeshConverter
         static void recurseNode(Assimp.Scene scn, Node node, StringBuilder scenesb, Matrix4x4 matrix)
         {
             Console.WriteLine("Scanning node " + node.Name);
-            foreach(var mindex in node.MeshIndices)
+            foreach (var mindex in node.MeshIndices)
             {
                 var m = scn.Meshes[mindex];
                 string name = usednames.Contains(m.Name) ? (m.Name + (unnamed++).ToString()) : m.Name;
                 var sb = new StringBuilder();
-                if(!File.Exists(outfile + "/" + name + ".mesh3d"))
+                if (!File.Exists(outfile + "/" + name + ".mesh3d"))
                 {
                     var vertexinfos = new List<VertexInfo>();
                     var indices = m.GetIndices();
 
-                    for(int i = 0; i < indices.Length; i++)
+                    for (int i = 0; i < indices.Length; i++)
                     {
                         int f = indices[i];
                         var vp = m.Vertices[f];
@@ -571,10 +634,10 @@ namespace MeshConverter
                         };
                         vertexinfos.Add(vi);
                     }
-                    if(doublefaced)
+                    if (doublefaced)
                     {
 
-                        for(int i = indices.Length - 1; i >= 0; i--)
+                        for (int i = indices.Length - 1; i >= 0; i--)
                         {
                             int f = indices[i];
                             var vp = m.Vertices[f];
@@ -619,7 +682,7 @@ namespace MeshConverter
                 sb.AppendLine(string.Format("translate {0} {1} {2}", ftos(pvec.X), ftos(pvec.Y), ftos(pvec.Z)));
                 sb.AppendLine(string.Format("rotate {0} {1} {2} {3}", ftos(q1.X), ftos(q1.Y), ftos(q1.Z), ftos(q1.W)));
                 sb.AppendLine(string.Format("scale {0} {1} {2}", ftos(pscl.X), ftos(pscl.Y), ftos(pscl.Z)));
-                if(!File.Exists(outfile + "/" + name + ".mesh3d"))
+                if (!File.Exists(outfile + "/" + name + ".mesh3d"))
                 {
                     Console.WriteLine("Saving " + outfile + "/" + name + ".mesh3d");
                     File.WriteAllText(outfile + "/" + name + ".mesh3d", sb.ToString());
@@ -630,8 +693,8 @@ namespace MeshConverter
                     File.AppendAllText(outfile + "/" + name + ".mesh3d", sb.ToString());
                 }
             }
-            foreach(var c in node.Children)
-                if(c != node)
+            foreach (var c in node.Children)
+                if (c != node)
                     recurseNode(scn, c, scenesb, matrix * node.Transform);
         }
     }
