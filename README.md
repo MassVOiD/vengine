@@ -1,5 +1,8 @@
 *WARNING*
 Development moved to: https://github.com/achlubek/venginenative
+This project is NO LONGER SUPPORTED! Use the new repo.
+This project also doesn't work and only barely compile, lacks assets etc, its not useable. You shouldnt use it. 
+It is here only for "historical" purposes and because I dont have private repos and I need some history.
 
 
 
