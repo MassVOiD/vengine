@@ -144,7 +144,8 @@ namespace VEngine
                 int vboIndex1 = (int)i * 8;
                 int vboIndex2 = (int)(i + 1) * 8;
                 int vboIndex3 = (int)(i + 2) * 8;
-                Console.WriteLine(vboIndex3 + "/" + VBO.Length + "/" + ((IndicesCount) * 8));
+                //if (vboIndex3 >= VBO.Length) break;
+              //  Console.WriteLine(vboIndex3 + "/" + VBO.Length + "/" + ((IndicesCount) * 8));
                 var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
                 var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
                 var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
@@ -174,6 +175,7 @@ namespace VEngine
                 int vboIndex1 = (int)i * 12;
                 int vboIndex2 = (int)(i + 1) * 12;
                 int vboIndex3 = (int)(i + 2) * 12;
+                //if (vboIndex3 >= VBO.Length) break;
                 var pos1 = new Vector3(VBO[vboIndex1], VBO[vboIndex1 + 1], VBO[vboIndex1 + 2]);
                 var pos2 = new Vector3(VBO[vboIndex2], VBO[vboIndex2 + 1], VBO[vboIndex2 + 2]);
                 var pos3 = new Vector3(VBO[vboIndex3], VBO[vboIndex3 + 1], VBO[vboIndex3 + 2]);
@@ -219,6 +221,7 @@ namespace VEngine
             for(int i = 0; i < IndicesCount; i++)
             {
                 int vboIndex1 = i * 12;
+               // if (vboIndex1 >= VBO.Length) break;
                 var nor1 = new Vector3(VBO[vboIndex1 + 5], VBO[vboIndex1 + 6], VBO[vboIndex1 + 7]);
                 var tan1 = t1a[i];
                 var tan = -(tan1 - nor1 * Vector3.Dot(nor1, tan1)).Normalized();

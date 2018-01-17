@@ -28,6 +28,7 @@ namespace ShadowsTester
 
             var freeCamera = Commons.SetUpFreeCamera();
             //System.Threading.Thread.Sleep(1100);
+            
             Commons.AddControllableLight();
             Commons.SetUpInputBehaviours();
 

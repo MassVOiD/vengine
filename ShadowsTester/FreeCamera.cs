@@ -148,7 +148,7 @@ namespace ShadowsTester
             }
 
 
-            var keyboard = OpenTK.Input.Keyboard.GetState(0);
+            var keyboard = OpenTK.Input.Keyboard.GetState();
             //KeyboardHandler.Process();
 
             float speed = 0.01f;

@@ -105,7 +105,7 @@ namespace VEngine.Generators
                 VBO[i + 3] *= uvScale.X;
                 VBO[i + 4] *= uvScale.Y;
             }
-            return new Object3dManager(VertexInfo.FromFloatArray(VBO));
+            return new Object3dManager(VertexInfo.FromFloatArray2(VBO));
         }
 
         public static Object3dManager CreateGround(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal)
@@ -118,7 +118,7 @@ namespace VEngine.Generators
                 start.X, 0, start.Y, uvScale.X, 0, normal.X, normal.Y, normal.Z,
                 end.X, 0, end.Y, 0, uvScale.Y, normal.X, normal.Y, normal.Z
             };
-            return new Object3dManager(VertexInfo.FromFloatArray(VBO));
+            return new Object3dManager(VertexInfo.FromFloatArray2(VBO));
         }
 
         public static Object3dManager CreatePlane(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector2 uvScale, Vector3 normal)
@@ -131,7 +131,7 @@ namespace VEngine.Generators
                 v3.X, v3.Y, v1.Z, uvScale.X, 0, normal.X, normal.Y, normal.Z,
                 v2.X, v2.Y, v1.Z, 0, uvScale.Y, normal.X, normal.Y, normal.Z,
             };
-            return new Object3dManager(VertexInfo.FromFloatArray(VBO));
+            return new Object3dManager(VertexInfo.FromFloatArray2(VBO));
         }
 
         public static Object3dManager CreateTerrain(Vector2 start, Vector2 end, Vector2 uvScale, Vector3 normal, int subdivisions, Func<float, float, float> heightGenerator)
@@ -256,7 +256,7 @@ namespace VEngine.Generators
                 VBO.AddRange(VBOParts[i + 1]);
             }
 
-            var finalObject = new Object3dManager(VertexInfo.FromFloatArray(VBO.ToArray()));
+            var finalObject = new Object3dManager(VertexInfo.FromFloatArray2(VBO.ToArray()));
 
             //SaveCache(start, end, uvScale, normal, subdivisions, finalObject);
 

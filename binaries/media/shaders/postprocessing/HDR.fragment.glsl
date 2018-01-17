@@ -228,6 +228,6 @@ void main()
         //color = czm_saturation(color, 2);
 		color = rgb_to_srgb(color);
 	}
-    
+    color += textureMSAAFull(albedoRoughnessTex, UV).rgb;
     outColor = clamp(vec4(color, toLogDepth(textureMSAAFull(normalsDistancetex, UV).a, 1000)), 0.0, 10000.0);
 }

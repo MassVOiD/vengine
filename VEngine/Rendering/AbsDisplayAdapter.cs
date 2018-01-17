@@ -152,12 +152,14 @@ namespace VEngine
 
             Game.InvokeOnBeforeDraw(e);
 
+            Camera.Current = Camera.MainDisplayCamera;
+
             MainRenderer.RenderToFramebuffer(Framebuffer.Default);
 
             Game.InvokeOnAfterDraw(e);
             
             PhysicsNeedsUpdate = true;
-
+            
             SwapBuffers();
         }
 

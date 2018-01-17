@@ -30,9 +30,68 @@ namespace MeshConverter
                 }
             }
             if (fail)
-                throw new ArgumentException();
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
         }
 
+        static double hash(double n)
+        {
+            double h = Math.Sin(n) * 758.5453;
+            return h - Math.Floor(h);
+        }
+
+        static double mix(double a, double b, double m)
+        {
+            return a * (1.0 - m) + b * m;
+        }
+
+        static double configurablenoise(Vector3d x, double c1, double c2)
+        {
+            Vector3d p = new Vector3d(Math.Floor(x.X), Math.Floor(x.Y), Math.Floor(x.Z));
+            Vector3d f = x - p;
+            f.X = f.X * f.X * (3.0 - 2.0 * f.X);
+            f.Y = f.Y * f.Y * (3.0 - 2.0 * f.Y);
+            f.Z = f.Z * f.Z * (3.0 - 2.0 * f.Z);
+
+            double h2 = c1;
+            double h1 = c2;
+            double h3 = h2 + h1;
+
+            double n = p.X + p.Y * h1 + h2 * p.Z;
+            return mix(mix(mix(hash(n + 0.0), hash(n + 1.0), f.X),
+                    mix(hash(n + h1), hash(n + h1 + 1.0), f.X), f.Y),
+                   mix(mix(hash(n + h2), hash(n + h2 + 1.0), f.X),
+                    mix(hash(n + h3), hash(n + h3 + 1.0), f.X), f.Y), f.Z);
+
+        }
+
+        static double supernoise3dX(Vector3d p)
+        {
+
+            double a = configurablenoise(p, 883.0, 971.0);
+            double b = configurablenoise(p + new Vector3d(0.5), 113.0, 157.0);
+            return (a * b);
+        }
+
+        static ushort doubleToUInt16(double v)
+        {
+            return (ushort)((v * ((float)ushort.MaxValue)));
+        }
+
+        static double fbm(Vector3d v, int octavecount, double octaveweight, double octavescale)
+        {
+            double w = 1.0;
+            double res = 0.0;
+            double wsum = 0.0;
+            for (int o = 0; o < octavecount; o++)
+            {
+                double noise = Math.Min(1.0, Math.Max(0.0, supernoise3dX(v)));
+                res += w * noise;
+                wsum += w;
+                w *= octaveweight;
+                v *= new Vector3d(octavescale, octavescale, octavescale);
+            }
+            return res;
+        }
 
         static bool doublefaced = false;
         static void SaveMeshToFile(Mesh3d m, string name, string outfile)
@@ -119,8 +178,8 @@ namespace MeshConverter
                 }
             }
             mode = args[0];
-            infile = args[1];
-            outfile = args[2];
+            infile = args.Length > 1 ? args[1] : "";
+            outfile = args.Length > 2 ? args[2] : "";
             Media.SearchPath = ".";
 
             if (mode == "scene2assets")
@@ -163,6 +222,13 @@ namespace MeshConverter
             if (mode == "obj2rawtang")
             {
                 var element = Object3dManager.LoadFromObjSingle(infile);
+                element.SaveRawWithTangents(outfile);
+            }
+            if (mode == "raworigin2center")
+            {
+                Console.WriteLine("origin 2 center");
+                var element = Object3dManager.LoadFromRaw(infile);
+                element.OriginToCenter();
                 element.SaveRawWithTangents(outfile);
             }
             if (mode == "objscene2assets")
@@ -228,6 +294,44 @@ namespace MeshConverter
                 var element = new Object3dManager(vertexinfos);
                 element.SaveRaw(outfile);
             }
+            if (mode == "noisetexture")
+            {
+                RequireArgs("resolution", "scale", "octavescale", "octavecount", "octaveweight", "seed", "out", "falloffmix", "falloffpower");
+                string outf = Arguments["out"];
+                int resolution = int.Parse(Arguments["resolution"]);
+                int octavecount = int.Parse(Arguments["octavecount"]);
+                float scale = float.Parse(Arguments["scale"], System.Globalization.CultureInfo.InvariantCulture);
+                float octavescale = float.Parse(Arguments["octavescale"], System.Globalization.CultureInfo.InvariantCulture);
+                float octaveweight = float.Parse(Arguments["octaveweight"], System.Globalization.CultureInfo.InvariantCulture);
+                float seed = float.Parse(Arguments["seed"], System.Globalization.CultureInfo.InvariantCulture);
+                float falloffmix = float.Parse(Arguments["falloffmix"], System.Globalization.CultureInfo.InvariantCulture);
+                float falloffpower = 1.0f / float.Parse(Arguments["falloffpower"], System.Globalization.CultureInfo.InvariantCulture);
+                BinaryWriter writer = new BinaryWriter(File.OpenWrite(outf));
+                writer.Seek(0, SeekOrigin.Begin);
+                System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(resolution, resolution);
+                for (int ix = 0; ix < resolution; ix++)
+                {
+                    for (int iy = 0; iy < resolution; iy++)
+                    {
+                        double x = (((double)ix) / ((double)resolution));
+                        double y = (((double)iy) / ((double)resolution));
+                        double len = Math.Min(1.0, new Vector2d(x * 2.0 - 1.0, y * 2.0 - 1.0).Length);
+                        x *= scale;
+                        y *= scale;
+                        len = Math.Pow(len, falloffpower);
+                        Vector3d v = new Vector3d(x, y, seed);
+                        double res = fbm(v, octavecount, octaveweight, octavescale);
+                        res = mix(res, 0.0, len * falloffmix);
+                        writer.Write(doubleToUInt16(res));
+                        int c = (int)(255.0 * (res));
+                      //  Console.WriteLine(res);
+                        bitmap.SetPixel(ix, iy, System.Drawing.Color.FromArgb(255, c, c, c));
+                    }
+                    Console.WriteLine("Progress: {0} %", (((double)ix) / ((double)resolution)) * 100.0);
+                }
+                bitmap.Save(outf + ".png", System.Drawing.Imaging.ImageFormat.Png);
+                writer.Close();
+            }
             if (mode == "generateterrain")
             {
                 RequireArgs("resolution", "parts", "in", "inx", "iny", "out", "size", "uvscale", "height");
@@ -271,11 +375,6 @@ namespace MeshConverter
                                 byte b0 = imgraw[(xpx + ypx * imgwidth) * 2];
                                 byte b1 = imgraw[(xpx + ypx * imgwidth) * 2 + 1];
                                 var col = BitConverter.ToUInt16(new byte[] { b0, b1 }, 0);
-                                int zxzs = (int)(x * 100.0);
-                                if (zxzs > lx)
-                                    Console.WriteLine(zxzs);
-                                if (zxzs > lx)
-                                    lx = zxzs;
                                 float f = ((float)(col) / (float)ushort.MaxValue) * height;
                                 if (f < 0.01f)
                                     f = -50.0f;
@@ -293,7 +392,11 @@ namespace MeshConverter
                         }));
                         tasks.Add(tx);
                     }
-                    tasks.ForEach((a) => a.Start());
+                    tasks.ForEach((a) => {
+                        a.Start();
+                      //  a.Wait();
+
+                        });
                     tasks.ForEach((a) => a.Wait());
                 }
             }

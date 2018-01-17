@@ -65,15 +65,7 @@ namespace VEngine
 
             public void Write(byte[] source, int sourceIndex, int length, int destinationIndex)
             {
-                unsafe
-                {
-                    byte* ptr = (byte*)Pointer.ToPointer();
-
-                    for(int i = 0; i < length; i++)
-                    {
-                        ptr[i + destinationIndex] = source[i + sourceIndex];
-                    }
-                }
+                
             }
         }
 

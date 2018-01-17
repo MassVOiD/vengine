@@ -25,23 +25,42 @@ namespace VEngine
         public static List<float> ToFloatList(VertexInfo[] vbo)
         {
             List<float> bytes = new List<float>(vbo.Length * 8);
-            foreach(var v in vbo)
+            foreach (var v in vbo)
                 bytes.AddRange(v.ToFloatList());
             return bytes;
         }
         public static List<float> ToFloatList(List<VertexInfo> vbo)
         {
             List<float> bytes = new List<float>(vbo.Count * 8);
-            foreach(var v in vbo)
+            foreach (var v in vbo)
                 bytes.AddRange(v.ToFloatList());
             return bytes;
         }
 
         public static List<VertexInfo> FromFloatArray(float[] vbo)
         {
+            List<VertexInfo> vs = new List<VertexInfo>(vbo.Length / 12);
+            var cnt = vbo.Length;
+            for (int i = 0; i < cnt; i += 12)
+            {
+                var v = new VertexInfo();
+                v.Position.X = vbo[i];
+                v.Position.Y = vbo[i + 1];
+                v.Position.Z = vbo[i + 2];
+                v.UV.X = vbo[i + 3];
+                v.UV.Y = vbo[i + 4];
+                v.Normal.X = vbo[i + 5];
+                v.Normal.Y = vbo[i + 6];
+                v.Normal.Z = vbo[i + 7];
+                vs.Add(v);
+            }
+            return vs;
+        }
+        public static List<VertexInfo> FromFloatArray2(float[] vbo)
+        {
             List<VertexInfo> vs = new List<VertexInfo>(vbo.Length / 8);
             var cnt = vbo.Length;
-            for(int i = 0; i < cnt; i += 8)
+            for (int i = 0; i < cnt; i += 8)
             {
                 var v = new VertexInfo();
                 v.Position.X = vbo[i];
@@ -57,6 +76,7 @@ namespace VEngine
             return vs;
         }
     }
+
     public class Object3dManager
     {
         public List<VertexInfo> Vertices;
@@ -136,9 +156,9 @@ namespace VEngine
         }
         public void RecalulateNormals(NormalRecalculationType mode, float smoothThreshold = 0)
         {
-            if(mode == NormalRecalculationType.Flat)
+            if (mode == NormalRecalculationType.Flat)
                 RecalculateNormalsFlat();
-            if(mode == NormalRecalculationType.Smooth)
+            if (mode == NormalRecalculationType.Smooth)
                 RecalculateNormalsSmooth(smoothThreshold);
 
         }
@@ -146,7 +166,7 @@ namespace VEngine
         private void RecalculateNormalsFlat()
         {
             int vcount = Vertices.Count;
-            for(int i = 0; i < vcount; i += 3)
+            for (int i = 0; i < vcount; i += 3)
             {
                 var v1 = Vertices[i];
                 var v2 = Vertices[i + 1];
@@ -161,14 +181,14 @@ namespace VEngine
         public void TryToFixVertexWinding()
         {
             int vcount = Vertices.Count;
-            for(int i = 0; i < vcount; i += 3)
+            for (int i = 0; i < vcount; i += 3)
             {
                 var v1 = Vertices[i];
                 var v2 = Vertices[i + 1];
                 var v3 = Vertices[i + 2];
                 var normal = Vector3.Cross(v2.Position - v1.Position, v3.Position - v1.Position).Normalized();
                 Vector3 avg = (v1.Normal + v2.Normal + v3.Normal) / 3.0f;
-                if(Vector3.Dot(avg, normal) < 0)
+                if (Vector3.Dot(avg, normal) < 0)
                 {
                     Vertices[i] = v3;
                     Vertices[i + 2] = v1;
@@ -179,7 +199,7 @@ namespace VEngine
         public void ReverseFaces()
         {
             int vcount = Vertices.Count;
-            for(int i = 0; i < vcount; i += 3)
+            for (int i = 0; i < vcount; i += 3)
             {
                 var v1 = Vertices[i];
                 var v3 = Vertices[i + 2];
@@ -194,9 +214,9 @@ namespace VEngine
             var normmap = new Dictionary<VertexInfo, Vector3>();
             var dividemap = new Dictionary<VertexInfo, float>();
             int vcount = Vertices.Count;
-            for(int i = 0; i < vcount; i++)
+            for (int i = 0; i < vcount; i++)
             {
-                if(!posmap.ContainsKey(Vertices[i].Position))
+                if (!posmap.ContainsKey(Vertices[i].Position))
                     posmap.Add(Vertices[i].Position, new List<VertexInfo>());
                 posmap[Vertices[i].Position].Add(Vertices[i]);
 
@@ -205,7 +225,7 @@ namespace VEngine
 
                 Vertices[i].Normal = Vector3.Zero;
             }
-            for(int i = 0; i < vcount; i += 3)
+            for (int i = 0; i < vcount; i += 3)
             {
                 var v1 = Vertices[i];
                 var v2 = Vertices[i + 1];
@@ -214,7 +234,7 @@ namespace VEngine
                 posmap[v1.Position].ForEach((a) =>
                 {
                     var n = normmap[a];
-                    if(Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
+                    if (Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
                     {
                         dividemap[v1] += 1.0f;
                         a.Normal += normal;
@@ -223,7 +243,7 @@ namespace VEngine
                 posmap[v2.Position].ForEach((a) =>
                 {
                     var n = normmap[a];
-                    if(Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
+                    if (Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
                     {
                         dividemap[v2] += 1.0f;
                         a.Normal += normal;
@@ -232,16 +252,16 @@ namespace VEngine
                 posmap[v3.Position].ForEach((a) =>
                 {
                     var n = normmap[a];
-                    if(Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
+                    if (Vector3.Dot(n, normal) * 0.5f + 0.5f > 1.0 - threshold)
                     {
                         dividemap[v3] += 1.0f;
                         a.Normal += normal;
                     }
                 });
             }
-            for(int i = 0; i < vcount; i++)
+            for (int i = 0; i < vcount; i++)
             {
-                if(Vertices[i].Normal.Length < 0.001f)
+                if (Vertices[i].Normal.Length < 0.001f)
                     Vertices[i].Normal = normmap[Vertices[i]];
                 else
                     Vertices[i].Normal /= dividemap[Vertices[i]];
@@ -277,8 +297,8 @@ namespace VEngine
         {
             MemoryStream vboStream = new MemoryStream();
 
-            foreach(var v in Vertices)
-                foreach(var v2 in v.ToFloatList())
+            foreach (var v in Vertices)
+                foreach (var v2 in v.ToFloatList())
                     vboStream.Write(BitConverter.GetBytes(v2), 0, 4);
 
             vboStream.Flush();
@@ -292,7 +312,7 @@ namespace VEngine
             var o3i = AsObject3dInfo();
             o3i.UpdateTangents();
 
-            foreach(var v2 in o3i.VBO)
+            foreach (var v2 in o3i.VBO)
                 vboStream.Write(BitConverter.GetBytes(v2), 0, 4);
 
             vboStream.Flush();
@@ -307,7 +327,7 @@ namespace VEngine
             o3i.DrawMode = PrimitiveType.LineStrip;
             o3i.UpdateTangents();
 
-            foreach(var v2 in o3i.VBO)
+            foreach (var v2 in o3i.VBO)
                 vboStream.Write(BitConverter.GetBytes(v2), 0, 4);
 
             vboStream.Flush();
@@ -321,45 +341,45 @@ namespace VEngine
             string currentName = "";
             string[] lines = File.ReadAllLines(filename);
             Match match;
-            foreach(string line in lines)
+            foreach (string line in lines)
             {
-                if(line.StartsWith("newmtl"))
+                if (line.StartsWith("newmtl"))
                 {
                     match = Regex.Match(line, @"newmtl (.+)");
-                    if(currentName != "")
+                    if (currentName != "")
                     {
                         materials.Add(currentName, currentMaterial);
                         currentMaterial = new MaterialInfo();
                     }
                     currentName = match.Groups[1].Value;
                 }
-                if(line.StartsWith("Ns"))
+                if (line.StartsWith("Ns"))
                 {
                     match = Regex.Match(line, @"Ns ([0-9.-]+)");
                     float val = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
                     currentMaterial.SpecularStrength = val > 1.0f ? 1.0f : val;
                 }
-                if(line.StartsWith("d"))
+                if (line.StartsWith("d"))
                 {
                     match = Regex.Match(line, @"d ([0-9.-]+)");
                     float val = float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
                     // currentMaterial.Transparency = val;
                 }
-                if(line.StartsWith("Ka"))
+                if (line.StartsWith("Ka"))
                 {
                     match = Regex.Match(line, @"Ka ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
                     int r = (int)(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
                     int g = (int)(float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
                     int b = (int)(float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture) * 255);
-                    if(r > 255)
+                    if (r > 255)
                         r = 255;
-                    if(g > 255)
+                    if (g > 255)
                         g = 255;
-                    if(b > 255)
+                    if (b > 255)
                         b = 255;
                     // currentMaterial.AmbientColor = Color.FromArgb(r, g, b);
                 }
-                if(line.StartsWith("Kd"))
+                if (line.StartsWith("Kd"))
                 {
                     match = Regex.Match(line, @"Kd ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
                     float r = (float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture));
@@ -367,7 +387,7 @@ namespace VEngine
                     float b = (float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture));
                     currentMaterial.DiffuseColor = new Vector3(r, g, b);
                 }
-                if(line.StartsWith("Ks"))
+                if (line.StartsWith("Ks"))
                 {
                     match = Regex.Match(line, @"Ks ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
                     float r = (float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture));
@@ -375,38 +395,38 @@ namespace VEngine
                     float b = (float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture));
                     currentMaterial.SpecularColor = new Vector3(r, g, b);
                 }
-                if(line.StartsWith("map_Kd"))
+                if (line.StartsWith("map_Kd"))
                 {
                     match = Regex.Match(line, @"map_Kd (.+)");
                     currentMaterial.TextureName = Path.GetFileName(match.Groups[1].Value);
                 }
-                if(line.StartsWith("map_Ks"))
+                if (line.StartsWith("map_Ks"))
                 {
                     match = Regex.Match(line, @"map_Ks (.+)");
                     currentMaterial.SpecularMapName = Path.GetFileName(match.Groups[1].Value);
                 }
-                if(line.StartsWith("map_d"))
+                if (line.StartsWith("map_d"))
                 {
                     match = Regex.Match(line, @"map_d (.+)");
                     currentMaterial.AlphaMask = Path.GetFileName(match.Groups[1].Value);
                 }
-                if(line.StartsWith("map_n"))
+                if (line.StartsWith("map_n"))
                 {
                     match = Regex.Match(line, @"map_n (.+)");
                     currentMaterial.NormapMapName = Path.GetFileName(match.Groups[1].Value);
                 }
-                if(line.StartsWith("map_Bump"))
+                if (line.StartsWith("map_Bump"))
                 {
                     match = Regex.Match(line, @"map_Bump (.+)");
                     currentMaterial.BumpMapName = Path.GetFileName(match.Groups[1].Value);
                 }
-                if(line.StartsWith("map_Roughness"))
+                if (line.StartsWith("map_Roughness"))
                 {
                     match = Regex.Match(line, @"map_Roughness (.+)");
                     currentMaterial.RoughnessMapName = Path.GetFileName(match.Groups[1].Value);
                 }
             }
-            if(currentName != "")
+            if (currentName != "")
                 materials.Add(currentName, currentMaterial);
             return materials;
         }
@@ -423,13 +443,13 @@ namespace VEngine
             Dictionary<GenericMaterial, Object3dManager> linkCache = new Dictionary<GenericMaterial, Object3dManager>();
             var colorPink = new GenericMaterial(Color.White);
 
-            foreach(var obj in objs)
+            foreach (var obj in objs)
             {
                 Console.WriteLine("Loading " + obj.Name);
                 Console.WriteLine("GC MEMORY USED {0} MB", GC.GetTotalMemory(true) / 1024.0 / 1024);
                 var mat = mtllib.ContainsKey(obj.MaterialName) ? mtllib[obj.MaterialName] : new MaterialInfo();
                 GenericMaterial material = colorPink;
-                if(mat != null && mat.TextureName.Length > 0)
+                if (mat != null && mat.TextureName.Length > 0)
                 {
 
                     var m = new GenericMaterial();
@@ -440,11 +460,11 @@ namespace VEngine
 
                     material.Name = obj.MaterialName;
                     mInfos[material] = mat;
-                   // texCache.Add(mat.TextureName + mat.AlphaMask, material);
+                    // texCache.Add(mat.TextureName + mat.AlphaMask, material);
                     // material = colorPink;
 
                 }
-                else if(mat != null)
+                else if (mat != null)
                 {
                     material = new GenericMaterial(mat.DiffuseColor);
                     mInfos[material] = mat;
@@ -455,7 +475,7 @@ namespace VEngine
                     mInfos[material] = mat;
                 }
 
-                for(int i = 0; i < obj.VBO.Count; i++)
+                for (int i = 0; i < obj.VBO.Count; i++)
                 {
                     obj.VBO[i].Position *= scale;
                 }
@@ -466,7 +486,7 @@ namespace VEngine
                 // else
                 //     linkCache[material].Add(o3di);
             }
-            foreach(var kv in linkCache)
+            foreach (var kv in linkCache)
             {
                 Object3dManager o3di = kv.Value;
 
@@ -477,7 +497,7 @@ namespace VEngine
                 var translation = o3di.ExtractTranslation();
                 var oi = new Object3dInfo(o3di.Vertices);
                 oi.Manager = o3di;
-               // GC.Collect();
+                // GC.Collect();
                 Mesh3d mesh = Mesh3d.Create(oi, kv.Key);
                 //kv.Key.SpecularComponent = 1.0f - mInfos[kv.Key].SpecularStrength + 0.01f;
                 kv.Key.Roughness = mInfos[kv.Key].SpecularStrength;
@@ -486,15 +506,15 @@ namespace VEngine
                 // kv.Key.ReflectionStrength = 1.0f - (mInfos[kv.Key].SpecularStrength);
                 //kv.Key.DiffuseComponent = mInfos[kv.Key].DiffuseColor.GetBrightness() + 0.01f;
                 var kva = kv.Key;
-                if(!mInfos.ContainsKey(kva))
+                if (!mInfos.ContainsKey(kva))
                     kva = mInfos.Keys.First();
-                if(mInfos[kva].BumpMapName.Length > 1)
+                if (mInfos[kva].BumpMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetBumpTexture(mInfos[kv.Key].BumpMapName);
-                if(mInfos[kva].RoughnessMapName.Length > 1)
+                if (mInfos[kva].RoughnessMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetRoughnessTexture(mInfos[kv.Key].RoughnessMapName);
-                if(mInfos[kva].NormapMapName.Length > 1)
+                if (mInfos[kva].NormapMapName.Length > 1)
                     ((GenericMaterial)kv.Key).SetNormalsTexture(mInfos[kv.Key].NormapMapName);
-                if(mInfos[kva].TextureName.Length > 1)
+                if (mInfos[kva].TextureName.Length > 1)
                 {
                     ((GenericMaterial)kv.Key).SetDiffuseTexture(mInfos[kv.Key].TextureName);
                     Console.WriteLine(mInfos[kv.Key].TextureName);
@@ -526,7 +546,7 @@ namespace VEngine
 
         public void FlipFaces()
         {
-            for(int i = 0; i < Vertices.Count; i += 3)
+            for (int i = 0; i < Vertices.Count; i += 3)
             {
                 var tmp = Vertices[i];
                 Vertices[i] = Vertices[i + 2];
@@ -547,7 +567,7 @@ namespace VEngine
         public Vector3 GetAverageTranslationFromZero()
         {
             float averagex = 0, averagey = 0, averagez = 0;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
                 averagex += vertex.X;
@@ -563,7 +583,7 @@ namespace VEngine
         public Vector3 ExtractTranslation()
         {
             float averagex = 0, averagey = 0, averagez = 0;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
                 averagex += vertex.X;
@@ -575,7 +595,7 @@ namespace VEngine
             averagez /= (float)Vertices.Count;
             var center = new Vector3(averagex, averagey, averagez);
 
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
                 vertex.X -= center.X;
@@ -588,7 +608,7 @@ namespace VEngine
         public Vector3 ExtractTranslation2DOnly()
         {
             float averagex = 0, averagey = 0;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
                 averagex += vertex.X;
@@ -598,7 +618,7 @@ namespace VEngine
             averagey /= (float)Vertices.Count;
             var center = new Vector3(averagex, 0.0f, averagey);
 
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
                 vertex.X -= center.X;
@@ -612,7 +632,7 @@ namespace VEngine
         {
             float maxx = -999999, maxy = -999999, maxz = -999999;
             float minx = 999999, miny = 999999, minz = 999999;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
 
@@ -630,7 +650,7 @@ namespace VEngine
         {
             float maxx = -999999, maxy = -999999, maxz = -999999;
             float minx = 999999, miny = 999999, minz = 999999;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
 
@@ -657,10 +677,10 @@ namespace VEngine
         {
             List<Vector3> vectors = new List<Vector3>();
             float maxval = 0.0001f;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
-                if((vertex - point).Length > maxval)
+                if ((vertex - point).Length > maxval)
                     maxval = vertex.Length;
             }
             return maxval;
@@ -669,10 +689,10 @@ namespace VEngine
         public float GetNormalizeDivisor()
         {
             float maxval = 0.0001f;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
-                if(vertex.Length > maxval)
+                if (vertex.Length > maxval)
                     maxval = vertex.Length;
             }
             return maxval;
@@ -683,7 +703,7 @@ namespace VEngine
         public List<Vector3> GetRawVertexList()
         {
             var ot = new List<Vector3>(Vertices.Count);
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
                 ot.Add(vertex);
@@ -701,7 +721,7 @@ namespace VEngine
         public void Normalize()
         {
             float maxval = GetNormalizeDivisor();
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].Position /= maxval;
             }
@@ -709,7 +729,7 @@ namespace VEngine
 
         public void AxisMultiple(Vector3 axes)
         {
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].Position *= axes;
             }
@@ -717,7 +737,7 @@ namespace VEngine
 
         public void AxisDivide(Vector3 axes)
         {
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].Position.X /= axes.X;
                 Vertices[i].Position.Y /= axes.Y;
@@ -728,7 +748,7 @@ namespace VEngine
         public void OriginToCenter()
         {
             float averagex = 0, averagey = 0, averagez = 0;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 var vertex = Vertices[i].Position;
                 averagex += vertex.X;
@@ -738,7 +758,7 @@ namespace VEngine
             averagex /= (float)Vertices.Count;
             averagey /= (float)Vertices.Count;
             averagez /= (float)Vertices.Count;
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].Position -= new Vector3(averagex, averagey, averagez);
             }
@@ -746,7 +766,7 @@ namespace VEngine
 
         public void ScaleUV(float x, float y)
         {
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].UV *= new Vector2(x, y);
             }
@@ -754,7 +774,7 @@ namespace VEngine
 
         public void ScaleUV(float scale)
         {
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].UV *= new Vector2(scale);
             }
@@ -762,7 +782,7 @@ namespace VEngine
 
         public void ReverseYUV(float scale)
         {
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
                 Vertices[i].UV.Y = 1.0f - Vertices[i].UV.Y;
             }
@@ -770,10 +790,10 @@ namespace VEngine
 
         public void Transform(Matrix4 ModelMatrix, Matrix4 RotationMatrix)
         {
-            for(int i = 0; i < Vertices.Count; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
-                Vertices[i].Position = Vector3.Transform(Vertices[i].Position, ModelMatrix);
-                Vertices[i].Normal = Vector3.Transform(Vertices[i].Normal, RotationMatrix);
+           //     Vertices[i].Position = Vector3.Transform(Vertices[i].Position, ModelMatrix);
+           //     Vertices[i].Normal = Vector3.Transform(Vertices[i].Normal, RotationMatrix);
             }
         }
 
@@ -782,7 +802,7 @@ namespace VEngine
             var vertices = GetRawVertexList();
             var a = vertices[0];
             var b = vertices[0];
-            foreach(var v in vertices)
+            foreach (var v in vertices)
             {
                 a = Min(a, v);
                 b = Max(b, v);
@@ -837,12 +857,12 @@ namespace VEngine
             string name = "";
 
             //  Match match = Match.Empty;
-            foreach(string line in lines)
+            foreach (string line in lines)
             {
-                if(line.StartsWith("o"))
+                if (line.StartsWith("o"))
                 {
                     current.VBO = out_vertex_buffer;
-                    if(current.VBO.Count >= 1)
+                    if (current.VBO.Count >= 1)
                     {
                         current.MaterialName = currentMaterial;
                         objects.Add(current);
@@ -859,17 +879,17 @@ namespace VEngine
                     //temp_uvs = new List<Vector2>();
                     out_vertex_buffer = new List<VertexInfo>();
                 }
-                if(line.StartsWith("usemtl"))
+                if (line.StartsWith("usemtl"))
                 {
                     currentMaterial = line.Substring(7);
                 }
-                if(line.StartsWith("vt"))
+                if (line.StartsWith("vt"))
                 {
                     var groups = line.Substring(3).Replace("nan", "0").Split(' ');
                     temp_uvs.Add(new Vector2(float.Parse(groups[0], System.Globalization.CultureInfo.InvariantCulture),
                         float.Parse(groups[1], System.Globalization.CultureInfo.InvariantCulture)));
                 }
-                else if(line.StartsWith("vn"))
+                else if (line.StartsWith("vn"))
                 {
                     var groups = line.Substring(3).Split(' ');
                     temp_normals.Add(new Vector3(
@@ -877,7 +897,7 @@ namespace VEngine
                         float.Parse(groups[1], System.Globalization.CultureInfo.InvariantCulture),
                         float.Parse(groups[2], System.Globalization.CultureInfo.InvariantCulture)));
                 }
-                else if(line.StartsWith("v"))
+                else if (line.StartsWith("v"))
                 {
                     var groups = line.Substring(2).Split(' ');
                     temp_vertices.Add(new Vector3(
@@ -885,11 +905,11 @@ namespace VEngine
                         float.Parse(groups[1], System.Globalization.CultureInfo.InvariantCulture),
                         float.Parse(groups[2], System.Globalization.CultureInfo.InvariantCulture)));
                 }
-                else if(line.StartsWith("f"))
+                else if (line.StartsWith("f"))
                 {
                     // match = Regex.Match(line, @"f ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+)");
                     var groups = line.Substring(2).Replace("//", "/").Replace(' ', '/').Split('/');
-                    if(groups.Length == 9)
+                    if (groups.Length == 9)
                     {
                         out_vertex_buffer.Add(
                             new VertexInfo()
@@ -965,51 +985,51 @@ namespace VEngine
             ObjFileData current = new ObjFileData();
 
             Match match = Match.Empty;
-            foreach(string line in lines)
+            foreach (string line in lines)
             {
-                if(line.StartsWith("vt"))
+                if (line.StartsWith("vt"))
                 {
                     match = Regex.Match(line, @"vt ([0-9.-]+) ([0-9.-]+)");
                     temp_uvs.Add(new Vector2(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture)));
                 }
-                else if(line.StartsWith("vn"))
+                else if (line.StartsWith("vn"))
                 {
                     match = Regex.Match(line, @"vn ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
                     temp_normals.Add(new Vector3(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture)));
                 }
-                else if(line.StartsWith("v"))
+                else if (line.StartsWith("v"))
                 {
                     match = Regex.Match(line, @"v ([0-9.-]+) ([0-9.-]+) ([0-9.-]+)");
                     temp_vertices.Add(new Vector3(float.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture), float.Parse(match.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture)));
                 }
-                else if(line.StartsWith("f"))
+                else if (line.StartsWith("f"))
                 {
                     match = Regex.Match(line, @"f ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+) ([0-9]+)/([0-9]+)/([0-9]+)");
-                    if(match.Success)
+                    if (match.Success)
                     {
-                        for(int i = 1; ;)
+                        for (int i = 1; ;)
                         {
                             Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                             Vector2 uv = temp_uvs[int.Parse(match.Groups[i++].Value) - 1];
                             Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
 
                             out_vertex_buffer.Add(new VertexInfo() { Position = vertex, Normal = normal, UV = uv });
-                            if(i >= 9)
+                            if (i >= 9)
                                 break;
                         }
                     }
                     else
                     {
                         match = Regex.Match(line, @"f ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+) ([0-9]+)//([0-9]+)");
-                        if(match.Success)
+                        if (match.Success)
                         {
-                            for(int i = 1; ;)
+                            for (int i = 1; ;)
                             {
                                 Vector3 vertex = temp_vertices[int.Parse(match.Groups[i++].Value) - 1];
                                 Vector3 normal = temp_normals[int.Parse(match.Groups[i++].Value) - 1];
 
                                 out_vertex_buffer.Add(new VertexInfo() { Position = vertex, Normal = normal, UV = normal.Xz });
-                                if(i >= 6)
+                                if (i >= 6)
                                     break;
                             }
                         }
